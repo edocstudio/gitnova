@@ -1,0 +1,3 @@
+# Keep local compilation bounded on developer machines.
+[build]
+jobs = 2

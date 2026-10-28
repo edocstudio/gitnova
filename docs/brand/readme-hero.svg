@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
+<title id="title">GitNova — Git made simple.</title>
+<desc id="desc">The original blue orbital nova mark beside the GitNova wordmark. Colorful Git paths meet and branch against a deep navy background. Every repository. Every change. By edocstudio.</desc>
+<defs>
+  <linearGradient id="background" x2="1" y2="1"><stop stop-color="#132a3c"/><stop offset="1" stop-color="#0a131e"/></linearGradient>
+  <radialGradient id="light"><stop stop-color="#367ef1" stop-opacity=".16"/><stop offset="1" stop-color="#367ef1" stop-opacity="0"/></radialGradient>
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#294057" stroke-width=".7" opacity=".32"/></pattern>
+</defs>
+<rect x="1" y="1" width="1278" height="358" rx="22" fill="url(#background)" stroke="#284159"/>
+<rect x="780" y="1" width="499" height="358" rx="22" fill="url(#grid)"/>
+<ellipse cx="1030" cy="170" rx="240" ry="200" fill="url(#light)"/>
+<g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+<text x="64" y="55" fill="#87a6c3" font-size="12" letter-spacing="3">OPEN SOURCE / LOCAL FIRST</text>
+<g transform="translate(61 90) scale(1.48)" color="#4b91ff"><g fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M16 14C7 20 5 31 10 40c4 8 12 12 22 12" stroke="currentColor" stroke-width="3.5"/>
+  <path d="M48 50c9-6 11-17 6-26-4-8-12-12-22-12" stroke="currentColor" stroke-width="3.5"/>
+</g>
+<path d="M32 14c2.5 11 7 15.5 18 18-11 2.5-15.5 7-18 18-2.5-11-7-15.5-18-18 11-2.5 15.5-7 18-18Z" fill="currentColor"/>
+<circle cx="16" cy="14" r="4.5" fill="currentColor"/>
+<circle cx="48" cy="50" r="4.5" fill="currentColor"/></g>
+<text x="178" y="161" fill="#e5edf6" font-size="76" font-weight="700" letter-spacing="-3">GitNova</text>
+<text x="67" y="224" fill="#dce9f7" font-size="34" font-weight="500" letter-spacing="-.7">Git made simple.</text>
+<text x="68" y="263" fill="#97b1cb" font-size="21">Every repository. Every change.</text>
+<text x="68" y="321" fill="#7996b1" font-size="12" letter-spacing="1.8">BUILT WITH RUST + TAURI</text>
+<text x="1190" y="321" text-anchor="end" fill="#93adc6" font-size="13">by edocstudio</text>
+</g>
+<!-- An abstract Git graph, not a screenshot or a feature/status claim. -->
+<g fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+<path d="M914 56V282" stroke="#4b91ff"/>
+<path d="M914 94C914 118 984 106 984 134V199C984 227 914 211 914 241" stroke="#56c7d2"/>
+<path d="M984 134C984 157 1060 146 1060 173V218C1060 245 984 232 984 261" stroke="#a981f5"/>
+<path d="M1060 173C1060 193 1130 185 1130 208V260" stroke="#d8a858"/>
+<path d="M914 94H864M984 134H1024M1060 173H1100" stroke="#47607b" stroke-width="1"/>
+</g>
+<g stroke="#102030" stroke-width="3">
+<circle cx="914" cy="94" r="9" fill="#4b91ff"/>
+<circle cx="914" cy="175" r="6" fill="#4b91ff"/>
+<circle cx="914" cy="241" r="9" fill="#4b91ff"/>
+<circle cx="984" cy="134" r="8" fill="#56c7d2"/>
+<circle cx="984" cy="199" r="6" fill="#56c7d2"/>
+<circle cx="1060" cy="173" r="8" fill="#a981f5"/>
+<circle cx="1060" cy="218" r="6" fill="#a981f5"/>
+<circle cx="1130" cy="208" r="6" fill="#d8a858"/>
+</g>
+<circle cx="914" cy="94" r="15" fill="none" stroke="#4b91ff" stroke-width="1.5" opacity=".55"/>
+</svg>

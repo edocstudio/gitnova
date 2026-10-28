@@ -1,0 +1,22 @@
+[package]
+name = "gitnova-git"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+tempfile.workspace = true
+gitnova-domain = { path = "../gitnova-domain" }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[dependencies.sha2]
+version = "0.10"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

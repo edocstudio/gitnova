@@ -1,0 +1,20 @@
+# Milestone 24 — Unstage during a pending operation
+
+The supplied screenshot showed an owned pending merge with 136 staged files. Ordinary per-file unstage existed, but the operation inspector collapsed all non-conflict paths into Merge result and exposed neither per-file nor all-file unstage. This was a missing operation workflow and a misleading staging presentation.
+
+The existing graph-selected inspector now separates Conflicts, Unstaged files and Staged files. An empty conflict section stays compact. Staged paths offer Unstage and Unstage all changes; the existing composer previews the exact named scope before confirmation. Unstage changes only index membership against original HEAD, preserves working bytes and keeps the native operation pending. Review and finish still include staged content only. Restage uses the existing reviewed working-result action.
+
+The native implementation prepares a temporary index, copies the original raw index and pins its staged tree under refs/gitnova/recovery before publishing under the native index lock. It checks exact preview identity again before publication. Explicit path resets never move HEAD or clear MERGE_HEAD. Native hooks are disabled for these index/recovery-ref operations. Large binaries need no raw-file backup because no working bytes are changed. Recovery metadata and references remain available if preparation partially succeeds. Conflicted indexes, hidden entries, submodule pointers and unowned/external operations require separate inspection/resolution.
+
+Diff scope is explicit: staged entries compare original HEAD to index; unstaged entries compare index to working content. Newly untracked files after unstaging use an isolated raw diff and retain literal path identity. The selection follows a file into its new group. Both English and Thai are included.
+
+Validation passed: three focused core scenarios (large binary/stale preview/native lock, per-file/all-file preservation and restaging, unresolved/external-session refusal), twenty frontend unit/catalog tests, strict core Clippy and workspace formatting. Browser verification passed the existing conflict editor/finish flow and the new unstage → restage → unstage all → selectively restage → finish flow, including EN/TH and newly untracked diffs. A final rerun also verified visible preview code rather than a stuck loading indicator. The separate GitNova Updated.app built successfully (56.70 MiB); TypeScript/Vite, macOS codesign and embedded-asset self-verification passed. The original running app process remained intact. The updated native GUI smoke was intentionally not launched while that user window was open, so it would not focus or reuse the user session. No test writes use the user's finetune-guitar or other development repositories. The current user's application window is left running; packaging does not restart it or change its pending operation.
+
+Screenshots: [Unstage all review](screenshots/merge-unstage-all-review.png), [Thai unstaged files](screenshots/merge-unstaged-thai.png).
+
+Existing restaging retains its resolution/recovery budgets. Stage all in ordinary Working changes is not added by this change. This is not support for writing into an unowned Git operation.
+
+
+Follow-up: real-world long paths revealed an intrinsic grid-column width overflow. This pushed both Unstage all and row actions beyond the visible inspector even though the new controls were present. Constrain the shared working-file grid to minmax(0,1fr), allow file labels to shrink/ellipsis, reserve action width, and let translated headings wrap. Full path tooltips remain available. A focused real-Git browser regression passed for English and Thai at 1360px and 1000px: every unstage control remains inside the pane, the pane has no horizontal overflow, and hit-testing reaches each button. No native Git implementation changed in this follow-up.
+
+Screenshots: [Long-path controls](screenshots/merge-long-path-controls-en-1360.png), [Thai narrow layout](screenshots/merge-long-path-controls-th-1000.png).

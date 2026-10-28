@@ -1,0 +1,49 @@
+# Rust build output (including local macOS app bundles)
+/target/
+
+# Frontend dependencies and generated output
+node_modules/
+/apps/desktop/dist/
+/apps/desktop/src-tauri/gen/
+**/.vite/
+*.tsbuildinfo
+
+# Test, coverage and diagnostic output
+**/playwright-report/
+**/test-results/
+**/coverage/
+*.log
+
+# Local environment values; keep shareable templates
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+
+# Local signing credentials
+*.p12
+*.pfx
+*.keystore
+*.mobileprovision
+
+# Private workstation credentials and local-only review material
+/.aws/
+/.ssh/
+/.git-credentials
+/.netrc
+/private-local/
+/*.pem
+/*.key
+
+# OS and temporary editor files
+.DS_Store
+.AppleDouble
+._*
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Cargo.lock, package-lock.json and tauri.local.conf.json belong in Git.

@@ -1,0 +1,131 @@
+{
+  "commits": 2100,
+  "measurements": [
+    {
+      "core_rss_kib": 4368,
+      "milliseconds": 616.653125,
+      "scenario": "graph_initial"
+    },
+    {
+      "core_rss_kib": 4368,
+      "milliseconds": 216.219417,
+      "scenario": "commit_detail"
+    },
+    {
+      "core_rss_kib": 4368,
+      "milliseconds": 809.759333,
+      "scenario": "working_snapshot"
+    },
+    {
+      "core_rss_kib": 8528,
+      "milliseconds": 3293.95075,
+      "scenario": "workspace_search_cold"
+    },
+    {
+      "core_rss_kib": 8784,
+      "milliseconds": 372.413333,
+      "scenario": "workspace_search_warm_0"
+    },
+    {
+      "core_rss_kib": 8864,
+      "milliseconds": 614.8339579999999,
+      "scenario": "switch_graph_0"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 389.624208,
+      "scenario": "workspace_search_warm_1"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 606.459042,
+      "scenario": "switch_graph_1"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 350.30275,
+      "scenario": "workspace_search_warm_2"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 591.181416,
+      "scenario": "switch_graph_2"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 360.063333,
+      "scenario": "workspace_search_warm_3"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 571.759292,
+      "scenario": "switch_graph_3"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 390.025375,
+      "scenario": "workspace_search_warm_4"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 660.507292,
+      "scenario": "switch_graph_4"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 381.688167,
+      "scenario": "workspace_search_warm_5"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 685.1242090000001,
+      "scenario": "switch_graph_5"
+    },
+    {
+      "core_rss_kib": 8880,
+      "milliseconds": 401.3485,
+      "scenario": "workspace_search_warm_6"
+    },
+    {
+      "core_rss_kib": 8896,
+      "milliseconds": 701.215375,
+      "scenario": "switch_graph_6"
+    },
+    {
+      "core_rss_kib": 8912,
+      "milliseconds": 366.379583,
+      "scenario": "workspace_search_warm_7"
+    },
+    {
+      "core_rss_kib": 8912,
+      "milliseconds": 584.0698749999999,
+      "scenario": "switch_graph_7"
+    },
+    {
+      "core_rss_kib": 8912,
+      "milliseconds": 361.892334,
+      "scenario": "workspace_search_warm_8"
+    },
+    {
+      "core_rss_kib": 8928,
+      "milliseconds": 566.534458,
+      "scenario": "switch_graph_8"
+    },
+    {
+      "core_rss_kib": 8928,
+      "milliseconds": 386.57816699999995,
+      "scenario": "workspace_search_warm_9"
+    },
+    {
+      "core_rss_kib": 8928,
+      "milliseconds": 612.0789589999999,
+      "scenario": "switch_graph_9"
+    },
+    {
+      "core_rss_kib": 9600,
+      "milliseconds": 657.827375,
+      "scenario": "workspace_search_persisted_restart"
+    }
+  ],
+  "profile": "debug core only; excludes WebKit, network, large binary patches and recovery copy"
+}

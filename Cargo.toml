@@ -1,0 +1,29 @@
+[workspace]
+members = ["crates/*", "apps/desktop/src-tauri"]
+default-members = ["crates/gitnova-core", "crates/gitnova-search", "crates/gitnova-graph", "crates/gitnova-git", "crates/gitnova-storage", "crates/gitnova-workspace", "crates/gitnova-submodule", "crates/gitnova-worktree", "crates/gitnova-ipc"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+rust-version = "1.98"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+tempfile = "3"
+
+# Keep local diagnostic builds/assertions while optimizing CPU-heavy first-party
+# paths. Dependencies retain the cheap dev profile and builds remain serialized.
+[profile.dev.package.gitnova-core]
+opt-level = 2
+[profile.dev.package.gitnova-git]
+opt-level = 2
+[profile.dev.package.gitnova-search]
+opt-level = 2
+[profile.dev.package.gitnova-graph]
+opt-level = 2
+[profile.dev.package.gitnova-domain]
+opt-level = 2

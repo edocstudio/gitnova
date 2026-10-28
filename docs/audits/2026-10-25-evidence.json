@@ -1,0 +1,70 @@
+{
+  "ui": {
+    "wrongDiff": {
+      "selected": "M\nspace name.txt",
+      "displayed": "a.txt",
+      "showsWrongContent": true
+    },
+    "scrollContext": {
+      "before": 900,
+      "afterRefreshAndRepoSwitch": 0
+    },
+    "lostFailure": {
+      "receiptStatus": "failed",
+      "receiptHasExpectedError": true,
+      "workingInspectorMounted": 0,
+      "errorVisible": false,
+      "headUnchanged": true
+    }
+  },
+  "gitDiffPathCases": [
+    {
+      "selected": "a.txt",
+      "parsedNames": [
+        "a.txt",
+        "\"a/double\\\"quote.txt\" \"b/double\\\"quote.txt\"",
+        "\"a/quoted\\tname.txt\" \"b/quoted\\tname.txt\"",
+        "space name.txt\t"
+      ],
+      "matchedIndex": 0,
+      "displayed": "a.txt",
+      "correct": true
+    },
+    {
+      "selected": "space name.txt",
+      "parsedNames": [
+        "a.txt",
+        "\"a/double\\\"quote.txt\" \"b/double\\\"quote.txt\"",
+        "\"a/quoted\\tname.txt\" \"b/quoted\\tname.txt\"",
+        "space name.txt\t"
+      ],
+      "matchedIndex": -1,
+      "displayed": "a.txt",
+      "correct": false
+    },
+    {
+      "selected": "quoted\tname.txt",
+      "parsedNames": [
+        "a.txt",
+        "\"a/double\\\"quote.txt\" \"b/double\\\"quote.txt\"",
+        "\"a/quoted\\tname.txt\" \"b/quoted\\tname.txt\"",
+        "space name.txt\t"
+      ],
+      "matchedIndex": -1,
+      "displayed": "a.txt",
+      "correct": false
+    },
+    {
+      "selected": "double\"quote.txt",
+      "parsedNames": [
+        "a.txt",
+        "\"a/double\\\"quote.txt\" \"b/double\\\"quote.txt\"",
+        "\"a/quoted\\tname.txt\" \"b/quoted\\tname.txt\"",
+        "space name.txt\t"
+      ],
+      "matchedIndex": -1,
+      "displayed": "a.txt",
+      "correct": false
+    }
+  ]
+}

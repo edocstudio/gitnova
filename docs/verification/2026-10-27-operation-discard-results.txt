@@ -1,0 +1,32 @@
+2026-10-27 — Pending-operation discard; sequential verification on temporary repositories.
+3 operation core cases, 14 ordinary-discard cases, 20 frontend tests, 2 browser workflows, 1 native IPC test passed.
+The final native GUI was not launched because the user application remained open.
+
+gitnova-operation-discard-tests.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.08s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 114.48s
+
+gitnova-operation-discard-regression.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.27s
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 132.44s
+
+gitnova-operation-discard-unit.log
+ Test Files  3 passed (3)
+      Tests  20 passed (20)
+
+gitnova-operation-discard-e2e.log
+  ✓  1 e2e/graph.spec.ts:869:1 › discard all previews explicit files and retains recovery and composer draft (32.6s)
+  ✓  2 e2e/graph.spec.ts:927:1 › pending merge discard all reviews and cancels, then removes unstaged files while keeping the merge (1.2m)
+  2 passed (1.9m)
+
+gitnova-operation-discard-clippy.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.01s
+
+gitnova-operation-discard-ipc.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 46.72s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 28.17s
+
+gitnova-operation-discard-app.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 42.63s
+GitNova 0.1.0: embedded UI assets verified; no dev server or workspace opened; native-smoke=enabled.
+Local app verified: /path/to/gitnova/target/debug/bundle/macos/GitNova Updated.app

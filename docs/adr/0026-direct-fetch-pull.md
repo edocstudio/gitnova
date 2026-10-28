@@ -1,0 +1,7 @@
+# ADR 0026 — Direct Fetch and Pull in graph context
+
+The user requests the everyday Fetch/Pull counterparts to the visible Push action. The remote picker already implements them indirectly, but discovering the next action from a behind counter requires unrelated navigation. Add Fetch and Pull beside Push and matching actions in the current local branch's existing graph menu. Reuse the graph action popover for remote choice, loading, affected paths and confirmation; add no screen or persistent panel.
+
+Fetch uses an explicitly selected configured remote (automatic when unambiguous), refreshes cached refs and preserves local branches/files. Pull resolves the current branch's configured upstream in native Git, fetches that branch, then previews a fast-forward into the current local branch. Preserve different local/upstream branch names and never switch to the remote branch's name. Require explicit confirmation bound to fresh state. Refuse divergence, dirty checkout, pending operations, stale tokens and missing upstreams through existing native safeguards. No automatic stash, merge commit, rebase, reset, recursive submodule update or retry. Fetch completion may precede an integration failure and must remain visible as a separate effect.
+
+Serialize verification to reduce host load. Test with temporary real repositories and bare remotes; do not fetch or pull any developer work repository during implementation.

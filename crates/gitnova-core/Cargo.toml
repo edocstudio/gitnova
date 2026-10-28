@@ -1,0 +1,22 @@
+[package]
+name = "gitnova-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+moka = { version = "0.12", default-features = false, features = ["sync"] }
+gitnova-hosting = { path = "../gitnova-hosting" }
+gitnova-search = { path = "../gitnova-search" }
+gitnova-domain = { path = "../gitnova-domain" }
+gitnova-git = { path = "../gitnova-git" }
+gitnova-graph = { path = "../gitnova-graph" }
+gitnova-workspace = { path = "../gitnova-workspace" }
+gitnova-storage = { path = "../gitnova-storage" }
+gitnova-submodule = { path = "../gitnova-submodule" }
+gitnova-worktree = { path = "../gitnova-worktree" }
+serde_json.workspace = true
+tempfile.workspace = true
+
+

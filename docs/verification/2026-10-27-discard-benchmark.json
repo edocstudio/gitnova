@@ -1,0 +1,47 @@
+{
+  "method": "Single sequential instrumented macOS run per case; real temporary owned-merge repository; small untracked text files after reviewed unstage; PATH wrapper logs Git launches. Includes core receipt handling, excludes frontend refresh. Background host load varied.",
+  "cases": [
+    {
+      "label": "baseline",
+      "files": 24,
+      "phases": {
+        "preview": {
+          "seconds": 5.404,
+          "gitProcesses": 98
+        },
+        "apply": {
+          "seconds": 67.418,
+          "gitProcesses": 1121
+        }
+      }
+    },
+    {
+      "label": "final24",
+      "files": 24,
+      "phases": {
+        "preview": {
+          "seconds": 2.454,
+          "gitProcesses": 36
+        },
+        "apply": {
+          "seconds": 13.233,
+          "gitProcesses": 196
+        }
+      }
+    },
+    {
+      "label": "final136",
+      "files": 136,
+      "phases": {
+        "preview": {
+          "seconds": 2.131,
+          "gitProcesses": 36
+        },
+        "apply": {
+          "seconds": 13.098,
+          "gitProcesses": 196
+        }
+      }
+    }
+  ]
+}

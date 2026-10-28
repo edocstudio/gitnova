@@ -1,0 +1,12 @@
+[package]
+name = "gitnova-submodule"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+gitnova-domain = { path = "../gitnova-domain" }
+gitnova-git = { path = "../gitnova-git" }
+serde_json.workspace = true
+sha2 = "0.10"

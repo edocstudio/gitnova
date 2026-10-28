@@ -1,0 +1,5 @@
+{
+  "reportId": "gitnova-m57-macos-arm64-2026-10-28",
+  "measuredAt": { "started": "2026-10-28", "completed": "2026-10-29", "timezone": "Asia/Bangkok" },
+  "host": { "cpu": "Apple M1 Pro", "physicalCores": 10, "ramGiB": 16, "architecture": "arm64", "os": "macOS 26.7.1", "git": "2.39.2 (Apple Git-143)" }
+}

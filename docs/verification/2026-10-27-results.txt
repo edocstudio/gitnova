@@ -1,0 +1,49 @@
+2026-10-27 — Focused sequential verification; temporary Git fixtures only.
+Eleven distinct browser workflows passed across focused runs; final EN/TH recovery rerun passed.
+Workspace subset initially had a Thai test selector mismatch; corrected selector passed on rerun.
+No full workspace-suite or cross-platform runtime claim.
+
+gitnova-activity-tests.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.99s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.56s
+
+gitnova-final-unit.log
+ Test Files  3 passed (3)
+      Tests  20 passed (20)
+
+gitnova-daily-acceptance.log
+  ✓  1 e2e/graph.spec.ts:142:1 › stage, unstage, review, commit and external cache invalidation use real Git (46.3s)
+  ✓  2 e2e/graph.spec.ts:275:1 › remote selection fetches latest, creates tracking local and pulls an existing branch (50.4s)
+  ✓  3 e2e/graph.spec.ts:513:1 › graph merge conflict editor reviews actual result and finishes a two-parent commit (1.1m)
+  ✓  4 e2e/graph.spec.ts:824:1 › direct main stash pops onto develop and reserved graph lanes avoid the neighboring main branch (1.4m)
+  ✓  5 e2e/graph.spec.ts:847:1 › reviewed worktree removal preserves source drafts and cleans registered workspace entries (33.7s)
+  ✓  6 e2e/graph.spec.ts:869:1 › discard all previews explicit files and retains recovery and composer draft (31.6s)
+  ✓  7 e2e/graph.spec.ts:890:1 › Working changes shows a submodule pointer diff and directly restores its recorded commit (38.5s)
+  7 passed (5.9m)
+
+gitnova-workspace-acceptance.log
+  ✓  1 e2e/graph.spec.ts:60:1 › real history, diff, workspace switching and keyboard context (19.4s)
+  ✓  2 e2e/graph.spec.ts:408:1 › related submodule initialize and recorded restore are previewed without changing parent staging (1.1m)
+  ✓  3 e2e/graph.spec.ts:505:1 › graph push reviews first publication and sets upstream while preserving dirty work (19.3s)
+  ✓  4 e2e/graph.spec.ts:720:1 › graph creates a reviewed worktree and opens it without disturbing source drafts (16.7s)
+  4 passed (2.9m)
+
+gitnova-recorded-ui-final.log
+  ✓  1 e2e/graph.spec.ts:869:1 › discard all previews explicit files and retains recovery and composer draft (32.3s)
+  1 passed (37.2s)
+
+gitnova-recorded-clippy.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.75s
+
+gitnova-recorded-native-ipc.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 52.79s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.02s
+
+gitnova-local-app-final.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 42.63s
+GitNova 0.1.0: embedded UI assets verified; no dev server or workspace opened; native-smoke=enabled.
+Local app verified: /path/to/gitnova/target/debug/bundle/macos/GitNova.app
+
+gitnova-native-local-smoke.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.46s
+PASS: packaged WebKit UI → native catalog and real Git graph; duplicate launch reused the first instance.

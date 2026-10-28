@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "reportId": "gitnova-m57-macos-arm64-2026-10-28",
+  "measuredAt": {
+    "started": "2026-10-28",
+    "completed": "2026-10-29",
+    "timezone": "Asia/Bangkok"
+  },
+  "environment": {
+    "cpu": "Apple M1 Pro",
+    "physicalCores": 10,
+    "ramGiB": 16,
+    "architecture": "arm64",
+    "os": "macOS 26.7.1",
+    "git": "2.39.2 (Apple Git-143)"
+  },
+  "provenance": {
+    "kind": "measured-local-development-build",
+    "baselineRevision": null,
+    "candidateRevision": null,
+    "revisionNote": "Uncommitted local development builds; revision attribution was not captured in the original run.",
+    "beforeProfile": "original unoptimized debug",
+    "afterProfile": "final metadata/status/cache/search optimization; first-party hot crates opt-level=2"
+  },
+  "comparison": {
+    "operationFixture": {
+      "trackedFiles": 500,
+      "transport": "local-bare",
+      "scope": "preview-apply-refresh",
+      "includesHumanReviewTime": false
+    },
+    "operations": [
+      {
+        "id": "switch",
+        "before": {
+          "medianMs": 954.142958,
+          "samplesMs": [
+            954.142958,
+            944.0207500000001,
+            1103.9589580000002
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            107,
+            107,
+            107
+          ]
+        },
+        "after": {
+          "medianMs": 834.091541,
+          "samplesMs": [
+            799.008666,
+            849.0145819999999,
+            834.091541
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            92,
+            92,
+            92
+          ]
+        },
+        "changePercent": -12.582120529573725
+      },
+      {
+        "id": "push",
+        "before": {
+          "medianMs": 2460.472542,
+          "samplesMs": [
+            2460.472542,
+            2525.87025,
+            2354.33325
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            190,
+            190,
+            190
+          ]
+        },
+        "after": {
+          "medianMs": 2538.626417,
+          "samplesMs": [
+            2538.626417,
+            2631.563376,
+            2378.0278749999998
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            181,
+            181,
+            181
+          ]
+        },
+        "changePercent": 3.176376637654821
+      },
+      {
+        "id": "pull",
+        "before": {
+          "medianMs": 2434.1139579999995,
+          "samplesMs": [
+            2612.3176670000003,
+            2434.1139579999995,
+            2429.114791
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            255,
+            255,
+            255
+          ]
+        },
+        "after": {
+          "medianMs": 2112.0760419999997,
+          "samplesMs": [
+            2112.0760419999997,
+            2275.389834,
+            2081.012124
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            220,
+            220,
+            220
+          ]
+        },
+        "changePercent": -13.230190597345892
+      },
+      {
+        "id": "merge",
+        "before": {
+          "medianMs": 6710.034833000001,
+          "samplesMs": [
+            6710.034833000001,
+            7877.621083999999,
+            6479.284542
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            490,
+            490,
+            490
+          ]
+        },
+        "after": {
+          "medianMs": 6172.177208,
+          "samplesMs": [
+            6172.177208,
+            6949.253625,
+            6127.7910839999995
+          ],
+          "sampleCount": 3,
+          "gitCallsSamples": [
+            439,
+            439,
+            439
+          ]
+        },
+        "changePercent": -8.015720311239116
+      }
+    ],
+    "search": {
+      "fixtureCommits": 20100,
+      "cold": {
+        "before": {
+          "medianMs": 12670.165416,
+          "samplesMs": [
+            12670.165416
+          ],
+          "sampleCount": 1
+        },
+        "after": {
+          "medianMs": 12836.829292,
+          "samplesMs": [
+            12836.829292
+          ],
+          "sampleCount": 1
+        },
+        "changePercent": 1.315404105060347
+      },
+      "warm": {
+        "before": {
+          "medianMs": 231.9754165,
+          "samplesMs": [
+            250.25387500000002,
+            228.630042,
+            220.923167,
+            235.320791,
+            222.28504199999998,
+            215.522334,
+            236.604959,
+            247.8355,
+            239.363667,
+            206.80825
+          ],
+          "sampleCount": 10
+        },
+        "after": {
+          "medianMs": 111.04789600000001,
+          "samplesMs": [
+            127.49391700000001,
+            111.583084,
+            121.555583,
+            109.48583400000001,
+            118.083291,
+            102.577167,
+            110.512708,
+            106.91499999999999,
+            108.308125,
+            115.669416
+          ],
+          "sampleCount": 10
+        },
+        "changePercent": -52.12945506232123
+      }
+    },
+    "largeOperations": {
+      "historyCommits": 50000,
+      "trackedFiles": 10000,
+      "sampleCount": 1,
+      "elapsedMs": {
+        "switch": 1792.839125,
+        "push": 3711.724916,
+        "pull": 3178.147667,
+        "merge": 6779.743126
+      }
+    }
+  },
+  "soak": {
+    "passed": true,
+    "failure": null,
+    "requestedSeconds": 1800,
+    "sampledSeconds": 1809.56,
+    "cycles": 117,
+    "sampleCount": 874,
+    "fixture": {
+      "large_commits": 50000,
+      "large_tracked_files": 10000,
+      "medium_commits": 5000,
+      "locations": 10,
+      "linked_worktrees": 2,
+      "submodules": 2,
+      "tracking_branches": 200,
+      "merge_commits": 10
+    },
+    "visibility": [
+      "hidden"
+    ],
+    "profile": "packaged debug app with optimized first-party crates, real background WKWebView, scripted manual refresh/interaction; not foreground rendering or GPU/JS-heap measurement; no provider/network or cross-product comparison",
+    "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+    "memory": {
+      "peak_native_mib": 211.734375,
+      "peak_sampled_total_mib": 650.078125,
+      "native_warm_slope_mib_per_minute": -0.3931905516644798,
+      "webkit_warm_slope_mib_per_minute": 0.1662880510948312,
+      "last_5min_native_median_mib": 180.796875
+    },
+    "intervals": [
+      {
+        "startSeconds": 0,
+        "endSeconds": 300,
+        "nativeMiB": 175.546875,
+        "webKitMiB": 319.25,
+        "sampledSumMiB": 494.78125
+      },
+      {
+        "startSeconds": 300,
+        "endSeconds": 600,
+        "nativeMiB": 185.53125,
+        "webKitMiB": 394.21875,
+        "sampledSumMiB": 581.828125
+      },
+      {
+        "startSeconds": 600,
+        "endSeconds": 900,
+        "nativeMiB": 183.484375,
+        "webKitMiB": 347.953125,
+        "sampledSumMiB": 530.875
+      },
+      {
+        "startSeconds": 900,
+        "endSeconds": 1200,
+        "nativeMiB": 176.90625,
+        "webKitMiB": 382.0078125,
+        "sampledSumMiB": 566.7109375
+      },
+      {
+        "startSeconds": 1200,
+        "endSeconds": 1500,
+        "nativeMiB": 179.96875,
+        "webKitMiB": 377.2890625,
+        "sampledSumMiB": 556.625
+      },
+      {
+        "startSeconds": 1500,
+        "endSeconds": 1800,
+        "nativeMiB": 180.78125,
+        "webKitMiB": 395.28125,
+        "sampledSumMiB": 577.796875
+      }
+    ],
+    "latencies": {
+      "branch_roundtrip_review_apply_ipc": {
+        "samples": 10,
+        "median_ms": 3677.0,
+        "p95_ms": 4904,
+        "max_ms": 4904
+      },
+      "detail_ui": {
+        "samples": 117,
+        "median_ms": 204.99999999976717,
+        "p95_ms": 529.9999999999418,
+        "max_ms": 2387.999999999767
+      },
+      "manual_refresh_ui": {
+        "samples": 117,
+        "median_ms": 1967,
+        "p95_ms": 3177,
+        "max_ms": 7471
+      },
+      "older_graph_ui": {
+        "samples": 39,
+        "median_ms": 944.9999999998836,
+        "p95_ms": 1498,
+        "max_ms": 1954.0000000002328
+      },
+      "snapshot_ipc": {
+        "samples": 117,
+        "median_ms": 655,
+        "p95_ms": 1354.9999999999854,
+        "max_ms": 1600.0000000001164
+      },
+      "switch_repository_ui": {
+        "samples": 117,
+        "median_ms": 835,
+        "p95_ms": 2185,
+        "max_ms": 3187
+      },
+      "search_ui_current": {
+        "samples": 19,
+        "median_ms": 2083.000000000058,
+        "p95_ms": 3178.999999999767,
+        "max_ms": 3178.999999999767
+      },
+      "workspace_search_ipc": {
+        "samples": 19,
+        "median_ms": 12207.000000000233,
+        "p95_ms": 22440,
+        "max_ms": 22440
+      }
+    },
+    "maxRenderedCommitRows": 25,
+    "maxDomNodes": 10104
+  },
+  "limitations": [
+    "single-machine",
+    "development-build",
+    "code-and-profile-effects-combined",
+    "local-transport-only",
+    "background-webview-not-foreground-rendering",
+    "sampled-rss-not-js-heap-or-gpu",
+    "shared-page-double-counting-possible",
+    "no-full-workday-or-leak-proof",
+    "no-language-or-cross-product-comparison",
+    "cold-and-large-workspace-search-remain-slow",
+    "search-coverage-20000-commits-per-worktree"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/2026-10-28-optimization-timings.json",
+      "bytes": 77363,
+      "sha256": "ebf62a920d2ed545ebe253beb5d53190a7d2794c05fcd438aeba38546b0f4cd3"
+    },
+    {
+      "path": "artifacts/2026-10-28-native-soak.json",
+      "bytes": 319399,
+      "sha256": "882e9bdc25ad8aa75b9912ef68e4d5a3b5e6858bcd8148ed282f99161ee603cb"
+    },
+    {
+      "path": "artifacts/2026-10-28-native-soak-memory.csv",
+      "bytes": 35682,
+      "sha256": "6cd6bda67f350a8dcd2939bc9cfc951992dbb432ceaf8a8df5df2094507131f3"
+    },
+    {
+      "path": "artifacts/2026-10-28-optimization-and-soak.md",
+      "bytes": 8107,
+      "sha256": "c5be8f63ea4f36e3eb4758594a376223c8e6b4f26eb781a24d8a7dca093d60ae"
+    },
+    {
+      "path": "artifacts/2026-10-28-benchmark-environment.json",
+      "bytes": 307,
+      "sha256": "c841f35e97e7cb0be48780801a39c2f068cfb5918e61bd4911f760552f9d45bc"
+    }
+  ]
+}

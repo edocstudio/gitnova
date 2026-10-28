@@ -1,0 +1,16 @@
+Local verification interruption — 2026-10-27
+
+Development verification was paused following workstation freezes and delayed
+executable launches. Observations were collected after restart, so they do not
+establish the root cause or the state of GitNova during the interruption.
+
+Public engineering outcome:
+- Do not overlap build/test/native-launch runners.
+- Use bounded build concurrency and focused integration targets.
+- Keep at most one task-owned diagnostic launch probe; do not start repeated
+  copies of stalled executables.
+- Collect read-only system evidence before resuming verification.
+- A successful later build does not prove the original freeze was fixed.
+
+Raw workstation process inventory, security-product details and account-specific
+paths are intentionally excluded from this public record.

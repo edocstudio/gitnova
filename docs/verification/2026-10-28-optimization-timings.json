@@ -1,0 +1,2770 @@
+{
+  "before": "original unoptimized debug",
+  "after": "final metadata/status/cache/search optimization; first-party hot crates opt-level=2",
+  "operations": [
+    {
+      "round": 0,
+      "side": "before",
+      "data": {
+        "build": "debug",
+        "measurements": [
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 149767,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 6,
+                "status": 1,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 153.260625,
+            "scenario": "switch_feature_preview"
+          },
+          {
+            "git": {
+              "calls": 44,
+              "command_microseconds": 369488,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 19,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 7
+              }
+            },
+            "milliseconds": 389.59779100000003,
+            "scenario": "switch_feature_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 405380,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 411.284542,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 233307,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 6,
+                "status": 1,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 236.933125,
+            "scenario": "switch_main_preview"
+          },
+          {
+            "git": {
+              "calls": 44,
+              "command_microseconds": 606506,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 19,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 7
+              }
+            },
+            "milliseconds": 627.0985000000001,
+            "scenario": "switch_main_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 1180735,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 1189.2185419999998,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 35,
+              "command_microseconds": 390686,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 2,
+                "config": 12,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-remote": 2,
+                "merge-base": 1,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 5,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 398.946667,
+            "scenario": "push_preview"
+          },
+          {
+            "git": {
+              "calls": 110,
+              "command_microseconds": 1539695,
+              "commands": {
+                "cat-file": 2,
+                "check-ref-format": 4,
+                "config": 31,
+                "for-each-ref": 8,
+                "log": 2,
+                "ls-files": 2,
+                "ls-remote": 6,
+                "merge-base": 2,
+                "push": 1,
+                "remote": 8,
+                "rev-list": 2,
+                "rev-parse": 26,
+                "status": 2,
+                "symbolic-ref": 13,
+                "update-ref": 1
+              }
+            },
+            "milliseconds": 1571.8542499999999,
+            "scenario": "push_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 484840,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 489.671625,
+            "scenario": "push_refresh"
+          },
+          {
+            "git": {
+              "calls": 22,
+              "command_microseconds": 263473,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 1,
+                "config": 3,
+                "ls-files": 2,
+                "remote": 1,
+                "rev-parse": 10,
+                "status": 2,
+                "symbolic-ref": 2
+              }
+            },
+            "milliseconds": 292.57149999999996,
+            "scenario": "pull_fetch"
+          },
+          {
+            "git": {
+              "calls": 49,
+              "command_microseconds": 397035,
+              "commands": {
+                "check-ref-format": 2,
+                "config": 11,
+                "diff": 1,
+                "for-each-ref": 5,
+                "ls-files": 4,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 13,
+                "status": 3,
+                "symbolic-ref": 6
+              }
+            },
+            "milliseconds": 401.687084,
+            "scenario": "pull_preview"
+          },
+          {
+            "git": {
+              "calls": 139,
+              "command_microseconds": 1302870,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 3,
+                "config": 27,
+                "diff": 3,
+                "for-each-ref": 12,
+                "ls-files": 13,
+                "remote": 5,
+                "rev-list": 2,
+                "rev-parse": 45,
+                "status": 10,
+                "symbolic-ref": 18
+              }
+            },
+            "milliseconds": 1331.3829580000001,
+            "scenario": "pull_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 581804,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 586.676125,
+            "scenario": "pull_refresh"
+          },
+          {
+            "git": {
+              "calls": 49,
+              "command_microseconds": 510467,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 1,
+                "config": 15,
+                "diff": 1,
+                "ls-files": 2,
+                "merge-base": 3,
+                "rev-parse": 20,
+                "show": 2,
+                "status": 1,
+                "symbolic-ref": 2,
+                "worktree": 1
+              }
+            },
+            "milliseconds": 607.48925,
+            "scenario": "merge_preview"
+          },
+          {
+            "git": {
+              "calls": 160,
+              "command_microseconds": 2217104,
+              "commands": {
+                "-c": 1,
+                "cat-file": 2,
+                "check-ref-format": 6,
+                "config": 38,
+                "diff": 2,
+                "ls-files": 11,
+                "merge-base": 6,
+                "rev-parse": 73,
+                "show": 4,
+                "status": 6,
+                "symbolic-ref": 8,
+                "update-ref": 1,
+                "worktree": 2
+              }
+            },
+            "milliseconds": 2607.198167,
+            "scenario": "merge_begin"
+          },
+          {
+            "git": {
+              "calls": 58,
+              "command_microseconds": 605754,
+              "commands": {
+                "check-ref-format": 4,
+                "config": 9,
+                "diff": 2,
+                "ls-files": 10,
+                "ls-tree": 1,
+                "rev-parse": 27,
+                "status": 3,
+                "symbolic-ref": 2
+              }
+            },
+            "milliseconds": 719.1831669999999,
+            "scenario": "merge_finish_preview"
+          },
+          {
+            "git": {
+              "calls": 178,
+              "command_microseconds": 1995513,
+              "commands": {
+                "check-ref-format": 12,
+                "commit": 1,
+                "config": 24,
+                "diff": 4,
+                "ls-files": 25,
+                "ls-tree": 2,
+                "rev-parse": 91,
+                "show": 1,
+                "status": 10,
+                "symbolic-ref": 8
+              }
+            },
+            "milliseconds": 2245.593666,
+            "scenario": "merge_finish"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 525846,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 530.570583,
+            "scenario": "merge_refresh"
+          }
+        ],
+        "tracked_files": 500,
+        "transport": "local temporary bare repository"
+      }
+    },
+    {
+      "round": 0,
+      "side": "after",
+      "data": {
+        "build": "debug",
+        "history_commits": 0,
+        "measurements": [
+          {
+            "git": {
+              "calls": 16,
+              "command_microseconds": 134655,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 5,
+                "status": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 137.435959,
+            "scenario": "switch_feature_preview"
+          },
+          {
+            "git": {
+              "calls": 36,
+              "command_microseconds": 319005,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 15,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 344.974291,
+            "scenario": "switch_feature_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 312365,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 316.598416,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 16,
+              "command_microseconds": 123957,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 5,
+                "status": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 126.441,
+            "scenario": "switch_main_preview"
+          },
+          {
+            "git": {
+              "calls": 36,
+              "command_microseconds": 431857,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 15,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 450.971584,
+            "scenario": "switch_main_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 647786,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 653.159,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 35,
+              "command_microseconds": 344865,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 2,
+                "config": 12,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-remote": 2,
+                "merge-base": 1,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 5,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 348.25075,
+            "scenario": "push_preview"
+          },
+          {
+            "git": {
+              "calls": 106,
+              "command_microseconds": 1585333,
+              "commands": {
+                "cat-file": 2,
+                "check-ref-format": 4,
+                "config": 31,
+                "for-each-ref": 8,
+                "log": 2,
+                "ls-files": 2,
+                "ls-remote": 6,
+                "merge-base": 2,
+                "push": 1,
+                "remote": 8,
+                "rev-list": 2,
+                "rev-parse": 24,
+                "status": 2,
+                "symbolic-ref": 11,
+                "update-ref": 1
+              }
+            },
+            "milliseconds": 1623.335042,
+            "scenario": "push_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 562649,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 567.040625,
+            "scenario": "push_refresh"
+          },
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 214795,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 1,
+                "config": 3,
+                "ls-files": 2,
+                "remote": 1,
+                "rev-parse": 8,
+                "status": 2
+              }
+            },
+            "milliseconds": 242.189875,
+            "scenario": "pull_fetch"
+          },
+          {
+            "git": {
+              "calls": 43,
+              "command_microseconds": 362807,
+              "commands": {
+                "check-ref-format": 2,
+                "config": 11,
+                "diff": 1,
+                "for-each-ref": 5,
+                "ls-files": 4,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 10,
+                "status": 3,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 366.310459,
+            "scenario": "pull_preview"
+          },
+          {
+            "git": {
+              "calls": 119,
+              "command_microseconds": 1057192,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 3,
+                "config": 27,
+                "diff": 3,
+                "for-each-ref": 12,
+                "ls-files": 13,
+                "remote": 5,
+                "rev-list": 2,
+                "rev-parse": 35,
+                "status": 10,
+                "symbolic-ref": 8
+              }
+            },
+            "milliseconds": 1081.121666,
+            "scenario": "pull_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 418393,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 422.45404199999996,
+            "scenario": "pull_refresh"
+          },
+          {
+            "git": {
+              "calls": 47,
+              "command_microseconds": 511012,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 1,
+                "config": 15,
+                "diff": 1,
+                "ls-files": 2,
+                "merge-base": 3,
+                "rev-parse": 19,
+                "show": 2,
+                "status": 1,
+                "symbolic-ref": 1,
+                "worktree": 1
+              }
+            },
+            "milliseconds": 642.9215409999999,
+            "scenario": "merge_preview"
+          },
+          {
+            "git": {
+              "calls": 148,
+              "command_microseconds": 1762762,
+              "commands": {
+                "-c": 1,
+                "cat-file": 2,
+                "check-ref-format": 6,
+                "config": 38,
+                "diff": 2,
+                "ls-files": 11,
+                "merge-base": 6,
+                "rev-parse": 67,
+                "show": 4,
+                "status": 6,
+                "symbolic-ref": 2,
+                "update-ref": 1,
+                "worktree": 2
+              }
+            },
+            "milliseconds": 2196.223042,
+            "scenario": "merge_begin"
+          },
+          {
+            "git": {
+              "calls": 50,
+              "command_microseconds": 523850,
+              "commands": {
+                "check-ref-format": 4,
+                "config": 8,
+                "diff": 2,
+                "ls-files": 9,
+                "ls-tree": 1,
+                "rev-parse": 24,
+                "status": 2
+              }
+            },
+            "milliseconds": 632.1885000000001,
+            "scenario": "merge_finish_preview"
+          },
+          {
+            "git": {
+              "calls": 154,
+              "command_microseconds": 1872456,
+              "commands": {
+                "check-ref-format": 12,
+                "commit": 1,
+                "config": 22,
+                "diff": 4,
+                "ls-files": 23,
+                "ls-tree": 2,
+                "rev-parse": 81,
+                "show": 1,
+                "status": 8
+              }
+            },
+            "milliseconds": 2117.395541,
+            "scenario": "merge_finish"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 577856,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 583.448584,
+            "scenario": "merge_refresh"
+          }
+        ],
+        "tracked_files": 500,
+        "transport": "local temporary bare repository"
+      }
+    },
+    {
+      "round": 1,
+      "side": "before",
+      "data": {
+        "build": "debug",
+        "measurements": [
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 154850,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 6,
+                "status": 1,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 157.945167,
+            "scenario": "switch_feature_preview"
+          },
+          {
+            "git": {
+              "calls": 44,
+              "command_microseconds": 411388,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 19,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 7
+              }
+            },
+            "milliseconds": 431.11925,
+            "scenario": "switch_feature_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 350244,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 354.95633300000003,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 136981,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 6,
+                "status": 1,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 139.930917,
+            "scenario": "switch_main_preview"
+          },
+          {
+            "git": {
+              "calls": 44,
+              "command_microseconds": 583764,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 19,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 7
+              }
+            },
+            "milliseconds": 604.745084,
+            "scenario": "switch_main_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 828895,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 834.9177500000001,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 35,
+              "command_microseconds": 414318,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 2,
+                "config": 12,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-remote": 2,
+                "merge-base": 1,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 5,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 418.14574999999996,
+            "scenario": "push_preview"
+          },
+          {
+            "git": {
+              "calls": 110,
+              "command_microseconds": 1588007,
+              "commands": {
+                "cat-file": 2,
+                "check-ref-format": 4,
+                "config": 31,
+                "for-each-ref": 8,
+                "log": 2,
+                "ls-files": 2,
+                "ls-remote": 6,
+                "merge-base": 2,
+                "push": 1,
+                "remote": 8,
+                "rev-list": 2,
+                "rev-parse": 26,
+                "status": 2,
+                "symbolic-ref": 13,
+                "update-ref": 1
+              }
+            },
+            "milliseconds": 1622.2920840000002,
+            "scenario": "push_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 480816,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 485.432416,
+            "scenario": "push_refresh"
+          },
+          {
+            "git": {
+              "calls": 22,
+              "command_microseconds": 246095,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 1,
+                "config": 3,
+                "ls-files": 2,
+                "remote": 1,
+                "rev-parse": 10,
+                "status": 2,
+                "symbolic-ref": 2
+              }
+            },
+            "milliseconds": 275.76462499999997,
+            "scenario": "pull_fetch"
+          },
+          {
+            "git": {
+              "calls": 49,
+              "command_microseconds": 399384,
+              "commands": {
+                "check-ref-format": 2,
+                "config": 11,
+                "diff": 1,
+                "for-each-ref": 5,
+                "ls-files": 4,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 13,
+                "status": 3,
+                "symbolic-ref": 6
+              }
+            },
+            "milliseconds": 404.11724999999996,
+            "scenario": "pull_preview"
+          },
+          {
+            "git": {
+              "calls": 139,
+              "command_microseconds": 1230571,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 3,
+                "config": 27,
+                "diff": 3,
+                "for-each-ref": 12,
+                "ls-files": 13,
+                "remote": 5,
+                "rev-list": 2,
+                "rev-parse": 45,
+                "status": 10,
+                "symbolic-ref": 18
+              }
+            },
+            "milliseconds": 1260.2256249999998,
+            "scenario": "pull_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 488910,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 494.006458,
+            "scenario": "pull_refresh"
+          },
+          {
+            "git": {
+              "calls": 49,
+              "command_microseconds": 547930,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 1,
+                "config": 15,
+                "diff": 1,
+                "ls-files": 2,
+                "merge-base": 3,
+                "rev-parse": 20,
+                "show": 2,
+                "status": 1,
+                "symbolic-ref": 2,
+                "worktree": 1
+              }
+            },
+            "milliseconds": 697.93575,
+            "scenario": "merge_preview"
+          },
+          {
+            "git": {
+              "calls": 160,
+              "command_microseconds": 2471516,
+              "commands": {
+                "-c": 1,
+                "cat-file": 2,
+                "check-ref-format": 6,
+                "config": 38,
+                "diff": 2,
+                "ls-files": 11,
+                "merge-base": 6,
+                "rev-parse": 73,
+                "show": 4,
+                "status": 6,
+                "symbolic-ref": 8,
+                "update-ref": 1,
+                "worktree": 2
+              }
+            },
+            "milliseconds": 2981.377125,
+            "scenario": "merge_begin"
+          },
+          {
+            "git": {
+              "calls": 58,
+              "command_microseconds": 667582,
+              "commands": {
+                "check-ref-format": 4,
+                "config": 9,
+                "diff": 2,
+                "ls-files": 10,
+                "ls-tree": 1,
+                "rev-parse": 27,
+                "status": 3,
+                "symbolic-ref": 2
+              }
+            },
+            "milliseconds": 773.106667,
+            "scenario": "merge_finish_preview"
+          },
+          {
+            "git": {
+              "calls": 178,
+              "command_microseconds": 2484228,
+              "commands": {
+                "check-ref-format": 12,
+                "commit": 1,
+                "config": 24,
+                "diff": 4,
+                "ls-files": 25,
+                "ls-tree": 2,
+                "rev-parse": 91,
+                "show": 1,
+                "status": 10,
+                "symbolic-ref": 8
+              }
+            },
+            "milliseconds": 2859.901375,
+            "scenario": "merge_finish"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 560330,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 565.300167,
+            "scenario": "merge_refresh"
+          }
+        ],
+        "tracked_files": 500,
+        "transport": "local temporary bare repository"
+      }
+    },
+    {
+      "round": 1,
+      "side": "after",
+      "data": {
+        "build": "debug",
+        "history_commits": 0,
+        "measurements": [
+          {
+            "git": {
+              "calls": 16,
+              "command_microseconds": 154064,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 5,
+                "status": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 156.71658299999999,
+            "scenario": "switch_feature_preview"
+          },
+          {
+            "git": {
+              "calls": 36,
+              "command_microseconds": 356126,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 15,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 373.75004099999995,
+            "scenario": "switch_feature_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 314428,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 318.547958,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 16,
+              "command_microseconds": 123240,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 5,
+                "status": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 125.735083,
+            "scenario": "switch_main_preview"
+          },
+          {
+            "git": {
+              "calls": 36,
+              "command_microseconds": 404236,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 15,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 422.88487499999997,
+            "scenario": "switch_main_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 519386,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 523.4923339999999,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 35,
+              "command_microseconds": 508799,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 2,
+                "config": 12,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-remote": 2,
+                "merge-base": 1,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 5,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 513.167542,
+            "scenario": "push_preview"
+          },
+          {
+            "git": {
+              "calls": 106,
+              "command_microseconds": 1587493,
+              "commands": {
+                "cat-file": 2,
+                "check-ref-format": 4,
+                "config": 31,
+                "for-each-ref": 8,
+                "log": 2,
+                "ls-files": 2,
+                "ls-remote": 6,
+                "merge-base": 2,
+                "push": 1,
+                "remote": 8,
+                "rev-list": 2,
+                "rev-parse": 24,
+                "status": 2,
+                "symbolic-ref": 11,
+                "update-ref": 1
+              }
+            },
+            "milliseconds": 1630.912959,
+            "scenario": "push_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 482621,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 487.482875,
+            "scenario": "push_refresh"
+          },
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 234915,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 1,
+                "config": 3,
+                "ls-files": 2,
+                "remote": 1,
+                "rev-parse": 8,
+                "status": 2
+              }
+            },
+            "milliseconds": 261.199917,
+            "scenario": "pull_fetch"
+          },
+          {
+            "git": {
+              "calls": 43,
+              "command_microseconds": 353819,
+              "commands": {
+                "check-ref-format": 2,
+                "config": 11,
+                "diff": 1,
+                "for-each-ref": 5,
+                "ls-files": 4,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 10,
+                "status": 3,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 357.234417,
+            "scenario": "pull_preview"
+          },
+          {
+            "git": {
+              "calls": 119,
+              "command_microseconds": 1196648,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 3,
+                "config": 27,
+                "diff": 3,
+                "for-each-ref": 12,
+                "ls-files": 13,
+                "remote": 5,
+                "rev-list": 2,
+                "rev-parse": 35,
+                "status": 10,
+                "symbolic-ref": 8
+              }
+            },
+            "milliseconds": 1221.452916,
+            "scenario": "pull_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 431490,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 435.502584,
+            "scenario": "pull_refresh"
+          },
+          {
+            "git": {
+              "calls": 47,
+              "command_microseconds": 567167,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 1,
+                "config": 15,
+                "diff": 1,
+                "ls-files": 2,
+                "merge-base": 3,
+                "rev-parse": 19,
+                "show": 2,
+                "status": 1,
+                "symbolic-ref": 1,
+                "worktree": 1
+              }
+            },
+            "milliseconds": 709.909375,
+            "scenario": "merge_preview"
+          },
+          {
+            "git": {
+              "calls": 148,
+              "command_microseconds": 1982372,
+              "commands": {
+                "-c": 1,
+                "cat-file": 2,
+                "check-ref-format": 6,
+                "config": 38,
+                "diff": 2,
+                "ls-files": 11,
+                "merge-base": 6,
+                "rev-parse": 67,
+                "show": 4,
+                "status": 6,
+                "symbolic-ref": 2,
+                "update-ref": 1,
+                "worktree": 2
+              }
+            },
+            "milliseconds": 2415.7329170000003,
+            "scenario": "merge_begin"
+          },
+          {
+            "git": {
+              "calls": 50,
+              "command_microseconds": 799499,
+              "commands": {
+                "check-ref-format": 4,
+                "config": 8,
+                "diff": 2,
+                "ls-files": 9,
+                "ls-tree": 1,
+                "rev-parse": 24,
+                "status": 2
+              }
+            },
+            "milliseconds": 937.383375,
+            "scenario": "merge_finish_preview"
+          },
+          {
+            "git": {
+              "calls": 154,
+              "command_microseconds": 2114945,
+              "commands": {
+                "check-ref-format": 12,
+                "commit": 1,
+                "config": 22,
+                "diff": 4,
+                "ls-files": 23,
+                "ls-tree": 2,
+                "rev-parse": 81,
+                "show": 1,
+                "status": 8
+              }
+            },
+            "milliseconds": 2368.24875,
+            "scenario": "merge_finish"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 513622,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 517.979208,
+            "scenario": "merge_refresh"
+          }
+        ],
+        "tracked_files": 500,
+        "transport": "local temporary bare repository"
+      }
+    },
+    {
+      "round": 2,
+      "side": "before",
+      "data": {
+        "build": "debug",
+        "measurements": [
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 147105,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 6,
+                "status": 1,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 150.12579200000002,
+            "scenario": "switch_feature_preview"
+          },
+          {
+            "git": {
+              "calls": 44,
+              "command_microseconds": 357098,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 19,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 7
+              }
+            },
+            "milliseconds": 375.772125,
+            "scenario": "switch_feature_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 572746,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 578.061041,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 198212,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 6,
+                "status": 1,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 201.276541,
+            "scenario": "switch_main_preview"
+          },
+          {
+            "git": {
+              "calls": 44,
+              "command_microseconds": 638406,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 19,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 7
+              }
+            },
+            "milliseconds": 657.395,
+            "scenario": "switch_main_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 459259,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 463.951292,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 35,
+              "command_microseconds": 338139,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 2,
+                "config": 12,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-remote": 2,
+                "merge-base": 1,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 5,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 342.264583,
+            "scenario": "push_preview"
+          },
+          {
+            "git": {
+              "calls": 110,
+              "command_microseconds": 1421029,
+              "commands": {
+                "cat-file": 2,
+                "check-ref-format": 4,
+                "config": 31,
+                "for-each-ref": 8,
+                "log": 2,
+                "ls-files": 2,
+                "ls-remote": 6,
+                "merge-base": 2,
+                "push": 1,
+                "remote": 8,
+                "rev-list": 2,
+                "rev-parse": 26,
+                "status": 2,
+                "symbolic-ref": 13,
+                "update-ref": 1
+              }
+            },
+            "milliseconds": 1463.285875,
+            "scenario": "push_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 543468,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 548.782792,
+            "scenario": "push_refresh"
+          },
+          {
+            "git": {
+              "calls": 22,
+              "command_microseconds": 247578,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 1,
+                "config": 3,
+                "ls-files": 2,
+                "remote": 1,
+                "rev-parse": 10,
+                "status": 2,
+                "symbolic-ref": 2
+              }
+            },
+            "milliseconds": 277.1375,
+            "scenario": "pull_fetch"
+          },
+          {
+            "git": {
+              "calls": 49,
+              "command_microseconds": 392205,
+              "commands": {
+                "check-ref-format": 2,
+                "config": 11,
+                "diff": 1,
+                "for-each-ref": 5,
+                "ls-files": 4,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 13,
+                "status": 3,
+                "symbolic-ref": 6
+              }
+            },
+            "milliseconds": 396.795458,
+            "scenario": "pull_preview"
+          },
+          {
+            "git": {
+              "calls": 139,
+              "command_microseconds": 1195972,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 3,
+                "config": 27,
+                "diff": 3,
+                "for-each-ref": 12,
+                "ls-files": 13,
+                "remote": 5,
+                "rev-list": 2,
+                "rev-parse": 45,
+                "status": 10,
+                "symbolic-ref": 18
+              }
+            },
+            "milliseconds": 1223.418208,
+            "scenario": "pull_apply"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 526566,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 531.7636249999999,
+            "scenario": "pull_refresh"
+          },
+          {
+            "git": {
+              "calls": 49,
+              "command_microseconds": 593886,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 1,
+                "config": 15,
+                "diff": 1,
+                "ls-files": 2,
+                "merge-base": 3,
+                "rev-parse": 20,
+                "show": 2,
+                "status": 1,
+                "symbolic-ref": 2,
+                "worktree": 1
+              }
+            },
+            "milliseconds": 720.6760840000001,
+            "scenario": "merge_preview"
+          },
+          {
+            "git": {
+              "calls": 160,
+              "command_microseconds": 1853100,
+              "commands": {
+                "-c": 1,
+                "cat-file": 2,
+                "check-ref-format": 6,
+                "config": 38,
+                "diff": 2,
+                "ls-files": 11,
+                "merge-base": 6,
+                "rev-parse": 73,
+                "show": 4,
+                "status": 6,
+                "symbolic-ref": 8,
+                "update-ref": 1,
+                "worktree": 2
+              }
+            },
+            "milliseconds": 2221.0954580000002,
+            "scenario": "merge_begin"
+          },
+          {
+            "git": {
+              "calls": 58,
+              "command_microseconds": 594242,
+              "commands": {
+                "check-ref-format": 4,
+                "config": 9,
+                "diff": 2,
+                "ls-files": 10,
+                "ls-tree": 1,
+                "rev-parse": 27,
+                "status": 3,
+                "symbolic-ref": 2
+              }
+            },
+            "milliseconds": 701.344458,
+            "scenario": "merge_finish_preview"
+          },
+          {
+            "git": {
+              "calls": 178,
+              "command_microseconds": 2029475,
+              "commands": {
+                "check-ref-format": 12,
+                "commit": 1,
+                "config": 24,
+                "diff": 4,
+                "ls-files": 25,
+                "ls-tree": 2,
+                "rev-parse": 91,
+                "show": 1,
+                "status": 10,
+                "symbolic-ref": 8
+              }
+            },
+            "milliseconds": 2302.2985839999997,
+            "scenario": "merge_finish"
+          },
+          {
+            "git": {
+              "calls": 45,
+              "command_microseconds": 527320,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-files": 3,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 3,
+                "symbolic-ref": 5
+              }
+            },
+            "milliseconds": 533.869958,
+            "scenario": "merge_refresh"
+          }
+        ],
+        "tracked_files": 500,
+        "transport": "local temporary bare repository"
+      }
+    },
+    {
+      "round": 2,
+      "side": "after",
+      "data": {
+        "build": "debug",
+        "history_commits": 0,
+        "measurements": [
+          {
+            "git": {
+              "calls": 16,
+              "command_microseconds": 144442,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 5,
+                "status": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 147.090875,
+            "scenario": "switch_feature_preview"
+          },
+          {
+            "git": {
+              "calls": 36,
+              "command_microseconds": 349774,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 15,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 366.113375,
+            "scenario": "switch_feature_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 316722,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 320.887291,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 16,
+              "command_microseconds": 125862,
+              "commands": {
+                "config": 2,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 2,
+                "rev-parse": 5,
+                "status": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 128.403916,
+            "scenario": "switch_main_preview"
+          },
+          {
+            "git": {
+              "calls": 36,
+              "command_microseconds": 360919,
+              "commands": {
+                "config": 5,
+                "diff": 1,
+                "for-each-ref": 2,
+                "ls-files": 5,
+                "rev-parse": 15,
+                "status": 4,
+                "switch": 1,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 378.9885,
+            "scenario": "switch_main_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 526594,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 531.076833,
+            "scenario": "switch_refresh"
+          },
+          {
+            "git": {
+              "calls": 35,
+              "command_microseconds": 470327,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 2,
+                "config": 12,
+                "for-each-ref": 3,
+                "log": 1,
+                "ls-remote": 2,
+                "merge-base": 1,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 5,
+                "symbolic-ref": 4
+              }
+            },
+            "milliseconds": 473.85825,
+            "scenario": "push_preview"
+          },
+          {
+            "git": {
+              "calls": 106,
+              "command_microseconds": 1381256,
+              "commands": {
+                "cat-file": 2,
+                "check-ref-format": 4,
+                "config": 31,
+                "for-each-ref": 8,
+                "log": 2,
+                "ls-files": 2,
+                "ls-remote": 6,
+                "merge-base": 2,
+                "push": 1,
+                "remote": 8,
+                "rev-list": 2,
+                "rev-parse": 24,
+                "status": 2,
+                "symbolic-ref": 11,
+                "update-ref": 1
+              }
+            },
+            "milliseconds": 1411.1170829999999,
+            "scenario": "push_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 488234,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 493.05254199999996,
+            "scenario": "push_refresh"
+          },
+          {
+            "git": {
+              "calls": 18,
+              "command_microseconds": 214339,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 1,
+                "config": 3,
+                "ls-files": 2,
+                "remote": 1,
+                "rev-parse": 8,
+                "status": 2
+              }
+            },
+            "milliseconds": 240.018583,
+            "scenario": "pull_fetch"
+          },
+          {
+            "git": {
+              "calls": 43,
+              "command_microseconds": 379689,
+              "commands": {
+                "check-ref-format": 2,
+                "config": 11,
+                "diff": 1,
+                "for-each-ref": 5,
+                "ls-files": 4,
+                "remote": 3,
+                "rev-list": 1,
+                "rev-parse": 10,
+                "status": 3,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 383.04191599999996,
+            "scenario": "pull_preview"
+          },
+          {
+            "git": {
+              "calls": 119,
+              "command_microseconds": 1080381,
+              "commands": {
+                "-c": 1,
+                "check-ref-format": 3,
+                "config": 27,
+                "diff": 3,
+                "for-each-ref": 12,
+                "ls-files": 13,
+                "remote": 5,
+                "rev-list": 2,
+                "rev-parse": 35,
+                "status": 10,
+                "symbolic-ref": 8
+              }
+            },
+            "milliseconds": 1103.646667,
+            "scenario": "pull_apply"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 350119,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 354.304958,
+            "scenario": "pull_refresh"
+          },
+          {
+            "git": {
+              "calls": 47,
+              "command_microseconds": 428477,
+              "commands": {
+                "cat-file": 1,
+                "check-ref-format": 1,
+                "config": 15,
+                "diff": 1,
+                "ls-files": 2,
+                "merge-base": 3,
+                "rev-parse": 19,
+                "show": 2,
+                "status": 1,
+                "symbolic-ref": 1,
+                "worktree": 1
+              }
+            },
+            "milliseconds": 539.0303749999999,
+            "scenario": "merge_preview"
+          },
+          {
+            "git": {
+              "calls": 148,
+              "command_microseconds": 1806272,
+              "commands": {
+                "-c": 1,
+                "cat-file": 2,
+                "check-ref-format": 6,
+                "config": 38,
+                "diff": 2,
+                "ls-files": 11,
+                "merge-base": 6,
+                "rev-parse": 67,
+                "show": 4,
+                "status": 6,
+                "symbolic-ref": 2,
+                "update-ref": 1,
+                "worktree": 2
+              }
+            },
+            "milliseconds": 2251.8904169999996,
+            "scenario": "merge_begin"
+          },
+          {
+            "git": {
+              "calls": 50,
+              "command_microseconds": 527121,
+              "commands": {
+                "check-ref-format": 4,
+                "config": 8,
+                "diff": 2,
+                "ls-files": 9,
+                "ls-tree": 1,
+                "rev-parse": 24,
+                "status": 2
+              }
+            },
+            "milliseconds": 628.996709,
+            "scenario": "merge_finish_preview"
+          },
+          {
+            "git": {
+              "calls": 154,
+              "command_microseconds": 1935177,
+              "commands": {
+                "check-ref-format": 12,
+                "commit": 1,
+                "config": 22,
+                "diff": 4,
+                "ls-files": 23,
+                "ls-tree": 2,
+                "rev-parse": 81,
+                "show": 1,
+                "status": 8
+              }
+            },
+            "milliseconds": 2191.4597909999998,
+            "scenario": "merge_finish"
+          },
+          {
+            "git": {
+              "calls": 40,
+              "command_microseconds": 512176,
+              "commands": {
+                "config": 5,
+                "for-each-ref": 2,
+                "log": 1,
+                "ls-files": 2,
+                "rev-parse": 22,
+                "show-ref": 3,
+                "status": 2,
+                "symbolic-ref": 3
+              }
+            },
+            "milliseconds": 516.4137920000001,
+            "scenario": "merge_refresh"
+          }
+        ],
+        "tracked_files": 500,
+        "transport": "local temporary bare repository"
+      }
+    }
+  ],
+  "reads": [
+    {
+      "side": "before",
+      "data": {
+        "commits": 20100,
+        "measurements": [
+          {
+            "core_rss_kib": 8784,
+            "milliseconds": 569.376958,
+            "scenario": "graph_initial"
+          },
+          {
+            "core_rss_kib": 8784,
+            "milliseconds": 94.906167,
+            "scenario": "commit_detail"
+          },
+          {
+            "core_rss_kib": 8784,
+            "milliseconds": 217.870792,
+            "scenario": "working_snapshot"
+          },
+          {
+            "core_rss_kib": 48784,
+            "milliseconds": 12670.165416,
+            "scenario": "workspace_search_cold"
+          },
+          {
+            "core_rss_kib": 49952,
+            "milliseconds": 250.25387500000002,
+            "scenario": "workspace_search_warm_0"
+          },
+          {
+            "core_rss_kib": 50032,
+            "milliseconds": 341.417917,
+            "scenario": "switch_graph_0"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 228.630042,
+            "scenario": "workspace_search_warm_1"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 229.214416,
+            "scenario": "switch_graph_1"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 220.923167,
+            "scenario": "workspace_search_warm_2"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 358.283125,
+            "scenario": "switch_graph_2"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 235.320791,
+            "scenario": "workspace_search_warm_3"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 238.469709,
+            "scenario": "switch_graph_3"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 222.28504199999998,
+            "scenario": "workspace_search_warm_4"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 319.22450000000003,
+            "scenario": "switch_graph_4"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 215.522334,
+            "scenario": "workspace_search_warm_5"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 249.428583,
+            "scenario": "switch_graph_5"
+          },
+          {
+            "core_rss_kib": 50048,
+            "milliseconds": 236.604959,
+            "scenario": "workspace_search_warm_6"
+          },
+          {
+            "core_rss_kib": 50064,
+            "milliseconds": 365.09825,
+            "scenario": "switch_graph_6"
+          },
+          {
+            "core_rss_kib": 50064,
+            "milliseconds": 247.8355,
+            "scenario": "workspace_search_warm_7"
+          },
+          {
+            "core_rss_kib": 50064,
+            "milliseconds": 282.49762499999997,
+            "scenario": "switch_graph_7"
+          },
+          {
+            "core_rss_kib": 50080,
+            "milliseconds": 239.363667,
+            "scenario": "workspace_search_warm_8"
+          },
+          {
+            "core_rss_kib": 50080,
+            "milliseconds": 364.177167,
+            "scenario": "switch_graph_8"
+          },
+          {
+            "core_rss_kib": 50096,
+            "milliseconds": 206.80825,
+            "scenario": "workspace_search_warm_9"
+          },
+          {
+            "core_rss_kib": 50096,
+            "milliseconds": 234.96520900000002,
+            "scenario": "switch_graph_9"
+          },
+          {
+            "core_rss_kib": 52032,
+            "milliseconds": 1255.531084,
+            "scenario": "workspace_search_persisted_restart"
+          }
+        ],
+        "profile": "debug core only; excludes WebKit, network, large binary patches and recovery copy"
+      }
+    },
+    {
+      "side": "after",
+      "data": {
+        "commits": 20100,
+        "measurements": [
+          {
+            "core_rss_kib": 8192,
+            "milliseconds": 280.873791,
+            "scenario": "graph_initial"
+          },
+          {
+            "core_rss_kib": 8224,
+            "milliseconds": 53.495458,
+            "scenario": "commit_detail"
+          },
+          {
+            "core_rss_kib": 8240,
+            "milliseconds": 154.91475,
+            "scenario": "working_snapshot"
+          },
+          {
+            "core_rss_kib": 49024,
+            "milliseconds": 12836.829292,
+            "scenario": "workspace_search_cold"
+          },
+          {
+            "core_rss_kib": 49168,
+            "milliseconds": 127.49391700000001,
+            "scenario": "workspace_search_warm_0"
+          },
+          {
+            "core_rss_kib": 49216,
+            "milliseconds": 272.686125,
+            "scenario": "switch_graph_0"
+          },
+          {
+            "core_rss_kib": 49232,
+            "milliseconds": 111.583084,
+            "scenario": "workspace_search_warm_1"
+          },
+          {
+            "core_rss_kib": 49248,
+            "milliseconds": 185.514333,
+            "scenario": "switch_graph_1"
+          },
+          {
+            "core_rss_kib": 49264,
+            "milliseconds": 121.555583,
+            "scenario": "workspace_search_warm_2"
+          },
+          {
+            "core_rss_kib": 49264,
+            "milliseconds": 300.205042,
+            "scenario": "switch_graph_2"
+          },
+          {
+            "core_rss_kib": 49264,
+            "milliseconds": 109.48583400000001,
+            "scenario": "workspace_search_warm_3"
+          },
+          {
+            "core_rss_kib": 49264,
+            "milliseconds": 227.45766700000001,
+            "scenario": "switch_graph_3"
+          },
+          {
+            "core_rss_kib": 49280,
+            "milliseconds": 118.083291,
+            "scenario": "workspace_search_warm_4"
+          },
+          {
+            "core_rss_kib": 49280,
+            "milliseconds": 295.23725,
+            "scenario": "switch_graph_4"
+          },
+          {
+            "core_rss_kib": 49280,
+            "milliseconds": 102.577167,
+            "scenario": "workspace_search_warm_5"
+          },
+          {
+            "core_rss_kib": 49280,
+            "milliseconds": 194.255833,
+            "scenario": "switch_graph_5"
+          },
+          {
+            "core_rss_kib": 49280,
+            "milliseconds": 110.512708,
+            "scenario": "workspace_search_warm_6"
+          },
+          {
+            "core_rss_kib": 49280,
+            "milliseconds": 329.617375,
+            "scenario": "switch_graph_6"
+          },
+          {
+            "core_rss_kib": 49296,
+            "milliseconds": 106.91499999999999,
+            "scenario": "workspace_search_warm_7"
+          },
+          {
+            "core_rss_kib": 49312,
+            "milliseconds": 191.634708,
+            "scenario": "switch_graph_7"
+          },
+          {
+            "core_rss_kib": 49328,
+            "milliseconds": 108.308125,
+            "scenario": "workspace_search_warm_8"
+          },
+          {
+            "core_rss_kib": 49328,
+            "milliseconds": 355.785542,
+            "scenario": "switch_graph_8"
+          },
+          {
+            "core_rss_kib": 49344,
+            "milliseconds": 115.669416,
+            "scenario": "workspace_search_warm_9"
+          },
+          {
+            "core_rss_kib": 49344,
+            "milliseconds": 196.38208300000002,
+            "scenario": "switch_graph_9"
+          },
+          {
+            "core_rss_kib": 52288,
+            "milliseconds": 679.3926660000001,
+            "scenario": "workspace_search_persisted_restart"
+          }
+        ],
+        "profile": "debug core only; excludes WebKit, network, large binary patches and recovery copy"
+      }
+    }
+  ],
+  "large_operations": {
+    "build": "debug",
+    "history_commits": 50000,
+    "measurements": [
+      {
+        "git": {
+          "calls": 16,
+          "command_microseconds": 185293,
+          "commands": {
+            "config": 2,
+            "diff": 1,
+            "for-each-ref": 2,
+            "ls-files": 2,
+            "rev-parse": 5,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 220.82712500000002,
+        "scenario": "switch_feature_preview"
+      },
+      {
+        "git": {
+          "calls": 36,
+          "command_microseconds": 722341,
+          "commands": {
+            "config": 5,
+            "diff": 1,
+            "for-each-ref": 2,
+            "ls-files": 5,
+            "rev-parse": 15,
+            "status": 4,
+            "switch": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 774.6961249999999,
+        "scenario": "switch_feature_apply"
+      },
+      {
+        "git": {
+          "calls": 40,
+          "command_microseconds": 759865,
+          "commands": {
+            "config": 5,
+            "for-each-ref": 2,
+            "log": 1,
+            "ls-files": 2,
+            "rev-parse": 22,
+            "show-ref": 3,
+            "status": 2,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 797.315875,
+        "scenario": "switch_refresh"
+      },
+      {
+        "git": {
+          "calls": 16,
+          "command_microseconds": 222782,
+          "commands": {
+            "config": 2,
+            "diff": 1,
+            "for-each-ref": 2,
+            "ls-files": 2,
+            "rev-parse": 5,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 258.061625,
+        "scenario": "switch_main_preview"
+      },
+      {
+        "git": {
+          "calls": 36,
+          "command_microseconds": 705175,
+          "commands": {
+            "config": 5,
+            "diff": 1,
+            "for-each-ref": 2,
+            "ls-files": 5,
+            "rev-parse": 15,
+            "status": 4,
+            "switch": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 758.967458,
+        "scenario": "switch_main_apply"
+      },
+      {
+        "git": {
+          "calls": 40,
+          "command_microseconds": 757460,
+          "commands": {
+            "config": 5,
+            "for-each-ref": 2,
+            "log": 1,
+            "ls-files": 2,
+            "rev-parse": 22,
+            "show-ref": 3,
+            "status": 2,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 794.6554580000001,
+        "scenario": "switch_refresh"
+      },
+      {
+        "git": {
+          "calls": 35,
+          "command_microseconds": 389177,
+          "commands": {
+            "cat-file": 1,
+            "check-ref-format": 2,
+            "config": 12,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-remote": 2,
+            "merge-base": 1,
+            "remote": 3,
+            "rev-list": 1,
+            "rev-parse": 5,
+            "symbolic-ref": 4
+          }
+        },
+        "milliseconds": 425.121916,
+        "scenario": "push_preview"
+      },
+      {
+        "git": {
+          "calls": 106,
+          "command_microseconds": 2302151,
+          "commands": {
+            "cat-file": 2,
+            "check-ref-format": 4,
+            "config": 31,
+            "for-each-ref": 8,
+            "log": 2,
+            "ls-files": 2,
+            "ls-remote": 6,
+            "merge-base": 2,
+            "push": 1,
+            "remote": 8,
+            "rev-list": 2,
+            "rev-parse": 24,
+            "status": 2,
+            "symbolic-ref": 11,
+            "update-ref": 1
+          }
+        },
+        "milliseconds": 2470.441875,
+        "scenario": "push_apply"
+      },
+      {
+        "git": {
+          "calls": 40,
+          "command_microseconds": 778858,
+          "commands": {
+            "config": 5,
+            "for-each-ref": 2,
+            "log": 1,
+            "ls-files": 2,
+            "rev-parse": 22,
+            "show-ref": 3,
+            "status": 2,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 816.1611250000001,
+        "scenario": "push_refresh"
+      },
+      {
+        "git": {
+          "calls": 18,
+          "command_microseconds": 348051,
+          "commands": {
+            "-c": 1,
+            "check-ref-format": 1,
+            "config": 3,
+            "ls-files": 2,
+            "remote": 1,
+            "rev-parse": 8,
+            "status": 2
+          }
+        },
+        "milliseconds": 365.804625,
+        "scenario": "pull_fetch"
+      },
+      {
+        "git": {
+          "calls": 43,
+          "command_microseconds": 488513,
+          "commands": {
+            "check-ref-format": 2,
+            "config": 11,
+            "diff": 1,
+            "for-each-ref": 5,
+            "ls-files": 4,
+            "remote": 3,
+            "rev-list": 1,
+            "rev-parse": 10,
+            "status": 3,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 526.459834,
+        "scenario": "pull_preview"
+      },
+      {
+        "git": {
+          "calls": 119,
+          "command_microseconds": 1519423,
+          "commands": {
+            "-c": 1,
+            "check-ref-format": 3,
+            "config": 27,
+            "diff": 3,
+            "for-each-ref": 12,
+            "ls-files": 13,
+            "remote": 5,
+            "rev-list": 2,
+            "rev-parse": 35,
+            "status": 10,
+            "symbolic-ref": 8
+          }
+        },
+        "milliseconds": 1649.674041,
+        "scenario": "pull_apply"
+      },
+      {
+        "git": {
+          "calls": 40,
+          "command_microseconds": 597348,
+          "commands": {
+            "config": 5,
+            "for-each-ref": 2,
+            "log": 1,
+            "ls-files": 2,
+            "rev-parse": 22,
+            "show-ref": 3,
+            "status": 2,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 636.209167,
+        "scenario": "pull_refresh"
+      },
+      {
+        "git": {
+          "calls": 47,
+          "command_microseconds": 486282,
+          "commands": {
+            "cat-file": 1,
+            "check-ref-format": 1,
+            "config": 15,
+            "diff": 1,
+            "ls-files": 2,
+            "merge-base": 3,
+            "rev-parse": 19,
+            "show": 2,
+            "status": 1,
+            "symbolic-ref": 1,
+            "worktree": 1
+          }
+        },
+        "milliseconds": 640.319292,
+        "scenario": "merge_preview"
+      },
+      {
+        "git": {
+          "calls": 148,
+          "command_microseconds": 1775171,
+          "commands": {
+            "-c": 1,
+            "cat-file": 2,
+            "check-ref-format": 6,
+            "config": 38,
+            "diff": 2,
+            "ls-files": 11,
+            "merge-base": 6,
+            "rev-parse": 67,
+            "show": 4,
+            "status": 6,
+            "symbolic-ref": 2,
+            "update-ref": 1,
+            "worktree": 2
+          }
+        },
+        "milliseconds": 2357.3682919999997,
+        "scenario": "merge_begin"
+      },
+      {
+        "git": {
+          "calls": 50,
+          "command_microseconds": 487467,
+          "commands": {
+            "check-ref-format": 4,
+            "config": 8,
+            "diff": 2,
+            "ls-files": 9,
+            "ls-tree": 1,
+            "rev-parse": 24,
+            "status": 2
+          }
+        },
+        "milliseconds": 786.497208,
+        "scenario": "merge_finish_preview"
+      },
+      {
+        "git": {
+          "calls": 154,
+          "command_microseconds": 1666042,
+          "commands": {
+            "check-ref-format": 12,
+            "commit": 1,
+            "config": 22,
+            "diff": 4,
+            "ls-files": 23,
+            "ls-tree": 2,
+            "rev-parse": 81,
+            "show": 1,
+            "status": 8
+          }
+        },
+        "milliseconds": 2350.955292,
+        "scenario": "merge_finish"
+      },
+      {
+        "git": {
+          "calls": 40,
+          "command_microseconds": 606014,
+          "commands": {
+            "config": 5,
+            "for-each-ref": 2,
+            "log": 1,
+            "ls-files": 2,
+            "rev-parse": 22,
+            "show-ref": 3,
+            "status": 2,
+            "symbolic-ref": 3
+          }
+        },
+        "milliseconds": 644.603042,
+        "scenario": "merge_refresh"
+      }
+    ],
+    "tracked_files": 10000,
+    "transport": "local temporary bare repository"
+  }
+}

@@ -1,0 +1,39 @@
+2026-10-27 — Discard progress and performance verification; sequential runners; Git writes only in temporary repositories.
+34 core integration cases, 1 byte-progress unit case, 20 frontend tests, 3 browser flows plus explicit numeric-progress rerun, and native IPC channel/origin test passed.
+Benchmark results and method are in 2026-10-27-discard-benchmark.json.
+
+gitnova-discard-perf-regressions.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.17s
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 97.55s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 102.85s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 38.11s
+
+gitnova-discard-progress-bytes.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.98s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.02s
+
+gitnova-discard-progress-unit-final.log
+ Test Files  3 passed (3)
+      Tests  20 passed (20)
+
+gitnova-discard-progress-e2e.log
+  ✓  1 e2e/graph.spec.ts:70:1 › real history, diff, workspace switching and keyboard context (12.3s)
+  ✓  2 e2e/graph.spec.ts:879:1 › discard all previews explicit files and retains recovery and composer draft (21.7s)
+  ✓  3 e2e/graph.spec.ts:937:1 › pending merge discard all reviews and cancels, then removes unstaged files while keeping the merge (49.8s)
+  3 passed (1.5m)
+
+gitnova-discard-progress-percent-e2e.log
+  ✓  1 e2e/graph.spec.ts:937:1 › pending merge discard all reviews and cancels, then removes unstaged files while keeping the merge (49.7s)
+  1 passed (57.1s)
+
+gitnova-discard-progress-ipc.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.92s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 21.13s
+
+gitnova-discard-progress-clippy-final.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.97s
+
+gitnova-discard-progress-app.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 50.58s
+GitNova 0.1.0: embedded UI assets verified; no dev server or workspace opened; native-smoke=enabled.
+Local app verified: /path/to/gitnova/target/debug/bundle/macos/GitNova.app

@@ -1,0 +1,56 @@
+GitNova cache/workload audit — 2026-10-27
+
+All Git writes used temporary real repositories. No user repository or running
+GitNova session was used as a write fixture. Verification runners were serialized.
+
+Rust search cache units: 5 passed.
+- Resident admission stays at two entries while all existing entries are borrowed.
+- Moka weighted traversal eviction under repeated pressure.
+- Real external ref changes invalidate traversal; dirty files reuse reachability.
+- Existing raw batch framing and corrupt/incomplete framing checks retained.
+
+Rust core integration: 44 passed across targeted cases.
+- real_git: 16 passed (graph/refs, bare/detached/shallow/SHA-256, raw paths,
+  worktrees, submodules, external helper refusal and corruption).
+- search: 12 existing passed (all scopes, worktree reachability, external refs,
+  replacement histories, corruption, paging, literal data, protected reads).
+- writes: 15 passed (stage/unstage/commit, stale state, locks, hooks, filters,
+  external working changes, racy index, submodule constraints).
+- Added four-repository broad-search paging/eviction case: 1 passed separately.
+
+Frontend units/catalogs: 23 passed, including weight/count-based graph eviction,
+large ref indexes, graph windows, stash positioning, diff parsing and EN/TH.
+TypeScript check and Vite production build passed before browser validation;
+the local bundle build repeats both after the final frontend cache changes.
+
+Browser, real-core subprocess adapter, one worker: 3 passed (55.9 seconds).
+- History/diff/workspace/keyboard context.
+- External refs and scroll position across repository switches/older pages.
+- Workspace commit search scope, old-history navigation, correct repository.
+This adapter starts a core process per request; it does not measure persistent
+in-process Moka performance or certify WebKit/native memory.
+
+Native Tauri command mock-runtime integration: 1 passed.
+- Real Git command dispatch and trusted/remote origin behavior retained.
+- Full admission queue returns busy; releasing permits restores command dispatch.
+No GUI write automation ran against the user's open GitNova Updated.app.
+
+Strict focused Clippy (--all-targets -D warnings) and cargo fmt passed.
+
+Serial debug-core benchmark: examples/perf_audit.rs, 2,100 commits / two repos.
+Raw: 2026-10-27-cache-performance.json.
+Initial graph 616.65 ms; detail 216.22 ms; working snapshot 809.76 ms.
+Cold workspace search 3293.95 ms; warm median of ten 377.05 ms.
+Alternating repository graph median 609.27 ms; persisted reopen search 657.83 ms.
+Warm sample core RSS: 8,784–8,928 KiB; excludes Tauri and WebKit. Short-run memory
+samples do not establish a long-session plateau or absence of leaks.
+
+Targets not yet demonstrated: authoritative warm search below 100 ms, 60 FPS on
+large histories, stable native + WebKit RSS during long real-work sessions,
+large binary/recovery workloads and remote/corporate repository performance.
+SQLite FTS5 remains outstanding; current persistence is JSON.
+
+Local app build completed: GitNova.app, 61.54 MiB, debug custom-protocol,
+ad-hoc signed. TypeScript/Vite, codesign --verify --deep --strict and embedded
+asset self-check passed. This is a local artifact, not a notarized release.
+The existing GitNova Updated.app session was left running and unchanged.

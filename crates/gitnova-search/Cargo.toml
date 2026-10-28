@@ -1,0 +1,14 @@
+[package]
+name = "gitnova-search"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+moka = { version = "0.12", default-features = false, features = ["sync"] }
+gitnova-domain = { path = "../gitnova-domain" }
+gitnova-git = { path = "../gitnova-git" }
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+sha2 = "0.10"

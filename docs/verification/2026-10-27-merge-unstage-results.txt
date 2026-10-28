@@ -1,0 +1,36 @@
+2026-10-27 — Milestone 24 focused serial validation.
+Three core scenarios passed across targeted runs. Two assertion-only fixture expectations were corrected during development.
+Browser flows use actual temporary Git repositories through the core bridge.
+No developer repository writes or automatic native window restart.
+
+gitnova-merge-unstage-tests.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.88s
+test unstage_operation_large_binary_stale_review_and_native_lock ... ok
+test unstage_operation_one_and_all_preserve_files_metadata_and_restaging ... ok
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 17 filtered out; finished in 119.04s
+
+gitnova-merge-unstage-conflict-test.log
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.20s
+test unstage_operation_refuses_unresolved_or_external_sessions ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 21.14s
+
+gitnova-merge-unstage-unit.log
+ Test Files  3 passed (3)
+      Tests  20 passed (20)
+
+gitnova-merge-unstage-e2e.log
+  ✓  1 e2e/graph.spec.ts:513:1 › graph merge conflict editor reviews actual result and finishes a two-parent commit (1.1m)
+  ✓  2 e2e/graph.spec.ts:898:1 › pending merge unstages one or all files, reviews working diffs and finishes only restaged content (2.4m)
+  2 passed (3.5m)
+
+gitnova-merge-unstage-e2e-final.log
+  ✓  1 e2e/graph.spec.ts:898:1 › pending merge unstages one or all files, reviews working diffs and finishes only restaged content (2.4m)
+  1 passed (2.4m)
+
+gitnova-merge-unstage-clippy.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.52s
+
+gitnova-merge-unstage-local-app.log
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 22.43s
+GitNova 0.1.0: embedded UI assets verified; no dev server or workspace opened; native-smoke=enabled.
+Local app verified: /path/to/gitnova/target/debug/bundle/macos/GitNova Updated.app
