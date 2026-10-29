@@ -1,3 +1,5 @@
+import {ciStatusLabel} from './ci-requests';
+import type {GraphCiValue,GraphCiLink} from './ci-requests';
 import {useGraphCi} from './useGraphCi';
 import { t, dateLocale } from './i18n';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -7,7 +9,7 @@ import { stashLanes, stashTitle, historyItems, graphLabelsByCommit, ROW_HEIGHT, 
 import { Icon } from './Icons';
 import { BranchTrackingBadge } from './BranchTrackingBadge';
 export const WORKING = 'working';
-export type GraphIntent = { oid: string; x: number; y: number; refName?: string; quick: boolean; action?: 'push' | 'fetch' | 'pull' };
+export type GraphIntent = { oid: string; x: number; y: number; refName?: string; quick: boolean; action?: 'push' | 'fetch' | 'pull'; pipeline?: GraphCiLink; workflows?: GraphCiLink[] };
 export type GraphSession = { page: GraphPage; rows: GraphRow[]; selected: string | null; scroll: number; base: number; revision?: number; notice?: string; anchor?: string; anchorOffset?: number };
 const colors = ['#4b91ff', '#54ced7', '#b17cff', '#f4b64d', '#46c88d', '#ef779a'].map((value,index)=>`var(--graph-${index}, ${value})`);
 const color = (lane: number) => colors[lane % colors.length];
@@ -19,6 +21,12 @@ function date(timestamp: number) {
   if (elapsed >= 3600 && elapsed < 86400) { const hours = Math.floor(elapsed / 3600); return t(hours === 1 ? '{0} hour ago' : '{0} hours ago', [hours]); }
   if (elapsed >= 86400 && elapsed < 604800) { const days = Math.floor(elapsed / 86400); return t(days === 1 ? '{0} day ago' : '{0} days ago', [days]); }
   return new Date(timestamp * 1000).toLocaleDateString(dateLocale(), { month: 'short', day: 'numeric' });
+}
+function GraphCiCell({value,observed}:{value?:GraphCiValue;observed?:string}){
+ const status=value?.status==='CI unavailable'&&observed?observed:value?.status??observed;
+ const pipeline=value?.pipeline;
+ const title=[pipeline?`${t(pipeline.kind==='workflow'?'Workflow':'Pipeline')} #${pipeline.id} · ${t(ciStatusLabel(status??'unknown'))}${pipeline.reference?` · ${pipeline.reference}`:''}`:status?t(ciStatusLabel(status)):t('Connect a matching host account in Settings → Connections to read CI.'),...(value?.workflows??[]).map(run=>`${run.name||t('Workflow')} #${run.id} · ${t(ciStatusLabel(run.status??'unknown'))} · ${run.reference}`),value?.partial?t('Some CI results are unavailable or incomplete.'):'',value?.stale?t('Showing cached CI status. Refresh failed.'):'',value?.checkedAt?`${t('Last checked')}: ${new Date(value.checkedAt*1000).toLocaleTimeString(dateLocale())}`:''].filter(Boolean).join('\n');
+ return <span className="commit-ci" title={title}>{status?<span className={`ci-badge ci-${status}`}><span aria-hidden="true">{status==='success'?'✓':status==='failed'?'✕':['running','pending','created','preparing','waiting_for_resource','Reading CI…'].includes(status)?'◌':'•'}</span> {t(ciStatusLabel(status))}{pipeline?<span className="ci-pipeline-id"> · #{pipeline.id}</span>:!!value?.workflows?.length&&<span> · {t(value.workflows.length===1?'{0} workflow':'{0} workflows',[value.workflows.length])}</span>}</span>:<span className="ci-empty">—</span>}</span>;
 }
 function GraphMark({ row, width, head, labelled, savedLanes }: { row: GraphRow; width: number; head: boolean; labelled: boolean; savedLanes: number[] }) {
   const x = (lane: number) => 18 + lane * 24; const middle = ROW_HEIGHT / 2;
@@ -82,9 +90,9 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
           }
           const row = item.row!; const refs = labels.get(row.commit.oid) ?? []; const head = row.commit.oid === session.page.status.head;
           return <button id={`commit-${row.commit.oid}`} key={row.commit.oid} className={`commit-row ${session.selected === row.commit.oid ? 'selected' : ''}`} style={{ height: ROW_HEIGHT, '--lane-color': color(row.color) } as CSSProperties} title={`${row.commit.oid} · ${row.commit.subject}`} aria-pressed={session.selected === row.commit.oid} tabIndex={session.selected === row.commit.oid || (!selectionVisible && index === 0) ? 0 : -1}
-            onContextMenu={event => { event.preventDefault(); onSelect(row.commit.oid); const box = event.currentTarget.getBoundingClientRect(); const pointer = Number.isFinite(event.clientX) && Number.isFinite(event.clientY) && (event.clientX !== 0 || event.clientY !== 0); onAction({ oid: row.commit.oid, x: pointer ? event.clientX : box.left + 180, y: pointer ? event.clientY : box.top, refName: (event.target as Element).closest<HTMLElement>('[data-ref-name]')?.dataset.refName, quick: false }); }}
-            onDoubleClick={event => { if (!(event.target as Element).closest('.graph-mark, .graph-ref')) return; onAction({ oid: row.commit.oid, x: event.clientX, y: event.clientY, refName: (event.target as Element).closest<HTMLElement>('[data-ref-name]')?.dataset.refName, quick: true }); }}
-            onClick={() => onSelect(row.commit.oid)} onKeyDown={event => { if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) { event.preventDefault(); const box = event.currentTarget.getBoundingClientRect(); onAction({ oid: row.commit.oid, x: box.left + 180, y: box.top, quick: false }); return; } const next = event.key === 'ArrowDown' ? index + 1 : event.key === 'ArrowUp' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : null; if (next !== null) { event.preventDefault(); choose(next); } }}>
+            onContextMenu={event => { event.preventDefault(); onSelect(row.commit.oid); const box = event.currentTarget.getBoundingClientRect(); const pointer = Number.isFinite(event.clientX) && Number.isFinite(event.clientY) && (event.clientX !== 0 || event.clientY !== 0); onAction({ pipeline: graphCi[row.commit.oid]?.pipeline, workflows:graphCi[row.commit.oid]?.workflows, oid: row.commit.oid, x: pointer ? event.clientX : box.left + 180, y: pointer ? event.clientY : box.top, refName: (event.target as Element).closest<HTMLElement>('[data-ref-name]')?.dataset.refName, quick: false }); }}
+            onDoubleClick={event => { if (!(event.target as Element).closest('.graph-mark, .graph-ref')) return; onAction({ pipeline: graphCi[row.commit.oid]?.pipeline, workflows:graphCi[row.commit.oid]?.workflows, oid: row.commit.oid, x: event.clientX, y: event.clientY, refName: (event.target as Element).closest<HTMLElement>('[data-ref-name]')?.dataset.refName, quick: true }); }}
+            onClick={() => onSelect(row.commit.oid)} onKeyDown={event => { if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) { event.preventDefault(); const box = event.currentTarget.getBoundingClientRect(); onAction({ pipeline: graphCi[row.commit.oid]?.pipeline, workflows:graphCi[row.commit.oid]?.workflows, oid: row.commit.oid, x: box.left + 180, y: box.top, quick: false }); return; } const next = event.key === 'ArrowDown' ? index + 1 : event.key === 'ArrowUp' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : null; if (next !== null) { event.preventDefault(); choose(next); } }}>
             <span className={`graph-refs ${refs.length ? 'has-refs' : ''}`} title={refs.flatMap(ref => ref.fullNames).join('\n')}>
               <span className="ref-stack">{refs.slice(0, 2).map(ref => <span key={ref.fullNames[0]} data-ref-name={ref.fullNames[0]} className={`graph-ref ${ref.kind} ${ref.current ? 'current' : ''}`}>
                 <Icon name={ref.current ? 'check' : ref.kind === 'tag' ? 'tag' : 'branch'} size={12} /><span>{ref.label}</span>{ref.tracked && <Icon name="remote" size={11} />}{ref.fullNames.some(name => name.startsWith('refs/heads/')) && <BranchTrackingBadge value={tracking.get(ref.label)} oid={row.commit.oid}/>}
@@ -92,9 +100,7 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
             </span>
             <GraphMark savedLanes={savedGeometry.byBase.get(row.commit.oid) ?? []} row={row} width={laneWidth} head={head} labelled={refs.length > 0} />
             <span className="commit-description"><span className="subject">{row.commit.subject || t("(no commit message)")}</span>{head && <span className="head-label">{t("HEAD")}</span>}</span>
-            <span className="commit-ci" title={graphCi[row.commit.oid]?.stale ? t('Showing cached CI status. Refresh failed.') : graphCi[row.commit.oid]?.checkedAt ? `${t('Last checked')}: ${new Date(graphCi[row.commit.oid].checkedAt!*1000).toLocaleTimeString(dateLocale())}` : t('CI status from the connected Git host')}>
-              {(() => {const observed=ciBadges?.[row.commit.oid];const status=graphCi[row.commit.oid]?.status==='CI unavailable'&&observed?observed:graphCi[row.commit.oid]?.status??observed;return status ? <span className={`ci-badge ci-${status}`}><span aria-hidden="true">{status==='success'?'✓':status==='failed'?'✕':['running','pending','Reading CI…'].includes(status)?'◌':'•'}</span> {t(status)}</span> : <span className="ci-empty">—</span>;})()}
-            </span>
+            <GraphCiCell value={graphCi[row.commit.oid]} observed={ciBadges?.[row.commit.oid]}/>
             <span className="author" title={`${row.commit.author} <${row.commit.email}>`}><span className="row-avatar" aria-hidden="true" style={{ '--author-color': authorColor(row.commit.author) } as CSSProperties}>{initials(row.commit.author)}</span><span>{row.commit.author}</span></span>
             <span className="commit-date" title={new Date(row.commit.timestamp * 1000).toLocaleString(dateLocale())}>{date(row.commit.timestamp)}</span>
           </button>;

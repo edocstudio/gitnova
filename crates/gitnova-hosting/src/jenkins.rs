@@ -27,6 +27,7 @@ pub fn account_scope(controller: &str, username: &str) -> Result<Url> {
     }
     Ok(url)
 }
+#[cfg(any(target_os = "macos", test))]
 fn account_key(controller: &str, username: &str) -> Result<String> {
     Ok(format!(
         "{}:{}",
@@ -145,6 +146,7 @@ pub fn validate(selection: &JenkinsSelection) -> Result<(Url, Url)> {
     }
     Ok((controller, job))
 }
+#[cfg(target_os = "macos")]
 fn credential_account(s: &JenkinsSelection) -> Result<String> {
     let (controller, _) = validate(s)?;
     Ok(format!("{}:{}", controller, s.username))
@@ -411,6 +413,8 @@ impl<'a> JenkinsClient<'a> {
                 }
             };
             runs.push(PipelineRun {
+                display_number: None,
+                name: None,
                 id: number.to_string(),
                 sha: self.selection.oid.clone(),
                 reference: self.job.path().chars().take(256).collect(),

@@ -432,3 +432,50 @@ fn first_predicted_conflict_cannot_hide_later_submodule_pointer_changes() {
     assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), original);
     assert!(!f.root.join(".git/rebase-merge").exists());
 }
+
+#[test]
+fn interrupted_rebase_journal_uses_metadata_only_cleanup_after_external_recovery() {
+    let f = fixture(true);
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    let started = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert_eq!(started.status, "conflicted", "{}", started.summary);
+    assert!(f
+        .app
+        .preview_merge_action(&f.id, &action("release"))
+        .unwrap()
+        .blocked_reason
+        .is_some());
+    git(&f.root, &["rebase", "--abort"]);
+    git(
+        &f.root,
+        &["commit", "--allow-empty", "-m", "Continued after recovery"],
+    );
+    let head = git(&f.root, &["rev-parse", "HEAD"]);
+    fs::write(f.root.join("file"), "private staged\n").unwrap();
+    git(&f.root, &["add", "file"]);
+    fs::write(f.root.join("file"), "private unstaged\n").unwrap();
+    let index = fs::read(f.root.join(".git/index")).unwrap();
+    let refs = git(&f.root, &["show-ref"]);
+    let marker = fs::read(f.root.join(".git/gitnova-merge.json")).unwrap();
+    let p = f
+        .app
+        .preview_merge_action(&f.id, &action("release"))
+        .unwrap();
+    assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+    assert!(p.paths.is_empty());
+    let archive = p.recovery_dir.unwrap().to_path().unwrap();
+    let done = f
+        .app
+        .apply_merge_action(&f.id, &action("release"), &p.token)
+        .unwrap();
+    assert_eq!(done.status, "succeeded", "{}", done.summary);
+    assert_eq!(fs::read(archive).unwrap(), marker);
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), head);
+    assert_eq!(git(&f.root, &["show-ref"]), refs);
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), index);
+    assert_eq!(
+        fs::read_to_string(f.root.join("file")).unwrap(),
+        "private unstaged\n"
+    );
+    assert_eq!(f.app.merge_state(&f.id).unwrap().phase, "none");
+}

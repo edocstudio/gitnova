@@ -1,0 +1,11 @@
+# M61 — Close stale owned sessions after external recovery
+
+An old GitNova cherry-pick journal remained after native Git operation markers disappeared and the checkout advanced. The app correctly kept unrelated writes blocked, but session cleanup required the old original HEAD/branch, preventing the user from closing this stale record through the UI.
+
+The existing reviewed session-cleanup action now archives only a validated owned journal when no native merge/pick/revert/rebase/sequencer/autostash, index/HEAD lock or unresolved index conflict remains. It may be reviewed after the current HEAD or branch changes. It never runs abort/reset, stages files, moves refs or changes a submodule. Session identity and its private archive location remain validated; the exact journal is retained before removing only GitNova's ownership marker. Existing archives, corrupt/foreign markers and active native operations still refuse cleanup.
+
+Release uses one shared path for merge, cherry-pick, revert and rebase. Its token includes the live checkout HEAD and branch in addition to index/configuration/session state; identical-tree external commits still invalidate an old review. Post-archive validation checks the same live checkout, native indicators and marker before removal. Metadata-only closure has an empty Git-file scope and does not require historical diff objects or allocate recovery copies of current working content. It does not claim to finish or roll back the original operation, and no write is replayed automatically.
+
+The existing operation-status text becomes a contextual button opening the existing Working changes inspector. This gives the screenshot's blocked Pull/Push state a direct route to its explanation and Review session cleanup, without adding a screen, dialog, sidebar or duplicate toolbar action. Confirmation remains explicit. English/Thai labels and the existing recovery receipt remain in use.
+
+The reported project was inspected read-only. No journal, index, source file, submodule, ref or configuration was modified there; the developer must review cleanup in the updated app. Tests use synthetic temporary Git repositories. Earlier documentation edits remain intact and uncommitted.

@@ -116,7 +116,7 @@ export interface AmendOriginal {commit:Commit;message:string;signed:boolean}
 export interface AmendPreview {request:AmendRequest;commit:CommitPreview;original:Commit;originalMessage:string;originalSigned:boolean;expectedTree:string;emptyReplacement:boolean;referencedBy:string[];recoveryRef:string;token:string;blockedReason:string|null}
 
 export interface PipelineJob {id:string;name:string;stage:string;status:string;runner:string|null;duration:number|null}
-export interface PipelineRun {id:string;sha:string;reference:string;source:string;status:string;url:string;jobs:PipelineJob[];jobsPartial:boolean}
+export interface PipelineRun {id:string;displayNumber?:number;name?:string;sha:string;reference:string;source:string;status:string;url:string;jobs:PipelineJob[];jobsPartial:boolean}
 export interface PipelineSnapshot {oid:string;project:string;origin:string;runs:PipelineRun[];partial:boolean;checkedAt:number}
 
 export interface JenkinsSelection {remote:string;oid:string;controller:string;jobUrl:string;username:string}

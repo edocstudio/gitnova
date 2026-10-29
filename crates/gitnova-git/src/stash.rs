@@ -625,12 +625,14 @@ impl GitCli {
         let scratch = Scratch::new(self, root)?;
         let (tip, log) = scratch.remove_stash_record(&before.tip, &before.log, index)?;
         let archive = preview.recovery_dir.to_path()?;
-        let mut builder = fs::DirBuilder::new();
+        let builder = fs::DirBuilder::new();
         #[cfg(unix)]
-        {
+        let builder = {
             use std::os::unix::fs::DirBuilderExt;
+            let mut builder = builder;
             builder.mode(0o700);
-        }
+            builder
+        };
         builder.create(&archive)?;
         for (name, content) in [
             ("original-ref", &before.tip),

@@ -1177,6 +1177,10 @@ pub struct PipelineJob {
 #[serde(rename_all = "camelCase")]
 pub struct PipelineRun {
     pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display_number: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     pub sha: String,
     pub reference: String,
     pub source: String,

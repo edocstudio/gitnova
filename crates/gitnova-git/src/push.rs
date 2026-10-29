@@ -299,9 +299,10 @@ impl GitCli {
                 .trim()
                 .parse()
                 .map_err(|_| AppError::new("git_parse", "Invalid outgoing commit count"))?;
-            if outgoing_count > 500 {
-                blocked=Some("More than 500 outgoing commits exceed the complete review budget. Inspect this publication with Git.".into());
-            } else {
+            // The pinned source OID defines the complete branch scope. Bound the
+            // subject list, not publication: a new destination may include years
+            // of already-shared history without representing that many new edits.
+            {
                 let args = [
                     "log",
                     "--no-show-signature",
@@ -338,13 +339,15 @@ impl GitCli {
                     .collect::<Result<_>>()?;
             }
         }
-        if blocked.is_none() && outgoing.len() != outgoing_count {
+        if blocked.is_none() && outgoing.len() != outgoing_count.min(500) {
             return Err(AppError::new(
                 "output_limit",
                 "Outgoing commit review is incomplete.",
             ));
         }
         let data = serde_json::to_vec(&(
+            "push-history-summary-v2",
+            outgoing_count,
             request,
             &state,
             &config,

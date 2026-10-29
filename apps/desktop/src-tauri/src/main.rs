@@ -1457,8 +1457,11 @@ fn main() {
 mod tests {
     use super::*;
     use serde_json::{json, Value};
+    // Both IPC tests share the process-wide queue; one intentionally fills it.
+    static IPC_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
     #[test]
     fn ci_and_commit_link_commands_are_read_only_and_reject_external_origins() {
+        let _guard = IPC_TEST_LOCK.lock().unwrap();
         let directory = tempfile::tempdir().unwrap();
         let repo = directory.path().join("repo");
         std::fs::create_dir(&repo).unwrap();
@@ -1580,6 +1583,7 @@ mod tests {
     }
     #[test]
     fn real_git_flows_through_tauri_commands_and_remote_origins_are_rejected() {
+        let _guard = IPC_TEST_LOCK.lock().unwrap();
         let directory = tempfile::tempdir().unwrap();
         let repo = directory.path().join("repo");
         std::fs::create_dir(&repo).unwrap();

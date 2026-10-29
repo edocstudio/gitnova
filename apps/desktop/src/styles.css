@@ -659,9 +659,9 @@ main { display: flex; flex: 1; min-height: 0; }
 /* CI has a stable graph column, including at narrow sizes; horizontal scrolling
    preserves message and topology instead of hiding status. */
 .history-heading, .commit-row, .with-detail .history-heading, .with-detail .commit-row {
- grid-template-columns: var(--refs-width) var(--graph-width,88px) minmax(180px,1fr) 116px 128px 104px;
+ grid-template-columns: var(--refs-width) var(--graph-width,88px) minmax(180px,1fr) 140px 128px 104px;
 }
-.history-heading, .history-content, .with-detail .history-heading, .with-detail .history-content { min-width: calc(var(--refs-width) + var(--graph-width,88px) + 543px); }
+.history-heading, .history-content, .with-detail .history-heading, .with-detail .history-content { min-width: calc(var(--refs-width) + var(--graph-width,88px) + 567px); }
 .history-heading > span:nth-child(n), .with-detail .history-heading > span:nth-child(n) { display: block; }
 .commit-row .author, .with-detail .commit-row .commit-date { display: flex; }
 .commit-ci { overflow: hidden; padding-right: 8px; font-size: 10px; }
@@ -758,3 +758,9 @@ main { display: flex; flex: 1; min-height: 0; }
 .related-maintenance summary {cursor:pointer;padding:7px 0;color:var(--muted);}
 .related-maintenance dl {display:grid;grid-template-columns:minmax(90px,1fr) minmax(0,2fr);gap:7px;overflow-wrap:anywhere;}
 .related-maintenance dd {margin:0;}.maintenance-path {display:block;overflow-wrap:anywhere;margin:6px 0;}
+
+/* Existing repository status opens its operation inspector without extra navigation. */
+.status-line .operation-inspection { border: 0; background: transparent; color: inherit; padding: 0; font: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.status-line .operation-inspection:hover { color: var(--ink-dbe7f1, #dbe7f1); text-decoration-style: solid; }
+
+.ci-pipeline-id { font-variant-numeric: tabular-nums; }

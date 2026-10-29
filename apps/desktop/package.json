@@ -12,10 +12,11 @@
     "build": "tsc --noEmit && vite build",
     "check": "tsc --noEmit",
     "test": "vitest run",
-    "tauri": "tauri",
+    "tauri": "node scripts/tauri.mjs",
     "test:e2e": "playwright test",
     "build:local": "node scripts/build-local.mjs",
-    "test:native:local": "node scripts/smoke-local.mjs"
+    "test:native:local": "node scripts/smoke-local.mjs",
+    "doctor": "node scripts/check-prerequisites.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",

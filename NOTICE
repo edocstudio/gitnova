@@ -4,3 +4,8 @@ Copyright 2026 Ittipon Bangudsareh
 GitNova is licensed under the Apache License, Version 2.0.
 Third-party components retain their respective licenses and notices.
 See docs/architecture/dependencies.md for direct dependency choices.
+
+This file records GitNova project attribution. It is not a complete inventory
+of dependency or asset licenses, and does not certify a distribution audit.
+Before binary distribution, review docs/contributing/binary-distribution.md
+and include the applicable third-party notices and license texts.

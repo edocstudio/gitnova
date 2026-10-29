@@ -1,12 +1,12 @@
 import {useEffect,useState} from 'react';
 import {api} from './api';
 import {connections} from './connection-store';
-import {readCi} from './ci-requests';
+import {readCi,graphCiValue} from './ci-requests';
+import type {GraphCiValue} from './ci-requests';
 import type {HostingSelection,PipelineSnapshot} from './contracts';
 
 const cache=new Map<string,PipelineSnapshot>();
 const active=(v:PipelineSnapshot)=>v.runs.some(r=>['running','pending','created','preparing','waiting_for_resource'].includes(r.status));
-export type GraphCiValue={status:string;checkedAt?:number;stale?:boolean};
 export function useGraphCi(id:string,oids:string):Record<string,GraphCiValue>{
  const [version,setVersion]=useState(0),[result,setResult]=useState<Record<string,GraphCiValue>>({});
  useEffect(()=>{const change=()=>{cache.clear();setVersion(n=>n+1);};window.addEventListener('gitnova-ci-config',change);return()=>window.removeEventListener('gitnova-ci-config',change);},[]);
@@ -16,7 +16,7 @@ export function useGraphCi(id:string,oids:string):Record<string,GraphCiValue>{
   const commits=oids.split(',').filter(Boolean).slice(0,40);if(!commits.length)return;
   let config:HostingSelection|null=null;let scope='';
   let live=true,reading=false;let timer:ReturnType<typeof setTimeout>|undefined;
-  const publish=(oid:string,v:PipelineSnapshot,stale=false)=>{if(live)setResult(old=>({...old,[oid]:{status:v.runs[0]?.status??'No pipeline',checkedAt:v.checkedAt,stale}}));};
+  const publish=(oid:string,v:PipelineSnapshot,stale=false)=>{const badge=graphCiValue(v,stale);if(live)setResult(old=>({...old,[oid]:badge}));};
   const read=async()=>{
    if(!live||reading||document.hidden)return;reading=true;let retry=false;let failures=0;
    try{
@@ -33,6 +33,7 @@ export function useGraphCi(id:string,oids:string):Record<string,GraphCiValue>{
     try{
      const value=await readCi(`summary:${key}`,()=>live&&!document.hidden,()=>api.ciSummary(id,{...config!,oid}));
      if(value.oid!==oid)throw new Error('CI scope changed');
+     graphCiValue(value); // Validate evidence before retaining it in the shared cache.
      if(!live)return;
      cache.delete(key);while(cache.size>=128)cache.delete(cache.keys().next().value!);cache.set(key,value);publish(oid,value);failures=0;
     }catch{

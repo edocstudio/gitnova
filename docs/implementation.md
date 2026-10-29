@@ -172,11 +172,11 @@ is also available; full hosted merge eligibility remains a follow-up. Copy links
 
 [Optional local source branch cleanup after merge (M49)](milestone-49.md) is unchecked by default, runs after verified success, retains recovery refs and reports cleanup separately. Remote branches remain unchanged.
 
-[First-project publication (M50)](milestone-50.md) adds reviewed Stage all, complete staged manifests with bounded per-file commit previews, and repository remote configuration in Settings. Existing Push supports first publication and upstream setup. Hosted repositories must already exist; saving a remote never contacts the server.
+[First-project publication (M50)](milestone-50.md) introduced reviewed Stage all, complete staged manifests with bounded per-file commit previews, first Push and upstream setup. At that milestone, destinations had to exist and remote configuration was in Settings; [M53](milestone-53.md) supersedes those historical limits with contextual Push setup and reviewed hosted-repository creation. Saving an existing remote remains a local configuration step, separate from contacting or publishing to its server.
 
 [Three-way conflict resolution (M51)](milestone-51.md) shows actual Current/Result/Incoming versions in the existing diff dock, with reviewed whole-file choices and per-block current/incoming/both draft selection for supported text conflicts in owned merge/cherry-pick/revert sessions.
 
-[Remote Settings cards and footer context (M52)](milestone-52.md) reuse global host connections when configuring a repository remote, and display actual upstream/configured remote identity in the footer alongside the approved copyright and license.
+[Remote Settings cards and footer context (M52)](milestone-52.md) initially reused global host connections for repository remote configuration and added actual upstream/configured remote identity to the footer. Its Settings section and copyright footer wording are historical; [M53](milestone-53.md) moves destination setup to Push, while the current UI credits GitNova · by edocstudio. Copyright and Apache-2.0 terms remain in LICENSE/NOTICE and README.
 
 [Push destination setup (M53)](milestone-53.md) supersedes the M50/M52 Settings remote section. Settings retains global Connections; Push handles existing URLs or reviewed GitHub/GitLab empty-repository creation, then local remote setup and a separate publication review.
 
@@ -193,3 +193,18 @@ app-token storage in unrelated credential helpers.
 [Large amend review (M59)](milestone-59.md) retains the complete staged selection and reuses bounded per-file delta loading when aggregate code is truncated.
 
 [Bounded HTTPS upload compatibility (M60)](milestone-60.md) adds an explicit per-push 16 MiB buffer option for diagnosing chunked-upload rejection, with fresh review and no persistent Git configuration change or automatic write replay.
+
+
+[Exact-commit graph pipeline (M62)](milestone-62.md) shows GitLab’s latest exact-SHA pipeline state and number in the existing CI column, with a ref tooltip and contextual link. Existing global host connections, bounded reads/cache and hidden-window polling pause remain.
+
+
+[GitHub Actions graph identity (M63)](milestone-63.md) extends GitHub aggregate CI with exact-SHA workflow numbers, names and contextual run links while retaining bounded reads and explicit incomplete coverage.
+
+
+[First hosted CI corrections (M64)](milestone-64.md) gates platform-specific helpers, keeps directory-builder mutability local to Unix and serializes native tests that deliberately saturate a shared queue, without loosening checks or changing GitHub settings.
+
+
+[Source-build prerequisites (M65)](milestone-65.md) adds explicit Rust/Cargo setup and bounded `npm run doctor` diagnostics before npm Tauri dev/build, without installing tools or changing native runtime behavior.
+
+
+[Large branch-history Push review (M66)](milestone-66.md) supersedes the initial 500-commit publication limit with an exact pinned history summary and explicitly bounded subject list, retaining normal-push and live-destination validation.

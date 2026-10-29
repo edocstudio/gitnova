@@ -965,3 +965,107 @@ fn unstage_operation_refuses_unresolved_or_external_sessions() {
     assert!(app.preview_merge_action(&id, &a).is_err());
     assert_eq!(fs::read(repo.join(".git/index")).unwrap(), original);
 }
+
+#[test]
+fn session_cleanup_after_external_completion_keeps_current_checkout_and_all_work() {
+    for kind in ["merge", "cherryPick", "revert"] {
+        let (_dir, app, repo, id) = setup();
+        diverge(&repo, false);
+        let source = git(
+            &repo,
+            &[
+                "rev-parse",
+                if kind == "revert" { "HEAD" } else { "feature" },
+            ],
+        );
+        let mut r = request(&source);
+        r.operation = kind.into();
+        r.source_ref = None;
+        let p = app.preview_merge(&id, &r).unwrap();
+        assert!(p.blocked_reason.is_none(), "{kind}: {:?}", p.blocked_reason);
+        let start = app.begin_merge(&id, &p.request, &p.token).unwrap();
+        assert_eq!(start.status, "pending", "{kind}: {}", start.summary);
+        git(&repo, &["commit", "-m", "Completed with external Git"]);
+        let completed = git(&repo, &["rev-parse", "HEAD"]);
+        git(&repo, &["switch", "-c", "continued-work"]);
+        fs::write(repo.join("file.txt"), "new staged work\n").unwrap();
+        git(&repo, &["add", "file.txt"]);
+        fs::write(repo.join("file.txt"), "new unstaged work\n").unwrap();
+        fs::write(repo.join("untracked.txt"), "private untracked work\n").unwrap();
+        let index = fs::read(repo.join(".git/index")).unwrap();
+        let refs = git(&repo, &["show-ref"]);
+        let marker = fs::read(repo.join(".git/gitnova-merge.json")).unwrap();
+        let state = app.merge_state(&id).unwrap();
+        assert_eq!(state.phase, "incomplete");
+        let release = action("release");
+        let p = app.preview_merge_action(&id, &release).unwrap();
+        assert!(p.blocked_reason.is_none(), "{kind}: {:?}", p.blocked_reason);
+        assert!(p.paths.is_empty());
+        assert!(repo.join(".git/gitnova-merge.json").exists());
+        let archive = p.recovery_dir.unwrap().to_path().unwrap();
+        let result = app.apply_merge_action(&id, &release, &p.token).unwrap();
+        assert_eq!(result.status, "succeeded", "{kind}: {}", result.summary);
+        assert_eq!(fs::read(archive).unwrap(), marker);
+        assert_eq!(git(&repo, &["rev-parse", "HEAD"]), completed);
+        assert_eq!(git(&repo, &["branch", "--show-current"]), "continued-work");
+        assert_eq!(git(&repo, &["show-ref"]), refs);
+        assert_eq!(fs::read(repo.join(".git/index")).unwrap(), index);
+        assert_eq!(
+            fs::read_to_string(repo.join("file.txt")).unwrap(),
+            "new unstaged work\n"
+        );
+        assert_eq!(
+            fs::read_to_string(repo.join("untracked.txt")).unwrap(),
+            "private untracked work\n"
+        );
+        assert_eq!(app.merge_state(&id).unwrap().phase, "none");
+    }
+}
+
+#[test]
+fn session_cleanup_rejects_new_head_even_with_identical_index_and_rechecks_native_operations() {
+    let (_dir, app, repo, id) = setup();
+    diverge(&repo, false);
+    let source = git(&repo, &["rev-parse", "feature"]);
+    begin(&app, &id, &source);
+    git(&repo, &["merge", "--abort"]);
+    let release = action("release");
+    let original = git(&repo, &["rev-parse", "HEAD"]);
+    let p = app.preview_merge_action(&id, &release).unwrap();
+    assert!(p.blocked_reason.is_none());
+    let index = fs::read(repo.join(".git/index")).unwrap();
+    let tree = git(&repo, &["rev-parse", "HEAD^{tree}"]);
+    let moved = git(
+        &repo,
+        &[
+            "commit-tree",
+            &tree,
+            "-p",
+            &original,
+            "-m",
+            "Same tree new HEAD",
+        ],
+    );
+    git(&repo, &["update-ref", "refs/heads/main", &moved, &original]);
+    assert_eq!(fs::read(repo.join(".git/index")).unwrap(), index);
+    assert_eq!(
+        app.apply_merge_action(&id, &release, &p.token)
+            .unwrap_err()
+            .code,
+        "stale_preview"
+    );
+    assert!(!p.recovery_dir.unwrap().to_path().unwrap().exists());
+    let fresh = app.preview_merge_action(&id, &release).unwrap();
+    assert!(fresh.blocked_reason.is_none());
+    // A newly started native operation must not be hidden by closing an old journal.
+    git(&repo, &["merge", "--no-ff", "--no-commit", "feature"]);
+    assert!(app
+        .preview_merge_action(&id, &release)
+        .unwrap()
+        .blocked_reason
+        .is_some());
+    assert!(app.apply_merge_action(&id, &release, &fresh.token).is_err());
+    assert!(repo.join(".git/MERGE_HEAD").exists());
+    assert!(repo.join(".git/gitnova-merge.json").exists());
+    assert_eq!(git(&repo, &["rev-parse", "HEAD"]), moved);
+}

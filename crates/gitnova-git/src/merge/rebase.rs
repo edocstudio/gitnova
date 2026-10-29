@@ -648,7 +648,8 @@ pub(super) fn preview_action(
     marker: &Marker,
     action: &MergeAction,
 ) -> Result<MergeActionPreview> {
-    if !["finish", "abort", "skip", "release"].contains(&action.kind.as_str())
+    // Metadata-only session release is shared by all operations in merge/mod.rs.
+    if !["finish", "abort", "skip"].contains(&action.kind.as_str())
         || action.path.is_some()
         || action.choice.is_some()
         || action.content.is_some()
@@ -670,29 +671,7 @@ pub(super) fn preview_action(
     let mut expected = None;
     let mut diff = String::new();
     let mut truncated = false;
-    if action.kind == "release" {
-        if !active(git, root)?
-            && !d.git_dir.join("rebase-apply").exists()
-            && !d.git_dir.join("MERGE_HEAD").exists()
-            && !d.git_dir.join("CHERRY_PICK_HEAD").exists()
-            && !d.git_dir.join("REVERT_HEAD").exists()
-            && !d.git_dir.join("index.lock").exists()
-            && !d.git_dir.join("HEAD.lock").exists()
-            && refs(git, root, &marker.branch)?
-                == marker
-                    .rebase
-                    .as_ref()
-                    .ok_or_else(|| err("Missing rebase journal."))?
-                    .refs
-            && git.status(root)?.branch.as_deref() == Some(&marker.branch)
-            && git.status(root)?.head.as_deref() == Some(&marker.original_oid)
-        {
-            blocked = None;
-        } else {
-            blocked =
-                Some("Inspect this interrupted rebase with Git before closing its journal.".into());
-        }
-    } else if action.kind == "finish" || action.kind == "skip" {
+    if action.kind == "finish" || action.kind == "skip" {
         if !state.conflicts.is_empty() {
             blocked = Some("Resolve every rebase conflict before continuing.".into());
         } else {
@@ -760,15 +739,6 @@ pub(super) fn apply_action(
     recovery::save(git, root, marker, &p)?;
     if preview_action(git, root, marker, action)?.token != token {
         return Err(err("Rebase changed while saving recovery. Review again."));
-    }
-    if action.kind == "release" {
-        let d = git.discover(root)?;
-        recovery::private_file(
-            &marker.session_dir.to_path()?.join("closed-session.json"),
-            &marker_bytes(marker)?,
-        )?;
-        fs::remove_file(d.git_dir.join(MARKER))?;
-        return Ok(());
     }
     let mut marker = marker.clone();
     marker.prepared = false;
