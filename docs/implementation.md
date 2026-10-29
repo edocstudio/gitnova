@@ -8,19 +8,25 @@ A local-first, graph-first desktop Git workspace, built with Rust, Tauri 2, Reac
 
 ## Run
 
-Prerequisites: Rust stable 1.98+, Git, Node 20.19+ or 22.12+, and the platform dependencies listed in [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/). This checkout was verified on Apple Silicon macOS with Rust 1.98.0, Node 20.20.2 and Apple Git 2.39.2. Windows/Linux CI is configured but has not been executed locally.
+Prerequisites: Rust stable 1.98+ with Cargo, Git, Node 20.x (20.19.0+) or 22.12.0+, and the platform dependencies listed in [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/). Follow the [source-build tool installation steps](../README.md#install-the-source-build-tools-first) before running npm: npm does not install Rust/Cargo. Local checks have used Apple Silicon macOS with Rust 1.98.0, Node 20.20.2 and Apple Git 2.39.2. Windows/Linux CI is configured; consult the exact hosted run rather than treating local checks as a hosted result.
 
 ```sh
 # From the repository root
+nvm install
 nvm use
 cd apps/desktop
 npm ci
+npm run doctor
 npm run tauri dev
 ```
 
 If you do not use nvm, activate a supported Node version with your preferred version manager. No Rust installation changes are required if `cargo` and `rustc` already resolve correctly.
 
 English and Thai are available from **Settings → General → Language** (Cmd/Ctrl+,); the preference persists locally. Repository text and commit drafts keep their original content.
+
+The workspace picker also offers **Initialize repository…** for a new or existing local project directory. Review its full path and initial branch (default `main`), then confirm **Initialize & open graph**. The parent directory must exist. Existing files remain unchanged and unstaged; initialization creates no initial commit or remote. Existing repositories use Open instead. Bare, nested-in-repository and symlink destinations, ignore/license templates and parent-directory creation are outside this initialization slice. See [M68](milestone-68.md).
+
+Resize history columns by dragging their header separators. Widths persist on this device; double-click or Home resets one column, and arrow keys adjust a focused separator (Shift for larger steps). All six columns share the same layout across the header and virtualized rows. The Graph column has a topology-dependent minimum width to keep lanes visible. See [M69](milestone-69.md).
 
 Enter an existing repository's absolute path. Open the selector beside the GitNova logo to add another repository, switch workspaces, pin repositories, or open a discovered linked worktree/initialized submodule. Cmd/Ctrl+O opens this selector; Escape closes it. Cmd/Ctrl+K searches commit messages, authors, emails and SHAs in the current repository, selected repositories or the entire workspace; choosing a result opens its exact graph/diff context without checkout. Right click a commit (or press Shift+F10) for contextual checkout, branch/tag creation and copy actions. Double click its graph node or exact branch badge to open the corresponding checkout preview; ambiguous branch tips show choices. Click a commit to inspect its metadata and file-grouped, line-numbered patch. Select **Working changes** above history: Unstaged and Staged stay visible in the right inspector, selected code appears in the bottom diff dock, and Summary/Description lead to staged review and explicit commit. Unstaged files stay out of the commit. Arrow keys and Home/End navigate loaded history. History/status revalidate in the background every five seconds while visible and when the window regains focus. Refresh remains available.
 

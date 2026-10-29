@@ -29,10 +29,11 @@ Wordmark and tagline remain: GitNova / Git made simple. / Every repository. Ever
 change. The lettering on the board uses the system sans-serif stack; it is not a
 new font dependency or a claim of trademark clearance.
 
-Verification: viewed the native 128px PNG and the size/monochrome board; rendered
+Original identity verification: viewed the native 128px PNG and the size/monochrome board; rendered
 the built app header and checked that its image and favicon load. TypeScript,
 Vite and local macOS native build passed, as did signing/embedded-asset checks
-for `target/debug/bundle/macos/GitNova Updated.app`.
+for the then-current local bundle. That historical alternate bundle is retired;
+the current builder updates only `target/debug/bundle/macos/GitNova.app`.
 
 [Built app header](app-header.png).
 
