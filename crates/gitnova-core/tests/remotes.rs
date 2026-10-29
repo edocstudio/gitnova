@@ -497,3 +497,74 @@ fn direct_pull_revalidates_dirty_state_and_blocks_divergence_and_missing_upstrea
     assert!(f.app.preview_pull_current(&f.id).is_err());
     assert_eq!(git(&f.repo, &["rev-parse", "HEAD"]), local);
 }
+
+#[test]
+fn auto_fetch_refreshes_tracking_without_touching_work_index_tags_or_receipt_history() {
+    let f = fixture();
+    fs::write(f.repo.join("file.txt"), "staged local\n").unwrap();
+    git(&f.repo, &["add", "file.txt"]);
+    fs::write(f.repo.join("file.txt"), "unstaged local\n").unwrap();
+    fs::write(f.repo.join("draft.txt"), "draft\n").unwrap();
+    let head = git(&f.repo, &["rev-parse", "HEAD"]);
+    let index = fs::read(f.repo.join(".git/index")).unwrap();
+    let config = fs::read(f.repo.join(".git/config")).unwrap();
+    fs::write(f.repo.join(".git/FETCH_HEAD"), "keep fetch head\n").unwrap();
+    let incoming = commit(&f.writer, "remote.txt", "remote update\n");
+    git(&f.writer, &["tag", "remote-only-tag"]);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let hook = f.repo.join(".git/hooks/reference-transaction");
+        fs::write(&hook, "#!/bin/sh\ntouch hook-must-not-run\n").unwrap();
+        fs::set_permissions(hook, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    assert_eq!(f.app.auto_fetch(&f.id).unwrap().as_deref(), Some("origin"));
+    assert_eq!(git(&f.repo, &["rev-parse", "origin/main"]), incoming);
+    assert_eq!(git(&f.repo, &["rev-parse", "HEAD"]), head);
+    assert_eq!(fs::read(f.repo.join(".git/index")).unwrap(), index);
+    assert_eq!(fs::read(f.repo.join(".git/config")).unwrap(), config);
+    assert_eq!(
+        fs::read_to_string(f.repo.join("file.txt")).unwrap(),
+        "unstaged local\n"
+    );
+    assert_eq!(
+        fs::read_to_string(f.repo.join("draft.txt")).unwrap(),
+        "draft\n"
+    );
+    assert_eq!(
+        fs::read_to_string(f.repo.join(".git/FETCH_HEAD")).unwrap(),
+        "keep fetch head\n"
+    );
+    assert!(git(&f.repo, &["tag"]).is_empty());
+    assert!(!f.repo.join("hook-must-not-run").exists());
+    assert!(!f._dir.path().join("app/operations").exists());
+}
+#[test]
+fn auto_fetch_respects_operation_lock_and_pending_native_merge() {
+    let f = fixture();
+    let old = git(&f.repo, &["rev-parse", "origin/main"]);
+    commit(&f.writer, "remote.txt", "new incoming\n");
+    let guard = gitnova_git::GitCli.acquire_operation(&f.repo).unwrap();
+    assert!(f.app.auto_fetch(&f.id).is_err());
+    drop(guard);
+    fs::write(f.repo.join(".git/MERGE_HEAD"), format!("{old}\n")).unwrap();
+    assert!(f.app.auto_fetch(&f.id).unwrap().is_none());
+    assert_eq!(git(&f.repo, &["rev-parse", "origin/main"]), old);
+    fs::remove_file(f.repo.join(".git/MERGE_HEAD")).unwrap();
+    assert!(f.app.auto_fetch(&f.id).unwrap().is_some());
+}
+#[test]
+fn auto_fetch_prefers_upstream_remote_and_skips_repositories_without_remotes() {
+    let f = fixture();
+    git(&f.repo, &["remote", "rename", "origin", "company"]);
+    git(
+        &f.repo,
+        &["remote", "add", "origin", "/missing-auto-fetch-remote"],
+    );
+    let incoming = commit(&f.writer, "remote.txt", "company incoming\n");
+    assert_eq!(f.app.auto_fetch(&f.id).unwrap().as_deref(), Some("company"));
+    assert_eq!(git(&f.repo, &["rev-parse", "company/main"]), incoming);
+    git(&f.repo, &["remote", "remove", "origin"]);
+    git(&f.repo, &["remote", "remove", "company"]);
+    assert!(f.app.auto_fetch(&f.id).unwrap().is_none());
+}

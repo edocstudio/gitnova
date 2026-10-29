@@ -1177,6 +1177,10 @@ pub struct PipelineJob {
 #[serde(rename_all = "camelCase")]
 pub struct PipelineRun {
     pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display_number: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     pub sha: String,
     pub reference: String,
     pub source: String,
@@ -1342,4 +1346,20 @@ pub struct SubmoduleSyncPreview {
     pub recovery_dir: NativePath,
     pub token: String,
     pub blocked_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InitRequest {
+    pub workspace_id: String,
+    pub destination: String,
+    pub branch: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InitPreview {
+    pub request: InitRequest,
+    pub destination: NativePath,
+    pub existing_folder: bool,
+    pub token: String,
 }

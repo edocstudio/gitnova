@@ -748,3 +748,97 @@ fn pushing_a_parent_never_implicitly_publishes_an_unpushed_submodule_commit() {
     assert_eq!(git(&child, &["rev-parse", "HEAD"]), second);
     assert_eq!(git(&repo, &["rev-parse", "HEAD"]), head);
 }
+
+#[test]
+fn large_new_and_existing_branch_pushes_keep_full_scope_with_bounded_subject_review() {
+    use std::io::Write;
+    use std::process::Stdio;
+    let (directory, app, repo, id) = setup();
+    let bare = remote(&repo, directory.path());
+    let base = git(&repo, &["rev-parse", "feature"]);
+    let mut input = String::new();
+    for n in 1..=520 {
+        let subject = format!("Long history {n}");
+        let parent = if n == 1 {
+            base.clone()
+        } else {
+            format!(":{}", n - 1)
+        };
+        input.push_str(&format!("commit refs/heads/feature\nmark :{n}\ncommitter GitNova Test <test@example.invalid> {} +0000\ndata {}\n{subject}\nfrom {parent}\n\n", 1700000000+n,subject.len()));
+    }
+    let mut child = Command::new("git")
+        .arg("-C")
+        .arg(&repo)
+        .args(["fast-import", "--quiet"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(input.as_bytes())
+        .unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let tip = git(&repo, &["rev-parse", "feature"]);
+    let local_head = git(&repo, &["rev-parse", "HEAD"]);
+    let index = fs::read(repo.join(".git/index")).unwrap();
+    let config = fs::read(repo.join(".git/config")).unwrap();
+    for destination in ["new-feature", "main"] {
+        let mut request = push_request(&tip);
+        request.remote_branch = destination.into();
+        let review = app.preview_push(&id, &request).unwrap();
+        assert!(
+            review.blocked_reason.is_none(),
+            "{:?}",
+            review.blocked_reason
+        );
+        assert_eq!(
+            review.outgoing_count,
+            if destination == "new-feature" {
+                522
+            } else {
+                521
+            }
+        );
+        assert_eq!(review.outgoing.len(), 500);
+        assert_eq!(review.outgoing[0].oid, tip);
+        if destination == "new-feature" {
+            assert!(review.remote_oid.is_none());
+            assert!(git(
+                &bare,
+                &[
+                    "for-each-ref",
+                    "--format=%(refname)",
+                    "refs/heads/new-feature"
+                ]
+            )
+            .is_empty());
+            // A destination created after preview must invalidate that preview,
+            // even if it is an ancestor and would allow a normal fast-forward.
+            git(
+                &bare,
+                &["update-ref", "refs/heads/new-feature", &local_head],
+            );
+            assert!(app.push_branch(&id, &request, &review.token).is_err());
+            assert_eq!(remote_oid(&bare, "new-feature"), local_head);
+            git(&bare, &["update-ref", "-d", "refs/heads/new-feature"]);
+        }
+        let review = app.preview_push(&id, &request).unwrap();
+        let receipt = app.push_branch(&id, &request, &review.token).unwrap();
+        assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);
+        assert_eq!(remote_oid(&bare, destination), tip);
+        assert_eq!(git(&bare, &["rev-list", "--count", destination]), "522");
+    }
+    assert_eq!(git(&repo, &["rev-parse", "HEAD"]), local_head);
+    assert_eq!(fs::read(repo.join(".git/index")).unwrap(), index);
+    assert_eq!(fs::read(repo.join(".git/config")).unwrap(), config);
+    assert_eq!(fs::read_to_string(repo.join("file.txt")).unwrap(), "main\n");
+}

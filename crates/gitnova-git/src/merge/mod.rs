@@ -1291,26 +1291,38 @@ impl GitCli {
                 blocked = Some("A native Git operation or lock is still active. Finish or recover it before closing this session.".into());
             }
         }
-        if status.head.as_ref() != Some(&marker.original_oid)
-            || status.branch.as_ref() != Some(&marker.branch)
-            || state.phase != "incomplete"
-        {
-            blocked = Some("Only an interrupted session at its original branch and HEAD can be closed here. Inspect the changed checkout with Git.".into());
+        if state.phase != "incomplete" {
+            blocked = Some("Only an interrupted owned session without an active Git operation can be closed here.".into());
+        }
+        if !state.conflicts.is_empty() {
+            blocked = Some(
+                "Resolve the remaining index conflicts with Git before closing this session."
+                    .into(),
+            );
         }
         let destination = marker.session_dir.to_path()?.join("closed-session.json");
         if destination.exists() || destination.symlink_metadata().is_ok() {
             blocked = Some("A prior session archive exists. Inspect recovery metadata with Git before closing this session.".into());
         }
         let token = digest(
-            &serde_json::to_vec(&(action, &state, marker_bytes(&marker)?, &blocked))
-                .map_err(|e| AppError::new("snapshot", e.to_string()))?,
+            &serde_json::to_vec(&(
+                action,
+                &state,
+                marker_bytes(&marker)?,
+                &status.head,
+                &status.branch,
+                &blocked,
+            ))
+            .map_err(|e| AppError::new("snapshot", e.to_string()))?,
         );
         Ok(MergeActionPreview {
             truncated: false,
             action: action.clone(),
             state,
             diff: String::new(),
-            paths: changed_paths(self, root, &marker.original_oid)?,
+            // Closing ownership changes no Git files or refs, and must not depend
+            // on historical objects still being available after external recovery.
+            paths: vec![],
             recovery_dir: Some(NativePath::new(&destination)),
             expected_tree: None,
             token,
@@ -1323,7 +1335,9 @@ impl GitCli {
         action: &MergeAction,
     ) -> Result<MergeActionPreview> {
         if let Some(marker) = load_marker(self, root)? {
-            if marker.request.operation == "rebase" && action.kind != "resolve" {
+            if marker.request.operation == "rebase"
+                && !matches!(action.kind.as_str(), "resolve" | "release")
+            {
                 return rebase::preview_action(self, root, &marker, action);
             }
         }
@@ -1535,7 +1549,9 @@ impl GitCli {
     }
     pub fn apply_merge_action(&self, root: &Path, action: &MergeAction, token: &str) -> Result<()> {
         if let Some(marker) = load_marker(self, root)? {
-            if marker.request.operation == "rebase" && action.kind != "resolve" {
+            if marker.request.operation == "rebase"
+                && !matches!(action.kind.as_str(), "resolve" | "release")
+            {
                 return rebase::apply_action(self, root, &marker, action, token);
             }
         }
@@ -1562,13 +1578,25 @@ impl GitCli {
                 .ok_or_else(|| AppError::new("merge_metadata", "Missing session archive"))?
                 .to_path()?;
             let original = metadata(&d.git_dir.join(MARKER), 65536)?;
+            let checkout = self.status(root)?;
+            // Bind an external commit/checkout even when its index tree is identical.
+            if self
+                .preview_merge_release(root, action, self.merge_state(root)?)?
+                .token
+                != token
+            {
+                return Err(AppError::new(
+                    "stale_preview",
+                    "The checkout or session changed. Review session cleanup again.",
+                ));
+            }
             recovery::private_file(&archive, &original)?;
             // Revalidate the live marker and native operation indicators before removing only our marker.
             let latest = self.preview_merge_release(root, action, self.merge_state(root)?)?;
             // The newly written archive is an expected difference; compare the reviewed native state separately.
             let status = self.status(root)?;
-            if status.head.as_ref() != Some(&marker.original_oid)
-                || status.branch.as_ref() != Some(&marker.branch)
+            if status.head != checkout.head
+                || status.branch != checkout.branch
                 || latest.state.token != preview.state.token
                 || metadata(&d.git_dir.join(MARKER), 65536)? != original
             {

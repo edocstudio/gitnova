@@ -74,3 +74,5 @@ pub use gitnova_domain::{
     HunkPreview, RebasePlan, SubmoduleSyncPreview, WorktreeMaintenancePreview,
     WorktreeMaintenanceRequest,
 };
+
+pub use gitnova_domain::{InitPreview, InitRequest};

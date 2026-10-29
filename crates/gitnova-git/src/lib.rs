@@ -5,6 +5,7 @@ mod metrics;
 mod wait;
 pub use metrics::{measure_git, GitMetrics};
 mod clone;
+mod init;
 mod progress;
 mod remote_config;
 mod tracking;

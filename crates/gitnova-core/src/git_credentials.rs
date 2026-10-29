@@ -26,8 +26,19 @@ pub fn git_credential_helper(operation: &str, input: &[u8]) -> Result<Vec<u8>> {
         return Ok(Vec::new());
     }
     gitnova_hosting::git_credentials::parse_request(input)?;
+    // This executable is a separate helper process, so disabling Keychain UI
+    // here cannot alter the app's foreground credential prompts.
+    #[cfg(target_os = "macos")]
+    let _noninteractive = if std::env::var_os("GITNOVA_BACKGROUND_FETCH").is_some() {
+        Some(gitnova_hosting::git_credentials::disable_background_interaction()?)
+    } else {
+        None
+    };
     if let Some(response) = gitnova_hosting::git_credentials::response(input)? {
         return Ok(response);
+    }
+    if std::env::var_os("GITNOVA_BACKGROUND_FETCH").is_some() {
+        return Ok(Vec::new());
     }
     // Preserve existing Git credentials when there is no connected app account.
     // GitCli clears inherited GIT_CONFIG_PARAMETERS/COUNT, including our process-

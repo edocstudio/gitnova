@@ -34,10 +34,9 @@ pub(crate) fn wait_for_exit(
         }
     }
 }
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod tests {
     use super::*;
-    #[cfg(unix)]
     #[test]
     fn preserves_deadline_and_reports_child_status() {
         use std::process::Command;

@@ -179,6 +179,18 @@ pub fn response(input: &[u8]) -> Result<Option<Vec<u8>>> {
     })
 }
 
+/// Used only inside the separate Git credential-helper process.
+#[cfg(target_os = "macos")]
+pub fn disable_background_interaction(
+) -> Result<security_framework::os::macos::keychain::KeychainUserInteractionLock> {
+    security_framework::os::macos::keychain::SecKeychain::disable_user_interaction().map_err(|_| {
+        AppError::new(
+            "git_auth",
+            "Background Keychain access is unavailable. Fetch manually to authorize access.",
+        )
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

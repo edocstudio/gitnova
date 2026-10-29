@@ -357,6 +357,18 @@ async fn catalog(state: State<'_>) -> Result<Catalog, AppError> {
     result
 }
 #[tauri::command]
+async fn preview_init(state: State<'_>, request: InitRequest) -> Result<InitPreview, AppError> {
+    run(state, move |a| a.preview_init(&request)).await
+}
+#[tauri::command]
+async fn init_repository(
+    state: State<'_>,
+    request: InitRequest,
+    token: String,
+) -> Result<Catalog, AppError> {
+    run(state, move |a| a.init_repository(&request, &token)).await
+}
+#[tauri::command]
 async fn preview_clone(state: State<'_>, request: CloneRequest) -> Result<ClonePreview, AppError> {
     run(state, move |a| a.preview_clone(&request)).await
 }
@@ -656,6 +668,10 @@ async fn remote_branches(
     membership_id: String,
 ) -> Result<RemoteBranches, AppError> {
     run(state, move |a| a.remote_branches(&membership_id)).await
+}
+#[tauri::command]
+async fn auto_fetch(state: State<'_>, membership_id: String) -> Result<Option<String>, AppError> {
+    run(state, move |a| a.auto_fetch(&membership_id)).await
 }
 #[tauri::command]
 async fn fetch_remote(
@@ -1271,6 +1287,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         update_submodule,
         remote_branches,
         fetch_remote,
+        auto_fetch,
         pull_upstream,
         preview_pull_current,
         pull_current,
@@ -1296,6 +1313,8 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         change_hunk,
         create_commit,
         catalog,
+        preview_init,
+        init_repository,
         preview_clone,
         clone_repository,
         recent_clones,
@@ -1457,8 +1476,11 @@ fn main() {
 mod tests {
     use super::*;
     use serde_json::{json, Value};
+    // Both IPC tests share the process-wide queue; one intentionally fills it.
+    static IPC_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
     #[test]
     fn ci_and_commit_link_commands_are_read_only_and_reject_external_origins() {
+        let _guard = IPC_TEST_LOCK.lock().unwrap();
         let directory = tempfile::tempdir().unwrap();
         let repo = directory.path().join("repo");
         std::fs::create_dir(&repo).unwrap();
@@ -1580,6 +1602,7 @@ mod tests {
     }
     #[test]
     fn real_git_flows_through_tauri_commands_and_remote_origins_are_rejected() {
+        let _guard = IPC_TEST_LOCK.lock().unwrap();
         let directory = tempfile::tempdir().unwrap();
         let repo = directory.path().join("repo");
         std::fs::create_dir(&repo).unwrap();

@@ -247,6 +247,7 @@ pub struct Credential {
     pub token: String,
     pub login: String,
 }
+#[cfg(target_os = "macos")]
 fn credential_account(c: &HostingContext) -> String {
     format!("{}:{}", c.provider, c.origin)
 }
@@ -450,9 +451,8 @@ impl<'a> HostingClient<'a> {
             )
         })
     }
-    /// At most five exact-SHA runs, fifty jobs each; no POST or log downloads.
-    /// GitLab's own commit status, including external CI reported to GitLab.
-    /// One lightweight request; no jobs, artifacts or logs are fetched.
+    /// Lightweight exact-SHA graph evidence: GitLab last_pipeline when complete,
+    /// otherwise its commit status. One request; no jobs, artifacts or logs.
     pub fn ci_summary(&self, oid: &str) -> Result<PipelineSnapshot> {
         if !valid_oid(oid) {
             return Err(err(
@@ -477,8 +477,51 @@ impl<'a> HostingClient<'a> {
             return Err(err("Pipeline revision did not match the selected commit."));
         }
         let mut runs = Vec::new();
-        if !row["status"].is_null() {
+        let pipeline = &row["last_pipeline"];
+        if !pipeline.is_null() && (pipeline.get("id").is_some() || pipeline.get("sha").is_some()) {
+            if pipeline["sha"].as_str() != Some(oid) {
+                return Err(err("Pipeline revision did not match the selected commit."));
+            }
+            let id = pipeline_id(pipeline)?;
+            let project_path = self
+                .context
+                .project
+                .split('/')
+                .map(encode)
+                .collect::<Vec<_>>()
+                .join("/");
+            let url = format!("{}/{project_path}/-/pipelines/{id}", self.context.origin);
+            // Older GitLab versions omit web_url. Construct the canonical exact-
+            // project route; if supplied, it must identify this same pipeline.
+            if let Some(supplied) = pipeline.get("web_url").filter(|v| !v.is_null()) {
+                let supplied = supplied
+                    .as_str()
+                    .ok_or_else(|| err("Invalid pipeline URL."))?;
+                let parsed = Url::parse(supplied).map_err(|_| err("Invalid pipeline URL."))?;
+                let expected = Url::parse(&url).map_err(|_| err("Invalid pipeline URL."))?;
+                if parsed != expected
+                    || !parsed.username().is_empty()
+                    || parsed.password().is_some()
+                {
+                    return Err(err("Pipeline URL does not match the connected project."));
+                }
+            }
             runs.push(PipelineRun {
+                display_number: None,
+                name: None,
+                id,
+                sha: oid.into(),
+                reference: bounded_field(pipeline, "ref"),
+                source: "gitlab_pipeline".into(),
+                status: pipeline_status(pipeline),
+                url,
+                jobs: Vec::new(),
+                jobs_partial: false,
+            });
+        } else if !row["status"].is_null() {
+            runs.push(PipelineRun {
+                display_number: None,
+                name: None,
                 id: oid.into(),
                 sha: oid.into(),
                 reference: String::new(),
@@ -539,7 +582,7 @@ impl<'a> HostingClient<'a> {
         if total < rows.len() as u64 {
             return Err(err("Invalid GitHub checks response."));
         }
-        let partial = total > rows.len() as u64 || rows.len() > 100;
+        let mut partial = total > rows.len() as u64 || rows.len() > 100;
         let mut states = Vec::new();
         if status["total_count"]
             .as_u64()
@@ -557,18 +600,72 @@ impl<'a> HostingClient<'a> {
             if row["head_sha"].as_str() != Some(oid) {
                 return Err(err("Pipeline revision did not match the selected commit."));
             }
-            states.push(match row["status"].as_str() {
-                Some("in_progress") => "running",
-                Some("queued" | "waiting" | "requested" | "pending") => "pending",
-                Some("completed") => match row["conclusion"].as_str() {
-                    Some("success") => "success",
-                    Some("neutral" | "skipped") => "skipped",
-                    Some("failure" | "timed_out" | "action_required") => "failed",
-                    Some("cancelled") => "canceled",
-                    _ => "unknown",
-                },
-                _ => "unknown",
-            });
+            states.push(github_run_status(row));
+        }
+        // One bounded workflow metadata read, never per-job/log/artifact requests.
+        // Actions permission is independent of checks permission: retain known
+        // check evidence if workflow metadata is unavailable, marked incomplete.
+        let actions = self
+            .call(
+                Method::GET,
+                &format!("/repos/{project}/actions/runs"),
+                &[("head_sha", oid.into()), ("per_page", "20".into())],
+                None,
+            )
+            .ok()
+            .flatten();
+        let mut workflows = Vec::new();
+        if let Some(actions) = actions {
+            let rows = actions["workflow_runs"]
+                .as_array()
+                .ok_or_else(|| err("Invalid GitHub Actions response."))?;
+            let total = actions["total_count"]
+                .as_u64()
+                .ok_or_else(|| err("Invalid GitHub Actions response."))?;
+            if total < rows.len() as u64 {
+                return Err(err("Invalid GitHub Actions response."));
+            }
+            partial |= total > rows.len() as u64 || rows.len() > 20;
+            let mut latest = std::collections::BTreeMap::<String, (u64, PipelineRun)>::new();
+            for row in rows.iter().take(20) {
+                if row["head_sha"].as_str() != Some(oid) {
+                    return Err(err("Pipeline revision did not match the selected commit."));
+                }
+                let id = pipeline_id(row)?;
+                let number = row["run_number"]
+                    .as_u64()
+                    .filter(|v| *v > 0)
+                    .ok_or_else(|| err("Invalid GitHub workflow number."))?;
+                let workflow = value_id(&row["workflow_id"])?;
+                let url = format!("{}/{project}/actions/runs/{id}", self.context.origin);
+                let supplied = row["html_url"]
+                    .as_str()
+                    .ok_or_else(|| err("Workflow URL is missing."))?;
+                if Url::parse(supplied).ok() != Url::parse(&url).ok() {
+                    return Err(err("Workflow URL does not match the connected project."));
+                }
+                let state = github_run_status(row);
+                let rank = id.parse::<u64>().map_err(|_| err("Invalid workflow ID."))?;
+                let run = PipelineRun {
+                    id,
+                    display_number: Some(number),
+                    name: Some(bounded_field(row, "name")),
+                    sha: oid.into(),
+                    reference: bounded_field(row, "head_branch"),
+                    source: "github_actions".into(),
+                    status: state.into(),
+                    url,
+                    jobs: Vec::new(),
+                    jobs_partial: false,
+                };
+                if latest.get(&workflow).is_none_or(|(old, _)| rank > *old) {
+                    latest.insert(workflow, (rank, run));
+                }
+            }
+            workflows = latest.into_values().map(|(_, run)| run).collect();
+            states.extend(workflows.iter().map(|run| run.status.as_str()));
+        } else {
+            partial = true;
         }
         if partial {
             states.push("unknown");
@@ -578,8 +675,10 @@ impl<'a> HostingClient<'a> {
         ]
         .into_iter()
         .find(|s| states.contains(s));
-        let runs = aggregate
+        let mut runs: Vec<PipelineRun> = aggregate
             .map(|state| PipelineRun {
+                display_number: None,
+                name: None,
                 id: oid.into(),
                 sha: oid.into(),
                 reference: String::new(),
@@ -591,6 +690,7 @@ impl<'a> HostingClient<'a> {
             })
             .into_iter()
             .collect();
+        runs.extend(workflows);
         Ok(PipelineSnapshot {
             oid: oid.into(),
             project: self.context.project.clone(),
@@ -658,6 +758,8 @@ impl<'a> HostingClient<'a> {
                 .as_array()
                 .ok_or_else(|| err("Invalid pipeline jobs response."))?;
             runs.push(PipelineRun {
+                display_number: None,
+                name: None,
                 id,
                 sha: oid.into(),
                 reference: bounded_field(row, "ref"),
@@ -1041,6 +1143,20 @@ pub fn disconnect(_: &HostingContext) -> Result<()> {
     ))
 }
 
+fn github_run_status(row: &Value) -> &'static str {
+    match row["status"].as_str() {
+        Some("in_progress") => "running",
+        Some("queued" | "waiting" | "requested" | "pending") => "pending",
+        Some("completed") => match row["conclusion"].as_str() {
+            Some("success") => "success",
+            Some("neutral" | "skipped") => "skipped",
+            Some("failure" | "timed_out" | "action_required" | "startup_failure") => "failed",
+            Some("cancelled") => "canceled",
+            _ => "unknown",
+        },
+        _ => "unknown",
+    }
+}
 fn pipeline_id(v: &Value) -> Result<String> {
     let id = project_id(v)?;
     if id.len() > 32 {
@@ -1132,6 +1248,11 @@ mod tests {
                         "Exact SHA query missing: {headers}"
                     );
                     assert!(headers.lines().next().unwrap().contains("per_page=6"));
+                }
+                if path.ends_with("/actions/runs?") {
+                    let request = headers.lines().next().unwrap();
+                    assert!(request.contains(&format!("head_sha={}", "a".repeat(40))));
+                    assert!(request.contains("per_page=20"));
                 }
                 let length = headers
                     .lines()
@@ -1251,6 +1372,7 @@ mod tests {
                     200,
                     json!({"total_count":total,"check_runs":[{"head_sha":oid,"status":"completed","conclusion":conclusion}]}),
                 ),
+                ("GET", "/repos/team/project/actions/runs?",200,json!({"total_count":0,"workflow_runs":[]})),
             ]);
             let mut client = HostingClient::new(&context, &cred).unwrap();
             client.base = base;
@@ -1281,6 +1403,12 @@ mod tests {
                 200,
                 json!({"total_count":0,"check_runs":[]}),
             ),
+            (
+                "GET",
+                "/repos/team/project/actions/runs?",
+                200,
+                json!({"total_count":0,"workflow_runs":[]}),
+            ),
         ]);
         let mut client = HostingClient::new(&context, &cred).unwrap();
         client.base = base;
@@ -1295,6 +1423,134 @@ mod tests {
         client.base = base;
         assert!(client.ci_summary(&oid).is_err());
         task.join().unwrap();
+    }
+    #[test]
+    fn github_graph_workflows_keep_number_name_branch_and_exact_links() {
+        let context = resolve(&selection("github"), "git@github.com:team/project.git").unwrap();
+        let cred = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        let oid = "a".repeat(40);
+        let row = |id: u64, workflow: u64, number: u64, state: &str| json!({"id":id,"workflow_id":workflow,"run_number":number,"name":"CI","head_sha":oid,"head_branch":"main","status":"completed","conclusion":state,"html_url":format!("https://github.com/team/project/actions/runs/{id}")});
+        for (rows, expected) in [
+            (vec![row(99, 1, 1, "failure")], "failed"),
+            (
+                vec![row(98, 1, 1, "failure"), row(99, 1, 2, "success")],
+                "success",
+            ),
+            (
+                vec![row(99, 1, 1, "success"), row(100, 2, 1, "timed_out")],
+                "failed",
+            ),
+        ] {
+            let count = rows.len();
+            let (base, _, task) = server(vec![
+                (
+                    "GET",
+                    "/repos/team/project/commits/",
+                    200,
+                    json!({"sha":oid,"state":"pending","total_count":0}),
+                ),
+                (
+                    "GET",
+                    "/repos/team/project/commits/",
+                    200,
+                    json!({"total_count":0,"check_runs":[]}),
+                ),
+                (
+                    "GET",
+                    "/repos/team/project/actions/runs?",
+                    200,
+                    json!({"total_count":count,"workflow_runs":rows}),
+                ),
+            ]);
+            let mut client = HostingClient::new(&context, &cred).unwrap();
+            client.base = base;
+            let result = client.ci_summary(&oid).unwrap();
+            assert_eq!(result.runs[0].status, expected);
+            for run in result.runs.iter().skip(1) {
+                assert_eq!(run.sha, oid);
+                assert_eq!(run.reference, "main");
+                assert_eq!(run.name.as_deref(), Some("CI"));
+                assert!(run.display_number.is_some());
+                assert!(run.url.ends_with(&format!("/actions/runs/{}", run.id)));
+            }
+            assert_eq!(
+                result.runs.len(),
+                if count == 2 && result.runs[1].display_number == Some(2) {
+                    2
+                } else {
+                    count + 1
+                }
+            );
+            task.join().unwrap();
+        }
+    }
+    #[test]
+    fn github_graph_workflows_refuse_wrong_sha_or_project_and_keep_permission_failures_incomplete()
+    {
+        let context = resolve(&selection("github"), "git@github.com:team/project.git").unwrap();
+        let cred = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        let oid = "a".repeat(40);
+        for (sha, url, code) in [
+            (
+                "b".repeat(40),
+                "https://github.com/team/project/actions/runs/99",
+                200,
+            ),
+            (
+                oid.clone(),
+                "https://github.com/other/project/actions/runs/99",
+                200,
+            ),
+            (
+                oid.clone(),
+                "https://github.com/team/project/actions/runs/99?token=secret",
+                200,
+            ),
+            (
+                oid.clone(),
+                "https://github.com/team/project/actions/runs/99",
+                403,
+            ),
+        ] {
+            let (base, _, task) = server(vec![
+                (
+                    "GET",
+                    "/repos/team/project/commits/",
+                    200,
+                    json!({"sha":oid,"state":"success","total_count":1}),
+                ),
+                (
+                    "GET",
+                    "/repos/team/project/commits/",
+                    200,
+                    json!({"total_count":0,"check_runs":[]}),
+                ),
+                (
+                    "GET",
+                    "/repos/team/project/actions/runs?",
+                    code,
+                    json!({"total_count":1,"workflow_runs":[{"id":99,"workflow_id":1,"run_number":1,"head_sha":sha,"head_branch":"main","status":"completed","conclusion":"success","html_url":url}]}),
+                ),
+            ]);
+            let mut client = HostingClient::new(&context, &cred).unwrap();
+            client.base = base;
+            let result = client.ci_summary(&oid);
+            if code == 403 {
+                let result = result.unwrap();
+                assert!(result.partial);
+                assert_eq!(result.runs[0].status, "unknown");
+                assert_eq!(result.runs.len(), 1);
+            } else {
+                assert!(result.is_err());
+            }
+            task.join().unwrap();
+        }
     }
     #[test]
     fn gitlab_ci_summary_uses_server_commit_status_without_job_requests() {
@@ -1336,6 +1592,129 @@ mod tests {
                     format!("https://gitlab.com/team/project/-/commit/{oid}")
                 );
             }
+            task.join().unwrap();
+        }
+    }
+    #[test]
+    fn gitlab_graph_pipeline_keeps_exact_revision_number_ref_and_state_with_one_read() {
+        let context = resolve(&selection("gitlab"), "git@gitlab.com:team/sub/project.git").unwrap();
+        let cred = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        let oid = "a".repeat(40);
+        for status in [
+            "success",
+            "running",
+            "pending",
+            "failed",
+            "canceled",
+            "skipped",
+            "manual",
+            "future-state",
+        ] {
+            let (base, _, task) = server(vec![(
+                "GET",
+                "/projects/team%2Fsub%2Fproject/repository/commits/",
+                200,
+                json!({"id":oid,"status":null,"last_pipeline":{"id":40778,"sha":oid,"ref":"main","status":status,"web_url":"https://gitlab.com/team/sub/project/-/pipelines/40778"}}),
+            )]);
+            let mut client = HostingClient::new(&context, &cred).unwrap();
+            client.base = base;
+            let result = client.ci_summary(&oid).unwrap();
+            assert_eq!(result.runs.len(), 1);
+            let run = &result.runs[0];
+            assert_eq!(run.id, "40778");
+            assert_eq!(run.sha, oid);
+            assert_eq!(run.reference, "main");
+            assert_eq!(run.source, "gitlab_pipeline");
+            assert_eq!(
+                run.status,
+                if status == "future-state" {
+                    "unknown"
+                } else {
+                    status
+                }
+            );
+            assert_eq!(
+                run.url,
+                "https://gitlab.com/team/sub/project/-/pipelines/40778"
+            );
+            assert!(run.jobs.is_empty());
+            assert!(!result.partial);
+            task.join().unwrap();
+            assert!(!serde_json::to_string(&result)
+                .unwrap()
+                .contains("mock-secret"));
+        }
+    }
+    #[test]
+    fn gitlab_graph_pipeline_supports_base_path_and_missing_web_url() {
+        let mut selected = selection("gitlab");
+        selected.origin = Some("https://forge.example/gitlab".into());
+        let context = resolve(
+            &selected,
+            "https://forge.example/gitlab/team/sub/project.git",
+        )
+        .unwrap();
+        let cred = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        let oid = "a".repeat(40);
+        let (base, _, task) = server(vec![(
+            "GET",
+            "/projects/team%2Fsub%2Fproject/repository/commits/",
+            200,
+            json!({"id":oid,"status":"failed","last_pipeline":{"id":"40778","sha":oid,"ref":"release","status":"success"}}),
+        )]);
+        let mut client = HostingClient::new(&context, &cred).unwrap();
+        client.base = base;
+        let result = client.ci_summary(&oid).unwrap();
+        assert_eq!(
+            result.runs[0].url,
+            "https://forge.example/gitlab/team/sub/project/-/pipelines/40778"
+        );
+        assert_eq!(result.runs[0].status, "success");
+        task.join().unwrap();
+    }
+    #[test]
+    fn gitlab_graph_pipeline_refuses_wrong_revision_or_destination() {
+        let context = resolve(&selection("gitlab"), "git@gitlab.com:team/project.git").unwrap();
+        let cred = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        let oid = "a".repeat(40);
+        let valid = json!({"id":40778,"sha":oid,"ref":"main","status":"success"});
+        let mut bad_sha = valid.clone();
+        bad_sha["sha"] = json!("b".repeat(40));
+        let mut bad_id = valid.clone();
+        bad_id["id"] = json!("not-an-id");
+        let mut missing_sha = valid.clone();
+        missing_sha.as_object_mut().unwrap().remove("sha");
+        let mut cases = vec![bad_sha, bad_id, missing_sha];
+        for url in [
+            "https://evil.example/team/project/-/pipelines/40778",
+            "https://gitlab.com/other/project/-/pipelines/40778",
+            "https://gitlab.com/team/project/-/pipelines/40779",
+            "https://alice:secret@gitlab.com/team/project/-/pipelines/40778",
+            "https://gitlab.com/team/project/-/pipelines/40778?token=secret",
+        ] {
+            let mut row = valid.clone();
+            row["web_url"] = json!(url);
+            cases.push(row);
+        }
+        for pipeline in cases {
+            let (base, _, task) = server(vec![(
+                "GET",
+                "/projects/team%2Fproject/repository/commits/",
+                200,
+                json!({"id":oid,"status":"success","last_pipeline":pipeline}),
+            )]);
+            let mut client = HostingClient::new(&context, &cred).unwrap();
+            client.base = base;
+            assert!(client.ci_summary(&oid).is_err());
             task.join().unwrap();
         }
     }

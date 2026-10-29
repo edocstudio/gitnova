@@ -33,6 +33,7 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
   const [preview, setPreview] = useState<FilePreview | null>(null);
   const [review, setReview] = useState<CommitPreview | null>(null);
   const [amend,setAmend]=useState(false);const [amendHead,setAmendHead]=useState<string|null>(null);const [amendDraft,setAmendDraft]=useState('');const [amendReview,setAmendReview]=useState<AmendPreview|null>(null);const [acknowledgeRewrite,setAcknowledgeRewrite]=useState(false);
+  const [reviewInvalidated,setReviewInvalidated]=useState(false);
   const [reviewedState, setReviewedState] = useState<string | null>(null);
   const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(false);
   const [receipt, setReceipt] = useState<OperationReceipt | null>(null);
@@ -68,7 +69,7 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
     return () => { request.current++; };
   }, [membershipId, selection, changes?.token, review, reviewPerFile, busy, stashOpen]);
   useEffect(() => {
-    if (review && reviewedState !== changes?.token) { setReview(null); setAmendReview(null); setError('Working changes changed. Review staged content again before committing.'); }
+    if (review && reviewedState !== changes?.token) { setReview(null); setAmendReview(null); setReviewInvalidated(true); }
   }, [changes?.token, review, reviewedState]);
   useEffect(() => {
     if (stashOpen) return;
@@ -82,7 +83,7 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
   }, [locale, membershipId, preview, hunks, busy, externalBusy, discard, stageAllOpen, review, reviewPerFile, amendReview, loading, entry, changes?.status.head, onDiffChange, stashOpen]);
   useEffect(() => () => onDiffChange(null), [onDiffChange]);
   const perform = async (operation: () => Promise<OperationReceipt>, after?: () => void) => {
-    if (writing.current) return; writing.current = true; onBusyChange(true); setBusy(true); setError('');
+    if (writing.current) return; writing.current = true; onBusyChange(true); setBusy(true); setError(''); setReviewInvalidated(false);
     try {
       const result = await operation(); onOperation(result); setReceipt(result);
       if(result.status==='succeeded'&&result.kind==='amend_commit'){setAmend(false);setAmendHead(null);setAmendDraft('');setAmendReview(null);setReview(null);}
@@ -106,7 +107,7 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
   };
   const startReview = async () => {
     if (busy || externalBusy || (!amend && stagedCount === 0) || !summary.trim()) return;
-    const state = changes?.token; setError(''); setBusy(true);
+    const state = changes?.token; setError(''); setReviewInvalidated(false); setBusy(true);
     try {
       setAmendReview(null);setAcknowledgeRewrite(false);
       const amendment=amend&&amendHead?await api.previewAmend(membershipId,{oid:amendHead,message}):null;
@@ -133,7 +134,7 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
   return <aside className="detail working-detail" aria-label={t("Working changes")}>
     <div className="detail-heading"><div><Icon name="layers" /><span>{t("Working changes")}</span></div><div className="working-heading-actions"><button className="icon-button danger-action" title={t('Discard changes…')} aria-label={t('Discard changes…')} disabled={busy || externalBusy || Boolean(review) || Boolean(discard) || !entries.length} onClick={() => { setDiscard({path:null,scope:'all'}); setFileMenu(null); }}><Icon name="trash" /></button><button className="icon-button" aria-label={t("Close working changes")} disabled={busy} onClick={onClose}><Icon name="close" /></button></div></div>
     <div className="working-context"><strong>{changes?.files.length ?? 0} {changes?.files.some(isSubmodule) ? changes.files.length === 1 ? t("changed item") : t("changed items") : changes?.files.length === 1 ? t("changed file") : t("changed files")}</strong><span>{t("on")} <b>{changes?.status.branch ?? t("detached HEAD")}</b></span></div>
-    {error && <div className="inline-error" role="alert">{t(error)}</div>}
+    {(error || reviewInvalidated) && <div className="inline-error" role="alert">{t(error || 'Working changes changed. Review staged content again before committing.')}</div>}
     {receipt?.status === 'succeeded' && <div className={`operation-receipt ${receipt.status === 'succeeded' ? 'success' : 'failure'}`} role="status"><Icon name={receipt.status === 'succeeded' ? 'check' : 'commit'} /><div>{t(receipt.summary)}{receipt.recovery && !receipt.kind.endsWith('_submodule_pointer') && <p>{t(receipt.recovery)}</p>}</div></div>}
     {(stashConflict || receipt?.kind?.startsWith('stash_') && receipt.status === 'conflicted') && <p className="notice" role="status">{t('Saved work is retained for recovery. Resolve stash conflicts with Git before retrying.')}</p>}
     {!review && !discard && <RecordedActivityView membershipId={membershipId} refreshKey={receipt ? `${receipt.id}:${receipt.status}` : ''} disabled={busy || externalBusy} />}

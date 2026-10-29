@@ -35,7 +35,7 @@
 - **See the story in the graph.** Trace branches and merges, inspect commits, and reach contextual actions with a right click or a double click.
 - **Work across repositories.** Keep related repositories in a workspace, pin frequent projects, search the repository picker and retain graph context while switching.
 - **Review the change before applying it.** See the source, destination and selected scope. Git writes are revalidated; consequential operations retain receipts and recovery evidence.
-- **Keep your workflow local.** GitNova uses your installed Git and configured authentication. Accounts are needed only for optional hosting and CI integrations.
+- **Keep your workflow local.** GitNova uses your installed Git and configured authentication. GitNova host accounts are optional and can also supply macOS HTTPS Git authentication; external Git credentials and SSH remain available.
 - **Built for a small resource footprint.** Rust services use bounded Git workers, read budgets, caches and virtualized history/diffs. Performance and long-session RAM validation remain active work.
 
 ## Features
@@ -74,25 +74,58 @@ Captured from a temporary Git fixture using the real Rust core through the brows
 ### Requirements
 
 - **Rust stable 1.98+**, Cargo, and an installed **Git** executable.
-- **Node.js 20.19+ or 22.12+** and npm. The repository includes an [`.nvmrc`](.nvmrc).
-- The [Tauri system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS.
+- **Node.js 20.x (20.19.0+) or 22.12.0+** and npm. The repository pins 20.20.2 in [`.nvmrc`](.nvmrc); the accepted range is declared in [package.json](apps/desktop/package.json).
+- The [Tauri system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS. The local macOS bundle targets macOS 13.0 or newer; see the platform validation limits below.
+
+### Install the source-build tools first
+
+The commands below build the native app from source. **`npm ci` installs JavaScript dependencies only; `nvm` manages Node.js only. Neither installs Rust or Cargo.** A built standalone GitNova app does not need Rust/Cargo/Node on the recipient’s machine; it still needs Git. Public installers are not available yet.
+
+1. Install stable **Rust 1.98+ and Cargo** using [rustup](https://rust-lang.org/tools/install/). Cargo is included with the Rust installation. Reopen Terminal afterward so the updated `PATH` takes effect. On macOS/Linux, an existing rustup installation can also be activated in the current shell with `source "$HOME/.cargo/env"`. On Windows, reopen the terminal and check that `%USERPROFILE%\.cargo\bin` is in `PATH`. If Rust is installed but no default toolchain is configured, run `rustup default stable`; update an older rustup toolchain with `rustup update stable`.
+2. Install **Git**, then the [Tauri prerequisites for your OS](https://v2.tauri.app/start/prerequisites/): macOS desktop development needs Xcode Command Line Tools (`xcode-select --install`, then finish the installer); Windows needs Microsoft C++ Build Tools and WebView2; Linux needs the distribution-specific WebKitGTK/build packages listed there.
+3. Install a supported Node.js version and npm. With nvm, run `nvm install` followed by `nvm use` from the repository root. The `.nvmrc` does not install or select Rust.
+
+On **macOS/Linux**, the official rustup installation commands are:
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+```
+
+Follow the installer prompts, then verify the versions below. `source` updates the current shell’s PATH; opening a new Terminal also activates a correctly configured installation. On Windows, use the installer linked in step 1 instead of these shell commands.
+
+Before continuing, these commands must work in the **same Terminal**:
+
+```sh
+node --version
+npm --version
+git --version
+rustc --version
+cargo --version
+```
 
 ### Run from source
 
 Clone this repository, then run from its root:
 
 ```sh
-# Optional, if you use nvm:
+# Optional, if you use nvm (first use installs the pinned Node version):
+nvm install
 nvm use
 
 cd apps/desktop
 npm ci
+npm run doctor
 npm run tauri dev
 ```
 
 Add an existing repository by its absolute path, or clone one from the workspace picker. Use **Cmd/Ctrl+O** to switch repositories and **Cmd/Ctrl+K** to search commits. **Cmd/Ctrl+,** opens Settings.
 
-`npm run dev` starts a browser preview; use `npm run tauri dev` for local Git access.
+`npm run doctor` checks basic source-build tools and prints installation/PATH guidance; it does not install tools, compile the app or certify every system library. `npm run tauri dev` and `npm run tauri build` run this check automatically and stop early when a required tool is missing. `npm run tauri -- --version` and other informational CLI commands remain available without the native-tool check.
+
+`npm run dev` starts a browser preview; use `npm run tauri dev` for local Git access. The first native run compiles Rust dependencies and can take several minutes; later builds reuse Cargo’s build cache.
+
+**Auto fetch** defaults to one minute for the active repository and can be disabled or changed to 30 seconds, 1, 2 or 5 minutes in **Settings → General**. It refreshes remote-tracking branches without pulling or changing local files. New attempts pause while hidden, offline, reviewing actions or running Git operations; failures back off quietly. Background HTTPS uses an already-authorized GitNova host account, while SSH uses the agent/config without interactive prompts. Use manual Fetch if authorization or a longer initial fetch is needed. Local Refresh remains a local reread.
 
 ### Publish an existing local project
 
@@ -150,9 +183,13 @@ See the [architecture and milestone plan](docs/architecture/overview.md), [deliv
 
 ## Contributing
 
-Bug reports, reproducible fixtures, documentation, translation and focused pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and the graph-first interaction rules.
+Bug reports, reproducible fixtures, documentation, translation and focused pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and the graph-first interaction rules. For suspected vulnerabilities, follow [SECURITY.md](SECURITY.md); do not post secrets or unpatched vulnerability details publicly.
 
 All Git-writing test setup belongs in disposable repositories. Run build/test suites one at a time; focused checks are preferred during development.
+
+### Start a local repository
+
+Open the workspace picker and expand **Initialize repository…**. Enter a new folder or an existing project folder and its initial branch, then review and choose **Initialize & open graph**. The parent folder must exist. Existing project files stay unchanged and unstaged; GitNova creates no initial commit or remote. Make your first commit from Working changes and add a destination through Push when ready.
 
 ## Documentation
 
@@ -169,7 +206,7 @@ All Git-writing test setup belongs in disposable repositories. Run build/test su
 
 Copyright 2026 Ittipon Bangudsareh.
 
-GitNova is licensed under [Apache License 2.0](LICENSE). Third-party components retain their own licenses and notices; see [NOTICE](NOTICE).
+GitNova is licensed under [Apache License 2.0](LICENSE). Third-party components retain their own licenses and notices. [NOTICE](NOTICE) contains project attribution; it is not a complete dependency-license inventory or a claim that distribution compliance has been audited. Before redistributing binaries, follow the [distribution checklist](docs/contributing/binary-distribution.md).
 
 <p align="center">
   <strong>GitNova · by edocstudio</strong><br />

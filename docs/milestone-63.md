@@ -1,0 +1,9 @@
+# M63 — GitHub Actions run identity in graph CI
+
+M62 exposed GitLab pipeline IDs, while GitHub still returned only combined commit/check state. The existing CI cell now includes an Actions run number such as `Failed · #1` when one workflow matches that aggregate state. Hover identifies the workflow name, its own state and head branch. Multiple workflows, or a single workflow differing from overall check status, display a count instead of attributing the aggregate to the wrong run. The existing graph context menu opens each workflow run; no new panel, toolbar or Settings form is introduced. Job matrices, logs and artifacts remain on the provider page.
+
+Native GitHub reads retain combined statuses and latest check runs and add one bounded workflow-list request with exact `head_sha` and `per_page=20`. Validate each returned SHA and canonical connected-project Actions URL. Keep the highest run ID per workflow in that bounded window so an older failed run does not replace its newer result. Return the API run ID for identity/linking and the separate `run_number` for display; workflow names and branches remain source data. Additional optional DTO fields default absent for older snapshots and other providers. GitLab and Jenkins retain their own IDs and existing behavior.
+
+Known checks cannot become a false success when workflow evidence is incomplete or inaccessible. Such responses retain available check state and mark incomplete coverage. Existing per-host cache, request serialization, visible-row bound and hidden-window polling pause remain. This adds at most one metadata request per refreshed GitHub commit, not per-job requests or continuous streaming. It is not a live network performance measurement.
+
+See [verification](verification/2026-10-29-github-graph-workflows.md). No account credentials, Git configuration or developer Git history is modified.

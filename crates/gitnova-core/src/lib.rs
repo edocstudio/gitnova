@@ -18,6 +18,7 @@ mod clone;
 mod display_cache;
 pub mod git_credentials;
 mod hosting;
+mod init;
 mod jenkins;
 mod merge_cleanup;
 mod search;
@@ -1586,6 +1587,91 @@ impl Application {
     }
     pub fn remote_branches(&self, membership_id: &str) -> Result<RemoteBranches> {
         self.git.remote_branches(&self.path(membership_id)?)
+    }
+    /// Background refresh has no per-minute receipt/recovery archive. Only
+    /// remote-tracking refs/object data may change; the normal app write lock
+    /// and repository identity validation still apply.
+    pub fn auto_fetch(&self, membership_id: &str) -> Result<Option<String>> {
+        let path = self.path(membership_id)?;
+        let catalog = self.catalog()?;
+        let membership = catalog
+            .workspaces
+            .iter()
+            .flat_map(|w| &w.memberships)
+            .find(|m| m.id == membership_id)
+            .ok_or_else(|| AppError::new("membership", "Unknown membership"))?;
+        let repository = catalog
+            .repositories
+            .iter()
+            .find(|r| r.id == membership.repository_id)
+            .ok_or_else(|| AppError::new("repository", "Unknown repository identity"))?;
+        let discovered = self.git.discover(&path)?;
+        let changed_repository = NativePath::new(&discovered.common_dir) != repository.common_dir;
+        if discovered.root.is_none() {
+            return Ok(None);
+        }
+        let changed_worktree = membership
+            .worktree_id
+            .as_ref()
+            .and_then(|id| catalog.worktrees.iter().find(|w| &w.id == id))
+            .is_none_or(|w| {
+                NativePath::new(&discovered.git_dir) != w.git_dir
+                    || discovered
+                        .root
+                        .as_ref()
+                        .is_none_or(|root| NativePath::new(root) != w.root)
+            });
+        if changed_repository || changed_worktree {
+            return Err(AppError::new(
+                "repository_replaced",
+                "Repository location or Git identity changed. Reopen it explicitly before writing.",
+            ));
+        }
+        let _guard = self.git.acquire_operation(&path)?;
+        if self.git.merge_state(&path)?.phase != "none" {
+            return Ok(None);
+        }
+        let status = self.git.status(&path)?;
+        if status.bare {
+            return Ok(None);
+        }
+        let remotes = self.git.remote_branches(&path)?;
+        let upstream_remote = status
+            .branch
+            .as_ref()
+            .and_then(|branch| {
+                self.git
+                    .text(
+                        &path,
+                        &["config", "--get", &format!("branch.{branch}.remote")],
+                    )
+                    .ok()
+            })
+            .map(|name| name.trim().to_owned());
+        let remote = status
+            .branch
+            .as_ref()
+            .and(upstream_remote)
+            .filter(|name| remotes.remotes.contains(name))
+            .or_else(|| {
+                remotes
+                    .remotes
+                    .iter()
+                    .find(|name| *name == "origin")
+                    .cloned()
+            })
+            .or_else(|| {
+                if remotes.remotes.len() == 1 {
+                    remotes.remotes.first().cloned()
+                } else {
+                    None
+                }
+            });
+        let Some(remote) = remote else {
+            return Ok(None);
+        };
+        self.git.fetch_remote_background(&path, &remote)?;
+        Ok(Some(remote))
     }
     pub fn fetch_remote(
         &self,

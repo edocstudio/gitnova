@@ -512,25 +512,25 @@ main { display: flex; flex: 1; min-height: 0; }
   .sync-actions button,.push-current { padding-inline:8px; }
 }
 
-.clone-controls { border-top:1px solid var(--line);padding-top:12px;margin-top:12px;font-size:12px; }
-.clone-controls > summary,.clone-attempts > summary { cursor:pointer;color:var(--text);padding:5px 0; }
-.clone-controls form { display:grid;gap:8px; }
-.clone-controls input { width:100%;min-width:0; }
+:is(.clone-controls, .init-controls) { border-top:1px solid var(--line);padding-top:12px;margin-top:12px;font-size:12px; }
+:is(.clone-controls, .init-controls) > summary,.clone-attempts > summary { cursor:pointer;color:var(--text);padding:5px 0; }
+:is(.clone-controls, .init-controls) form { display:grid;gap:8px; }
+:is(.clone-controls, .init-controls) input { width:100%;min-width:0; }
 .clone-preview { margin-top:12px;border-top:1px solid var(--line);padding-top:12px; }
 .clone-preview dl { margin:12px 0; }.clone-preview dt { color:var(--muted);font-size:11px;margin-top:8px; }
 .clone-preview dd { margin:4px 0;overflow-wrap:anywhere;font-family:monospace;font-size:11px; }
 .clone-attempts { margin-top:12px; }.clone-attempts > div { border-top:1px solid var(--line);padding:10px 0; }
-.clone-attempts code,.clone-controls .notice code { display:block;overflow-wrap:anywhere;margin-top:6px; }
-.clone-controls .discard-progress { margin-top:12px; }.clone-controls .discard-progress > div { display:flex;align-items:center;gap:7px; }
-.welcome .clone-controls { text-align:left;width:min(520px,100%); }
+.clone-attempts code,:is(.clone-controls, .init-controls) .notice code { display:block;overflow-wrap:anywhere;margin-top:6px; }
+:is(.clone-controls, .init-controls) .discard-progress { margin-top:12px; }:is(.clone-controls, .init-controls) .discard-progress > div { display:flex;align-items:center;gap:7px; }
+.welcome :is(.clone-controls, .init-controls) { text-align:left;width:min(520px,100%); }
 
-.welcome:has(.clone-controls[open]) { margin-block:0;max-height:100%;overflow-y:auto;padding-block:20px; }
-.welcome:has(.clone-controls[open]) .welcome-visual,
-.welcome:has(.clone-controls[open]) > .eyebrow,
-.welcome:has(.clone-controls[open]) > h1,
-.welcome:has(.clone-controls[open]) > p,
-.welcome:has(.clone-controls[open]) .welcome-footnote { display:none; }
-.welcome:has(.clone-controls[open]) .add-form { margin-top:0; }
+.welcome:has(:is(.clone-controls, .init-controls)[open]) { margin-block:0;max-height:100%;overflow-y:auto;padding-block:20px; }
+.welcome:has(:is(.clone-controls, .init-controls)[open]) .welcome-visual,
+.welcome:has(:is(.clone-controls, .init-controls)[open]) > .eyebrow,
+.welcome:has(:is(.clone-controls, .init-controls)[open]) > h1,
+.welcome:has(:is(.clone-controls, .init-controls)[open]) > p,
+.welcome:has(:is(.clone-controls, .init-controls)[open]) .welcome-footnote { display:none; }
+.welcome:has(:is(.clone-controls, .init-controls)[open]) .add-form { margin-top:0; }
 
 .repo-filter { display:flex;align-items:center;gap:7px;margin:8px 0;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:0 8px; }
 .repo-filter > svg { flex-shrink:0;color:var(--muted); }
@@ -659,9 +659,9 @@ main { display: flex; flex: 1; min-height: 0; }
 /* CI has a stable graph column, including at narrow sizes; horizontal scrolling
    preserves message and topology instead of hiding status. */
 .history-heading, .commit-row, .with-detail .history-heading, .with-detail .commit-row {
- grid-template-columns: var(--refs-width) var(--graph-width,88px) minmax(180px,1fr) 116px 128px 104px;
+ grid-template-columns: var(--refs-width) var(--graph-width,88px) minmax(180px,1fr) 140px 128px 104px;
 }
-.history-heading, .history-content, .with-detail .history-heading, .with-detail .history-content { min-width: calc(var(--refs-width) + var(--graph-width,88px) + 543px); }
+.history-heading, .history-content, .with-detail .history-heading, .with-detail .history-content { min-width: calc(var(--refs-width) + var(--graph-width,88px) + 567px); }
 .history-heading > span:nth-child(n), .with-detail .history-heading > span:nth-child(n) { display: block; }
 .commit-row .author, .with-detail .commit-row .commit-date { display: flex; }
 .commit-ci { overflow: hidden; padding-right: 8px; font-size: 10px; }
@@ -758,3 +758,22 @@ main { display: flex; flex: 1; min-height: 0; }
 .related-maintenance summary {cursor:pointer;padding:7px 0;color:var(--muted);}
 .related-maintenance dl {display:grid;grid-template-columns:minmax(90px,1fr) minmax(0,2fr);gap:7px;overflow-wrap:anywhere;}
 .related-maintenance dd {margin:0;}.maintenance-path {display:block;overflow-wrap:anywhere;margin:6px 0;}
+
+/* Existing repository status opens its operation inspector without extra navigation. */
+.status-line .operation-inspection { border: 0; background: transparent; color: inherit; padding: 0; font: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.status-line .operation-inspection:hover { color: var(--ink-dbe7f1, #dbe7f1); text-decoration-style: solid; }
+
+.ci-pipeline-id { font-variant-numeric: tabular-nums; }
+
+.auto-fetch-status { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
+/* Header dividers resize the existing graph table; every row shares the same tracks. */
+.history-heading, .commit-row, .with-detail .history-heading, .with-detail .commit-row { grid-template-columns:var(--history-columns); }
+.history-heading, .history-content, .with-detail .history-heading, .with-detail .history-content { min-width:var(--history-min-width); }
+.history-heading > .history-column-heading, .with-detail .history-heading > .history-column-heading { position:relative;min-width:0;height:100%;padding:0 12px;display:flex;align-items:center; }
+.history-column-heading > span:first-child { overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
+.history-column-resize { position:absolute;right:-4px;top:0;bottom:0;width:9px;z-index:2;cursor:col-resize;touch-action:none;user-select:none; }
+.history-column-resize::after { content:'';position:absolute;top:7px;bottom:7px;left:4px;width:1px;background:var(--line); }
+.history-column-resize:hover::after,.history-column-resize:focus-visible::after { background:var(--accent);width:2px; }
+.history-column-resize:focus-visible { outline:1px solid var(--accent);outline-offset:-2px; }
+.history-heading:has(.history-column-resize:active) { cursor:col-resize;user-select:none; }

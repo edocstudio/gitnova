@@ -1,0 +1,11 @@
+# M67 — Quiet active-repository auto fetch
+
+User-requested automatic remote refresh uses the existing General settings and context status. Default one minute; Off, 30 seconds, one/two/five minutes choices persist on this device. No new screen or toolbar action is needed: preference belongs in existing Settings, and activity belongs beside repository status. Local Refresh is unchanged and Pull stays explicit.
+
+A single in-flight scheduler handles only the active membership, retains at most 32 cooldown entries, pauses new attempts when hidden/offline/busy/in Settings or action/branch reviews, and preserves repository graph context on completion. Failure retry delays double up to fifteen minutes; ordinary writes reset the cooldown. Success is displayed only after local refresh completes. Disabling auto fetch prevents subsequent attempts, without claiming to cancel an already-running native fetch.
+
+Native code validates registered repository/worktree identity, shares the existing operation lock and refuses to start during a pending native/owned operation. It selects the current branch’s configured upstream remote, otherwise origin or the only configured remote; ambiguous choices and bare repositories skip. A common fetch implementation updates only explicit remote-tracking refspecs, with no pull, tags, prune, submodule fetch, FETCH_HEAD, maintenance or commit-graph writes. No per-minute operation receipt/recovery archive is generated. Normal foreground fetch keeps its prior behavior.
+
+Background transport has a twenty-second budget, disables hooks and askpass, and uses noninteractive SSH with strict known-host verification and the user’s SSH config/agent. Existing core.sshCommand overrides are not used for background SSH. HTTPS can use an already-authorized matching GitNova account; the separate macOS credential-helper process disables Keychain UI and never falls back to interactive external helpers. Foreground Keychain/API permissions and prompts remain independent. If authorization, custom transport credentials or a large initial fetch is needed, fetch manually. A failure may still have updated some tracking refs; no atomicity or rollback is claimed.
+
+See [verification](verification/2026-10-29-auto-fetch.md). No GitHub settings, developer repository refs or real credentials were used or changed during verification.

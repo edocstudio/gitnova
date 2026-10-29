@@ -762,6 +762,36 @@ fn run_git_write_with_paths(
         }
     }
     command.env_remove("GITNOVA_CREDENTIAL_TARGETS");
+    command.env_remove("GITNOVA_BACKGROUND_FETCH");
+    let background = args
+        .windows(2)
+        .any(|pair| pair[0] == "-c" && pair[1] == "gitnova.backgroundFetch=true");
+    let budget = if background {
+        Duration::from_secs(20)
+    } else {
+        budget
+    };
+    if background {
+        command
+            .args([
+                "-c",
+                "credential.helper=",
+                "-c",
+                "credential.interactive=false",
+                "-c",
+                "core.askPass=",
+                "-c",
+                "core.hooksPath=/dev/null",
+            ])
+            .env("GITNOVA_BACKGROUND_FETCH", "1")
+            .env("GCM_INTERACTIVE", "Never")
+            .env(
+                "GIT_SSH_COMMAND",
+                "ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10",
+            )
+            .env("SSH_ASKPASS_REQUIRE", "never")
+            .env_remove("SSH_ASKPASS");
+    }
     if protocols.is_some_and(|value| !value.is_empty()) {
         crate::credentials::configure(&mut command, root, args);
     }
