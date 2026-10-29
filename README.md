@@ -125,6 +125,8 @@ Add an existing repository by its absolute path, or clone one from the workspace
 
 `npm run dev` starts a browser preview; use `npm run tauri dev` for local Git access. The first native run compiles Rust dependencies and can take several minutes; later builds reuse Cargo’s build cache.
 
+**Auto fetch** defaults to one minute for the active repository and can be disabled or changed to 30 seconds, 1, 2 or 5 minutes in **Settings → General**. It refreshes remote-tracking branches without pulling or changing local files. New attempts pause while hidden, offline, reviewing actions or running Git operations; failures back off quietly. Background HTTPS uses an already-authorized GitNova host account, while SSH uses the agent/config without interactive prompts. Use manual Fetch if authorization or a longer initial fetch is needed. Local Refresh remains a local reread.
+
 ### Publish an existing local project
 
 1. Open the local Git repository in GitNova. Select **Working changes → Stage all changes…**, review the listed files, then confirm staging. Ignored files stay excluded; submodules require their separate pointer workflow.
@@ -184,6 +186,10 @@ See the [architecture and milestone plan](docs/architecture/overview.md), [deliv
 Bug reports, reproducible fixtures, documentation, translation and focused pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and the graph-first interaction rules. For suspected vulnerabilities, follow [SECURITY.md](SECURITY.md); do not post secrets or unpatched vulnerability details publicly.
 
 All Git-writing test setup belongs in disposable repositories. Run build/test suites one at a time; focused checks are preferred during development.
+
+### Start a local repository
+
+Open the workspace picker and expand **Initialize repository…**. Enter a new folder or an existing project folder and its initial branch, then review and choose **Initialize & open graph**. The parent folder must exist. Existing project files stay unchanged and unstaged; GitNova creates no initial commit or remote. Make your first commit from Working changes and add a destination through Push when ready.
 
 ## Documentation
 

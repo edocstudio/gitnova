@@ -270,6 +270,7 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             }
         }
         "remote_branches" => json!(app.remote_branches(&s("membershipId")?)?),
+        "auto_fetch" => json!(app.auto_fetch(&s("membershipId")?)?),
         "fetch_remote" => {
             json!(app.fetch_remote(&s("membershipId")?, &s("remote")?, args["branch"].as_str())?)
         }
@@ -373,6 +374,15 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             json!(app.create_commit(&s("membershipId")?, &s("message")?, &s("token")?)?)
         }
         "catalog" => json!(app.catalog()?),
+        "preview_init" => json!(app.preview_init(
+            &serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("init", e.to_string()))?
+        )?),
+        "init_repository" => json!(app.init_repository(
+            &serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("init", e.to_string()))?,
+            &s("token")?
+        )?),
         "preview_clone" => json!(app.preview_clone(
             &serde_json::from_value(args["request"].clone())
                 .map_err(|e| AppError::new("clone", e.to_string()))?

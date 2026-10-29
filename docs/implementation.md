@@ -208,3 +208,12 @@ app-token storage in unrelated credential helpers.
 
 
 [Large branch-history Push review (M66)](milestone-66.md) supersedes the initial 500-commit publication limit with an exact pinned history summary and explicitly bounded subject list, retaining normal-push and live-destination validation.
+
+
+[Quiet auto fetch (M67)](milestone-67.md) adds active-repository remote refresh with a one-minute default, General settings, bounded silent transport, operation guards and failure backoff while preserving local graph/worktree context.
+
+- [Milestone 68: local repository initialization](milestone-68.md).
+
+- [Milestone 69: resizable graph columns](milestone-69.md).
+
+- [Milestone 70: hosted checks and UI state regressions](milestone-70.md).

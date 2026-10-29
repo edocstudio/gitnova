@@ -116,6 +116,10 @@ fetch operation; the picker makes its remote scope explicit without a second
 entry point. Pull still fetches before reviewing integration into the current
 branch. Local Refresh only rereads local state.
 
+Auto fetch is a global preference in existing Settings → General, defaulting to one minute with Off/30 seconds/1/2/5 minutes choices. This persistent policy does not belong in a commit action; no new panel, toolbar item or duplicate Fetch button is introduced. Only the active checkout’s upstream remote, otherwise origin or its sole remote, is fetched. Ambiguous remotes without that fallback and bare repositories are skipped. Scheduling waits until the interval elapses, pauses new starts while hidden/offline/in an action review, and defers after foreground writes. A small existing-context status shows running/completed/paused state, with details on hover rather than error dialogs. Graph refresh preserves selection and scroll. Native operation locks and pending-operation checks independently protect the transport.
+
+Failures increase the delay exponentially up to fifteen minutes. Background attempts are bounded to twenty seconds and do not start another attempt until completion. Already-running requests may finish after the window is hidden or the setting is disabled. Fetch does not pull, prune, fetch tags/submodules, write FETCH_HEAD, run local hooks or create per-minute recovery receipts. Authorize a saved HTTPS account or SSH host/key manually first; background work never invokes interactive credential fallback. Custom core.sshCommand wrappers are reserved for foreground Git; background SSH uses standard ssh with the user’s SSH config/agent, BatchMode and strict host verification. Failed fetches may have updated some remote refs; no atomic-fetch guarantee or rollback is claimed.
+
 ### Branch deletion from the graph
 
 Right-click the exact local/remote branch badge → Delete local branch… or Delete
@@ -218,3 +222,17 @@ A clean child checkout differing from the parent gitlink is distinct from uncomm
 ## Optional source branch cleanup after merge
 
 Offer a named local source branch checkbox, initially unchecked, in the existing graph merge review. Repeat the selected deletion in the finish confirmation; retain it across a pending session restart. Bind toggles to a new preview. Local cleanup follows verified merge success, including fast-forward, and retains the source tip for recovery. Abort, conflict and failed merges keep the source branch. A changed source or a source used in another worktree stays intact; cleanup failure is reported separately from merge success. Remote deletion remains a separately selected graph action.
+
+
+## Initialize a local repository
+
+Use the existing workspace picker alongside Add existing and Clone. Initialization has no commit graph yet, so the picker is the natural entry point; no new screen, navigation or permanent toolbar is needed. A collapsed Initialize repository form takes the full folder path and initial branch (main by default). Review displays the canonical destination and whether it creates a folder or initializes an existing project. Confirmation creates Git metadata, registers the repository in that workspace and opens its empty graph. Existing files remain unstaged; there is no initial commit, remote or network request.
+
+The parent must exist. Existing repositories (including bare repositories, gitfiles and destinations inside a repository), files and destination symlinks are rejected. Initial branch names use Git ref validation. Execution rechecks the reviewed destination identity and exclusively reserves .git; it never reinitializes existing metadata. Empty templates prevent installation of user template files/hooks. Failure retains partial metadata/files for inspection, and registration failure directs the user to Add existing. Initialization is local only; remote setup remains in Push. Ignore/license templates, bare initialization and explicitly nested repository initialization are not provided by this form.
+
+
+## Resize graph columns
+
+Resize the existing Branch / Tag, Graph, Commit message, CI, Author and Date tracks directly from their header dividers. Column layout is a graph interaction, so no separate screen, toolbar button or configuration form is introduced. Drag a divider, use Left/Right (Shift for larger steps), or double-click/Home to reset that column. Header and all virtualized commit/stash rows use one grid definition and synchronized horizontal scrolling, including keyboard focus scrolling. Selection and vertical graph context are preserved.
+
+Widths are device-local display preferences shared across repositories, persisted after a completed drag or keyboard adjustment. Defaults remain automatic until changed; each column can be reset independently. Malformed/unavailable storage does not prevent using the graph. Pointer movement is coalesced to animation frames; no Git read/write or network operation is requested by resizing. A compact initial graph width and adaptable lane spacing avoid reserving excessive blank graph space. Minimum graph width grows with the loaded topology so every lane and stash connector remains visible and node spacing stays readable. Narrow windows retain horizontal table scrolling instead of dropping columns.

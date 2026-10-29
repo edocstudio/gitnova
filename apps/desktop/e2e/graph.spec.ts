@@ -46,7 +46,7 @@ test.afterAll(async () => {
   await Promise.allSettled([...pendingCore]);
   rmSync(folder, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
-async function connectRealCore(page: Page, state: string, observe?: (command: string, args: unknown) => void) {
+async function connectRealCore(page: Page, state: string, observe?: (command: string, args: unknown) => void, autoFetchSeconds:number|null=0) {
   await page.exposeBinding('gitnovaTestInvoke', async (_source, command: string, args: unknown) => runCoreSerially(async () => {
     observe?.(command, args);
     // Spawn with an argument array; the JSON request goes through stdin.
@@ -59,7 +59,10 @@ async function connectRealCore(page: Page, state: string, observe?: (command: st
     if(id!==null)await page.evaluate(({id,index})=>(window as unknown as {__TAURI_INTERNALS__:{receive:(id:number,data:unknown)=>void}}).__TAURI_INTERNALS__.receive(id,{index,end:true}),{id,index}).catch(()=>{});
     const result = JSON.parse(stdout); if (result.error) throw new Error(result.error.message); return result.ok;
   }));
-  await page.addInitScript(() => {
+  await page.addInitScript((fetchSeconds:number|null) => {
+    // Unrelated suites must never contact fixture hostnames on a timer.
+    // Auto-fetch tests explicitly enable their disposable local remote.
+    if(fetchSeconds===null)localStorage.removeItem('gitnova.auto-fetch-seconds');else localStorage.setItem('gitnova.auto-fetch-seconds',String(fetchSeconds));
     let sequence=0;const callbacks=new Map<number,(value:unknown)=>void>();
     Object.assign(window, { isTauri: true, __TAURI_INTERNALS__: {
       transformCallback:(callback:(value:unknown)=>void)=>{const id=++sequence;callbacks.set(id,callback);return id;},
@@ -67,7 +70,13 @@ async function connectRealCore(page: Page, state: string, observe?: (command: st
       receive:(id:number,value:unknown)=>{const event=value as {message?:unknown};if(event.message){const target=window as unknown as {gitnovaProgressEvents?:unknown[]};(target.gitnovaProgressEvents??=[]).push(event.message);}callbacks.get(id)?.(value);},
       invoke: (command: string, args: unknown) => (window as unknown as { gitnovaTestInvoke: (c: string, a: unknown) => Promise<unknown> }).gitnovaTestInvoke(command, JSON.parse(JSON.stringify(args??{})))
     } });
-  });
+  },autoFetchSeconds);
+}
+async function changeLanguageThroughSettings(page:Page,language:'en'|'th') {
+  const pickerWasOpen=await page.locator('.picker-menu').isVisible();
+  await page.keyboard.press('Control+,');const dialog=page.locator('dialog.settings-dialog');await expect(dialog).toBeVisible();
+  await dialog.locator('#settings-language').selectOption(language);await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(page.locator('.settings-trigger')).toBeFocused();
+  if(pickerWasOpen){await page.keyboard.press('Control+o');await expect(page.locator('.picker-menu')).toBeVisible();}
 }
 test('real history, diff, workspace switching and keyboard context', async ({ page }, testInfo) => {
   const state = join(folder, 'state.json');
@@ -339,7 +348,7 @@ test('working changes keep both stages, composer and selected diff coherent thro
   await connectRealCore(page, join(folder, 'workflow-state.json')); await page.goto('/'); await page.getByLabel('Add an existing repository').fill(repo); await page.getByRole('button', { name: 'Open', exact: true }).click();
   await page.locator('.working-row').click();
   await expect(page.getByRole('region', { name: 'Unstaged files', exact: true })).toBeVisible(); await expect(page.getByRole('region', { name: 'Staged files', exact: true })).toBeVisible();
-  await expect(page.locator('.unstaged-group')).toContainText('Not in next commit'); await expect(page.locator('.staged-group')).toContainText('In next commit');
+  await expect(page.locator('.unstaged-group').getByRole('button',{name:'Stage all changes…',exact:true})).toBeEnabled(); await expect(page.locator('.staged-group')).toContainText('In next commit');
   const composer = page.locator('.commit-compose'); const initialButtonBottom = await page.getByRole('button', { name: 'Review commit', exact: true }).evaluate(node => node.getBoundingClientRect().bottom);
   await page.locator('.unstaged-group .changed-file').filter({ hasText: 'partial.txt' }).click(); await expect(page.getByLabel('Working file diff')).toContainText('+working-version'); await expect(page.getByLabel('Working file diff')).toContainText('Index → Working tree');
   await page.locator('.staged-group .changed-file').filter({ hasText: 'partial.txt' }).click(); await expect(page.getByLabel('Working file diff')).toContainText('+staged-version'); await expect(page.getByLabel('Working file diff')).not.toContainText('+working-version');
@@ -515,7 +524,7 @@ test('graph management renames, configures upstream and retains deleted branch a
   await manage(tip,'tag','review/tag'); await panel.getByRole('button',{name:'Delete local tag…',exact:true}).click(); await expect(panel.locator('summary')).toBeVisible(); await panel.getByRole('button',{name:'Back',exact:true}).focus(); await page.keyboard.press('Shift+Tab'); await expect(panel.locator('summary')).toBeFocused(); await page.keyboard.press('Enter'); await expect(panel).toContainText('Keep annotation'); const tagBackup=await panel.locator('.recovery-ref').innerText(); await panel.getByRole('button',{name:'Delete local tag',exact:true}).click(); await expect(panel).toBeHidden({timeout:30000}); expect(git(repo,['tag','--list'])).toBe(''); expect(git(repo,['rev-parse',tagBackup])).toBe(tagObject); expect(git(bare,['rev-parse','main'])).toBe(base); expect(git(repo,['diff','--','file.txt'])).toContain('uncommitted work stays');
 });
 test('graph push reviews first publication and sets upstream while preserving dirty work', async ({page},testInfo)=>{
-  test.setTimeout(120000); const {repo,bare,base,tip,manage,panel}=await managementFixture(page,'push-graph'); await manage(tip,'branch','feature/manage'); await panel.getByRole('button',{name:'Push feature/manage…',exact:true}).click(); await page.getByLabel('Remote',{exact:true}).selectOption('origin'); await page.getByLabel('Destination branch',{exact:true}).fill('published/feature'); await page.getByLabel('Set this destination as upstream after push',{exact:true}).check(); await panel.getByText('Upload compatibility',{exact:true}).click();const buffered=panel.getByRole('checkbox',{name:'Use buffered HTTPS upload (16 MiB)',exact:true});await expect(buffered).not.toBeChecked();await buffered.check();await page.getByRole('button',{name:'Check destination & review',exact:true}).click();await expect(panel).toContainText('Buffered upload is available only for HTTPS destinations.');expect(git(bare,['for-each-ref','--format=%(refname)','refs/heads/published/feature'])).toBe('');await buffered.uncheck();await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await expect(panel).toContainText('Creates a new remote branch'); await expect(panel).toContainText('2 outgoing commits'); await expect(panel).toContainText(tip.slice(0,12)); expect(git(bare,['for-each-ref','--format=%(refname)','refs/heads/published/feature'])).toBe(''); await page.screenshot({path:testInfo.outputPath('push-outgoing-review.png')}); await panel.getByRole('button',{name:'Push reviewed branch',exact:true}).click(); await expect(panel).toBeHidden({timeout:45000}); expect(git(bare,['rev-parse','refs/heads/published/feature'])).toBe(tip); expect(git(bare,['rev-parse','main'])).toBe(base); expect(git(bare,['show','refs/heads/published/feature:file.txt'])).toBe('feature'); expect(git(repo,['config','branch.feature/manage.merge'])).toBe('refs/heads/published/feature'); expect(git(repo,['branch','--show-current'])).toBe('main'); await expect(page.locator('.status-line')).toContainText('Pushed feature/manage'); expect(git(repo,['diff','--','file.txt'])).toContain('uncommitted work stays');
+  test.setTimeout(120000); const {repo,bare,base,tip,manage,panel}=await managementFixture(page,'push-graph'); await manage(tip,'branch','feature/manage'); await panel.getByRole('button',{name:'Push feature/manage…',exact:true}).click(); await page.getByLabel('Remote',{exact:true}).selectOption('origin'); await page.getByLabel('Destination branch',{exact:true}).fill('published/feature'); await page.getByLabel('Set this destination as upstream after push',{exact:true}).check(); await panel.getByText('Upload compatibility',{exact:true}).click();const buffered=panel.getByRole('checkbox',{name:'Use buffered HTTPS upload (16 MiB)',exact:true});await expect(buffered).not.toBeChecked();await buffered.check();await page.getByRole('button',{name:'Check destination & review',exact:true}).click();await expect(panel).toContainText('Buffered upload is available only for HTTPS destinations.');expect(git(bare,['for-each-ref','--format=%(refname)','refs/heads/published/feature'])).toBe('');await buffered.uncheck();await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await expect(panel).toContainText('Creates a new remote branch'); await expect(panel).toContainText('2 commits in this branch history'); await expect(panel).toContainText('First publication to this branch'); await expect(panel).toContainText(tip.slice(0,12)); expect(git(bare,['for-each-ref','--format=%(refname)','refs/heads/published/feature'])).toBe(''); await page.screenshot({path:testInfo.outputPath('push-outgoing-review.png')}); await panel.getByRole('button',{name:'Push reviewed branch',exact:true}).click(); await expect(panel).toBeHidden({timeout:45000}); expect(git(bare,['rev-parse','refs/heads/published/feature'])).toBe(tip); expect(git(bare,['rev-parse','main'])).toBe(base); expect(git(bare,['show','refs/heads/published/feature:file.txt'])).toBe('feature'); expect(git(repo,['config','branch.feature/manage.merge'])).toBe('refs/heads/published/feature'); expect(git(repo,['branch','--show-current'])).toBe('main'); await expect(page.locator('.status-line')).toContainText('Pushed feature/manage'); expect(git(repo,['diff','--','file.txt'])).toContain('uncommitted work stays');
 });
 test('graph push stops on a divergent destination',async({page},testInfo)=>{
   test.setTimeout(90000); const {repo,bare,tip,manage,panel}=await managementFixture(page,'divergent-push'); git(repo,['switch','-c','remote-side','main']); writeFileSync(join(repo,'remote.txt'),'remote work\n'); git(repo,['add','remote.txt']); git(repo,['commit','-m','Remote divergence']); const foreign=git(repo,['rev-parse','HEAD']); git(repo,['push','origin','remote-side:main']); git(repo,['switch','main']);
@@ -850,7 +859,9 @@ test('direct main stash pops onto develop and reserved graph lanes avoid the nei
   await actions.getByRole('button', { name: 'Pop…', exact: true }).click(); await expect(panel.getByRole('button', { name: 'Pop on develop', exact: true })).toBeEnabled(); await expect(panel.locator('.stash-destination')).toContainText('On main:'); await expect(panel.locator('.recovery-ref')).toBeHidden(); await page.screenshot({ path: testInfo.outputPath('pop-main-stash-onto-develop.png') }); await panel.getByRole('button', { name: 'Pop on develop', exact: true }).click(); await expect(panel).toHaveCount(0, { timeout: 45000 });
   expect(git(repo, ['branch', '--show-current'])).toBe('develop'); expect(git(repo, ['rev-parse', 'main'])).toBe(main); expect(git(repo, ['rev-parse', 'HEAD'])).toBe(develop); expect(readFileSync(join(repo, 'file.txt'), 'utf8')).toBe('saved on main\n'); expect(readFileSync(join(repo, 'new ภาษาไทย.txt'), 'utf8')).toBe('new saved work\n'); expect(readFileSync(join(repo, 'develop-only.txt'), 'utf8')).toBe('develop tip\n'); expect(readFileSync(join(repo, 'ignored.txt'), 'utf8')).toBe('keep ignored\n'); expect(git(repo, ['stash', 'list'])).toBe(''); expect(git(repo, ['diff', '--cached', '--name-only'])).toBe('');
   await actions.getByRole('button', { name: 'Stash…', exact: true }).click(); await panel.getByRole('button', { name: 'Stash on develop', exact: true }).click(); await expect(panel).toHaveCount(0, { timeout: 45000 });
-  const marker = page.locator('.stash-mark'); await expect(marker).toHaveCount(1); expect(await marker.evaluate(svg => { const rect = svg.querySelector('rect')!; const center = Number(rect.getAttribute('x')) + Number(rect.getAttribute('width')) / 2; const lines = [...svg.querySelectorAll('path')].filter(path => path.getAttribute('stroke') !== '#e5b35c'); return lines.length > 0 && lines.every(path => Math.abs(path.getPointAtLength(0).x - center) >= 20); })).toBe(true);
+  const marker = page.locator('.stash-mark'); await expect(marker).toHaveCount(1); expect(await marker.evaluate(svg => { const rect = svg.querySelector('rect')!; const center = Number(rect.getAttribute('x')) + Number(rect.getAttribute('width')) / 2; const lines = [...svg.querySelectorAll('path')].filter(path => path.getAttribute('stroke') !== '#e5b35c' && !path.getAttribute('stroke')?.includes('graph-stash')); return lines.length > 0 && lines.every(path => Math.abs(path.getPointAtLength(0).x - center) >= 20); })).toBe(true);
+  const graphDivider=page.getByRole('separator',{name:'Resize Graph column',exact:true});await graphDivider.focus();await page.keyboard.press('ArrowLeft');await page.keyboard.press('ArrowLeft');
+  expect(await marker.evaluate(svg=>{const rect=svg.querySelector('rect')!;const center=Number(rect.getAttribute('x'))+5;return [...svg.querySelectorAll('path')].filter(path=>!path.getAttribute('stroke')?.includes('graph-stash')).every(path=>Math.abs(path.getPointAtLength(0).x-center)>=12);})).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('stash-reserved-lane-beside-main.png') }); await actions.getByRole('button', { name: 'Pop…', exact: true }).click(); await panel.getByRole('button', { name: 'Pop on develop', exact: true }).click(); await expect(panel).toHaveCount(0, { timeout: 45000 }); expect(git(repo, ['stash', 'list'])).toBe('');
 });
 
@@ -960,7 +971,7 @@ test('pending merge discard all reviews and cancels, then removes unstaged files
   for(const name of files)expect(existsSync(join(repo,directory,name))).toBe(false);expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(readFileSync(join(repo,'.git/MERGE_HEAD'),'utf8').trim()).toBe(incoming);
   const recovery=await page.locator('.copy-recovery').getAttribute('title');expect(recovery).toBeTruthy();expect(readFileSync(join(recovery!,'work-0'),'utf8')).toBe('incoming saved content\n');
   const events=await page.evaluate(()=>(window as unknown as {gitnovaProgressEvents: {phase:string;completed:number;total:number}[]}).gitnovaProgressEvents);for(const phase of ['checking','backing-up','discarding'])expect(events.some(e=>e.phase===phase)).toBe(true);expect(events.every(e=>e.completed<=e.total)).toBe(true);
-  await page.keyboard.press('Control+o');await page.locator('#language').selectOption('en');await page.keyboard.press('Escape');
+  await changeLanguageThroughSettings(page,'en');
   await expect(inspector).toContainText('No file changes remain, but Merge is still active.');
   await expect(page.locator('.working-stash-actions').getByRole('button',{name:'Pop…',exact:true})).toBeDisabled();
   await page.locator('.stash-graph-row').click();const stash=page.locator('.stash-controls');
@@ -1098,7 +1109,7 @@ test('repository picker limits pages to five, filters every page by name and pat
 
 test('repository picker opens the selected page and keeps search and pagination through language changes',async({page})=>{
   test.setTimeout(150000);const fixture=pickerFixture('picker-active-page',[0,1,2,3,4,5]);await connectRealCore(page,fixture.state);await page.goto('/');await expect(page.locator('.repo-picker')).toContainText('project-6');await page.locator('.repo-picker').click();const list=page.locator('.repo-list');await expect(list).toContainText('Page 2 of 2');await expect(list.locator('.repo-option.active')).toContainText('project-6');await expect(list.locator('.repo-option')).toHaveCount(2);
-  await page.locator('#language').selectOption('th');await expect(list).toContainText('หน้า 2 จาก 2');await expect(list.locator('.repo-option.active')).toContainText('project-6');const search=list.getByRole('textbox',{name:'ค้นหา repository',exact:true});await search.fill('project-4');await expect(list.locator('.repo-option')).toHaveCount(1);await page.locator('#language').selectOption('en');await expect(list.getByRole('textbox',{name:'Search repositories',exact:true})).toHaveValue('project-4');await expect(list.locator('.repo-option strong')).toHaveText('project-4');await expect(page.locator('.repo-picker')).toContainText('project-6');
+  await changeLanguageThroughSettings(page,'th');await expect(list).toContainText('หน้า 2 จาก 2');await expect(list.locator('.repo-option.active')).toContainText('project-6');const search=list.getByRole('textbox',{name:'ค้นหา repository',exact:true});await search.fill('project-4');await expect(list.locator('.repo-option')).toHaveCount(1);await changeLanguageThroughSettings(page,'en');await expect(list.getByRole('textbox',{name:'Search repositories',exact:true})).toHaveValue('project-4');await expect(list.locator('.repo-option strong')).toHaveText('project-4');await expect(page.locator('.repo-picker')).toContainText('project-6');
 });
 
 test('submodule Working changes separates dirty child files from a reviewed parent pointer commit',async({page},testInfo)=>{
@@ -1322,7 +1333,7 @@ test('FAQ is searchable in existing Settings in English and Thai',async({page},t
  await dialog.getByRole('tab',{name:'General',exact:true}).focus();await page.keyboard.press('End');await expect(dialog.getByRole('tab',{name:'FAQ',exact:true})).toBeFocused();await expect(dialog.getByRole('tab',{name:'FAQ',exact:true})).toHaveAttribute('aria-selected','true');
  await dialog.getByRole('searchbox',{name:'Search the guide…'}).fill('submodule');await dialog.getByText('What is a submodule?',{exact:true}).click();await expect(dialog.getByRole('tabpanel',{name:'FAQ',exact:true})).toContainText('Each parent branch can record a different commit.');
  await dialog.getByRole('tab',{name:'General',exact:true}).click();await dialog.getByLabel('Language',{exact:true}).selectOption('th');await dialog.getByRole('tab',{name:'FAQ',exact:true}).click();await expect(dialog.getByRole('searchbox')).toHaveValue('submodule');await dialog.getByRole('searchbox').fill('เชอร์รี่ไม่มี');await expect(dialog.getByRole('status')).toContainText('ไม่พบหัวข้อ');await dialog.getByRole('searchbox').fill('cherry-pick');await expect(dialog.getByText('Cherry-pick คืออะไร ทำไมต้องเลือก parent?',{exact:true})).toBeVisible();
- await page.screenshot({path:testInfo.outputPath('faq-tab-thai.png')});await page.setViewportSize({width:390,height:640});await expect(dialog.getByRole('tab',{name:'FAQ',exact:true})).toBeInViewport();await page.screenshot({path:testInfo.outputPath('faq-tab-compact.png')});await dialog.getByRole('tab',{name:'FAQ',exact:true}).focus();await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();
+ await page.screenshot({path:testInfo.outputPath('faq-tab-thai.png')});await page.setViewportSize({width:390,height:640});await expect(dialog.getByRole('tab',{name:'FAQ',exact:true})).toBeInViewport();await page.screenshot({path:testInfo.outputPath('faq-tab-compact.png')});await dialog.getByRole('tab',{name:'FAQ',exact:true}).focus();await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(page.locator('.settings-trigger')).toBeFocused();
  await page.keyboard.press('Control+,');await expect(dialog.getByRole('tab',{name:'ทั่วไป',exact:true})).toHaveAttribute('aria-selected','true');
 });
 
@@ -1576,4 +1587,73 @@ test('new remote branch with long shared history uses bounded review and pushes 
  await connectRealCore(page,join(folder,'long-push.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await expect(page.locator('.push-current')).toBeEnabled();await page.locator('.push-current').click();await page.getByRole('button',{name:'Check destination & review',exact:true}).click();
  const review=page.locator('.push-review');await expect(review).toContainText('521 commits in this branch history');await expect(review).toContainText('Showing the latest 500 of 521 commits.');await expect(review).toContainText('These are not necessarily new commits or objects to upload.');await expect(review.locator('.outgoing-commits > div')).toHaveCount(500);await expect(page.getByRole('button',{name:'Push reviewed branch',exact:true})).toBeEnabled();expect(git(bare,['for-each-ref','--format=%(refname)','refs/heads/feature'])).toBe('');
  await page.screenshot({path:testInfo.outputPath('long-branch-push-review.png')});await page.getByRole('button',{name:'Push reviewed branch',exact:true}).click();await expect(page.locator('.graph-actions')).toHaveCount(0,{timeout:45000});expect(git(bare,['rev-parse','feature'])).toBe(tip);expect(git(bare,['rev-list','--count','feature'])).toBe('521');expect(git(bare,['rev-parse','main'])).toBe(base);expect(git(repo,['rev-parse','HEAD'])).toBe(tip);expect(git(repo,['status','--porcelain'])).toBe('');
+});
+
+
+test('auto fetch defaults to one minute, preserves checkout and selection, pauses hidden and can be disabled',async({page},testInfo)=>{
+ const writer=join(folder,'auto-writer'),repo=join(folder,'auto-local');mkdirSync(writer);git(writer,['init','-b','main']);writeFileSync(join(writer,'file.txt'),'base\n');git(writer,['add','.']);git(writer,['commit','-m','Auto base']);git(folder,['clone',writer,repo]);const head=git(repo,['rev-parse','HEAD']);
+ writeFileSync(join(repo,'file.txt'),'staged draft\n');git(repo,['add','file.txt']);writeFileSync(join(repo,'file.txt'),'unstaged draft\n');const index=readFileSync(join(repo,'.git/index'));
+ let fetches=0;await connectRealCore(page,join(folder,'auto-fetch.json'),command=>{if(command==='auto_fetch')fetches++;},null);
+ const clock=new Date('2026-01-01T00:00:00Z');await page.clock.install({time:clock});await page.clock.pauseAt(new Date(clock.getTime()+1000));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator(`#commit-${head}`).click();
+ writeFileSync(join(writer,'remote.txt'),'incoming\n');git(writer,['add','.']);git(writer,['commit','-m','Incoming auto fetched commit']);const incoming=git(writer,['rev-parse','HEAD']);
+ await page.clock.fastForward(59000);expect(fetches).toBe(0);await page.clock.fastForward(1000);await expect.poll(()=>fetches).toBe(1);await expect(page.locator('.auto-fetch-status')).toHaveText('Auto fetched',{timeout:45000});await expect(page.locator(`#commit-${incoming}`)).toBeVisible();await expect(page.locator(`#commit-${head}`)).toHaveAttribute('aria-pressed','true');expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['rev-parse','origin/main'])).toBe(incoming);expect(readFileSync(join(repo,'.git/index'))).toEqual(index);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('unstaged draft\n');
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});await page.clock.fastForward(180000);expect(fetches).toBe(1);await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'));});await page.clock.fastForward(1000);await expect.poll(()=>fetches).toBe(2);await expect(page.locator('.auto-fetch-status')).toHaveText('Auto fetched');
+ await page.keyboard.press('Control+,');const settings=page.getByRole('dialog',{name:'Settings',exact:true});await expect(settings.getByLabel('Auto fetch',{exact:true})).toHaveValue('60');await page.clock.fastForward(120000);expect(fetches).toBe(2);await settings.getByLabel('Auto fetch',{exact:true}).selectOption('0');await settings.getByRole('button',{name:'Close settings',exact:true}).click();await page.clock.fastForward(180000);expect(fetches).toBe(2);expect(await page.evaluate(()=>localStorage.getItem('gitnova.auto-fetch-seconds'))).toBe('0');await expect(page.locator('.auto-fetch-status')).toHaveCount(0);await page.screenshot({path:testInfo.outputPath('auto-fetch-preserved-graph.png')});
+});
+
+test('auto fetch failures back off without dialogs or repeated immediate retries',async({page})=>{
+ const repo=join(folder,'auto-failure');mkdirSync(repo);git(repo,['init','-b','main']);git(repo,['commit','--allow-empty','-m','Failure fixture']);git(repo,['remote','add','origin',join(folder,'missing-remote.git')]);
+ let fetches=0;await connectRealCore(page,join(folder,'auto-failure.json'),command=>{if(command==='auto_fetch')fetches++;},30);const clock=new Date('2026-01-01T00:00:00Z');await page.clock.install({time:clock});await page.clock.pauseAt(new Date(clock.getTime()+1000));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await expect(page.locator('.commit-row')).toHaveCount(1);
+ await page.clock.fastForward(30000);await expect(page.locator('.auto-fetch-status')).toHaveText('Auto fetch paused',{timeout:45000});expect(fetches).toBe(1);await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.getByRole('dialog',{name:'Settings',exact:true})).not.toBeVisible();await page.clock.fastForward(59000);expect(fetches).toBe(1);await page.clock.fastForward(1000);await expect.poll(()=>fetches).toBe(2);await expect(page.locator('.auto-fetch-status')).toHaveText('Auto fetch paused');expect(git(repo,['status','--porcelain'])).toBe('');
+});
+
+
+test('initialize repository reviews an existing project then opens an unborn graph', async ({page}, testInfo) => {
+  test.setTimeout(120000);
+  const destination=join(folder,'init-existing-project');mkdirSync(destination);writeFileSync(join(destination,'README.md'),'Existing project\n');
+  await connectRealCore(page,join(folder,'init-catalog.json'));await page.goto('/');
+  await page.locator('.init-controls > summary').click();const controls=page.locator('.init-controls');
+  await controls.getByLabel('Repository folder',{exact:true}).fill(destination);
+  await controls.getByLabel('Initial branch',{exact:true}).fill('develop');
+  await controls.getByRole('button',{name:'Review initialization',exact:true}).click();
+  await expect(controls.locator('.clone-preview')).toContainText(destination);expect(existsSync(join(destination,'.git'))).toBe(false);
+  await controls.getByRole('button',{name:'Initialize & open graph',exact:true}).click();
+  await expect(page.getByText('No commits yet',{exact:true})).toBeVisible();await expect(page.locator('.branch-current')).toContainText('develop');
+  await page.locator('.working-row').click();
+  await expect(page.locator('.working-detail')).toContainText('README.md');
+  expect(readFileSync(join(destination,'README.md'),'utf8')).toBe('Existing project\n');expect(git(destination,['ls-files'])).toBe('');
+  await page.screenshot({path:testInfo.outputPath('initialized-project.png')});
+});
+
+
+test('graph columns resize together, persist, reset and keep selection and scroll alignment',async({page},testInfo)=>{
+  test.setTimeout(120000);
+  await page.setViewportSize({width:1440,height:900});
+  await connectRealCore(page,join(folder,'column-widths.json'));await page.goto('/');
+  await page.evaluate(()=>localStorage.removeItem('gitnova.history-column-widths.v1'));await page.reload();
+  await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();
+  const selected=await page.locator('.commit-row.selected').getAttribute('id');
+  const widths=()=>page.locator('.history-heading > span').evaluateAll(nodes=>nodes.map(n=>Math.round(n.getBoundingClientRect().width)));
+  for(const [index,label] of ['Branch / Tag','Graph','Commit message','CI','Author','Date'].entries()){
+    const before=(await widths())[index];
+    const separator=page.getByRole('separator',{name:`Resize ${label} column`,exact:true});
+    await separator.scrollIntoViewIfNeeded();const box=(await separator.boundingBox())!;
+    await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+40,box.y+box.height/2,{steps:5});await page.mouse.up();
+    await expect.poll(async()=>(await widths())[index]).toBeGreaterThanOrEqual(before+35);
+  }
+  const resized=await widths();
+  await expect(page.locator('.commit-row.selected')).toHaveAttribute('id',selected!);
+  const aligned=()=>page.evaluate(()=>{
+    const header=[...document.querySelectorAll('.history-heading > span')].map(n=>n.getBoundingClientRect());
+    const row=[...document.querySelector('.commit-row')!.children].map(n=>n.getBoundingClientRect());
+    return header.every((box,i)=>Math.abs(box.left-row[i].left)<1.1&&Math.abs(box.width-row[i].width)<1.1);
+  });
+  await expect.poll(aligned).toBe(true);
+  await page.reload();await expect(page.locator('.commit-row')).not.toHaveCount(0);await expect.poll(widths).toEqual(resized);
+  await page.locator('.history-scroll').evaluate(n=>{n.scrollLeft=250;});await expect.poll(aligned).toBe(true);
+  const divider=page.getByRole('separator',{name:'Resize CI column',exact:true});await divider.scrollIntoViewIfNeeded();await divider.focus();await page.keyboard.press('ArrowRight');await expect.poll(async()=>(await widths())[3]).toBe(resized[3]+10);
+  await divider.dblclick();await expect.poll(async()=>(await widths())[3]).toBe(140);
+  await page.setViewportSize({width:780,height:700});await expect.poll(aligned).toBe(true);
+  await page.locator('.history-scroll').evaluate(n=>{n.scrollLeft=0;});await expect.poll(aligned).toBe(true);
+  await page.screenshot({path:testInfo.outputPath('resizable-graph-columns.png')});
 });

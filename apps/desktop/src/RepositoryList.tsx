@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { Catalog, RepoStatus, Workspace } from './contracts';
 import { Icon } from './Icons';
@@ -6,11 +6,12 @@ import { t } from './i18n';
 const PAGE_SIZE = 5;
 const searchable = (value: string) => value.normalize('NFC').toLowerCase();
 
-export function RepositoryList({ catalog, workspace, selectedStatus, blocked, onSelect, onPin }: {
+export function RepositoryList({ catalog, workspace, selectedStatus, blocked, onSelect, onPin, initialView, onViewChange }: {
   catalog: Catalog; workspace: Workspace; selectedStatus?: RepoStatus; blocked: boolean;
+  initialView?: {query:string;page:number}; onViewChange?: (view:{query:string;page:number})=>void;
   onSelect: (id: string) => void; onPin: (id: string) => void;
 }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialView?.query ?? '');
   const entries = useMemo(() => {
     const repositories = new Map(catalog.repositories.map(repo => [repo.id, repo.commonDir.display]));
     const worktrees = new Map(catalog.worktrees.map(worktree => [worktree.id, worktree.root.display]));
@@ -19,7 +20,9 @@ export function RepositoryList({ catalog, workspace, selectedStatus, blocked, on
       return { ...membership, path, search: searchable(`${membership.name}\n${path}`) };
     }).sort((a, b) => Number(b.pinned) - Number(a.pinned));
   }, [catalog.repositories, catalog.worktrees, workspace.memberships]);
-  const [page, setPage] = useState(() => Math.floor(Math.max(0, entries.findIndex(entry => entry.id === workspace.selectedId)) / PAGE_SIZE));
+  const [page, setPage] = useState(() => initialView?.page ?? Math.floor(Math.max(0, entries.findIndex(entry => entry.id === workspace.selectedId)) / PAGE_SIZE));
+  const viewCallback=useRef(onViewChange);viewCallback.current=onViewChange;
+  useEffect(()=>{viewCallback.current?.({query,page});},[query,page]);
   const matches = useMemo(() => { const text = searchable(query.trim()); return entries.filter(entry => entry.search.includes(text)); }, [entries, query]);
   const pageCount = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount - 1);

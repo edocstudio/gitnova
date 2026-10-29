@@ -1347,3 +1347,19 @@ pub struct SubmoduleSyncPreview {
     pub token: String,
     pub blocked_reason: Option<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InitRequest {
+    pub workspace_id: String,
+    pub destination: String,
+    pub branch: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InitPreview {
+    pub request: InitRequest,
+    pub destination: NativePath,
+    pub existing_folder: bool,
+    pub token: String,
+}

@@ -137,3 +137,6 @@ export interface RepositoryCreateOutcome {receipt:OperationReceipt;repository:Cr
 export interface WorktreeMaintenanceRequest {path:NativePath;kind:'lock'|'unlock'|'repair';reason:string}
 export interface WorktreeMaintenancePreview {request:WorktreeMaintenanceRequest;tree:LinkedWorktree;affected:LinkedWorktree[];token:string;blockedReason:string|null}
 export interface SubmoduleSyncPreview {submodule:Submodule;previousUrl:string|null;childPreviousUrl:string|null;childRemote:string|null;url:string;recoveryDir:NativePath;token:string;blockedReason:string|null}
+
+export type InitRequest = {workspaceId: string; destination: string; branch: string};
+export type InitPreview = {request: InitRequest; destination: NativePath; existingFolder: boolean; token: string};

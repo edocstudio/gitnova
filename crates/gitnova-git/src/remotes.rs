@@ -30,6 +30,64 @@ pub trait RemoteWriter {
     ) -> Result<()>;
 }
 impl GitCli {
+    /// Same explicit remote-tracking-only fetch, with a noninteractive budget.
+    pub fn fetch_remote_background(&self, path: &Path, remote: &str) -> Result<()> {
+        self.fetch_remote_impl(path, remote, None, true)
+    }
+    fn fetch_remote_impl(
+        &self,
+        path: &Path,
+        remote: &str,
+        branch: Option<&str>,
+        background: bool,
+    ) -> Result<()> {
+        self.validate_remote_selection(path, remote, branch)?;
+        let refspec = match branch {
+            Some(branch) => format!("+refs/heads/{branch}:refs/remotes/{remote}/{branch}"),
+            None => format!("+refs/heads/*:refs/remotes/{remote}/*"),
+        };
+        let mut args: Vec<OsString> = [
+            "-c",
+            "protocol.allow=never",
+            "-c",
+            "protocol.file.allow=always",
+            "-c",
+            "protocol.https.allow=always",
+            "-c",
+            "protocol.http.allow=always",
+            "-c",
+            "protocol.ssh.allow=always",
+            "-c",
+            "protocol.git.allow=always",
+            "-c",
+            "submodule.recurse=false",
+            "fetch",
+            "--no-tags",
+            "--no-prune",
+            "--no-prune-tags",
+            "--no-recurse-submodules",
+            "--no-write-fetch-head",
+            "--no-auto-maintenance",
+            "--no-write-commit-graph",
+            "--refmap=",
+            "--",
+            remote,
+            &refspec,
+        ]
+        .iter()
+        .map(OsString::from)
+        .collect();
+        if background {
+            args.splice(
+                0..0,
+                [
+                    OsString::from("-c"),
+                    OsString::from("gitnova.backgroundFetch=true"),
+                ],
+            );
+        }
+        run_fetch(path, &args)
+    }
     /// Read the fetch destination without requiring a historical commit to be a branch tip.
     pub fn pipeline_remote(&self, path: &Path, remote: &str, oid: &str) -> Result<String> {
         self.validate_remote_selection(path, remote, None)?;
@@ -303,43 +361,7 @@ impl GitCli {
 }
 impl RemoteWriter for GitCli {
     fn fetch_remote(&self, path: &Path, remote: &str, branch: Option<&str>) -> Result<()> {
-        self.validate_remote_selection(path, remote, branch)?;
-        let refspec = match branch {
-            Some(branch) => format!("+refs/heads/{branch}:refs/remotes/{remote}/{branch}"),
-            None => format!("+refs/heads/*:refs/remotes/{remote}/*"),
-        };
-        let args: Vec<OsString> = [
-            "-c",
-            "protocol.allow=never",
-            "-c",
-            "protocol.file.allow=always",
-            "-c",
-            "protocol.https.allow=always",
-            "-c",
-            "protocol.http.allow=always",
-            "-c",
-            "protocol.ssh.allow=always",
-            "-c",
-            "protocol.git.allow=always",
-            "-c",
-            "submodule.recurse=false",
-            "fetch",
-            "--no-tags",
-            "--no-prune",
-            "--no-prune-tags",
-            "--no-recurse-submodules",
-            "--no-write-fetch-head",
-            "--no-auto-maintenance",
-            "--no-write-commit-graph",
-            "--refmap=",
-            "--",
-            remote,
-            &refspec,
-        ]
-        .iter()
-        .map(OsString::from)
-        .collect();
-        run_fetch(path, &args)
+        self.fetch_remote_impl(path, remote, branch, false)
     }
     fn switch_remote_branch(
         &self,

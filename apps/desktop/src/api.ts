@@ -18,6 +18,8 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  previewInit: (request: import('./contracts').InitRequest) => call<import('./contracts').InitPreview>('preview_init', {request}),
+  initRepository: (request: import('./contracts').InitRequest, token: string) => call<Catalog>('init_repository', {request, token}),
   previewWorktreeMaintenance:(membershipId:string,request:import('./contracts').WorktreeMaintenanceRequest)=>call<import('./contracts').WorktreeMaintenancePreview>('preview_worktree_maintenance',{membershipId,request}),
   maintainWorktree:(membershipId:string,request:import('./contracts').WorktreeMaintenanceRequest,token:string)=>call<OperationReceipt>('maintain_worktree',{membershipId,request,token}),
   previewSubmoduleSync:(membershipId:string,path:NativePath)=>call<import('./contracts').SubmoduleSyncPreview>('preview_submodule_sync',{membershipId,path}),
@@ -92,6 +94,7 @@ export const api = {
   previewSubmoduleUpdate: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore') => call<SubmoduleUpdatePreview>('preview_submodule_update', { membershipId, path, mode }),
   updateSubmodule: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore', token: string) => call<OperationReceipt>('update_submodule', { membershipId, path, mode, token }),
   remoteBranches: (membershipId: string) => call<RemoteBranches>('remote_branches', { membershipId }),
+  autoFetch: (membershipId:string)=>call<string|null>('auto_fetch',{membershipId}),
   fetchRemote: (membershipId: string, remote: string, branch: string | null = null) => call<OperationReceipt>('fetch_remote', { membershipId, remote, branch }),
   pullUpstream: (membershipId: string) => call<BranchTracking>('pull_upstream', { membershipId }),
   previewPullCurrent: (membershipId: string) => call<RemoteSwitchPreview>('preview_pull_current', { membershipId }),

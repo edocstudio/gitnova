@@ -1,3 +1,6 @@
+import {HistoryColumnHeader} from './HistoryColumnHeader';
+import {HISTORY_COLUMNS,HISTORY_WIDTHS_KEY,parseHistoryWidths,historyColumnLayout} from './history-columns';
+import type {HistoryWidths,HistoryColumn} from './history-columns';
 import {ciStatusLabel} from './ci-requests';
 import type {GraphCiValue,GraphCiLink} from './ci-requests';
 import {useGraphCi} from './useGraphCi';
@@ -28,11 +31,12 @@ function GraphCiCell({value,observed}:{value?:GraphCiValue;observed?:string}){
  const title=[pipeline?`${t(pipeline.kind==='workflow'?'Workflow':'Pipeline')} #${pipeline.id} · ${t(ciStatusLabel(status??'unknown'))}${pipeline.reference?` · ${pipeline.reference}`:''}`:status?t(ciStatusLabel(status)):t('Connect a matching host account in Settings → Connections to read CI.'),...(value?.workflows??[]).map(run=>`${run.name||t('Workflow')} #${run.id} · ${t(ciStatusLabel(run.status??'unknown'))} · ${run.reference}`),value?.partial?t('Some CI results are unavailable or incomplete.'):'',value?.stale?t('Showing cached CI status. Refresh failed.'):'',value?.checkedAt?`${t('Last checked')}: ${new Date(value.checkedAt*1000).toLocaleTimeString(dateLocale())}`:''].filter(Boolean).join('\n');
  return <span className="commit-ci" title={title}>{status?<span className={`ci-badge ci-${status}`}><span aria-hidden="true">{status==='success'?'✓':status==='failed'?'✕':['running','pending','created','preparing','waiting_for_resource','Reading CI…'].includes(status)?'◌':'•'}</span> {t(ciStatusLabel(status))}{pipeline?<span className="ci-pipeline-id"> · #{pipeline.id}</span>:!!value?.workflows?.length&&<span> · {t(value.workflows.length===1?'{0} workflow':'{0} workflows',[value.workflows.length])}</span>}</span>:<span className="ci-empty">—</span>}</span>;
 }
-function GraphMark({ row, width, head, labelled, savedLanes }: { row: GraphRow; width: number; head: boolean; labelled: boolean; savedLanes: number[] }) {
-  const x = (lane: number) => 18 + lane * 24; const middle = ROW_HEIGHT / 2;
+function GraphMark({ row, width, naturalWidth, head, labelled, savedLanes }: { row: GraphRow; width: number; naturalWidth: number; head: boolean; labelled: boolean; savedLanes: number[] }) {
+  const step = Math.min(24, (width - 24) * 24 / Math.max(24, naturalWidth - 24));
+  const x = (lane: number) => 18 + lane * step; const middle = ROW_HEIGHT / 2;
   const bend = (from: number, to: number) => {
     if (from === to) return `M${x(from)},${middle} V${ROW_HEIGHT}`;
-    const direction = to > from ? 1 : -1; const radius = 7;
+    const direction = to > from ? 1 : -1; const radius = Math.min(7,step/2);
     return `M${x(from)},${middle} Q${x(from)},${middle + radius} ${x(from) + direction * radius},${middle + radius} H${x(to) - direction * radius} Q${x(to)},${middle + radius} ${x(to)},${middle + radius * 2} V${ROW_HEIGHT}`;
   };
   return <svg aria-hidden="true" width={width} height={ROW_HEIGHT} className="graph-mark" data-lane={row.lane} data-color={row.color}>
@@ -53,14 +57,24 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
   const tracking = useMemo(() => new Map((session.page.tracking ?? []).map(value => [value.branch, value])), [session.page.tracking]);
   const viewport = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState(600); const [scroll, setScroll] = useState(session.scroll);
+  const [height, setHeight] = useState(600); const [viewportWidth,setViewportWidth]=useState(0); const [scroll, setScroll] = useState(session.scroll);
   useLayoutEffect(() => { const at = session.anchor ? items.findIndex(item => item.id === session.anchor) : -1; const top = session.scroll > 0 && at >= 0 ? at * ROW_HEIGHT + (session.anchorOffset ?? 0) : session.scroll; if (viewport.current) viewport.current.scrollTop = top; setScroll(top); }, [session.base, session.revision, items]);
-  useEffect(() => { const node = viewport.current; if (!node) return; const observer = new ResizeObserver(() => setHeight(node.clientHeight)); observer.observe(node); return () => observer.disconnect(); }, []);
+  useEffect(() => { const node = viewport.current; if (!node) return; const observer = new ResizeObserver(() => {setHeight(node.clientHeight);setViewportWidth(node.clientWidth);}); observer.observe(node); return () => observer.disconnect(); }, []);
   const range = windowRange(scroll, height, items.length);
   const visibleOids = items.slice(Math.floor(scroll / ROW_HEIGHT), Math.ceil((scroll + height) / ROW_HEIGHT)).flatMap(item => item.row ? [item.row.commit.oid] : []).join(',');
   const graphCi = useGraphCi(membershipId, visibleOids);
   const savedGeometry = useMemo(() => stashLanes(session.rows, stashes?.entries ?? []), [session.rows, stashes]);
-  const laneWidth = savedGeometry.width;
+  const [columnWidths,setColumnWidths]=useState<HistoryWidths>(()=>{try{return parseHistoryWidths(localStorage.getItem(HISTORY_WIDTHS_KEY));}catch{return {};}});
+  const columnWidthsRef=useRef(columnWidths);
+  const updateColumn=(column:HistoryColumn,value:number|undefined,persist:boolean)=>{
+    const next={...columnWidthsRef.current};if(value===undefined)delete next[column];else next[column]=value;
+    columnWidthsRef.current=next;setColumnWidths(next);
+    if(persist)try{localStorage.setItem(HISTORY_WIDTHS_KEY,JSON.stringify(next));}catch{/* Keep the layout for this session if storage is unavailable. */}
+  };
+  const columnLayout=historyColumnLayout(columnWidths,savedGeometry.width);
+  const laneWidth = columnLayout.values.graph;
+  const laneStep=Math.min(24,(laneWidth-24)*24/Math.max(24,savedGeometry.width-24));
+  useLayoutEffect(()=>{if(heading.current&&viewport.current)heading.current.scrollLeft=viewport.current.scrollLeft;},[columnLayout.template,columnLayout.minWidth]);
   const labels = useMemo(() => graphLabelsByCommit(session.page, session.rows), [session.page.refs, session.page.status.branch, session.page.status.head, session.rows]);
   const selectionVisible = items.some(item => item.id === session.selected);
   const choose = (index: number) => {
@@ -68,10 +82,10 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
     onSelect(item.id); viewport.current?.scrollTo({ top: Math.max(0, index * ROW_HEIGHT - height / 2) });
     requestAnimationFrame(() => document.getElementById(`commit-${item.id}`)?.focus());
   };
-  return <div className="history-wrap" style={{ '--graph-width': `${laneWidth}px` } as CSSProperties}>
+  return <div className="history-wrap" style={{ '--graph-width': `${laneWidth}px`, '--refs-width':`${columnLayout.values.refs}px`, '--history-columns':columnLayout.template, '--history-min-width':`${columnLayout.minWidth}px` } as CSSProperties}>
     {!session.page.status.bare && <div className="working-row-wrap"><button className={`working-row ${session.selected === WORKING ? 'selected' : ''}`} onClick={() => onSelect(WORKING)}><span className="working-node"><Icon name="layers" size={17} /></span><span className="working-row-copy"><strong>{t("Working changes")}</strong><span>{mergeState && mergeState.phase !== 'none' ? mergeState.phase !== 'pending' ? t('Inspect current operation') : mergeState.conflicts.length ? t("Resolve {0} {1} conflicts", [mergeState.conflicts.length, mergeState.operation === 'cherryPick' ? t("cherry-pick") : mergeState.operation === 'revert' ? t("revert") : t("merge")]) : t("Review staged {0} result", [mergeState.operation === 'cherryPick' ? t("cherry-pick") : mergeState.operation === 'revert' ? t("revert") : t("merge")]) : session.page.status.dirty ? t("Review and prepare your next commit") : t("Your working tree is clean")}</span></span><span className="change-count">{session.page.status.changedEntries}</span><Icon name="chevron" size={16} /></button><div className="working-stash-actions" role="group" aria-label={t('Save and restore work')}><button disabled={stashBusy || Boolean(mergeState && mergeState.phase !== 'none') || !session.page.status.dirty} onClick={onStash}>{t('Stash…')}</button><button disabled={stashBusy || Boolean(mergeState && mergeState.phase !== 'none') || !stashes?.entries.length} title={mergeState && mergeState.phase !== 'none' ? t('Open Working changes to finish, abort or inspect the current operation before using Pop.') : t('Restore the latest stash onto {0}', [session.page.status.branch ?? t('Detached HEAD')])} onClick={onPop}>{t('Pop…')}</button></div></div>}
     {submodules}
-    <div className="history-heading-viewport" ref={heading}><div className="history-heading"><span>{t("Branch / Tag")}</span><span>{t("Graph")}</span><span>{t("Commit message")}</span><span className="ci-heading">{t("CI")}</span><span>{t("Author")}</span><span>{t("Date")}</span></div></div>
+    <div className="history-heading-viewport" ref={heading} onScroll={event=>{if(viewport.current&&viewport.current.scrollLeft!==event.currentTarget.scrollLeft)viewport.current.scrollLeft=event.currentTarget.scrollLeft;}}><div className="history-heading" style={{width:viewportWidth || '100%'}}>{HISTORY_COLUMNS.map((column,index)=><HistoryColumnHeader key={column} column={column} label={['Branch / Tag','Graph','Commit message','CI','Author','Date'][index]} width={columnLayout.values[column]} naturalGraph={savedGeometry.width} onResize={(value,persist)=>updateColumn(column,value,persist)} onReset={()=>updateColumn(column,undefined,true)}/>)}</div></div>
     {stashError && <div className="notice compact" role="status">{t('Saved work could not be refreshed:')} {stashError}</div>}
     {stashes?.more && <div className="notice compact">{t('Showing the latest 200 stashes. Inspect older entries with Git.')}</div>}
     {session.notice && <div className="notice compact" role="status">{t(session.notice)}</div>}
@@ -81,10 +95,10 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
         {items.slice(range.start, range.end).map((item, local) => {
           const index = range.start + local;
           if (item.stash) {
-            const entry = item.stash; const lane = savedGeometry.byEntry.get(item.id) ?? savedGeometry.gitLanes; const sx = 18 + lane * 24; const baseLanes = item.base ? savedGeometry.byBase.get(item.base.commit.oid) ?? [] : [];
+            const entry = item.stash; const lane = savedGeometry.byEntry.get(item.id) ?? savedGeometry.gitLanes; const sx = 18 + lane * laneStep; const baseLanes = item.base ? savedGeometry.byBase.get(item.base.commit.oid) ?? [] : [];
             return <button key={item.id} id={`commit-${item.id}`} data-base-oid={entry.baseOid ?? ''} className={`commit-row stash-graph-row ${session.selected === item.id ? 'selected' : ''}`} style={{ height: ROW_HEIGHT }} aria-pressed={session.selected === item.id} tabIndex={session.selected === item.id || (!selectionVisible && index === 0) ? 0 : -1} onClick={() => onSelect(item.id)} onContextMenu={event => { event.preventDefault(); onSelect(item.id); }} onKeyDown={event => { const next = event.key === 'ArrowDown' ? index + 1 : event.key === 'ArrowUp' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : null; if (next !== null) { event.preventDefault(); choose(next); } }}>
               <span className="graph-refs"><span className="graph-ref stash"><Icon name="layers" size={12}/>{`stash@{${entry.index}}`}</span></span>
-              <svg className="graph-mark stash-mark" aria-hidden="true" width={laneWidth} height={ROW_HEIGHT} data-stash-lane={lane} data-git-lanes={savedGeometry.gitLanes}>{item.base?.incoming.map(stroke => <path key={stroke.lane} d={`M${18 + stroke.lane * 24},0 V${ROW_HEIGHT}`} stroke={color(stroke.color)}/>)}{baseLanes.filter(value => value < lane).map(value => <path key={`carry-${value}`} d={`M${18 + value * 24},0 V36`} stroke="var(--graph-stash, #e5b35c)" strokeDasharray="3 3"/>)}{item.base && <path d={`M${sx},18 V36`} stroke="var(--graph-stash, #e5b35c)" strokeDasharray="3 3"/>}<rect x={sx - 5} y={13} width={10} height={10} rx={2} fill="var(--panel)" stroke="var(--graph-stash, #e5b35c)"/></svg>
+              <svg className="graph-mark stash-mark" aria-hidden="true" width={laneWidth} height={ROW_HEIGHT} data-stash-lane={lane} data-git-lanes={savedGeometry.gitLanes}>{item.base?.incoming.map(stroke => <path key={stroke.lane} d={`M${18 + stroke.lane * laneStep},0 V${ROW_HEIGHT}`} stroke={color(stroke.color)}/>)}{baseLanes.filter(value => value < lane).map(value => <path key={`carry-${value}`} d={`M${18 + value * laneStep},0 V36`} stroke="var(--graph-stash, #e5b35c)" strokeDasharray="3 3"/>)}{item.base && <path d={`M${sx},18 V36`} stroke="var(--graph-stash, #e5b35c)" strokeDasharray="3 3"/>}<rect x={sx - 5} y={13} width={10} height={10} rx={2} fill="var(--panel)" stroke="var(--graph-stash, #e5b35c)"/></svg>
               <span className="commit-description" title={entry.message}><span className="subject">{stashTitle(entry.message)}</span><span className="head-label">{t('Saved work')}</span></span><span className="commit-ci" aria-hidden="true">—</span><span className="author" title={entry.baseOid ?? ''}>{item.base ? t('Base {0}', [entry.baseOid?.slice(0, 8)]) : t('Base outside loaded history')}</span><span className="commit-date">{date(entry.timestamp)}</span>
             </button>;
           }
@@ -98,7 +112,7 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
                 <Icon name={ref.current ? 'check' : ref.kind === 'tag' ? 'tag' : 'branch'} size={12} /><span>{ref.label}</span>{ref.tracked && <Icon name="remote" size={11} />}{ref.fullNames.some(name => name.startsWith('refs/heads/')) && <BranchTrackingBadge value={tracking.get(ref.label)} oid={row.commit.oid}/>}
               </span>)}</span>{refs.length > 2 && <span className="extra-refs">+{refs.length - 2}</span>}
             </span>
-            <GraphMark savedLanes={savedGeometry.byBase.get(row.commit.oid) ?? []} row={row} width={laneWidth} head={head} labelled={refs.length > 0} />
+            <GraphMark savedLanes={savedGeometry.byBase.get(row.commit.oid) ?? []} row={row} width={laneWidth} naturalWidth={savedGeometry.width} head={head} labelled={refs.length > 0} />
             <span className="commit-description"><span className="subject">{row.commit.subject || t("(no commit message)")}</span>{head && <span className="head-label">{t("HEAD")}</span>}</span>
             <GraphCiCell value={graphCi[row.commit.oid]} observed={ciBadges?.[row.commit.oid]}/>
             <span className="author" title={`${row.commit.author} <${row.commit.email}>`}><span className="row-avatar" aria-hidden="true" style={{ '--author-color': authorColor(row.commit.author) } as CSSProperties}>{initials(row.commit.author)}</span><span>{row.commit.author}</span></span>
