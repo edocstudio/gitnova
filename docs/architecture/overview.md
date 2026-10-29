@@ -60,6 +60,8 @@ The following phases express delivery order, not a list of wholly unimplemented 
 
 Current implemented scope includes reviewed Clone from the workspace picker; recorded submodule initialize/restore and selected initialized-child URL sync; linked-worktree list/open/create/remove and metadata Lock/Unlock/Repair; and workspace-wide commit search. Clone is described in [M32](../milestone-32.md). Worktree repair currently requires an existing registered linked directory; it does not discover moved checkouts or prune missing ones. See [M56](../milestone-56.md) for metadata maintenance and hunk/Rebase bounds. These individual capabilities do not establish full lifecycle, cross-platform or native desktop acceptance.
 
+The current workspace picker also supports reviewed local initialization ([M68](../milestone-68.md)), preserving existing files without staging or creating an initial commit. A bounded active-repository auto-fetch scheduler ([M67](../milestone-67.md)) shares operation guards and noninteractive transport; local refresh and remote fetch remain distinct. History column widths ([M69](../milestone-69.md)) are device-local presentation preferences, separate from repository identity and graph topology. [M70](../milestone-70.md) records targeted CI/UI regression fixes and the limits of local verification.
+
 Remaining work includes worktree prune/moved-directory reconciliation, submodule add/remove and update-to-newer-remote workflows, broader Rebase/hunk support, file/code archaeology, smart preview and cross-repository release intelligence.
 
 ## Risks

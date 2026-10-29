@@ -44,16 +44,16 @@ The following workflows are implemented in the current alpha. Availability does 
 
 | Area | What you can do today |
 | --- | --- |
-| **Workspaces** | Add or clone repositories, switch within one window, pin projects, and search a five-repository-per-page picker. |
-| **History & diffs** | Browse a virtualized graph with branch/tag labels; inspect side-by-side or unified patches and historical files. |
+| **Workspaces** | Open, initialize or clone local repositories, switch within one window, pin projects, and search a five-repository-per-page picker. |
+| **History & diffs** | Browse a virtualized graph with branch/tag labels and resizable columns; inspect side-by-side or unified patches and historical files. |
 | **Everyday changes** | Stage/unstage individual files or review Stage all, create a first commit with bounded per-file previews, amend the latest commit, or discard selected changes with recovery capture. |
-| **Branches & remotes** | Set up a reviewed repository destination from Push; preview checkout, fetch, pull, push, rename/delete branches, and inspect local/upstream ahead/behind counts. |
+| **Branches & remotes** | Set up a reviewed repository destination from Push; preview checkout, fetch, pull, push, rename/delete branches, and inspect local/upstream ahead/behind counts. Configure active-repository auto fetch in Settings → General. |
 | **Merge & selected changes** | Review a merge commit or fast-forward, resolve supported text conflicts in a three-way editor with per-block choices, cherry-pick/revert a commit, and review finish/abort. Optionally delete the local source branch after a successful merge. |
 | **Stashes** | Save work, inspect saved entries in the graph, and apply/pop onto the current branch. Recovery and conflict limits are documented. |
 | **Submodules & worktrees** | Inspect branch-specific submodules, open their graphs, initialize/restore recorded versions and stage pointer changes; sync selected initialized submodule URLs; list, create, open, lock/unlock, repair and safely remove supported linked worktrees. |
 | **Search** | Find commits by message, author, email or SHA across the current repository, selected repositories or workspace. |
 | **Tags & collaboration** | Create/publish version tags, copy remote commit links, and create/open GitHub pull requests or GitLab merge requests. |
-| **CI visibility** | Display GitLab commit status and GitHub checks/status in the graph. Global host/company connections and optional Jenkins integration live in Settings. |
+| **CI visibility** | Display exact-commit GitLab pipelines and GitHub Actions workflow runs alongside checks/status in the graph, including available run numbers and links. Global host/company connections and optional Jenkins integration live in Settings. |
 | **Languages** | Switch between English and Thai from Settings → General without losing drafts or selection. |
 
 CI evidence is tied to the exact commit and connected host. Jenkins results can appear when reported to that Git host; connecting a Jenkins account does not automatically discover arbitrary jobs.
@@ -119,13 +119,19 @@ npm run doctor
 npm run tauri dev
 ```
 
-Add an existing repository by its absolute path, or clone one from the workspace picker. Use **Cmd/Ctrl+O** to switch repositories and **Cmd/Ctrl+K** to search commits. **Cmd/Ctrl+,** opens Settings.
+Open an existing repository by its absolute path, initialize a local project folder, or clone a repository from the workspace picker. Use **Cmd/Ctrl+O** to switch repositories and **Cmd/Ctrl+K** to search commits. **Cmd/Ctrl+,** opens Settings.
+
+Drag the separators in the history header to resize Branch / Tag, Graph, Commit message, CI, Author and Date. Widths are saved on this device. Double-click a separator to reset that column; focused separators also support arrow keys, Shift+arrow for larger steps, and Home to reset. The Graph column retains enough room for its lanes and may require horizontal scrolling in wide histories.
 
 `npm run doctor` checks basic source-build tools and prints installation/PATH guidance; it does not install tools, compile the app or certify every system library. `npm run tauri dev` and `npm run tauri build` run this check automatically and stop early when a required tool is missing. `npm run tauri -- --version` and other informational CLI commands remain available without the native-tool check.
 
 `npm run dev` starts a browser preview; use `npm run tauri dev` for local Git access. The first native run compiles Rust dependencies and can take several minutes; later builds reuse Cargo’s build cache.
 
 **Auto fetch** defaults to one minute for the active repository and can be disabled or changed to 30 seconds, 1, 2 or 5 minutes in **Settings → General**. It refreshes remote-tracking branches without pulling or changing local files. New attempts pause while hidden, offline, reviewing actions or running Git operations; failures back off quietly. Background HTTPS uses an already-authorized GitNova host account, while SSH uses the agent/config without interactive prompts. Use manual Fetch if authorization or a longer initial fetch is needed. Local Refresh remains a local reread.
+
+### Start a local repository
+
+Open the workspace picker and expand **Initialize repository…**. Enter a new folder or an existing project folder and its initial branch, then review and choose **Initialize & open graph**. The parent folder must exist. Existing project files stay unchanged and unstaged; GitNova creates no initial commit or remote. Make your first commit from Working changes and add a destination through Push when ready.
 
 ### Publish an existing local project
 
@@ -187,10 +193,6 @@ Bug reports, reproducible fixtures, documentation, translation and focused pull 
 
 All Git-writing test setup belongs in disposable repositories. Run build/test suites one at a time; focused checks are preferred during development.
 
-### Start a local repository
-
-Open the workspace picker and expand **Initialize repository…**. Enter a new folder or an existing project folder and its initial branch, then review and choose **Initialize & open graph**. The parent folder must exist. Existing project files stay unchanged and unstaged; GitNova creates no initial commit or remote. Make your first commit from Working changes and add a destination through Push when ready.
-
 ## Documentation
 
 | Start here | Details |
@@ -207,6 +209,8 @@ Open the workspace picker and expand **Initialize repository…**. Enter a new f
 Copyright 2026 Ittipon Bangudsareh.
 
 GitNova is licensed under [Apache License 2.0](LICENSE). Third-party components retain their own licenses and notices. [NOTICE](NOTICE) contains project attribution; it is not a complete dependency-license inventory or a claim that distribution compliance has been audited. Before redistributing binaries, follow the [distribution checklist](docs/contributing/binary-distribution.md).
+
+The `Copyright [yyyy] [name of copyright owner]` line in LICENSE is the example in the standard Apache appendix, not GitNova's project notice. It is intentionally preserved. GitNova's actual copyright notice appears above and in NOTICE; edocstudio is the project's public brand.
 
 <p align="center">
   <strong>GitNova · by edocstudio</strong><br />

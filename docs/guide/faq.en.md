@@ -6,6 +6,10 @@ Open **Settings → FAQ** to read and search this guide inside GitNova.
 
 ## Start here
 
+### How do I turn a project folder into a repository?
+
+Open the workspace picker → Initialize repository…. Enter the full path to a new or existing folder and the initial branch (default `main`), review, then Initialize & open graph. The parent folder must exist. Existing files stay unchanged and unstaged; no first commit or remote is created automatically. Use Open for an existing Git repository. See the [setup guide](../../README.md#start-a-local-repository) for this alpha workflow.
+
 ### How do I make my first commit?
 
 Open Working changes, select a file to inspect its diff, then Stage file or Stage all changes. Enter a summary, review the staged files and confirm the commit. Only staged content enters the commit; committing does not publish it. Push publishes to a remote.
@@ -19,6 +23,10 @@ A workspace groups projects for quick switching; it is not a Git submodule. A re
 ### What does the graph show?
 
 Each node is a commit; lines connect it to its parents. Branch and tag labels point to commits. HEAD marks your current checkout. A merge commit has multiple parents; a fast-forward moves a branch label without adding a merge node. Select a row to inspect its files and diff. Right-click a commit for available actions.
+
+### Can I resize the graph columns?
+
+Drag the separators in the history header; widths are saved on this device. Double-click a separator or press Home while it is focused to reset that column. Arrow keys resize it, with Shift for larger steps. The Graph column keeps a minimum width for its lanes; wide histories can scroll horizontally.
 
 ### How do I switch branches or open a remote branch?
 

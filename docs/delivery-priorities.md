@@ -2,11 +2,11 @@
 
 User direction, 2026-10-27: work in the following order. This overrides treating performance work or general feature visibility as the next main milestone. Keep each feature independently reviewable and continue serialized verification to limit host load.
 
-1. Complete missing planned features: Clone into a workspace, reviewed Rebase, Amend, hunk staging/unstaging, then remaining submodule and worktree lifecycle operations. Keep the graph central and implement actual native behavior before exposing actions. Each feature includes its own correctness and recovery regression checks; those essential checks are not deferred to the later general audit.
+1. Complete remaining planned features, including broader Rebase/hunk coverage and submodule/worktree lifecycle operations. Clone, Amend, linear Rebase and tracked-text hunk staging/unstaging already have implemented slices, described below. Keep the graph central and implement actual native behavior before exposing actions. Each feature includes its own correctness and recovery regression checks; those essential checks are not deferred to the later general audit.
 2. Measure speed and resident memory over long sessions with large real fixture repositories. Include native process, WebKit and Git subprocesses, repeated repo switches and large diff/search workloads. Separate cold/warm latency, resident memory trends and peak/transient allocations. Do not infer application speed or bounded memory from the language or a short core benchmark.
 3. Triage defects from actual use and expand crash/partial-failure recovery validation across workflows. Keep genuine native Git operations separate from app bookkeeping; never auto-abort, discard or retry work as recovery.
 
-Latest fix: result-based submodule merge preview and already-included-history
+Earlier fix: result-based submodule merge preview and already-included-history
 classification (M43). Jenkins/GitLab build evidence remains available (M42), with
 shared bounded provider reads and independent credentials.
 Copy commit link remains available (M41), as does reviewed Amend (M40). Hosted
@@ -19,6 +19,13 @@ established by those slices. Reviewed native linear Rebase and tracked-text
 Stage/Unstage hunk are implemented in M56. Worktree Lock/Unlock/Repair and selected
 initialized-submodule URL synchronization are also available. See
 [milestone 56](milestone-56.md) for supported scope and remaining limitations.
+
+Recent delivered increments include active-repository configurable auto fetch
+([M67](milestone-67.md)), reviewed local repository initialization
+([M68](milestone-68.md)), saved resizable history columns
+([M69](milestone-69.md)), and targeted platform-check/UI-state corrections
+([M70](milestone-70.md)). These are implemented alpha slices, not a statement
+that the entire roadmap or hosted/native cross-platform acceptance is complete.
 
 
 Rebase acceptance: graph-selected source and current branch/range are explicit, published/rewritten history is identified, original tips remain recoverable, preview does not mutate the working checkout, and begin/resolve/continue/abort survive interruption. No implicit force push, stash or reset. Design the durable operation state before execution.
