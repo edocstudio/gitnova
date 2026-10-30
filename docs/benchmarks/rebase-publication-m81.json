@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-rebase-publication-query",
+  "measuredAt": "2026-10-30T12:33:29.045343+00:00",
+  "fixture": {
+    "commits": 100,
+    "remoteRefs": 10
+  },
+  "equivalentResults": true,
+  "rounds": 5,
+  "before": {
+    "gitCallsPerRound": 100,
+    "samplesMs": [
+      2894.445083991741,
+      2975.636332994327,
+      3006.201875003171,
+      2979.1028750041733,
+      3079.0719170036027
+    ],
+    "medianMs": 2979.1028750041733
+  },
+  "after": {
+    "gitCallsPerRound": 1,
+    "samplesMs": [
+      29.605542003992014,
+      37.776500001200475,
+      44.61708299641032,
+      30.933166010072455,
+      33.160666993353516
+    ],
+    "medianMs": 33.160666993353516
+  },
+  "limitations": [
+    "Publication-reference query only, not complete rebase or a cross-product benchmark.",
+    "Synthetic temporary local repositories, warm filesystem caches, fixed before/after order.",
+    "No credentials or network; no Git configuration is persisted outside the fixture."
+  ],
+  "reference": "https://git-scm.com/docs/git-for-each-ref#_notes"
+}

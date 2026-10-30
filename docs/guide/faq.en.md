@@ -68,7 +68,7 @@ Cherry-pick applies one commit’s changes onto your current branch as a new com
 
 ### What is Rebase?
 
-Rebase replays commits onto a new base and changes their IDs. Right-click the target commit, choose Rebase, inspect current branch → target and the replay range, then acknowledge rewriting. GitNova supports up to 100 commits, including linear root replay and reviewed two-parent merge recreation. Original merge resolutions may need reapplication. Shallow, octopus/cousin/external-parent ranges and submodule pointer changes remain refused. Conflicts use Working changes, followed by reviewed Continue, Skip empty commit or Abort. Original tips remain recoverable; no force push occurs.
+Rebase replays up to 100 commits onto a reviewed target and changes their IDs. Customize a linear replay with Pick, Drop, Fixup and reorder; Fixup keeps the earlier Pick’s message and author. Root replay, cousin branch points and clean merges with up to eight ordered parents are supported. Merge resolutions may need reapplication. Shallow history, submodule-changing replay and predicted octopus conflicts remain refused. Conflicts use Working changes followed by reviewed Continue, empty Skip or Abort. Original tips remain recoverable; no force push occurs. Interactive editing currently requires Unix.
 
 ### What are Amend and Revert?
 
@@ -76,7 +76,7 @@ Amend replaces the last commit using the reviewed message and staged content; it
 
 ### How do I resolve a conflict?
 
-Open Working changes and select a conflict. Compare Current and Incoming, choose individual text blocks or edit Result, then review and stage the resolved result. Continue or commit the pending operation only after every conflict is resolved. Current/Incoming refer to the shown operation, especially during rebase. Binary and submodule conflicts need their dedicated choices.
+Open Working changes and select a conflict. In the diff dock, tick Current, Incoming or both for each block; the full Result draft appears below. Both keeps Current before Incoming. Revisit or clear choices before review, or use Edit result to type a custom resolution. Nothing is saved or staged until Review edited result and Apply resolution. Whole-file choices are separate. Continue or commit only after every conflict is resolved. Current/Incoming refer to the shown operation, especially during rebase. Binary and submodule conflicts need their dedicated choices.
 
 ## Multiple repositories
 
@@ -199,3 +199,7 @@ lock is kept at the displayed archive path. Files, staging, branches and journal
 are preserved. A live owner, native Git operation/lock or another running Git job
 blocks recovery. This verification currently requires macOS. Inspect any remaining
 operation separately; do not delete all `*.lock` files or retry blindly.
+
+## How do I inspect who last changed a committed line?
+
+Open Search commits, choose Line attribution (blame), enter the exact file path and local revision, then choose up to 200 lines in the current repository. Select a line to open its original commit and historical filename without checkout. Files must be regular UTF-8 text up to 1 MiB. Working edits are excluded. Rename attribution follows native Git heuristics; copied-line detection is not enabled. Configured blame ignore files require manual Git inspection. Shallow history remains incomplete.

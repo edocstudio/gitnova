@@ -62,6 +62,7 @@ export function App() {
   const [diffCollapsed, setDiffCollapsed] = useState(false);
   const [diffHeight, setDiffHeight] = useState<number | null>(null);
   const [detail, setDetail] = useState<CommitDetail | null>(null);
+  const [detailRefresh,setDetailRefresh]=useState(0);
   const [related, setRelated] = useState<{ subs: Submodule[]; trees: LinkedWorktree[]; error: string; loading: boolean }>({ subs: [], trees: [], error: '', loading: false });
   const picker = useRef<HTMLButtonElement>(null); const menuRoot = useRef<HTMLDivElement>(null);
   const workingSequence = useRef<Record<string, number>>({});
@@ -164,7 +165,7 @@ export function App() {
     if (!selectedId || !selectedOid || (selectedOid === WORKING || selectedOid.startsWith('stash:'))) return;
     setDetailBusy(true); api.detail(selectedId, selectedOid).then(value => { if (request === detailSequence.current) setDetail(value); }).catch(e => { if (request === detailSequence.current) setError(errorMessage(e)); }).finally(() => { if (request === detailSequence.current) setDetailBusy(false); });
     return () => { detailSequence.current++; };
-  }, [selectedId, selectedOid]);
+  }, [selectedId, selectedOid, detailRefresh]);
   const mutate = async (action: Promise<Catalog>, close = true) => { setBusy(true); setError(''); try { setCatalog(await action); if (close) { setMenu(false); setPath(''); } } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); } };
   const selectCommit = (oid: string | null) => { if (busy) return; if (!selectedId) return; if (oid !== WORKING) setStashLaunch(null); if (oid) setInspectorOpen(true); if (oid === WORKING || oid?.startsWith('stash:')) setDiffCollapsed(false); setSessions(old => old[selectedId] ? { ...old, [selectedId]: { ...old[selectedId], selected: oid } } : old); };
   const [investigationFile,setInvestigationFile]=useState<{membershipId:string;oid:string;path:string}|null>(null);
@@ -179,6 +180,7 @@ export function App() {
       const nextCatalog = await api.select(location.membershipId);
       setInvestigationFile(path?{membershipId:location.membershipId,oid,path}:null);
       setDetail(null); setDetailBusy(true); detailSequence.current++; sequence.current++;
+      setDetailRefresh(value=>value+1);
       setSessions(old => retainGraphSessions(old, location.membershipId, { page: focus.page, rows: focus.page.rows, selected: oid, base: focus.base, scroll: Math.max(0, historyItems(focus.page.rows, saved.value?.entries ?? stashRef.current[location.membershipId]?.entries ?? []).findIndex(item => item.id === oid) * ROW_HEIGHT - 72), revision: (old[location.membershipId]?.revision ?? 0) + 1 }));
       setCatalog(nextCatalog); setInspectorOpen(true); setDiffCollapsed(false); setGraphIntent(null); setMenu(false);
       requestAnimationFrame(() => document.getElementById(`commit-${oid}`)?.focus({ preventScroll: true }));

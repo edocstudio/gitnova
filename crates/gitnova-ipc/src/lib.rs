@@ -84,3 +84,5 @@ pub use gitnova_domain::{CommitIdentityContext, ConnectionCommitIdentity, GitCom
 pub use gitnova_domain::{SubmoduleLifecyclePreview, SubmoduleLifecycleRequest};
 
 pub use gitnova_domain::StaleLockPreview;
+
+pub use gitnova_domain::RebaseEdit;

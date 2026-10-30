@@ -264,3 +264,45 @@ preview, process ownership and refusal reason; no screen, sidebar or preference.
 Never offer native Git lock deletion or implicit operation continuation. Recovery
 must recheck the same file and absent owner, retain the original bytes and leave
 Git journals, HEAD, index and working files alone.
+
+### Advanced lifecycle continuation (M80)
+
+Interactive replay belongs inside the existing graph Rebase review: an optional
+ordered commit list with Pick/Drop/Fixup and move controls makes the exact rewrite
+reviewable without a new screen or navigation item. Keep topology-preserving
+replay separate from editing a linear sequence; never accept free-form exec/todo
+commands. A worktree Move action belongs in its existing related-worktree form,
+with source/destination, state validation and retained recovery metadata.
+
+## M82 — line attribution and package evidence
+
+Line attribution belongs in the existing Search → investigation context: the graph
+alone shows commit ancestry, not which revision introduced a selected file line.
+Reuse its file/revision fields, scoped current-repository result list and graph/diff
+navigation. Add only bounded line-range inputs and one search-mode choice; no new
+screen. Committed package manifest changes belong beside existing branch-comparison
+dependency evidence. They are factual constraints/versions, not compatibility or
+release approval. Neither capability checks out files or fetches remotes.
+
+## M84 — direct conflict choices in the diff dock
+
+The existing diff dock already owns conflict text; a separate window/sidebar
+would split selection from its result. Replace the three narrow columns with
+Current/Incoming block choices above a full editable result. Per-side checkboxes
+are needed to retain/revise individual choices, including both sides, without
+forcing users to edit marker syntax. Keep navigation and the single draft-review
+action in this dock. Move whole-file replacements into secondary details in the
+existing inspector, labelled with their full-file scope. No automatic save,
+stage, operation continuation or commit follows a choice. Preserve the native
+stale-content check and reviewed resolution confirmation for every operation.
+
+## M85 — bounded stash text, complete reviewed scope
+
+Large stash contents do not justify another screen or another stash mode. Reuse
+the existing complete file list and diff dock; load the selected Working/Index
+patch there, with a loading state and explicit partial-code notice. A failed
+selected-patch read reuses Review updates to refresh the review, without replaying
+the write. The confirmation covers the complete path/content snapshot, not the
+displayed text prefix. Preserve dirty-state, collision, gitlink, immutable stash
+identity, reflog recovery and stale-token checks. Do not raise the patch cap or
+claim that a bounded code preview is complete.

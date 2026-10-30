@@ -50,10 +50,11 @@ export type PlannedOperation = {type:'submoduleSync';preview:SubmoduleSyncPrevie
 
 export type ChangeOperation = 'merge' | 'cherryPick' | 'revert' | 'rebase';
 export type MergeMethod = 'auto' | 'mergeCommit' | 'fastForwardOnly';
-export interface MergeRequest { acknowledgeRewrite?:boolean; deleteSourceBranch?:boolean; method?: MergeMethod; operation: ChangeOperation; mainline: number | null; sourceOid: string; sourceRef: string | null; sessionId: string }
+export interface RebaseEdit {oid:string;action:'pick'|'drop'|'fixup'}
+export interface MergeRequest { rebaseSteps?:RebaseEdit[]; acknowledgeRewrite?:boolean; deleteSourceBranch?:boolean; method?: MergeMethod; operation: ChangeOperation; mainline: number | null; sourceOid: string; sourceRef: string | null; sessionId: string }
 export interface MergeSubmoduleChange {path:NativePath;currentOid:string|null;incomingOid:string|null;resultOid:string|null;conflicted:boolean}
 export interface PreservedSubmodule {path:NativePath;recordedOid:string;checkoutOid:string;state:string}
-export interface MergeStartPreview { rebase?:{preserveMerges?:boolean;root?:boolean;baseOid:string;commits:string[];referencedBy:string[]}|null; preservedSubmodules?:PreservedSubmodule[]; submodules?:MergeSubmoduleChange[]; parents: string[]; suggestedMessage: string; request: MergeRequest; branch: string; originalOid: string; resultTree: string | null; mode: string; files: BranchFileChange[]; conflicts: NativePath[]; recoveryRef: string; token: string; blockedReason: string | null }
+export interface MergeStartPreview { rebase?:{subjects?:Record<string,string>;preserveMerges?:boolean;root?:boolean;baseOid:string;commits:string[];referencedBy:string[]}|null; preservedSubmodules?:PreservedSubmodule[]; submodules?:MergeSubmoduleChange[]; parents: string[]; suggestedMessage: string; request: MergeRequest; branch: string; originalOid: string; resultTree: string | null; mode: string; files: BranchFileChange[]; conflicts: NativePath[]; recoveryRef: string; token: string; blockedReason: string | null }
 export interface MergeStage { stage: number; mode: string; oid: string }
 export interface MergeConflict { path: NativePath; stages: MergeStage[] }
 export interface MergeState { deleteSourceBranch?:boolean;sourceRef?:string|null; operation: ChangeOperation; mainline: number | null; suggestedMessage: string | null; phase: string; sessionId: string | null; branch: string | null; originalOid: string | null; sourceOid: string | null; recoveryRef: string | null; conflicts: MergeConflict[]; token: string; blockedReason: string | null }
@@ -73,7 +74,7 @@ export interface StashEntry { baseOid: string | null; index: number; oid: string
 export interface StashList { entries: StashEntry[]; more: boolean }
 export type StashKind = 'push' | 'apply' | 'pop' | 'drop';
 export interface StashRequest { kind: StashKind; index: number | null; oid: string | null; message: string; includeUntracked: boolean; restoreIndex: boolean; id: string }
-export interface StashPreview { version: number; stashSnapshot: string | null; request: StashRequest; files: NativePath[]; diff: string; indexDiff: string; branch: string | null; head: string | null; recoveryRef: string; recoveryDir: NativePath; blockedReason: string | null; token: string }
+export interface StashPreview { truncated: boolean; indexTruncated: boolean; version: number; stashSnapshot: string | null; request: StashRequest; files: NativePath[]; diff: string; indexDiff: string; branch: string | null; head: string | null; recoveryRef: string; recoveryDir: NativePath; blockedReason: string | null; token: string }
 
 export interface WorktreeCreateRequest { oid: string; destination: string; mode: 'newBranch' | 'existingBranch' | 'detached'; branch: string }
 export interface WorktreeCreatePreview { version: number; request: WorktreeCreateRequest; destination: NativePath; source: NativePath; files: number; submodules: number; blockedReason: string | null; token: string }
@@ -134,16 +135,20 @@ export interface CreatedRepository {project:string;cloneUrl:string;webUrl:string
 export interface RepositoryCreatePreview {request:RepositoryCreateRequest;account:string;project:string;cloneUrl:string;token:string;created?:CreatedRepository|null}
 export interface RepositoryCreateOutcome {receipt:OperationReceipt;repository:CreatedRepository|null}
 
-export interface WorktreeMaintenanceRequest {destination?:string;path:NativePath;kind:'lock'|'unlock'|'repair'|'reattach'|'prune';reason:string}
+export interface WorktreeMaintenanceRequest {destination?:string;path:NativePath;kind:'lock'|'unlock'|'repair'|'reattach'|'prune'|'move';reason:string}
 export interface WorktreeMaintenancePreview {recoveryDir?:NativePath|null;request:WorktreeMaintenanceRequest;tree:LinkedWorktree;affected:LinkedWorktree[];token:string;blockedReason:string|null}
 export interface SubmoduleSyncPreview {submodule:Submodule;previousUrl:string|null;childPreviousUrl:string|null;childRemote:string|null;url:string;recoveryDir:NativePath;token:string;blockedReason:string|null}
 
 export type InitRequest = {workspaceId: string; destination: string; branch: string};
 export type InitPreview = {request: InitRequest; destination: NativePath; existingFolder: boolean; token: string};
 
-export interface InvestigationRequest { selection: CommitSearchRequest; mode: 'history' | 'follow' | 'compare'; path: string; needle: string; source: string; target: string }
+export interface InvestigationRequest { selection: CommitSearchRequest; mode: 'history' | 'follow' | 'blame' | 'compare'; lineStart?:number; lineEnd?:number; path: string; needle: string; source: string; target: string }
 export interface DependencyEvidence {path:NativePath;sourceOid:string|null;targetOid:string|null;location:SearchLocation|null;relation:string;sourceOnly:number|null;targetOnly:number|null;cachedRemoteContains:boolean|null;issue:string|null}
-export interface InvestigationEvidence { dependencies?:DependencyEvidence[]; location: SearchLocation; sourceOid: string | null; targetOid: string | null; sourceOnly: number | null; targetOnly: number | null; changedFiles: number | null; dirty: boolean | null; scanned: number; limited: boolean; shallow: boolean; issue: string | null }
+export interface LineAttribution {oid:string;path:NativePath;line:number;originalLine:number;content:string}
+export interface PackageLocationEvidence {location:SearchLocation;oid:string;version:string|null}
+export interface PackageRequirementEvidence {name:string;kind:string;source:string|null;target:string|null;locations:PackageLocationEvidence[];issue:string|null}
+export interface PackageManifestEvidence {sourceName:string|null;targetName:string|null;sourceVersion:string|null;targetVersion:string|null;requirements:PackageRequirementEvidence[];issue:string|null}
+export interface InvestigationEvidence {packageManifest?:PackageManifestEvidence|null; lineAttribution?:LineAttribution[]; dependencies?:DependencyEvidence[]; location: SearchLocation; sourceOid: string | null; targetOid: string | null; sourceOnly: number | null; targetOnly: number | null; changedFiles: number | null; dirty: boolean | null; scanned: number; limited: boolean; shallow: boolean; issue: string | null }
 export interface InvestigationPage { hits: CommitSearchHit[]; evidence: InvestigationEvidence[]; partial: boolean }
 
 export interface GitCommitIdentity {name:string;email:string}

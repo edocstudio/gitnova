@@ -636,6 +636,8 @@ pub enum MergeMethod {
 #[serde(rename_all = "camelCase")]
 pub struct MergeRequest {
     #[serde(default)]
+    pub rebase_steps: Vec<RebaseEdit>,
+    #[serde(default)]
     pub acknowledge_rewrite: bool,
     #[serde(default)]
     pub delete_source_branch: bool,
@@ -653,6 +655,8 @@ pub struct MergeRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RebasePlan {
+    #[serde(default)]
+    pub subjects: std::collections::BTreeMap<String, String>,
     #[serde(default)]
     pub tip: String,
     #[serde(default)]
@@ -895,6 +899,10 @@ pub struct StashPreview {
     pub files: Vec<NativePath>,
     pub diff: String,
     pub index_diff: String,
+    #[serde(default)]
+    pub truncated: bool,
+    #[serde(default)]
+    pub index_truncated: bool,
     pub branch: Option<String>,
     pub head: Option<String>,
     pub recovery_ref: String,
@@ -1403,6 +1411,10 @@ pub struct DependencyEvidence {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InvestigationRequest {
+    #[serde(default)]
+    pub line_start: Option<u32>,
+    #[serde(default)]
+    pub line_end: Option<u32>,
     pub selection: CommitSearchRequest,
     pub mode: String,
     pub path: String,
@@ -1413,6 +1425,10 @@ pub struct InvestigationRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InvestigationEvidence {
+    #[serde(default)]
+    pub package_manifest: Option<PackageManifestEvidence>,
+    #[serde(default)]
+    pub line_attribution: Vec<LineAttribution>,
     #[serde(default)]
     pub dependencies: Vec<DependencyEvidence>,
     #[serde(default)]
@@ -1490,4 +1506,51 @@ pub struct StaleLockPreview {
     pub exists: bool,
     pub token: String,
     pub blocked_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RebaseEdit {
+    pub oid: String,
+    pub action: String,
+}
+
+/// Committed line attribution, never working-tree content.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LineAttribution {
+    pub oid: String,
+    pub path: NativePath,
+    pub line: u32,
+    pub original_line: u32,
+    pub content: String,
+}
+
+/// Root package.json facts; constraints are not resolved or certified compatible.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PackageManifestEvidence {
+    pub source_name: Option<String>,
+    pub target_name: Option<String>,
+    pub source_version: Option<String>,
+    pub target_version: Option<String>,
+    pub requirements: Vec<PackageRequirementEvidence>,
+    pub issue: Option<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PackageRequirementEvidence {
+    pub name: String,
+    pub kind: String,
+    pub source: Option<String>,
+    pub target: Option<String>,
+    pub locations: Vec<PackageLocationEvidence>,
+    pub issue: Option<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PackageLocationEvidence {
+    pub location: SearchLocation,
+    pub oid: String,
+    pub version: Option<String>,
 }

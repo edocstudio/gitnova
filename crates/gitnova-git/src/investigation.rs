@@ -3,7 +3,7 @@ use super::*;
 fn invalid(message: &str) -> AppError {
     AppError::new("investigation", message)
 }
-fn parse(bytes: &[u8]) -> Result<Vec<Commit>> {
+pub(super) fn parse(bytes: &[u8]) -> Result<Vec<Commit>> {
     let fields = bytes
         .strip_suffix(&[0])
         .unwrap_or(bytes)
@@ -24,12 +24,12 @@ fn parse(bytes: &[u8]) -> Result<Vec<Commit>> {
 }
 impl GitCli {
     pub fn validate_investigation(&self, r: &InvestigationRequest) -> Result<()> {
-        if !matches!(r.mode.as_str(), "history" | "follow" | "compare")
+        if !matches!(r.mode.as_str(), "history" | "follow" | "blame" | "compare")
             || r.selection.cursor.is_some()
         {
             return Err(invalid("Choose file/code history or a branch comparison."));
         }
-        if r.mode == "history" || r.mode == "follow" {
+        if matches!(r.mode.as_str(), "history" | "follow" | "blame") {
             if (r.path.is_empty() && r.needle.trim().is_empty())
                 || r.path.len() > 1024
                 || r.needle.len() > 256
@@ -44,7 +44,7 @@ impl GitCli {
                     "Enter a repository-relative literal path or a code phrase (up to 256 bytes).",
                 ));
             }
-            if r.mode == "follow" {
+            if r.mode == "follow" || r.mode == "blame" {
                 if r.path.is_empty() || !r.needle.is_empty() {
                     return Err(invalid(
                         "Follow history requires one exact file path and no code phrase.",
@@ -60,6 +60,15 @@ impl GitCli {
             for value in [&r.source, &r.target] {
                 self.investigation_ref(value)?;
             }
+        }
+        if r.mode == "blame"
+            && (r.selection.scope != "current"
+                || r.line_start.unwrap_or(1) == 0
+                || r.line_end.unwrap_or(200) < r.line_start.unwrap_or(1)
+                || r.line_end.unwrap_or(200) - r.line_start.unwrap_or(1) >= 200
+                || r.line_end.unwrap_or(200) > 1_000_000)
+        {
+            return Err(invalid("Choose Current repository and a range of at most 200 lines starting at line 1 or later."));
         }
         Ok(())
     }
@@ -107,6 +116,9 @@ impl GitCli {
         self.validate_investigation(r)?;
         if r.mode == "follow" {
             return self.follow_file_history(root, r, evidence);
+        }
+        if r.mode == "blame" {
+            return self.blame_file(root, r, evidence);
         }
         let snapshot = self.fingerprint(root)?;
         let status = self.status(root)?;

@@ -3,6 +3,7 @@ import { spawnSync, execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { verifyLicenseInventory, verifyBundleLicenses } from './verify-bundle-licenses.mjs';
 const project = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 if (process.platform !== 'darwin') throw new Error('build:local currently creates a macOS app; use the normal Tauri build for other platforms.');
 const env = { ...process.env, CARGO_BUILD_JOBS: '1', APPLE_SIGNING_IDENTITY: '-' };
@@ -11,6 +12,7 @@ for (const key of ['APPLE_CERTIFICATE', 'APPLE_CERTIFICATE_PASSWORD', 'APPLE_ID'
 const processes=execFileSync('/bin/ps',['-A','-o','comm='],{encoding:'utf8',timeout:5000});
 const bundleName='GitNova';
 if(processes.split('\n').some(line=>line.trim().endsWith('/gitnova-desktop'))) throw new Error('Close GitNova before building. Local builds update GitNova.app; no alternate app is created.');
+verifyLicenseInventory();
 const config=JSON.parse(readFileSync(join(project,'src-tauri/tauri.local.conf.json'),'utf8'));
 config.productName=bundleName;
 const build = spawnSync(process.execPath, [join(project, 'node_modules/@tauri-apps/cli/tauri.js'), 'build', '--debug', '--features', 'custom-protocol', '--bundles', 'app', '--config', JSON.stringify(config), '--ci', '--', '--locked'], { cwd: project, env, stdio: 'inherit' });
@@ -20,6 +22,7 @@ const metadata = JSON.parse(execFileSync('cargo', ['metadata', '--format-version
 const app = join(metadata.target_directory, `debug/bundle/macos/${bundleName}.app`);
 const executable = execFileSync('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleExecutable', join(app, 'Contents/Info.plist')], { encoding: 'utf8', timeout: 10000 }).trim();
 if (!executable || basename(executable) !== executable) throw new Error('Unexpected bundle executable name.');
+console.log('Bundled attribution evidence:', verifyBundleLicenses(app));
 execFileSync('/usr/bin/codesign', ['--verify', '--deep', '--strict', app], { stdio: 'inherit', timeout: 30000 });
 execFileSync(join(app, 'Contents/MacOS', executable), ['--verify-bundle'], { cwd: '/tmp', env: { ...env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' }, stdio: 'inherit', timeout: 30000 });
 console.log(`Local app verified: ${app}`);

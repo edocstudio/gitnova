@@ -114,6 +114,7 @@ impl GitCli {
         self.text(root, &["var", "GIT_COMMITTER_IDENT"])?;
         let changes = self.working_changes(root)?;
         let mut blocked = None;
+        self.validate_registration_commit(root, &changes.files)?;
         if self.multiple_branch_worktrees(root, branch)? {
             blocked=Some("This branch is checked out in multiple worktrees. Inspect them before rewriting it.".into());
         }

@@ -173,6 +173,8 @@ fn main() {
                 }
                 mode => {
                     let r = InvestigationRequest {
+                        line_start: None,
+                        line_end: None,
                         selection: request.clone(),
                         mode: if mode == "comparison" {
                             "compare"

@@ -11,7 +11,7 @@ type MetadataFiles = Vec<(PathBuf, Vec<u8>)>;
 fn err(s: &str) -> AppError {
     AppError::new("worktree_request", s)
 }
-fn collect(
+pub(crate) fn collect(
     dir: &Path,
     base: &Path,
     items: &mut Vec<(PathBuf, Vec<u8>)>,

@@ -190,6 +190,7 @@ fn main() {
     assert_eq!(r.status, "succeeded");
     measure(&mut rows, "pull_refresh", || refresh(&app, &id));
     let request = MergeRequest {
+        rebase_steps: vec![],
         acknowledge_rewrite: false,
         delete_source_branch: false,
         method: MergeMethod::MergeCommit,

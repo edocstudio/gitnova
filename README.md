@@ -50,8 +50,8 @@ The following workflows are implemented in the current alpha. Availability does 
 | **Everyday changes** | Stage/unstage individual files or review Stage all, create a first commit with bounded per-file previews, amend the latest commit, or discard selected changes with recovery capture. Optional host-specific commit identities are configured in Settings → Connections, independently of authentication. |
 | Repository terminal | Open a shell in the current repository/worktree from the graph; hide or end separate, bounded sessions |
 | **Branches & remotes** | Set up a reviewed repository destination from Push; preview checkout, fetch, pull, push, rename/delete branches, and inspect local/upstream ahead/behind counts. Configure active-repository auto fetch in Settings → General. |
-| **Merge & selected changes** | Review a merge commit or fast-forward, resolve supported text conflicts in a three-way editor with per-block choices, cherry-pick/revert a commit, and review finish/abort. Optionally delete the local source branch after a successful merge. |
-| **Stashes** | Save work, inspect saved entries in the graph, and apply/pop onto the current branch. Recovery and conflict limits are documented. |
+| **Merge & selected changes** | Review a merge commit or fast-forward, resolve supported text conflicts with [side-by-side block choices and a result draft](docs/milestone-84.md), cherry-pick/revert a commit, and review finish/abort. Optionally delete the local source branch after a successful merge. |
+| **Stashes** | Save work, inspect saved entries in the graph, and apply/pop onto the current branch. [Large stashes use bounded per-file code previews](docs/milestone-85.md) while retaining complete reviewed scope. Recovery and conflict limits are documented. |
 | **Submodules & worktrees** | Inspect branch-specific submodules, open their graphs, initialize/restore recorded versions, review forward updates from configured cached remote branches, and stage pointer changes separately; add submodules from a reviewed source or existing checkout, remove registrations while retaining child files/history, and sync selected child URLs; list, create, open, lock/unlock, repair, reattach moved folders and safely remove supported linked worktrees. |
 | **Search** | Find commits by message, author, email or SHA; investigate literal file/code history and compare branch tips across the current repository, selected repositories or workspace. Investigation coverage is bounded and labelled. |
 | **Tags & collaboration** | Create/publish version tags, copy remote commit links, and create/open GitHub pull requests or GitLab merge requests. |
@@ -183,7 +183,7 @@ The graph remains the primary interface as GitNova grows. The architecture follo
 | **5 · Smart change preview** | Explain planned changes and their risks before writing. |
 | **6 · Release intelligence** | Extend coordinated branch evidence into dependency-aware release investigation. |
 
-Reviewed linear/root Rebase, bounded two-parent merge recreation and text Stage/Unstage hunk are available. Registration staging and missing-worktree pruning use separate reviewed actions. Search can follow file renames and inspect gitlink dependency ancestry across registered repositories. See [current scope and limits](docs/milestone-78.md).
+Reviewed linear/root Rebase, optional Pick/Drop/Fixup/reordering on Unix, cousin branch points, clean merge recreation with up to eight ordered parents and text Stage/Unstage hunk are available. Registration staging and missing-worktree pruning use separate reviewed actions. Search can follow file renames and inspect gitlink dependency ancestry across registered repositories. Clean linked worktrees can be moved through a separate reviewed action. Search also offers [bounded committed-line attribution and root-package evidence](docs/milestone-82.md); neither certifies release readiness. See [current scope and limits](docs/milestone-80.md).
 
 **Next priorities:** broader rebase/hunk support, remaining submodule/worktree operations, long-session performance/RAM measurement, and more recovery testing from real usage. SQLite FTS5 indexing is also planned; current catalog/index persistence uses JSON.
 
@@ -210,7 +210,7 @@ All Git-writing test setup belongs in disposable repositories. Run build/test su
 
 Copyright 2026 Ittipon Bangudsareh.
 
-GitNova is licensed under [Apache License 2.0](LICENSE). Third-party components retain their own licenses and notices. [NOTICE](NOTICE) contains project attribution; it is not a complete dependency-license inventory or a claim that distribution compliance has been audited. Before redistributing binaries, follow the [distribution checklist](docs/contributing/binary-distribution.md).
+GitNova is licensed under [Apache License 2.0](LICENSE). Third-party components retain their own licenses and notices. [NOTICE](NOTICE) contains project attribution; it is not a complete dependency-license inventory or a claim that distribution compliance has been audited. Local macOS builds include [collected license evidence and its explicit gaps](docs/licenses/README.md), checked against the lockfiles and built resources. Before redistributing binaries, follow the [distribution checklist](docs/contributing/binary-distribution.md).
 
 The `Copyright [yyyy] [name of copyright owner]` line in LICENSE is the example in the standard Apache appendix, not GitNova's project notice. It is intentionally preserved. GitNova's actual copyright notice appears above and in NOTICE; edocstudio is the project's public brand.
 

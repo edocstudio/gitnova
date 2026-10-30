@@ -448,3 +448,108 @@ impl GitCli {
         Ok(())
     }
 }
+
+impl GitCli {
+    // Commit/amend admit paired registration additions/removals, not arbitrary
+    // gitlinks that happen to have the same porcelain status. Read staged data,
+    // never the working .gitmodules, and never execute includes or hooks here.
+    pub(super) fn validate_registration_commit(
+        &self,
+        root: &Path,
+        files: &[ChangedFile],
+    ) -> Result<()> {
+        let links = files
+            .iter()
+            .filter(|f| {
+                f.staged
+                    && matches!(f.index_status.as_str(), "A" | "D")
+                    && f.blocked_reason.as_deref()
+                        == Some("Submodule pointer writes need a separate reviewed workflow")
+            })
+            .collect::<Vec<_>>();
+        if links.is_empty() {
+            return Ok(());
+        }
+        let blocked = || {
+            AppError::new(
+                "unsupported_write",
+                "Review the paired submodule registration and staged manifest before committing.",
+            )
+        };
+        let head = self.status(root)?.head;
+        let old = match entry(self, root, head.as_deref(), Path::new(".gitmodules"))? {
+            Some((mode, oid)) if mode == "100644" || mode == "100755" => {
+                self.read(
+                    root,
+                    &["cat-file".as_ref(), "blob".as_ref(), oid.as_ref()],
+                    65536,
+                )?
+                .bytes
+            }
+            None => Vec::new(),
+            _ => return Err(blocked()),
+        };
+        let raw = self
+            .read(
+                root,
+                &[
+                    "ls-files".as_ref(),
+                    "--stage".as_ref(),
+                    "-z".as_ref(),
+                    "--".as_ref(),
+                    ".gitmodules".as_ref(),
+                ],
+                65536,
+            )?
+            .bytes;
+        let records = raw
+            .split(|b| *b == 0)
+            .filter(|v| !v.is_empty())
+            .collect::<Vec<_>>();
+        let new = if records.is_empty() {
+            Vec::new()
+        } else {
+            if records.len() != 1 {
+                return Err(blocked());
+            }
+            let fields = records[0]
+                .split(|b| *b == b'\t')
+                .next()
+                .unwrap_or_default()
+                .split(|b| *b == b' ')
+                .collect::<Vec<_>>();
+            if fields.len() != 3
+                || ![b"100644".as_slice(), b"100755".as_slice()].contains(&fields[0])
+                || fields[2] != b"0"
+            {
+                return Err(blocked());
+            }
+            let oid = std::str::from_utf8(fields[1]).map_err(|_| blocked())?;
+            crate::validate_oid(oid)?;
+            self.read(
+                root,
+                &["cat-file".as_ref(), "blob".as_ref(), oid.as_ref()],
+                65536,
+            )?
+            .bytes
+        };
+        let old = manifest(self, root, &old)?;
+        let new = manifest(self, root, &new)?;
+        for f in links {
+            let path = f.path.to_path()?;
+            let path = path.to_str().ok_or_else(blocked)?;
+            let a = section(&old, path)?;
+            let b = section(&new, path)?;
+            let registered = |map: &BTreeMap<String, String>, name: &Option<String>| {
+                name.as_ref()
+                    .is_some_and(|n| map.get(&format!("{n}.url")).is_some_and(|v| !v.is_empty()))
+            };
+            if !(f.index_status == "A" && a.is_none() && registered(&new, &b)
+                || f.index_status == "D" && registered(&old, &a) && b.is_none())
+            {
+                return Err(blocked());
+            }
+        }
+        Ok(())
+    }
+}

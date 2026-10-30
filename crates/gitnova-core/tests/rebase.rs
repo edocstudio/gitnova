@@ -86,6 +86,7 @@ fn fixture(conflict: bool) -> F {
 }
 fn request(f: &F) -> MergeRequest {
     MergeRequest {
+        rebase_steps: vec![],
         acknowledge_rewrite: true,
         delete_source_branch: false,
         method: MergeMethod::Auto,
@@ -692,5 +693,295 @@ fn recreated_merge_can_resolve_continue_and_foreign_label_changes_block_writes()
     assert_eq!(
         fs::read_to_string(f.root.join("file")).unwrap(),
         "reviewed new resolution\n"
+    );
+}
+
+#[test]
+fn cousin_replay_retains_its_original_branch_point_and_other_refs() {
+    let f = fixture(false);
+    let base = git(&f.root, &["merge-base", "main", "feature"]);
+    git(&f.root, &["checkout", "-b", "middle", &base]);
+    fs::write(f.root.join("middle"), "middle\n").unwrap();
+    git(&f.root, &["add", "."]);
+    git(&f.root, &["commit", "-m", "middle"]);
+    let middle = git(&f.root, &["rev-parse", "HEAD"]);
+    git(&f.root, &["checkout", "main"]);
+    git(
+        &f.root,
+        &["merge", "--no-ff", "middle", "-m", "target with middle"],
+    );
+    let target = git(&f.root, &["rev-parse", "HEAD"]);
+    git(&f.root, &["checkout", "feature"]);
+    git(
+        &f.root,
+        &["merge", "--no-ff", "middle", "-m", "merge cousin"],
+    );
+    let original = git(&f.root, &["rev-parse", "HEAD"]);
+    let mut r = request(&f);
+    r.source_oid = target.clone();
+    let p = f.app.preview_merge(&f.id, &r).unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    assert!(p.rebase.as_ref().unwrap().preserve_merges);
+    let done = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert_eq!(done.status, "succeeded", "{done:?}");
+    assert_ne!(git(&f.root, &["rev-parse", "HEAD"]), original);
+    assert_eq!(git(&f.root, &["rev-parse", "main"]), target);
+    assert_eq!(git(&f.root, &["rev-parse", "middle"]), middle);
+    assert_eq!(git(&f.root, &["status", "--porcelain"]), "");
+}
+
+#[cfg(unix)]
+#[test]
+fn interactive_reorder_drop_and_fixup_preserve_reviewed_tree_author_and_other_refs() {
+    let f = fixture(false);
+    let first = f.original.clone();
+    let mut added = Vec::new();
+    for name in ["second", "third"] {
+        fs::write(f.root.join(name), format!("{name}\n")).unwrap();
+        git(&f.root, &["add", name]);
+        git(&f.root, &["commit", "-m", name]);
+        added.push(git(&f.root, &["rev-parse", "HEAD"]));
+    }
+    let original = git(&f.root, &["rev-parse", "HEAD"]);
+    let mut r = request(&f);
+    r.rebase_steps = vec![
+        RebaseEdit {
+            oid: added[1].clone(),
+            action: "pick".into(),
+        },
+        RebaseEdit {
+            oid: added[0].clone(),
+            action: "fixup".into(),
+        },
+        RebaseEdit {
+            oid: first.clone(),
+            action: "drop".into(),
+        },
+    ];
+    let p = f.app.preview_merge(&f.id, &r).unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    assert_eq!(p.rebase.as_ref().unwrap().commits, vec![added[1].clone()]);
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), original);
+    let done = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert_eq!(done.status, "succeeded", "{done:?}");
+    assert_eq!(
+        git(
+            &f.root,
+            &["rev-list", "--count", &format!("{}..HEAD", f.target)]
+        ),
+        "1"
+    );
+    assert_eq!(
+        git(&f.root, &["show", "-s", "--format=%s", "HEAD"]),
+        "third"
+    );
+    assert_eq!(git(&f.root, &["rev-parse", "main"]), f.target);
+    assert_eq!(fs::read_to_string(f.root.join("file")).unwrap(), "base\n");
+    assert!(f.root.join("second").exists() && f.root.join("third").exists());
+    assert_eq!(git(&f.root, &["status", "--porcelain"]), "");
+}
+#[test]
+fn interactive_plan_rejects_duplicates_missing_all_drop_first_fixup_and_exec() {
+    let f = fixture(false);
+    for steps in [
+        vec![RebaseEdit {
+            oid: f.original.clone(),
+            action: "exec".into(),
+        }],
+        vec![RebaseEdit {
+            oid: f.original.clone(),
+            action: "fixup".into(),
+        }],
+        vec![RebaseEdit {
+            oid: f.original.clone(),
+            action: "drop".into(),
+        }],
+        vec![
+            RebaseEdit {
+                oid: f.original.clone(),
+                action: "pick".into(),
+            },
+            RebaseEdit {
+                oid: f.original.clone(),
+                action: "pick".into(),
+            },
+        ],
+    ] {
+        let mut r = request(&f);
+        r.rebase_steps = steps;
+        assert!(f.app.preview_merge(&f.id, &r).is_err());
+    }
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.original);
+}
+
+#[test]
+fn clean_octopus_rebase_preserves_all_three_ordered_parents() {
+    let f = fixture(false);
+    let base = git(&f.root, &["merge-base", "main", "feature"]);
+    for name in ["side-b", "side-c"] {
+        git(&f.root, &["checkout", "-b", name, &base]);
+        fs::write(f.root.join(name), format!("{name}\n")).unwrap();
+        git(&f.root, &["add", name]);
+        git(&f.root, &["commit", "-m", name]);
+    }
+    git(&f.root, &["checkout", "feature"]);
+    git(
+        &f.root,
+        &[
+            "merge",
+            "--no-ff",
+            "side-b",
+            "side-c",
+            "-m",
+            "Octopus fixture",
+        ],
+    );
+    let before_b = git(&f.root, &["rev-parse", "side-b"]);
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    let done = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert_eq!(done.status, "succeeded", "{done:?}");
+    assert_eq!(
+        git(&f.root, &["rev-list", "--parents", "-n", "1", "HEAD"])
+            .split_whitespace()
+            .count(),
+        4
+    );
+    assert_eq!(git(&f.root, &["rev-parse", "main"]), f.target);
+    assert_eq!(git(&f.root, &["rev-parse", "side-b"]), before_b);
+    assert!(f.root.join("side-b").exists() && f.root.join("side-c").exists());
+}
+
+#[cfg(unix)]
+#[test]
+fn interactive_fixup_onto_existing_base_handles_quoted_paths_and_original_author() {
+    let mut f = fixture(false);
+    let moved = f._dir.path().join("repo's work");
+    fs::rename(&f.root, &moved).unwrap();
+    f.root = moved;
+    f.app = Application::new(f._dir.path().join("quoted-catalog.json")).unwrap();
+    f.id = f.app.add_repository(&f.root).unwrap().workspaces[0]
+        .selected_id
+        .clone()
+        .unwrap();
+    fs::write(f.root.join("second"), "second\n").unwrap();
+    git(&f.root, &["add", "second"]);
+    git(&f.root, &["commit", "-m", "fixup payload"]);
+    let second = git(&f.root, &["rev-parse", "HEAD"]);
+    let mut r = request(&f);
+    r.source_oid = git(&f.root, &["merge-base", "main", "feature"]);
+    r.source_ref = None;
+    r.rebase_steps = vec![
+        RebaseEdit {
+            oid: f.original.clone(),
+            action: "pick".into(),
+        },
+        RebaseEdit {
+            oid: second,
+            action: "fixup".into(),
+        },
+    ];
+    let p = f.app.preview_merge(&f.id, &r).unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    let result = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert_eq!(result.status, "succeeded", "{result:?}");
+    assert_eq!(
+        git(&f.root, &["show", "-s", "--format=%an <%ae>", "HEAD"]),
+        "Original Author <original@example.invalid>"
+    );
+    assert_eq!(
+        git(&f.root, &["show", "-s", "--format=%s", "HEAD"]),
+        "feature"
+    );
+    assert!(f.root.join("second").exists());
+}
+#[cfg(unix)]
+#[test]
+fn interactive_conflict_abort_after_restart_restores_original_tip() {
+    let f = fixture(true);
+    fs::write(f.root.join("second"), "second\n").unwrap();
+    git(&f.root, &["add", "second"]);
+    git(&f.root, &["commit", "-m", "fixup"]);
+    let original = git(&f.root, &["rev-parse", "HEAD"]);
+    let mut r = request(&f);
+    r.rebase_steps = vec![
+        RebaseEdit {
+            oid: f.original.clone(),
+            action: "pick".into(),
+        },
+        RebaseEdit {
+            oid: original.clone(),
+            action: "fixup".into(),
+        },
+    ];
+    let p = f.app.preview_merge(&f.id, &r).unwrap();
+    assert!(!p.conflicts.is_empty());
+    let start = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert!(
+        ["pending", "conflicted"].contains(&start.status.as_str()),
+        "{start:?}"
+    );
+    let a = Application::new(f._dir.path().join("catalog.json")).unwrap();
+    let action = action("abort");
+    let preview = a.preview_merge_action(&f.id, &action).unwrap();
+    assert!(preview.blocked_reason.is_none(), "{preview:?}");
+    let done = a
+        .apply_merge_action(&f.id, &action, &preview.token)
+        .unwrap();
+    assert_eq!(done.status, "succeeded", "{done:?}");
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), original);
+    assert_eq!(git(&f.root, &["rev-parse", "main"]), f.target);
+}
+#[test]
+fn octopus_replay_with_conflicting_target_is_blocked_before_writes() {
+    let f = fixture(true);
+    let base = git(&f.root, &["merge-base", "main", "feature"]);
+    for name in ["b", "c"] {
+        git(&f.root, &["checkout", "-b", name, &base]);
+        fs::write(f.root.join(name), "independent\n").unwrap();
+        git(&f.root, &["add", name]);
+        git(&f.root, &["commit", "-m", name]);
+    }
+    git(&f.root, &["checkout", "feature"]);
+    git(&f.root, &["merge", "--no-ff", "b", "c", "-m", "octopus"]);
+    let before = git(&f.root, &["rev-parse", "HEAD"]);
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    assert!(
+        p.blocked_reason
+            .as_deref()
+            .is_some_and(|s| s.contains("Octopus replay")),
+        "{p:?}"
+    );
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), before);
+}
+
+#[test]
+fn publication_evidence_includes_remote_refs_containing_dropped_and_kept_commits() {
+    let f = fixture(false);
+    git(
+        &f.root,
+        &["update-ref", "refs/remotes/origin/shared", &f.original],
+    );
+    fs::write(f.root.join("another"), "another\n").unwrap();
+    git(&f.root, &["add", "another"]);
+    git(&f.root, &["commit", "-m", "another"]);
+    let tip = git(&f.root, &["rev-parse", "HEAD"]);
+    git(&f.root, &["update-ref", "refs/remotes/other/new", &tip]);
+    let mut r = request(&f);
+    r.rebase_steps = vec![
+        RebaseEdit {
+            oid: f.original.clone(),
+            action: "drop".into(),
+        },
+        RebaseEdit {
+            oid: tip,
+            action: "pick".into(),
+        },
+    ];
+    let p = f.app.preview_merge(&f.id, &r).unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    assert_eq!(
+        p.rebase.unwrap().referenced_by,
+        vec!["refs/remotes/origin/shared", "refs/remotes/other/new"]
     );
 }

@@ -137,7 +137,7 @@ A diverged Pull offers explicit merge review in the same surface, preserving bot
 
 Pull is beside Push. Fetch is available in the Remotes branch picker and graph context menu. Pull fetches the current branch's configured upstream, previews a fast-forward and requires confirmation; it never switches to a differently named upstream branch or stashes work automatically. See [direct Fetch and Pull](milestone-31.md).
 
-Reviewed native linear Rebase, tracked-text Stage/Unstage hunk, selected initialized-submodule URL sync and worktree Lock/Unlock/Repair are available; see [M56](milestone-56.md). See later milestones below for relative-URL sync (M71), bounded archaeology/branch evidence (M72), cached remote submodule updates (M76), and registration/moved-worktree/text-addition/deletion support (M77). M78 adds bounded two-parent merge recreation/root replay, selected missing-worktree prune and gitlink dependency evidence. Arbitrary topology/interactive reordering and semantic release certification remain outside current scope. Hosted merge/checks and deployment commands remain open; initial PR/MR creation and opening are available. New local branches can be created and opened at a selected commit; remote selection creates reviewed local tracking branches; pull previews fast-forward integration or offers an explicit merge review when histories diverge. A separate local macOS build produces an ad-hoc-signed standalone debug .app; public installers, Developer ID signing/notarization and optimized release validation remain open.
+Reviewed native linear Rebase, tracked-text Stage/Unstage hunk, selected initialized-submodule URL sync and worktree Lock/Unlock/Repair are available; see [M56](milestone-56.md). See later milestones below for relative-URL sync (M71), bounded archaeology/branch evidence (M72), cached remote submodule updates (M76), and registration/moved-worktree/text-addition/deletion support (M77). M78 adds bounded two-parent merge recreation/root replay, selected missing-worktree prune and gitlink dependency evidence. M80 adds bounded linear interactive editing on Unix, cousin branch points, clean octopus replay and clean linked-worktree movement. Arbitrary topology scripting, conflictful octopus replay and semantic release certification remain outside current scope. Hosted merge/checks and deployment commands remain open; initial PR/MR creation and opening are available. New local branches can be created and opened at a selected commit; remote selection creates reviewed local tracking branches; pull previews fast-forward integration or offers an explicit merge review when histories diverge. A separate local macOS build produces an ad-hoc-signed standalone debug .app; public installers, Developer ID signing/notarization and optimized release validation remain open.
 
 Status and history are snapshots revalidated periodically and on focus; there is no filesystem watcher yet. Polling is single-flight and pauses while the working-changes UI is writing. Graph context is retained during the process, not across application restarts. History pages rerun traversal with `--skip`, so deep pages cost more CPU. Unusually large ref sets, histories exceeding the page-offset budget, or reads taking more than 20 seconds produce explicit errors. Commits and diff text display invalid UTF-8 lossily; native registered paths remain encoded independently. Windows Git paths not representable as UTF-8 currently return an explicit error.
 
@@ -279,3 +279,23 @@ recovery in normal and pending Working changes. macOS verifies an absent owner,
 Git process/native metadata state and the exact reviewed lock before archiving
 only the GitNova common-directory lock. Journals, files and staging remain intact;
 no native Git locks are removed and no operation is automatically retried.
+
+### M80 — advanced replay and worktree movement
+
+[Implemented workflows and explicit limits](milestone-80.md) extend the existing reviews with linear Pick/Drop/Fixup/reordering, cousin branch points, clean octopus recreation and reviewed clean linked-worktree movement. [Verification](verification/2026-10-30-advanced-lifecycle.md) separates native, browser and platform evidence.
+
+### M82 — committed line and package investigation
+
+[Scope and limits](milestone-82.md) cover current-repository line attribution, historical graph/diff navigation, same-selected-commit detail refresh and committed root-package version/constraint facts with registered-repository matches. [Verification](verification/2026-10-30-archaeology-packages.md) records the native and browser checks.
+
+### M83 — local attribution packaging
+
+[Scope and limits](milestone-83.md) cover offline dependency/asset evidence and five verified resources in the local macOS app. [Verification](verification/2026-10-30-distribution-evidence.md) preserves unresolved audit, signing/notarization and native-platform gates; this is not public release certification.
+
+### M84 — direct conflict block choices
+
+[Conflict resolution](milestone-84.md) reuses the diff dock for reversible Current/Incoming checkboxes above a full Result draft. Review and native save/stage confirmation remain separate. Whole-file replacements are secondary and explicit. Merge, cherry-pick, revert and owned rebase use the same inspector/dock path.
+
+### M85 — large stash review
+
+[Stash preview bounds](milestone-85.md) separate code text from complete path/content identity. The existing inspector loads selected Working/Index patches, includes saved index-only paths and names partial code without blocking the entire stash. Full-content stale checks, collision/gitlink guards and reviewed Pop/Drop recovery remain in place.

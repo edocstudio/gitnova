@@ -34,3 +34,5 @@ API references:
 The app's Apache-2.0 license does not replace dependency licenses. NOTICE contains project attribution, not an audited dependency inventory. Release packaging needs a complete direct/transitive and asset license/notice audit plus verification of the actual artifact; use the [binary-distribution checklist](../contributing/binary-distribution.md). Git is currently an external installation prerequisite. No distributable Git binary is included.
 
 Terminal-specific upstream license texts are retained in [terminal components](../licenses/terminal-components.txt) and copied into the app resources. This does not replace the full transitive dependency distribution audit.
+
+M83 adds an [offline locked inventory and collected license evidence](../licenses/README.md), including explicit unresolved entries and terms/asset review gaps. Local macOS packaging verifies five attribution resources byte for byte and refuses stale lock hashes. Inclusion checks do not establish complete coverage, shipped-component classification or fulfillment of license obligations.

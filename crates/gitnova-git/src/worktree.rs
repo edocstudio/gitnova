@@ -313,6 +313,9 @@ impl GitCli {
         root: &Path,
         request: &WorktreeMaintenanceRequest,
     ) -> Result<WorktreeMaintenancePreview> {
+        if request.kind == "move" {
+            return self.preview_move_worktree(root, request);
+        }
         if request.kind == "prune" {
             return self.preview_prune_worktree(root, request);
         }
@@ -471,6 +474,9 @@ impl GitCli {
         request: &WorktreeMaintenanceRequest,
         token: &str,
     ) -> Result<()> {
+        if request.kind == "move" {
+            return self.move_worktree(root, request, token);
+        }
         if request.kind == "prune" {
             return self.prune_worktree(root, request, token);
         }

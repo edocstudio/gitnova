@@ -76,6 +76,15 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.apply_stash(&s("membershipId")?, &r, &s("token")?)?)
             }
         }
+        "stash_patch" => json!(app.stash_patch(
+            &s("membershipId")?,
+            &serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("stash_request", e.to_string()))?,
+            &s("token")?,
+            &serde_json::from_value(args["path"].clone())
+                .map_err(|e| AppError::new("path", e.to_string()))?,
+            args["index"].as_bool().unwrap_or(false)
+        )?),
         "historical_patch" => json!(app.historical_patch(
             &s("membershipId")?,
             &s("oid")?,

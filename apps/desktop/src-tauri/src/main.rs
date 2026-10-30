@@ -345,6 +345,20 @@ async fn preview_stash(
     run(state, move |a| a.preview_stash(&membership_id, &request)).await
 }
 #[tauri::command]
+async fn stash_patch(
+    state: State<'_>,
+    membership_id: String,
+    request: StashRequest,
+    token: String,
+    path: NativePath,
+    index: bool,
+) -> Result<HistoricalPatch, AppError> {
+    run(state, move |a| {
+        a.stash_patch(&membership_id, &request, &token, &path, index)
+    })
+    .await
+}
+#[tauri::command]
 async fn apply_stash(
     state: State<'_>,
     membership_id: String,
@@ -1318,6 +1332,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         create_worktree,
         stashes,
         preview_stash,
+        stash_patch,
         apply_stash,
         historical_patch,
         search_commits,
@@ -1935,6 +1950,21 @@ mod tests {
             .as_str()
             .unwrap()
             .contains("No changes"));
+        assert_eq!(stash_review["version"], 2);
+        let missing_patch = json!({"membershipId":membership,"request":stash_review["request"],"token":stash_review["token"],"path":NativePath::new(std::path::Path::new("absent.txt")),"index":false});
+        assert!(invoke("stash_patch", missing_patch.clone(), "tauri://localhost").is_err());
+        assert!(invoke("stash_patch", missing_patch, "https://example.invalid").is_err());
+        let saved_path = repo.join("stash-ipc.txt");
+        std::fs::write(&saved_path, "IPC saved preview\n").unwrap();
+        let positive=invoke("preview_stash",json!({"membershipId":membership,"request":{"kind":"push","index":null,"oid":null,"message":"IPC preview","includeUntracked":true,"restoreIndex":false,"id":""}}),"tauri://localhost").unwrap();
+        let args = json!({"membershipId":membership,"request":positive["request"],"token":positive["token"],"path":NativePath::new(std::path::Path::new("stash-ipc.txt")),"index":false});
+        let selected = invoke("stash_patch", args.clone(), "tauri://localhost").unwrap();
+        assert!(selected["diff"]
+            .as_str()
+            .unwrap()
+            .contains("+IPC saved preview"));
+        assert!(invoke("stash_patch", args, "https://example.invalid").is_err());
+        std::fs::remove_file(saved_path).unwrap();
         let stash_apply = json!({"membershipId":membership,"request":stash_review["request"],"token":stash_review["token"]});
         let refused = invoke("apply_stash", stash_apply.clone(), "tauri://localhost").unwrap();
         assert_eq!(refused["status"], "failed");

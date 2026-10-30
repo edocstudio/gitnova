@@ -64,7 +64,7 @@ export const faqEntries = [
   {
     "group": "History and recovery",
     "question": "What is Rebase?",
-    "answer": "Rebase replays commits onto a new base and changes their IDs. Right-click the target commit and review the branch, target, complete replay range and rewrite acknowledgement. Up to 100 commits are supported, including linear root replay onto an unrelated target and reviewed two-parent merge recreation. Merge resolutions may need to be applied again. Shallow, octopus, cousin/external-parent and submodule-changing ranges remain blocked. Conflicts use Working changes, followed by reviewed Continue, explicit empty Skip or Abort. Original tips remain recoverable; no force push occurs."
+    "answer": "Rebase replays up to 100 commits onto a reviewed target and changes their IDs. Customize a linear replay with Pick, Drop, Fixup and reorder; Fixup keeps the earlier Pick’s message and author. Root replay, cousin branch points and clean merges with up to eight ordered parents are supported. Merge resolutions may need reapplication. Shallow history, submodule-changing replay and predicted octopus conflicts remain refused. Conflicts use Working changes followed by reviewed Continue, empty Skip or Abort. Original tips remain recoverable; no force push occurs. Interactive editing currently requires Unix."
   },
   {
     "group": "History and recovery",
@@ -74,7 +74,7 @@ export const faqEntries = [
   {
     "group": "History and recovery",
     "question": "How do I resolve a conflict?",
-    "answer": "Open Working changes and select a conflict. Compare Current and Incoming, choose individual text blocks or edit Result, then review and stage the resolved result. Continue or commit the pending operation only after every conflict is resolved. Current/Incoming refer to the shown operation, especially during rebase. Binary and submodule conflicts need their dedicated choices."
+    "answer": "Open Working changes and select a conflict. In the diff dock, tick Current, Incoming or both for each block; the full Result draft appears below. Both keeps Current before Incoming. Revisit or clear choices before review, or use Edit result to type a custom resolution. Nothing is saved or staged until Review edited result and Apply resolution. Whole-file choices are separate. Continue or commit only after every conflict is resolved. Current/Incoming refer to the shown operation, especially during rebase. Binary and submodule conflicts need their dedicated choices."
   },
   {"group": "Multiple repositories", "question": "How do I update a submodule to a newer version?", "answer": "Open and fetch the child repository first when you need current remote data. In the parent graph, choose the submodule’s Manage action, then Review newer version. Check the cached remote branch, exact target commit and changed paths before confirming. Only a clean, provable forward update is allowed here. The child checkout becomes detached; parent staging and nested checkouts stay unchanged. Stage the parent pointer separately if you want to record that version. Restore recorded instead returns to the parent index revision."},
   {
@@ -136,5 +136,10 @@ export const faqEntries = [
     "group": "Multiple repositories",
     "question": "Can I compare release branches across repositories?",
     "answer": "In Search commits, choose Compare branches across repositories and select the current, selected or entire-workspace scope. Enter Source and Target branch names, then Search. Evidence lists source-only and target-only commits, exact tip IDs and changed-file counts for each location. Missing refs, shallow history and limits remain explicit. Cached remote refs are not fetched automatically by this comparison. This is committed Git evidence; it does not certify CI, dependency compatibility or release readiness."
-  }
+  },
+{
+  "group": "Everyday Git",
+  "question": "How do I inspect who last changed a committed line?",
+  "answer": "Open Search commits, choose Line attribution (blame), enter the exact file path and local revision, then choose up to 200 lines in the current repository. Select a line to open its original commit and historical filename without checkout. Files must be regular UTF-8 text up to 1 MiB. Working edits are excluded. Rename attribution follows native Git heuristics; copied-line detection is not enabled. Configured blame ignore files require manual Git inspection. Shallow history remains incomplete."
+}
 ] as const;

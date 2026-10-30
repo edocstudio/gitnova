@@ -281,6 +281,7 @@ fn merge_cherry_pick_and_rebase_share_committer_policy_and_preserve_replayed_aut
             feature
         };
         let request = MergeRequest {
+            rebase_steps: vec![],
             acknowledge_rewrite: operation == "rebase",
             delete_source_branch: false,
             method: if operation == "merge" {

@@ -475,7 +475,9 @@ main { display: flex; flex: 1; min-height: 0; }
 
 .merge-detail .empty-conflicts { flex:0 0 auto; }.merge-detail .empty-conflicts .group-empty { margin:0; padding:5px 15px; }.merge-detail .change-group-heading button { font-size:10px; padding:4px 6px; }
 
-.merge-detail .working-files { grid-template-rows:minmax(60px,1fr) minmax(60px,1fr) minmax(60px,1fr); }.merge-detail .working-files.without-conflicts { grid-template-rows:auto minmax(60px,1fr) minmax(60px,1fr); }
+.merge-detail {overflow-y:auto;}
+.merge-detail > .detail-heading,.merge-detail > .working-context {flex-shrink:0;}
+.merge-detail .working-files { min-height:246px;flex-shrink:0;grid-template-rows:minmax(82px,1fr) minmax(82px,1fr) minmax(82px,1fr); }.merge-detail .working-files.without-conflicts { grid-template-rows:auto minmax(60px,1fr) minmax(60px,1fr); }
 
 /* File paths must never determine the inspector's grid-column width. */
 .working-files { grid-template-columns:minmax(0,1fr); min-width:0; max-width:100%; }
@@ -712,12 +714,25 @@ main { display: flex; flex: 1; min-height: 0; }
 .conflict-toolbar {display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:11px;flex:0 0 auto;}
 .conflict-toolbar>span {margin-right:auto;color:var(--muted);}
 .conflict-toolbar button {font-size:10px;padding:4px 7px;}
-.conflict-columns {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) minmax(0,1fr);flex:1;min-height:0;}
+.conflict-toolbar small {display:block;margin-top:3px;}
+.conflict-columns {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex:0 1 42%;min-height:70px;}
 .conflict-columns>section {display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid var(--line);}
-.conflict-columns .merge-editor-label {display:block;flex:0 0 auto;min-height:30px;overflow-wrap:anywhere;}
-.conflict-columns pre,.conflict-columns textarea {flex:1;min-width:0;min-height:0;width:100%;margin:0;padding:8px 12px;border:0;border-radius:0;resize:none;overflow:auto;white-space:pre;font:12px/24px 'SFMono-Regular',Consolas,monospace;background:transparent;color:inherit;tab-size:4;}
-.conflict-result {background:var(--surface-142433, #142433);}.conflict-result textarea:focus {outline:1px solid var(--edge-4b8eff, #4b8eff);outline-offset:-1px;}
+.conflict-columns .merge-editor-label {display:flex;align-items:center;gap:9px;flex:0 0 auto;min-height:32px;min-width:0;}
+.conflict-columns .merge-editor-label label {display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.conflict-columns .merge-editor-label code {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--muted);}
+.conflict-columns input[type=checkbox] {width:16px;height:16px;margin:0;accent-color:var(--edge-4b8eff, #4b8eff);}
+.conflict-columns pre,.conflict-result textarea {flex:1;min-width:0;min-height:0;width:100%;margin:0;padding:8px 12px;border:0;border-radius:0;resize:none;overflow:auto;white-space:pre;font:12px/24px 'SFMono-Regular',Consolas,monospace;background:transparent;color:inherit;tab-size:4;}
+.conflict-version.current {border-top:2px solid var(--edge-4b8eff, #4b8eff);}
+.conflict-version.incoming {border-top:2px solid var(--warning, #e4b052);}
+.conflict-version.included pre {background:var(--surface-142433, #142433);}
+.conflict-result {display:flex;flex-direction:column;flex:1;min-height:80px;min-width:0;border-top:1px solid var(--line);background:var(--surface-142433, #142433);}
+.conflict-output-heading {display:flex;align-items:center;gap:10px;flex:0 0 auto;flex-wrap:wrap;}
+.conflict-output-heading small {color:var(--muted);font-size:10px;padding:0 8px 4px;}
+.conflict-result textarea:focus {outline:1px solid var(--edge-4b8eff, #4b8eff);outline-offset:-1px;}
 .conflict-result textarea[readonly] {color:var(--ink-9eb4c8, #9eb4c8);}
+.whole-file-resolution {margin-top:10px;width:100%;}
+.whole-file-resolution summary {cursor:pointer;color:var(--muted);font-size:12px;}
+
 
 .repository-remote-card code,.remote-add-review>code {display:block;overflow-wrap:anywhere;margin-top:8px;font-size:12px;}
 .repository-remotes select {width:100%;}
@@ -815,3 +830,11 @@ main { display: flex; flex: 1; min-height: 0; }
 .existing-tags li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .existing-tags li code{flex-shrink:0;color:var(--muted);}
 .tag-pages{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;}
+
+.replay-step {display:flex;align-items:center;gap:6px;margin:5px 0;min-width:0}
+.replay-step span {flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.replay-step select {width:90px}
+.replay-step button {padding:4px 8px}
+
+/* Give conflict choices room by default; an explicit user resize still wins. */
+.commit-diff-dock.conflict-dock {--dock-height:clamp(240px,48vh,460px);}

@@ -51,6 +51,8 @@ fn request(app: &Application, mode: &str) -> InvestigationRequest {
     let c = app.catalog().unwrap();
     let w = &c.workspaces[0];
     InvestigationRequest {
+        line_start: None,
+        line_end: None,
         selection: CommitSearchRequest {
             workspace_id: w.id.clone(),
             current_membership_id: w.selected_id.clone().unwrap(),
@@ -309,4 +311,179 @@ fn release_dependency_evidence_uses_registered_child_identity_and_exact_gitlink_
     let page = app.investigate_history(&r).unwrap();
     assert!(page.partial);
     assert_eq!(page.evidence[0].dependencies[0].relation, "unknown");
+}
+
+#[test]
+fn committed_line_blame_follows_original_filenames_and_ignores_dirty_content() {
+    let t = tempfile::tempdir().unwrap();
+    let root = repo(t.path(), "blame");
+    let base = git(&root, &["rev-parse", "main"]);
+    let phrase = git(&root, &["rev-parse", "HEAD"]);
+    git(&root, &["mv", "code.txt", "renamed file.txt"]);
+    git(&root, &["commit", "-m", "rename"]);
+    let tip = git(&root, &["rev-parse", "HEAD"]);
+    git(
+        &root,
+        &["config", "blame.ignoreRevsFile", "missing-ignore-file"],
+    );
+    fs::write(root.join("renamed file.txt"), "private working edit\n").unwrap();
+    let app = Application::new(t.path().join("state/catalog.json")).unwrap();
+    app.add_repository(&root).unwrap();
+    let mut r = request(&app, "blame");
+    r.selection.scope = "current".into();
+    r.source = "HEAD".into();
+    r.path = "renamed file.txt".into();
+    r.line_start = Some(1);
+    r.line_end = Some(200);
+    let blocked = app.investigate_history(&r).unwrap();
+    assert!(blocked.partial);
+    assert!(blocked.evidence[0]
+        .issue
+        .as_deref()
+        .unwrap()
+        .contains("Configured blame ignore files"));
+    git(&root, &["config", "--unset-all", "blame.ignoreRevsFile"]);
+    let before = snapshot(&root);
+    let page = app.investigate_history(&r).unwrap();
+    assert!(!page.partial, "{page:?}");
+    let e = &page.evidence[0];
+    assert_eq!(e.source_oid.as_deref(), Some(tip.as_str()));
+    assert_eq!(e.dirty, Some(true));
+    assert_eq!(e.line_attribution.len(), 2);
+    let lines = &e.line_attribution;
+    assert_eq!(lines[0].oid, base);
+    assert_eq!(lines[1].oid, phrase);
+    assert_eq!(lines[0].path.display, "code.txt");
+    assert_eq!(lines[1].line, 2);
+    assert_eq!(lines[1].original_line, 2);
+    assert_eq!(lines[1].content, "needle literal [x]");
+    assert_eq!(snapshot(&root), before);
+    for (start, end) in [(0, 1), (1, 201), (2, 1), (1, 1_000_001)] {
+        r.line_start = Some(start);
+        r.line_end = Some(end);
+        assert!(app.investigate_history(&r).is_err());
+    }
+    r.line_start = Some(1);
+    r.line_end = Some(2);
+    r.selection.scope = "workspace".into();
+    assert!(app.investigate_history(&r).is_err());
+}
+
+#[test]
+fn line_blame_refuses_binary_and_oversize_files_without_changing_the_checkout() {
+    let t = tempfile::tempdir().unwrap();
+    let root = repo(t.path(), "blame-bounds");
+    fs::write(root.join("binary"), b"binary\0data").unwrap();
+    fs::write(root.join("large"), vec![b'x'; 1024 * 1024 + 1]).unwrap();
+    git(&root, &["add", "."]);
+    git(&root, &["commit", "-m", "bounded inputs"]);
+    let app = Application::new(t.path().join("state/catalog.json")).unwrap();
+    app.add_repository(&root).unwrap();
+    let mut r = request(&app, "blame");
+    r.selection.scope = "current".into();
+    r.source = "HEAD".into();
+    let before = snapshot(&root);
+    for path in ["binary", "large", "missing"] {
+        r.path = path.into();
+        let p = app.investigate_history(&r).unwrap();
+        assert!(p.partial);
+        assert!(p.evidence[0].issue.is_some());
+        assert!(p.hits.is_empty());
+    }
+    assert_eq!(snapshot(&root), before);
+}
+
+#[test]
+fn package_comparison_matches_committed_names_and_reports_ambiguous_repositories() {
+    let t = tempfile::tempdir().unwrap();
+    let root = repo(t.path(), "application");
+    let lib = repo(t.path(), "unrelated-folder-name");
+    git(&root, &["checkout", "main"]);
+    fs::write(
+        root.join("package.json"),
+        r#"{"name":"@fixture/app","version":"1.0.0","dependencies":{"@fixture/lib":"^1"}}"#,
+    )
+    .unwrap();
+    git(&root, &["add", "."]);
+    git(&root, &["commit", "-m", "old package"]);
+    git(&root, &["branch", "-f", "release", "HEAD"]);
+    git(&root, &["checkout", "develop"]);
+    fs::write(
+        root.join("package.json"),
+        r#"{"name":"@fixture/app","version":"2.0.0","dependencies":{"@fixture/lib":"^2"}}"#,
+    )
+    .unwrap();
+    git(&root, &["add", "."]);
+    git(&root, &["commit", "-m", "new requirement"]);
+    fs::write(
+        lib.join("package.json"),
+        r#"{"name":"@fixture/lib","version":"2.1.0"}"#,
+    )
+    .unwrap();
+    git(&lib, &["add", "."]);
+    git(&lib, &["commit", "-m", "library package"]);
+    let lib_oid = git(&lib, &["rev-parse", "HEAD"]);
+    fs::write(
+        lib.join("package.json"),
+        r#"{"name":"private-working-name"}"#,
+    )
+    .unwrap();
+    let app = Application::new(t.path().join("state/catalog.json")).unwrap();
+    app.add_repository(&lib).unwrap();
+    app.add_repository(&root).unwrap();
+    let mut r = request(&app, "compare");
+    r.selection.scope = "current".into();
+    let before = snapshot(&root);
+    let lib_before = snapshot(&lib);
+    let page = app.investigate_history(&r).unwrap();
+    assert!(!page.partial, "{page:?}");
+    let package = page.evidence[0].package_manifest.as_ref().unwrap();
+    assert_eq!(package.source_version.as_deref(), Some("2.0.0"));
+    assert_eq!(package.target_version.as_deref(), Some("1.0.0"));
+    let row = &package.requirements[0];
+    assert_eq!(row.source.as_deref(), Some("^2"));
+    assert_eq!(row.target.as_deref(), Some("^1"));
+    assert_eq!(row.locations.len(), 1);
+    assert_eq!(row.locations[0].oid, lib_oid);
+    assert_eq!(row.locations[0].version.as_deref(), Some("2.1.0"));
+    assert!(row.issue.is_none());
+    assert_eq!(snapshot(&root), before);
+    assert_eq!(snapshot(&lib), lib_before);
+    let duplicate = repo(t.path(), "ambiguous");
+    fs::write(
+        duplicate.join("package.json"),
+        r#"{"name":"@fixture/lib","version":"3.0.0"}"#,
+    )
+    .unwrap();
+    git(&duplicate, &["add", "."]);
+    git(&duplicate, &["commit", "-m", "same declared name"]);
+    app.add_repository(&duplicate).unwrap();
+    app.select(&r.selection.current_membership_id).unwrap();
+    let page = app.investigate_history(&r).unwrap();
+    assert!(page.partial);
+    let row = &page.evidence[0]
+        .package_manifest
+        .as_ref()
+        .unwrap()
+        .requirements[0];
+    assert_eq!(row.locations.len(), 2);
+    assert!(row
+        .issue
+        .as_deref()
+        .unwrap()
+        .contains("No unique registered repository"));
+    fs::write(root.join("package.json"),r#"{"name":"@fixture/app","version":"2.0.0","workspaces":["packages/*"],"dependencies":{"@fixture/lib":"npm:another-package@2"}}"#).unwrap();
+    git(&root, &["add", "package.json"]);
+    git(&root, &["commit", "-m", "alias remains unresolved"]);
+    let page = app.investigate_history(&r).unwrap();
+    assert!(page.partial);
+    let package = page.evidence[0].package_manifest.as_ref().unwrap();
+    assert!(package
+        .issue
+        .as_deref()
+        .unwrap()
+        .contains("Only root package.json"));
+    let row = &package.requirements[0];
+    assert!(row.locations.is_empty());
+    assert!(row.issue.as_deref().unwrap().contains("not resolved"));
 }

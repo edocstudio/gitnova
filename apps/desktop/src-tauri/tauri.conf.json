@@ -26,7 +26,11 @@
   "bundle": {
     "active": false,
     "resources": {
-      "../../../docs/licenses/terminal-components.txt": "licenses/terminal-components.txt"
+      "../../../docs/licenses/terminal-components.txt": "licenses/terminal-components.txt",
+      "../../../LICENSE": "licenses/LICENSE",
+      "../../../NOTICE": "licenses/NOTICE",
+      "../../../docs/licenses/dependency-inventory.json": "licenses/dependency-inventory.json",
+      "../../../docs/licenses/third-party-license-evidence.txt": "licenses/third-party-license-evidence.txt"
     }
   }
 }
