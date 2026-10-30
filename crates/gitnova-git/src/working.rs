@@ -410,7 +410,7 @@ impl WorkingTreeReader for GitCli {
         })
     }
     fn commit_preview(&self, root: &Path) -> Result<CommitPreview> {
-        let (_, before) = self.write_state(root)?;
+        let (_, before) = self.commit_state(root)?;
         let changes = self.working_changes(root)?;
         if changes.files.iter().any(|f| {
             f.staged
@@ -448,7 +448,7 @@ impl WorkingTreeReader for GitCli {
             PATCH_LIMIT,
             true,
         )?;
-        if self.write_state(root)?.1 != before {
+        if self.commit_state(root)?.1 != before {
             return Err(AppError::new(
                 "stale_preview",
                 "Staged changes changed while reading. Review again.",
@@ -596,6 +596,12 @@ impl CommitWriter for GitCli {
     }
 }
 impl GitCli {
+    pub(crate) fn commit_state(&self, root: &Path) -> Result<(crate::Discovery, String)> {
+        let (discovery, state) = self.write_state(root)?;
+        let mut bytes = state.into_bytes();
+        bytes.extend(self.config_snapshot(root)?);
+        Ok((discovery, digest(&bytes)))
+    }
     pub(crate) fn commit_with_index(
         &self,
         root: &Path,
@@ -623,7 +629,7 @@ impl GitCli {
                     "HEAD or staged content changed. Review the commit again.",
                 ));
             }
-        } else if self.write_state(root)?.1 != token {
+        } else if self.commit_state(root)?.1 != token {
             return Err(AppError::new(
                 "stale_preview",
                 "HEAD or index changed. Review the amend again.",
@@ -637,7 +643,7 @@ impl GitCli {
             ));
         }
         let mut lock = OperationLock::acquire(d.git_dir.join("index.lock"))?;
-        if self.write_state(root)?.1 != token {
+        if self.commit_state(root)?.1 != token {
             return Err(AppError::new(
                 "stale_preview",
                 "Index or HEAD changed while acquiring the commit lock. Review again.",
@@ -761,6 +767,7 @@ fn run_git_write_with_paths(
             command.env_remove(key);
         }
     }
+    crate::commit_identity::configure(&mut command, root);
     command.env_remove("GITNOVA_CREDENTIAL_TARGETS");
     command.env_remove("GITNOVA_BACKGROUND_FETCH");
     let background = args

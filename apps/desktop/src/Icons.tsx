@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
-type Name = 'settings' | 'trash' | 'search' | 'tag' | 'remote' | 'branch' | 'chevron' | 'refresh' | 'folder' | 'check' | 'close' | 'plus' | 'arrow' | 'file' | 'commit' | 'layers' | 'lock' | 'back' | 'star' | 'copy' | 'panel';
+type Name = 'terminal' | 'settings' | 'trash' | 'search' | 'tag' | 'remote' | 'branch' | 'chevron' | 'refresh' | 'folder' | 'check' | 'close' | 'plus' | 'arrow' | 'file' | 'commit' | 'layers' | 'lock' | 'back' | 'star' | 'copy' | 'panel';
 const paths: Record<Name, React.ReactNode> = {
+  terminal: <><path d="m4 5 7 7-7 7M13 19h7"/></>,
   settings: <><polygon points="18.929,9.130 19.332,10.421 21.877,10.436 21.877,13.564 19.332,13.579 18.929,14.870 18.929,14.870 18.301,16.068 20.090,17.878 17.878,20.090 16.068,18.301 14.870,18.929 14.870,18.929 13.579,19.332 13.564,21.877 10.436,21.877 10.421,19.332 9.130,18.929 9.130,18.929 7.932,18.301 6.122,20.090 3.910,17.878 5.699,16.068 5.071,14.870 5.071,14.870 4.668,13.579 2.123,13.564 2.123,10.436 4.668,10.421 5.071,9.130 5.071,9.130 5.699,7.932 3.910,6.122 6.122,3.910 7.932,5.699 9.130,5.071 9.130,5.071 10.421,4.668 10.436,2.123 13.564,2.123 13.579,4.668 14.870,5.071 14.870,5.071 16.068,5.699 17.878,3.910 20.090,6.122 18.301,7.932 18.929,9.130"/><circle cx="12" cy="12" r="3.2"/></>,
   trash: <><path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></>,
   search: <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>,

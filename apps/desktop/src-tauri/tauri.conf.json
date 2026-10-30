@@ -10,8 +10,23 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [{ "title": "GitNova", "width": 1360, "height": 900, "minWidth": 780, "minHeight": 560 }],
-    "security": { "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: data:; connect-src ipc: http://ipc.localhost; object-src 'none'; base-uri 'self'; frame-src 'none'" }
+    "windows": [
+      {
+        "title": "GitNova",
+        "width": 1360,
+        "height": 900,
+        "minWidth": 780,
+        "minHeight": 560
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: data:; connect-src ipc: http://ipc.localhost; object-src 'none'; base-uri 'self'; frame-src 'none'"
+    }
   },
-  "bundle": { "active": false }
+  "bundle": {
+    "active": false,
+    "resources": {
+      "../../../docs/licenses/terminal-components.txt": "licenses/terminal-components.txt"
+    }
+  }
 }

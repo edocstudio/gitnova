@@ -137,14 +137,14 @@ impl GitCli {
         file: &NativePath,
         token: &str,
     ) -> Result<FilePreview> {
-        if self.write_state(root)?.1 != token {
+        if self.commit_state(root)?.1 != token {
             return Err(AppError::new(
                 "stale_preview",
                 "The staged commit changed. Review the staged file list again.",
             ));
         }
         let preview = self.file_preview(root, file, true)?;
-        if self.write_state(root)?.1 != token {
+        if self.commit_state(root)?.1 != token {
             return Err(AppError::new(
                 "stale_preview",
                 "The staged commit changed while loading this file. Review again.",

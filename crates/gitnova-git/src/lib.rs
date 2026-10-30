@@ -1,3 +1,4 @@
+pub mod commit_identity;
 mod credentials;
 mod executable;
 pub use credentials::install_transport_credential_helper;
@@ -179,6 +180,7 @@ impl GitCli {
                 cmd.env_remove(key);
             }
         }
+        commit_identity::configure(&mut cmd, path);
         cmd.env_remove("GITNOVA_CREDENTIAL_TARGETS");
         if !protocols.is_empty() {
             let arguments = args.iter().map(|v| (*v).to_owned()).collect::<Vec<_>>();

@@ -18,6 +18,14 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  terminalOpen:(membershipId:string,cols:number,rows:number)=>call<{id:string;path:string;shell:string}>('terminal_open',{membershipId,cols,rows}),
+  terminalRead:(membershipId:string,id:string)=>call<{data:number[];dropped:boolean;exited:boolean}>('terminal_read',{membershipId,id}),
+  terminalWrite:(membershipId:string,id:string,data:string)=>call<void>('terminal_write',{membershipId,id,data}),
+  terminalResize:(membershipId:string,id:string,cols:number,rows:number)=>call<void>('terminal_resize',{membershipId,id,cols,rows}),
+  terminalClose:(membershipId:string,id:string)=>call<void>('terminal_close',{membershipId,id}),
+  connectionCommitIdentity:(profile:HostProfile)=>call<import('./contracts').GitCommitIdentity|null>('connection_commit_identity',{profile}),
+  setConnectionCommitIdentity:(profile:HostProfile,identity:import('./contracts').GitCommitIdentity|null)=>call<void>('set_connection_commit_identity',{profile,identity}),
+  commitIdentity:(membershipId:string)=>call<import('./contracts').CommitIdentityContext>('commit_identity',{membershipId}),
   investigateHistory: (request: import('./contracts').InvestigationRequest) => call<import('./contracts').InvestigationPage>('investigate_history', {request}),
   previewInit: (request: import('./contracts').InitRequest) => call<import('./contracts').InitPreview>('preview_init', {request}),
   initRepository: (request: import('./contracts').InitRequest, token: string) => call<Catalog>('init_repository', {request, token}),

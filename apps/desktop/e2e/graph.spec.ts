@@ -1697,3 +1697,51 @@ test('file and code investigation opens the matching diff and compares branches 
   await search.getByLabel('Target branch',{exact:true}).fill('missing-release');await search.getByRole('button',{name:'Search',exact:true}).click();await expect(search.locator('.investigation-evidence > div')).toHaveCount(2);await expect(search.locator('.commit-search-result')).toHaveCount(0);await expect(search).toContainText('Results are incomplete.');
   for(let i=0;i<repos.length;i++){expect(git(repos[i],['rev-parse','HEAD'])).toBe(before[i].head);expect(git(repos[i],['show-ref'])).toBe(before[i].refs);expect(readFileSync(join(repos[i],'.git/index'))).toEqual(before[i].index);expect(readFileSync(join(repos[i],'draft.txt'),'utf8')).toBe('preserve draft\n');}
 });
+
+test('connection commit identities separate hosts in Settings and real commits without changing Git config', async ({page},testInfo) => {
+  const rows=[{id:'personal',label:'Personal',provider:'github',origin:'https://public.example',enabled:false},{id:'work',label:'Work',provider:'gitlab',origin:'https://work.example',enabled:false}];
+  const repos=rows.map(row=>{const repo=join(folder,`identity-${row.id}`);mkdirSync(repo);git(repo,['init','-b','main']);git(repo,['config','user.name','Fallback']);git(repo,['config','user.email','fallback@example.invalid']);git(repo,['config','commit.gpgsign','false']);git(repo,['config','core.hooksPath','.git/no-hooks']);writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','base']);git(repo,['remote','add','origin',`${row.origin}/owner/repository.git`]);writeFileSync(join(repo,'file.txt'),'change\n');git(repo,['add','file.txt']);return repo;});
+  const before=repos.map(repo=>readFileSync(join(repo,'.git/config'),'utf8'));
+  await connectRealCore(page,join(folder,'identity-ui.json'));
+  await page.addInitScript(values=>{
+    localStorage.setItem('gitnova.connections.v1',JSON.stringify(values));
+    // Authentication is unrelated to author settings. Never query real Keychain
+    // accounts or contact providers; all identity commands use the real core.
+    const host=window as unknown as {__TAURI_INTERNALS__:{invoke:(command:string,args:Record<string,unknown>)=>Promise<unknown>}};
+    const original=host.__TAURI_INTERNALS__.invoke;
+    host.__TAURI_INTERNALS__.invoke=(command,args)=>command==='host_account'?Promise.resolve({...args.profile as object,account:null}):original(command,args);
+  },rows);
+  await page.goto('/');await page.getByLabel('Add an existing repository').fill(repos[0]);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator('.working-row').click();
+  await expect(page.locator('.commit-identity-notice')).toContainText('Fallback');
+  await page.keyboard.press('Control+,');const settings=page.locator('dialog.settings-dialog');await settings.getByRole('tab',{name:'Connections',exact:true}).click();
+  for(const row of rows){const form=settings.getByRole('form',{name:`Commit identity for ${row.origin}`,exact:true});await form.getByLabel('Commit name',{exact:true}).fill(row.label);await form.getByLabel('Commit email',{exact:true}).fill(`${row.id}@example.invalid`);await form.getByRole('button',{name:'Save commit identity',exact:true}).click();await expect(form).toContainText(`Saved commit identity: ${row.label}`);}
+  await page.screenshot({path:testInfo.outputPath('connection-commit-identities.png')});await page.keyboard.press('Escape');await expect(settings).not.toBeVisible();
+  for(let i=0;i<repos.length;i++){
+    if(i){await page.locator('.repo-picker').click();await page.getByLabel('Add an existing repository').fill(repos[i]);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator('.working-row').click();}
+    const working=page.getByLabel('Working changes',{exact:true});await expect(working.locator('.commit-identity-notice')).toContainText(`${rows[i].id}@example.invalid`);
+    await working.getByLabel('Summary',{exact:true}).fill(`Scoped ${rows[i].label} commit`);await working.getByRole('button',{name:'Review commit',exact:true}).click();await working.getByRole('button',{name:'Commit staged changes',exact:true}).click();
+    await expect.poll(()=>git(repos[i],['show','-s','--format=%an|%ae|%cn|%ce','HEAD'])).toBe(`${rows[i].label}|${rows[i].id}@example.invalid|${rows[i].label}|${rows[i].id}@example.invalid`);
+    expect(readFileSync(join(repos[i],'.git/config'),'utf8')).toBe(before[i]);
+  }
+});
+
+test('graph Terminal action opens the selected repository dock without losing graph context',async({page})=>{
+ await connectRealCore(page,join(folder,'terminal-action.json'));await page.goto('/');
+ await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await expect(page.locator('.terminal-toggle')).toBeEnabled();
+ const selected=await page.locator('.commit-row.selected').getAttribute('id');
+ // Only the PTY transport is emulated here; workspace and graph read real Git.
+ await page.evaluate(async path=>{
+  const {api}=await import('/src/api.ts');let opened=0;
+  api.terminalOpen=async()=>{opened++;(window as any).terminalOpenCount=opened;return{id:'test-terminal',path,shell:'/bin/sh'};};
+  api.terminalRead=async()=>({data:[],dropped:false,exited:false});api.terminalWrite=async()=>{};api.terminalResize=async()=>{};api.terminalClose=async()=>{};
+ },repository);
+ await page.locator('.terminal-toggle').click();await expect(page.getByRole('region',{name:'Repository terminal',exact:true})).toBeVisible();
+ await expect(page.locator('.terminal-context')).toContainText(repository);
+ await page.getByRole('button',{name:'Hide terminal',exact:true}).click();await expect(page.locator('.repository-terminal')).toBeHidden();
+ await page.locator('.terminal-toggle').click();await expect(page.locator('.repository-terminal')).toBeVisible();
+ expect(await page.evaluate(()=>(window as any).terminalOpenCount)).toBe(1);
+ expect(await page.locator('.commit-row.selected').getAttribute('id')).toBe(selected);
+ await page.locator('.repository-terminal').getByRole('button',{name:'End session',exact:true}).click();
+ await page.locator('.terminal-end-review').getByRole('button',{name:'End session',exact:true}).click();await expect(page.locator('.repository-terminal')).toHaveCount(0);
+});

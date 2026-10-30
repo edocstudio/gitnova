@@ -63,7 +63,7 @@ fn original(git: &GitCli, root: &Path, oid: &str) -> Result<(Commit, String, Str
 impl GitCli {
     pub fn amend_original(&self, root: &Path, oid: &str) -> Result<AmendOriginal> {
         crate::validate_oid(oid)?;
-        let (_, before) = self.write_state(root)?;
+        let (_, before) = self.commit_state(root)?;
         if self
             .optional_text(root, &["rev-parse", "--verify", "--quiet", "HEAD"])?
             .as_deref()
@@ -75,7 +75,7 @@ impl GitCli {
             ));
         }
         let (commit, message, _, signed) = original(self, root, oid)?;
-        if self.write_state(root)?.1 != before {
+        if self.commit_state(root)?.1 != before {
             return Err(AppError::new(
                 "stale_preview",
                 "HEAD or index changed while reading the amend.",
@@ -98,7 +98,7 @@ impl GitCli {
             ));
         }
         crate::validate_oid(&request.oid)?;
-        let (d, state) = self.write_state(root)?;
+        let (d, state) = self.commit_state(root)?;
         let status = self.status(root)?;
         if status.head.as_ref() != Some(&request.oid) {
             return Err(AppError::new(
@@ -211,7 +211,7 @@ impl GitCli {
                 "The amend recovery ref contains a different commit. Inspect it with Git.".into(),
             );
         }
-        if self.write_state(root)?.1 != state {
+        if self.commit_state(root)?.1 != state {
             return Err(AppError::new(
                 "stale_preview",
                 "HEAD or index changed while reading the amend.",

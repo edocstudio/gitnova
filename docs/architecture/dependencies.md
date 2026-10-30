@@ -7,6 +7,8 @@ Dependency policy: lock reproducible dependency graphs in Cargo.lock and apps/de
 | Component | Choice | License | Verification |
 | --- | --- | --- | --- |
 | Desktop | Tauri 2; Rust crate tauri 2.12.5, JS API/CLI 2.12.4 in the lockfiles | MIT OR Apache-2.0 | Official command/config docs, actual cargo check/build |
+| Terminal PTY | portable-pty 0.9.0 (desktop adapter only) | MIT | Native shell cwd, input/output, lifecycle and bounds tests |
+| Terminal renderer | @xterm/xterm 6.0.0 + @xterm/addon-fit | MIT | On-demand import, bounded scrollback, renderer lifecycle tests |
 | UI | React / React DOM 19.3.1 | MIT | npm metadata, typecheck and Vite build |
 | Build | Vite 8.3.5, React plugin 6.1.2 | MIT | npm engines; Node 20.x (20.19.0+) or 22.12.0+ |
 | Contracts/storage | Serde 1, serde_json 1 | MIT OR Apache-2.0 | Real serialization and persisted workspace tests |
@@ -30,3 +32,5 @@ API references:
 - https://git-scm.com/docs/git-submodule
 
 The app's Apache-2.0 license does not replace dependency licenses. NOTICE contains project attribution, not an audited dependency inventory. Release packaging needs a complete direct/transitive and asset license/notice audit plus verification of the actual artifact; use the [binary-distribution checklist](../contributing/binary-distribution.md). Git is currently an external installation prerequisite. No distributable Git binary is included.
+
+Terminal-specific upstream license texts are retained in [terminal components](../licenses/terminal-components.txt) and copied into the app resources. This does not replace the full transitive dependency distribution audit.

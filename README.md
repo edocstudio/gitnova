@@ -47,7 +47,8 @@ The following workflows are implemented in the current alpha. Availability does 
 | --- | --- |
 | **Workspaces** | Open, initialize or clone local repositories, switch within one window, pin projects, and search a five-repository-per-page picker. |
 | **History & diffs** | Browse a virtualized graph with branch/tag labels and resizable columns; inspect side-by-side or unified patches and historical files. |
-| **Everyday changes** | Stage/unstage individual files or review Stage all, create a first commit with bounded per-file previews, amend the latest commit, or discard selected changes with recovery capture. |
+| **Everyday changes** | Stage/unstage individual files or review Stage all, create a first commit with bounded per-file previews, amend the latest commit, or discard selected changes with recovery capture. Optional host-specific commit identities are configured in Settings → Connections, independently of authentication. |
+| Repository terminal | Open a shell in the current repository/worktree from the graph; hide or end separate, bounded sessions |
 | **Branches & remotes** | Set up a reviewed repository destination from Push; preview checkout, fetch, pull, push, rename/delete branches, and inspect local/upstream ahead/behind counts. Configure active-repository auto fetch in Settings → General. |
 | **Merge & selected changes** | Review a merge commit or fast-forward, resolve supported text conflicts in a three-way editor with per-block choices, cherry-pick/revert a commit, and review finish/abort. Optionally delete the local source branch after a successful merge. |
 | **Stashes** | Save work, inspect saved entries in the graph, and apply/pop onto the current branch. Recovery and conflict limits are documented. |

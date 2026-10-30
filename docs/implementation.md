@@ -232,3 +232,20 @@ app-token storage in unrelated credential helpers.
 [Persistent-core resource profiling (M73)](milestone-73.md) adds an opt-in serial
 large-fixture soak and machine-readable evidence separate from native/WebKit
 profiling. Its scope and completion must be read with each actual run report.
+
+### Connection commit identities (M74)
+
+Settings → Connections can save an optional commit name/email per Git host.
+Authentication and commit authorship remain independent. The existing composer
+and operation reviews show the effective committer; native Git settings are the
+fallback when no rule matches. Git config files and published commits are not
+rewritten. See [implementation and scope](milestone-74.md) and
+[verification](verification/2026-10-30-connection-commit-identities.md).
+
+### Repository terminal (M75)
+
+The current graph context now opens an interactive terminal dock beside Pull/Push.
+It starts at the selected repository/worktree, preserves separate bounded sessions
+when switching, and distinguishes Hide from End session. Auto fetch pauses while
+sessions are open. See [scope and limits](milestone-75.md) and
+[verification](verification/2026-10-30-repository-terminal.md).
