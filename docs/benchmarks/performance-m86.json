@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-performance-followup",
+  "productVersion": "0.1.0",
+  "maturity": "alpha",
+  "measuredAt": "2026-10-30T16:47:20.813851+00:00",
+  "sourceBaseCommit": "392ad20ff792a59ee245ec97e3d4f902e1c8b625",
+  "sourceHasUncommittedChanges": true,
+  "functionalFixtureChecksPassed": true,
+  "fullWorkdayMemoryAcceptanceComplete": false,
+  "methodology": {
+    "nativeBefore": "32 MiB estimated resident cache, deferred Settings, virtual working/operation lists; unvirtualized historical diff list",
+    "nativeAfter": "64 MiB estimated resident cache plus virtual historical diff list",
+    "nativeRequestedSecondsPerRun": 900,
+    "nativeMeasuredSeconds": [
+      910.04,
+      904.97
+    ],
+    "nativeCycles": [
+      62,
+      70
+    ],
+    "nativeFixture": {
+      "large_commits": 50000,
+      "large_tracked_files": 10000,
+      "medium_commits": 5000,
+      "locations": 10,
+      "linked_worktrees": 2,
+      "submodules": 2,
+      "tracking_branches": 200,
+      "merge_commits": 10
+    },
+    "nativeProfile": "packaged debug app with optimized first-party crates, real background WKWebView, scripted manual refresh/interaction; not foreground rendering or GPU/JS-heap measurement; no provider/network or cross-product comparison"
+  },
+  "metrics": [
+    {
+      "name": "debug_core_warm_workspace_search",
+      "unit": "milliseconds",
+      "before": 1121.3952295,
+      "after": 331.96491649999996,
+      "scope": "10 repositories, 2000 commits each, ten warm queries; two-index baseline versus 64 MiB resident estimate"
+    },
+    {
+      "name": "native_workspace_search_median",
+      "unit": "milliseconds",
+      "before": 13916.5,
+      "after": 3093.999999999971,
+      "scope": "All observed workspace queries, including first indexing query; 10 large-fixture locations"
+    },
+    {
+      "name": "native_workspace_first_search",
+      "unit": "milliseconds",
+      "before": 32277,
+      "after": 30084.999999999993,
+      "scope": "First workspace query; cold indexing remains expensive"
+    },
+    {
+      "name": "native_workspace_warm_search_median",
+      "unit": "milliseconds",
+      "before": 13681,
+      "after": 3082.9999999999854,
+      "scope": "Observed workspace queries excluding the first query"
+    },
+    {
+      "name": "maximum_observed_dom_nodes",
+      "unit": "nodes",
+      "before": 10120,
+      "after": 2214,
+      "scope": "Scripted background native WebView cycles"
+    },
+    {
+      "name": "peak_sampled_native_rss",
+      "unit": "MiB",
+      "before": 256.578125,
+      "after": 237.828125,
+      "scope": "Native PID RSS, sampled every approximately 2 seconds"
+    },
+    {
+      "name": "peak_sampled_combined_rss",
+      "unit": "MiB",
+      "before": 629.890625,
+      "after": 616.53125,
+      "scope": "Native plus new WebKit helpers plus sampled Git; shared pages may be double-counted"
+    },
+    {
+      "name": "post_warmup_webkit_rss_slope",
+      "unit": "MiB/minute",
+      "before": 1.3793528656308818,
+      "after": -1.8217233958365913,
+      "scope": "Fitted RSS trend after five minutes, not JavaScript heap/leak evidence"
+    }
+  ],
+  "limitations": [
+    "Sequential single-host runs, fixed order and filesystem/system cache confounders; not a universal speed claim.",
+    "Native before/after differ in both cache admission and historical-list rendering. The first run already contains earlier M86 improvements.",
+    "Fixed-duration runs completed different cycle counts; fitted RSS trends do not isolate per-operation allocations or prove absence of leaks.",
+    "Background macOS debug/ad-hoc app; no foreground full-workday, GPU/JS-heap, live network/credential or Windows/Linux acceptance.",
+    "Rust resident-cache weight is an estimate excluding active workers, allocator overhead and query temporaries.",
+    "Core benchmark RSS increased with reusable metadata; native sampled RSS is a different, larger workload.",
+    "First indexing query still takes approximately 30 seconds in the native large fixture."
+  ],
+  "artifacts": [
+    {
+      "path": "workspace-search-m86.json",
+      "sha256": "f2e6712d55ce5d2077be86d02365be1367dda7f1b6526afaa3c8269490cb8238"
+    },
+    {
+      "path": "native-soak-m86-before-tuning.json",
+      "sha256": "6b7207f4031dbc52a565dbee5b8b0ede9da5fd558cf2fb956f49058e886ea494"
+    },
+    {
+      "path": "native-soak-m86.json",
+      "sha256": "f47d13dbc70dca70cac9bdf7d9e6a050dd0f7436a1122160b794561e14b8b961"
+    },
+    {
+      "path": "native-soak-m86-before-tuning-memory.csv",
+      "sha256": "06e9230e7e9306cdb6dcd07f0831d4e58595b7f8ad479357bd20a53b5852afcf"
+    },
+    {
+      "path": "native-soak-m86-memory.csv",
+      "sha256": "5aac435f47cb2e55ce5cbfda843a4b473ac911320d9fd05c3470094760250711"
+    }
+  ],
+  "installedLocalArtifact": {
+    "location": "Desktop/GitNova.app",
+    "binarySha256": "5e20b5d6311cef8ea3d02ab9d03bde78e6261945804666630d3e2d039baa9f29",
+    "adHocSignatureVerified": true,
+    "embeddedUiVerifiedFromSystemPath": true,
+    "bundledAttributionResourcesVerified": 5,
+    "notarized": false
+  }
+}
