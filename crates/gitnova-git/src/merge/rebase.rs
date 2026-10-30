@@ -63,8 +63,32 @@ fn native(git: &GitCli, root: &Path) -> Result<String> {
         .into_iter()
         .map(|(name, bytes)| (NativePath::new(Path::new(&name)), bytes))
         .collect::<Vec<_>>();
+    let labels = git
+        .read(
+            root,
+            &[
+                "for-each-ref".as_ref(),
+                "--format=%(refname) %(objectname) %(symref)".as_ref(),
+                "refs/rewritten/".as_ref(),
+            ],
+            1024 * 1024,
+        )?
+        .bytes;
+    if String::from_utf8_lossy(&labels)
+        .lines()
+        .any(|line| line.split_whitespace().count() != 2)
+    {
+        return Err(err(
+            "Rebase label refs cannot be symbolic. Inspect retained native state.",
+        ));
+    }
+    if labels.is_empty() {
+        return Ok(digest(
+            &serde_json::to_vec(&rows).map_err(|e| err(&e.to_string()))?,
+        ));
+    }
     Ok(digest(
-        &serde_json::to_vec(&rows).map_err(|e| err(&e.to_string()))?,
+        &serde_json::to_vec(&(rows, labels)).map_err(|e| err(&e.to_string()))?,
     ))
 }
 fn author(git: &GitCli, root: &Path, oid: &str) -> Result<String> {
@@ -151,19 +175,92 @@ fn complete(git: &GitCli, root: &Path, marker: &Marker) -> Result<()> {
     if !target_ancestor || commits.len() != journal.plan.commits.len() {
         return Err(err("Rebase did not retain the reviewed commit sequence. Inspect the recovery ref before any further write."));
     }
-    for (i, oid) in commits.iter().enumerate() {
-        if author(git, root, oid)? != journal.authors[i] {
-            return Err(err(
-                "Rebased authorship did not match the reviewed sequence. Inspect with Git.",
-            ));
+    if journal.plan.preserve_merges {
+        verify_topology(git, root, marker, &tip)?;
+    } else {
+        for (i, oid) in commits.iter().enumerate() {
+            if author(git, root, oid)? != journal.authors[i] {
+                return Err(err(
+                    "Rebased authorship did not match the reviewed sequence. Inspect with Git.",
+                ));
+            }
         }
     }
+
     // Keep the complete journal beside the recovery ref before closing ownership.
     let archive = marker.session_dir.to_path()?.join("completed.json");
     if !archive.exists() {
         recovery::private_file(&archive, &marker_bytes(marker)?)?;
     }
     fs::remove_file(git.discover(root)?.git_dir.join(MARKER))?;
+    Ok(())
+}
+fn verify_topology(git: &GitCli, root: &Path, marker: &Marker, tip: &str) -> Result<()> {
+    let j = marker
+        .rebase
+        .as_ref()
+        .ok_or_else(|| err("Missing rebase journal."))?;
+    let mut pending = vec![(
+        if j.plan.tip.is_empty() {
+            marker.original_oid.clone()
+        } else {
+            j.plan.tip.clone()
+        },
+        tip.to_string(),
+    )];
+    let mut mapped = BTreeMap::new();
+    let mut reverse = BTreeMap::new();
+    while let Some((old, new)) = pending.pop() {
+        if !j.plan.commits.contains(&old) {
+            if new != marker.request.source_oid {
+                return Err(err(
+                    "Rebase changed an external parent. Inspect retained recovery.",
+                ));
+            }
+            continue;
+        }
+        if let Some(known) = mapped.get(&old) {
+            if known != &new {
+                return Err(err("Rebase topology mapping is ambiguous."));
+            }
+            continue;
+        }
+        if reverse.insert(new.clone(), old.clone()).is_some() {
+            return Err(err("Rebase collapsed reviewed commits."));
+        }
+        mapped.insert(old.clone(), new.clone());
+        if author(git, root, &old)? != author(git, root, &new)?
+            || git.text(root, &["show", "-s", "--format=%B", &old])?
+                != git.text(root, &["show", "-s", "--format=%B", &new])?
+        {
+            return Err(err(
+                "Rebased authorship or message differs from the reviewed topology.",
+            ));
+        }
+        let row = git.text(root, &["rev-list", "--parents", "-n", "1", &new])?;
+        let actual = row
+            .split_whitespace()
+            .skip(1)
+            .map(str::to_owned)
+            .collect::<Vec<_>>();
+        let old_parents = j
+            .plan
+            .parents
+            .get(&old)
+            .ok_or_else(|| err("Missing reviewed parent topology."))?;
+        let expected = if old_parents.is_empty() {
+            vec![marker.request.source_oid.clone()]
+        } else {
+            old_parents.clone()
+        };
+        if actual.len() != expected.len() {
+            return Err(err("Rebase did not preserve merge parent counts."));
+        }
+        pending.extend(expected.into_iter().zip(actual));
+    }
+    if mapped.len() != j.plan.commits.len() {
+        return Err(err("Rebase omitted part of the reviewed topology."));
+    }
     Ok(())
 }
 pub(super) fn state(git: &GitCli, root: &Path, marker: &Marker) -> Result<MergeState> {
@@ -250,34 +347,72 @@ pub(super) fn preview(
         }
     }
     let base = git
-        .text(root, &["merge-base", &original, &request.source_oid])?
+        .optional_text(root, &["merge-base", &original, &request.source_oid])?
+        .unwrap_or_default()
         .trim()
         .to_owned();
-    crate::validate_oid(&base)?;
+    let replay_root = base.is_empty();
+    if !replay_root {
+        crate::validate_oid(&base)?;
+    }
+    if git
+        .text(root, &["rev-parse", "--is-shallow-repository"])?
+        .trim()
+        == "true"
+    {
+        return Err(err("Complete history is required before rebasing; shallow boundaries cannot be treated as root commits."));
+    }
+    let range_spec = if replay_root {
+        original.clone()
+    } else {
+        format!("{base}..{original}")
+    };
     let range = git
         .read(
             root,
             &[
                 "rev-list".as_ref(),
                 "--reverse".as_ref(),
+                "--topo-order".as_ref(),
                 "--parents".as_ref(),
-                format!("{base}..{original}").as_ref(),
+                range_spec.as_ref(),
             ],
             1024 * 1024,
         )?
         .bytes;
     let range = String::from_utf8(range).map_err(|_| err("Invalid rebase range."))?;
     let mut commits = Vec::new();
+    let mut parents = BTreeMap::new();
+    let mut preserve_merges = false;
     let mut blocked = None;
     for row in range.lines() {
         let fields = row.split_whitespace().collect::<Vec<_>>();
-        if fields.len() != 2 {
-            blocked=Some("This range contains merge or root commits. Topology-preserving rebase is not supported yet.".into());
+        if fields.len() > 3 || fields.len() < 2 && !replay_root {
+            blocked = Some("Octopus merge ranges require manual Git review.".into());
         }
         if let Some(oid) = fields.first() {
             crate::validate_oid(oid)?;
+            parents.insert(
+                (*oid).to_string(),
+                fields[1..]
+                    .iter()
+                    .map(|p| (*p).to_string())
+                    .collect::<Vec<_>>(),
+            );
+            preserve_merges |= fields.len() == 3;
             commits.push((*oid).to_string());
         }
+    }
+    if preserve_merges
+        && parents
+            .values()
+            .flatten()
+            .any(|p| !commits.contains(p) && p != &base)
+    {
+        blocked = Some(
+            "Merge replay with cousin histories or external parents needs manual Git review."
+                .into(),
+        );
     }
     if commits.len() > 100 {
         return Err(err(
@@ -371,24 +506,43 @@ pub(super) fn preview(
     // not hide a later submodule-pointer change that native Continue would replay.
     if blocked.is_none() {
         for oid in &commits {
-            let parent = git.text(root, &["rev-parse", &format!("{oid}^")])?;
-            let raw = git
-                .read(
-                    root,
-                    &[
-                        "diff-tree".as_ref(),
-                        "--raw".as_ref(),
-                        "--no-renames".as_ref(),
-                        "-r".as_ref(),
-                        "-z".as_ref(),
-                        parent.trim().as_ref(),
-                        oid.as_ref(),
-                    ],
-                    1024 * 1024,
-                )?
-                .bytes;
-            if !gitlink_changes(&raw)?.is_empty() {
-                blocked=Some("This rebase changes submodule pointers. Review those histories separately before rebasing.".into());
+            let original_parents = parents.get(oid).cloned().unwrap_or_default();
+            let baselines = if original_parents.is_empty() {
+                vec![None]
+            } else {
+                original_parents.iter().map(Some).collect()
+            };
+            for parent in baselines {
+                let mut args: Vec<OsString> = [
+                    "diff-tree",
+                    "--no-commit-id",
+                    "--raw",
+                    "--no-renames",
+                    "-r",
+                    "-z",
+                ]
+                .into_iter()
+                .map(Into::into)
+                .collect();
+                if let Some(parent) = parent {
+                    args.push(parent.into());
+                } else {
+                    args.push("--root".into());
+                }
+                args.push(oid.into());
+                let raw = git
+                    .read(
+                        root,
+                        &args.iter().map(OsString::as_os_str).collect::<Vec<_>>(),
+                        1024 * 1024,
+                    )?
+                    .bytes;
+                if !gitlink_changes(&raw)?.is_empty() {
+                    blocked=Some("This rebase changes submodule pointers. Review those histories separately before rebasing.".into());
+                    break;
+                }
+            }
+            if blocked.is_some() {
                 break;
             }
         }
@@ -398,15 +552,40 @@ pub(super) fn preview(
     let mut result_tree = None;
     if blocked.is_none() {
         let scratch = Scratch::new(git, root)?;
-        let mut cursor = request.source_oid.clone();
+        if replay_root {
+            scratch.run(&["mktree".into()], Some(b""), false)?;
+        }
+        let mut mapped = BTreeMap::<String, String>::new();
         for oid in &commits {
-            let parent = git.text(root, &["rev-parse", &format!("{oid}^")])?;
-            let old_tree = scratch.text(&["rev-parse", &format!("{}^{{tree}}", parent.trim())])?;
-            let new_tree = scratch.text(&["rev-parse", &format!("{oid}^{{tree}}")])?;
-            let virtual_base = scratch.commit(old_tree.trim(), None)?;
-            let cursor_tree = scratch.text(&["rev-parse", &format!("{cursor}^{{tree}}")])?;
-            let ours = scratch.commit(cursor_tree.trim(), Some(&virtual_base))?;
-            let incoming = scratch.commit(new_tree.trim(), Some(&virtual_base))?;
+            let original_parents = parents.get(oid).cloned().unwrap_or_default();
+            let rewritten = if original_parents.is_empty() {
+                vec![request.source_oid.clone()]
+            } else {
+                original_parents
+                    .iter()
+                    .map(|p| {
+                        mapped
+                            .get(p)
+                            .cloned()
+                            .unwrap_or_else(|| request.source_oid.clone())
+                    })
+                    .collect::<Vec<_>>()
+            };
+            let (ours, incoming) = if original_parents.len() == 2 {
+                (rewritten[0].clone(), rewritten[1].clone())
+            } else {
+                let parent = replay_parent(git, root, oid)?;
+                let old_tree =
+                    scratch.text(&["rev-parse", &format!("{}^{{tree}}", parent.trim())])?;
+                let new_tree = scratch.text(&["rev-parse", &format!("{oid}^{{tree}}")])?;
+                let virtual_base = scratch.commit(old_tree.trim(), None)?;
+                let cursor_tree =
+                    scratch.text(&["rev-parse", &format!("{}^{{tree}}", rewritten[0])])?;
+                (
+                    scratch.commit(cursor_tree.trim(), Some(&virtual_base))?,
+                    scratch.commit(new_tree.trim(), Some(&virtual_base))?,
+                )
+            };
             let output = scratch.run(
                 &[
                     "merge-tree".into(),
@@ -432,8 +611,20 @@ pub(super) fn preview(
             if !predicted.is_empty() {
                 break;
             }
-            cursor = scratch.commit(tree, Some(&cursor))?;
-            result_tree = Some(tree.to_string());
+            let mut command = vec!["commit-tree".into(), tree.into()];
+            for parent in &rewritten {
+                command.extend(["-p".into(), parent.into()]);
+            }
+            let value = String::from_utf8(scratch.run(
+                &command,
+                Some(b"GitNova isolated topology preview\n"),
+                false,
+            )?)
+            .map_err(|_| err("Invalid preview commit."))?;
+            mapped.insert(oid.clone(), value.trim().into());
+            if oid == &original {
+                result_tree = Some(tree.to_string());
+            }
         }
         if predicted.is_empty() {
             if let Some(tree) = &result_tree {
@@ -473,6 +664,10 @@ pub(super) fn preview(
         ));
     }
     let plan = RebasePlan {
+        tip: original.clone(),
+        root: replay_root,
+        preserve_merges,
+        parents,
         base_oid: base,
         commits,
         referenced_by,
@@ -511,6 +706,31 @@ pub(super) fn preview(
         blocked_reason: blocked,
     })
 }
+fn replay_parent(git: &GitCli, root: &Path, oid: &str) -> Result<String> {
+    let row = git.text(root, &["rev-list", "--parents", "-n", "1", oid])?;
+    let fields = row.split_whitespace().collect::<Vec<_>>();
+    if fields.len() == 2 {
+        return Ok(fields[1].into());
+    }
+    if fields.len() != 1 {
+        return Err(err("Merge replay needs topology-preserving review."));
+    }
+    // hash-object without -w computes the repository's object-format-specific empty tree.
+    let out = git.read_input(
+        root,
+        &[
+            "hash-object".as_ref(),
+            "-t".as_ref(),
+            "tree".as_ref(),
+            "--stdin".as_ref(),
+        ],
+        b"",
+        128,
+    )?;
+    let oid = String::from_utf8(out.bytes).map_err(|_| err("Invalid empty tree revision."))?;
+    crate::validate_oid(oid.trim())?;
+    Ok(oid.trim().into())
+}
 fn args() -> Vec<OsString> {
     [
         "-c",
@@ -523,6 +743,8 @@ fn args() -> Vec<OsString> {
         "rebase.updateRefs=false",
         "-c",
         "rebase.autoSquash=false",
+        "-c",
+        "rebase.instructionFormat=%s",
         "-c",
         "rerere.enabled=false",
         "-c",
@@ -627,18 +849,26 @@ pub(super) fn begin(git: &GitCli, root: &Path, request: &MergeRequest, token: &s
             "--no-autostash",
             "--no-update-refs",
             "--no-autosquash",
-            "--no-rebase-merges",
+            if plan.preserve_merges {
+                "--rebase-merges=no-rebase-cousins"
+            } else {
+                "--no-rebase-merges"
+            },
             "--reapply-cherry-picks",
             "--keep-empty",
             "--empty=ask",
             "--onto",
             &p.request.source_oid,
-            &plan.base_oid,
-            &p.branch,
         ]
         .into_iter()
         .map(Into::into),
     );
+    if plan.root {
+        command.push("--root".into());
+    } else {
+        command.push(plan.base_oid.clone().into());
+    }
+    command.push(p.branch.clone().into());
     let result = run_offline_write(root, &command);
     after_step(git, root, &mut marker, result)
 }
@@ -684,6 +914,22 @@ pub(super) fn preview_action(
                 .text(root, &["rev-parse", &format!("{head}^{{tree}}")])?
                 .trim()
                 == tree;
+            if action.kind == "skip"
+                && marker
+                    .rebase
+                    .as_ref()
+                    .is_some_and(|j| j.plan.preserve_merges)
+            {
+                let stopped =
+                    git.optional_text(root, &["rev-parse", "--verify", "--quiet", "REBASE_HEAD"])?;
+                if stopped
+                    .as_ref()
+                    .and_then(|s| marker.rebase.as_ref()?.plan.parents.get(s.trim()))
+                    .is_some_and(|p| p.len() > 1)
+                {
+                    blocked=Some("Skipping a recreated merge would change topology. Continue its reviewed result or abort.".into());
+                }
+            }
             if action.kind == "skip" && !empty {
                 blocked=Some("Only an empty replay result can be skipped here. Review the staged changes instead.".into());
             }
@@ -756,6 +1002,22 @@ pub(super) fn apply_action(
             .iter()
             .position(|oid| oid == stopped.trim())
             .ok_or_else(|| err("Stopped commit is not in this rebase plan."))?;
+        let removed = journal.plan.commits[index].clone();
+        let old_parents = journal.plan.parents.remove(&removed).unwrap_or_default();
+        let replacement = old_parents
+            .first()
+            .cloned()
+            .unwrap_or_else(|| marker.request.source_oid.clone());
+        if journal.plan.tip == removed {
+            journal.plan.tip = replacement.clone();
+        }
+        for parents in journal.plan.parents.values_mut() {
+            for parent in parents {
+                if parent == &removed {
+                    *parent = replacement.clone();
+                }
+            }
+        }
         journal.skipped.push(journal.plan.commits.remove(index));
         journal.authors.remove(index);
         save(git, root, &marker)?;

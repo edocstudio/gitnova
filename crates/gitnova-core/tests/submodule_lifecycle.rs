@@ -208,3 +208,132 @@ fn tracked_or_edited_manifest_destinations_and_path_escape_are_refused() {
         .unwrap();
     assert!(p.blocked_reason.is_some());
 }
+
+#[test]
+fn paired_registration_unstage_and_restage_roundtrip_addition_and_removal_without_touching_child() {
+    let f = fixture();
+    let add = f
+        .app
+        .preview_submodule_lifecycle(&f.id, &request(&f, "add"))
+        .unwrap();
+    assert_eq!(
+        f.app
+            .change_submodule_lifecycle(&f.id, &add.request, &add.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    fs::write(f.root.join("other"), "preserve staged\n").unwrap();
+    git(&f.root, &["add", "other"]);
+    fs::write(f.root.join("child/file"), "preserve dirty child\n").unwrap();
+    let head = git(&f.root, &["rev-parse", "HEAD"]);
+    let child_head = git(&f.root.join("child"), &["rev-parse", "HEAD"]);
+    let manifest = fs::read(f.root.join(".gitmodules")).unwrap();
+    for kind in ["unstage", "stage"] {
+        let p = f
+            .app
+            .preview_submodule_lifecycle(&f.id, &request(&f, kind))
+            .unwrap();
+        assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+        let result = f
+            .app
+            .change_submodule_lifecycle(&f.id, &p.request, &p.token)
+            .unwrap();
+        assert_eq!(result.status, "succeeded", "{result:?}");
+        assert_eq!(
+            !git(&f.root, &["ls-files", "child"]).is_empty(),
+            kind == "stage"
+        );
+        assert_eq!(git(&f.root, &["show", ":other"]), "preserve staged");
+        assert_eq!(fs::read(f.root.join(".gitmodules")).unwrap(), manifest);
+        assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), head);
+        assert_eq!(
+            git(&f.root.join("child"), &["rev-parse", "HEAD"]),
+            child_head
+        );
+        assert_eq!(
+            fs::read_to_string(f.root.join("child/file")).unwrap(),
+            "preserve dirty child\n"
+        );
+    }
+    git(&f.root, &["commit", "-m", "registration"]);
+    let remove = f
+        .app
+        .preview_submodule_lifecycle(&f.id, &request(&f, "remove"))
+        .unwrap();
+    assert_eq!(
+        f.app
+            .change_submodule_lifecycle(&f.id, &remove.request, &remove.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    let removed = fs::read(f.root.join(".gitmodules")).unwrap();
+    for kind in ["unstage", "stage"] {
+        let p = f
+            .app
+            .preview_submodule_lifecycle(&f.id, &request(&f, kind))
+            .unwrap();
+        let result = f
+            .app
+            .change_submodule_lifecycle(&f.id, &p.request, &p.token)
+            .unwrap();
+        assert_eq!(result.status, "succeeded", "{result:?}");
+        assert_eq!(
+            !git(&f.root, &["ls-files", "child"]).is_empty(),
+            kind == "unstage"
+        );
+        assert_eq!(fs::read(f.root.join(".gitmodules")).unwrap(), removed);
+        assert_eq!(
+            fs::read_to_string(f.root.join("child/file")).unwrap(),
+            "preserve dirty child\n"
+        );
+    }
+}
+#[test]
+fn registration_index_refuses_other_manifest_changes_and_stale_child() {
+    let f = fixture();
+    let add = f
+        .app
+        .preview_submodule_lifecycle(&f.id, &request(&f, "add"))
+        .unwrap();
+    assert_eq!(
+        f.app
+            .change_submodule_lifecycle(&f.id, &add.request, &add.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    let p = f
+        .app
+        .preview_submodule_lifecycle(&f.id, &request(&f, "unstage"))
+        .unwrap();
+    git(&f.root.join("child"), &["config", "user.name", "Fixture"]);
+    git(
+        &f.root.join("child"),
+        &["config", "user.email", "fixture@example.invalid"],
+    );
+    fs::write(f.root.join("child/new"), "new commit\n").unwrap();
+    git(&f.root.join("child"), &["add", "new"]);
+    git(&f.root.join("child"), &["commit", "-m", "changed child"]);
+    let before = fs::read(f.root.join(".git/index")).unwrap();
+    let result = f
+        .app
+        .change_submodule_lifecycle(&f.id, &p.request, &p.token);
+    assert!(result.is_err() || result.unwrap().status != "succeeded");
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), before);
+    git(
+        &f.root,
+        &[
+            "config",
+            "--file",
+            ".gitmodules",
+            "submodule.other.path",
+            "other",
+        ],
+    );
+    assert!(f
+        .app
+        .preview_submodule_lifecycle(&f.id, &request(&f, "unstage"))
+        .is_err());
+}

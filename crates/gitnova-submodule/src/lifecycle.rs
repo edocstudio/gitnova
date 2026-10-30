@@ -73,6 +73,9 @@ pub fn preview(
     root: &Path,
     request: &SubmoduleLifecycleRequest,
 ) -> Result<SubmoduleLifecyclePreview> {
+    if ["stage", "unstage"].contains(&request.kind.as_str()) {
+        return git.preview_registration_index(root, request);
+    }
     if !["add", "remove"].contains(&request.kind.as_str()) {
         return Err(err("Choose add or remove registration."));
     }
@@ -271,6 +274,8 @@ pub fn preview(
         blocked=Some("This registration change has a recovery record. Inspect its previous result before retrying.".into());
     }
     Ok(SubmoduleLifecyclePreview {
+        manifest_before: None,
+        manifest_after: None,
         request,
         branch: status.branch,
         child_head,
@@ -286,6 +291,9 @@ pub fn apply(
     request: &SubmoduleLifecycleRequest,
     token: &str,
 ) -> Result<()> {
+    if ["stage", "unstage"].contains(&request.kind.as_str()) {
+        return git.change_registration_index(root, request, token);
+    }
     let p = preview(git, root, request)?;
     if p.token != token {
         return Err(err(

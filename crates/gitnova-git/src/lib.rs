@@ -898,10 +898,15 @@ impl DiffReader for GitCli {
 }
 
 pub mod worktree;
+mod worktree_prune;
 mod worktree_reattach;
 
 pub mod worktree_remove;
 
 mod remote_delete;
 
+mod history_follow;
 mod investigation;
+mod release_dependencies;
+
+mod stale_lock;

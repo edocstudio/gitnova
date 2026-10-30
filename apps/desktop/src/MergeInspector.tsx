@@ -1,3 +1,4 @@
+import {RecordedActivityView} from './RecordedActivity';
 import {CommitIdentityNotice} from './CommitIdentity';
 import { t, useLocale } from './i18n';
 import { useEffect, useRef, useState } from 'react';
@@ -7,7 +8,8 @@ import type { WorkingDiff } from './WorkingDetails';
 import { Icon } from './Icons';
 import { DiscardControls } from './DiscardControls';
 import {hasConflictMarkers} from './conflicts';
-export function MergeInspector({ discardedResult = false, membershipId, state, changes, draft, onDraft, externalBusy, onBusyChange, onDone, onClose, onDiffChange, onInspect }: {
+export function MergeInspector({ discardedResult = false, membershipId, state, changes, draft, onDraft, externalBusy, onBusyChange, onDone, onClose, onDiffChange, onInspect, onRefresh }: {
+  onRefresh:()=>Promise<void>;
   discardedResult?: boolean;
   membershipId: string; state: MergeState; changes: WorkingChanges | null; draft: string; onDraft: (value: string) => void; externalBusy: boolean;
   onBusyChange: (value: boolean) => void; onDone: (receipt: OperationReceipt) => Promise<void>; onClose: () => void; onDiffChange: (value: WorkingDiff) => void; onInspect: () => void;
@@ -83,6 +85,7 @@ export function MergeInspector({ discardedResult = false, membershipId, state, c
   const choose = (value: NativePath, stagedScope = true) => { setScope(stagedScope ? 'staged' : 'working'); setPath(value); setEditing(false); if (review?.action.kind !== 'finish') setReview(null); onInspect(); };
   return <aside className="detail working-detail merge-detail" aria-label={t("{0} working changes", [label])}>
     <div className="detail-heading"><div><Icon name="branch" /><span>{label} {isMerge ? t("into") : t("on")} {state.branch ?? t("current branch")}</span></div><div className="working-heading-actions"><button className="icon-button danger-action" aria-label={t('Discard all changes…')} title={t('Discard all changes…')} disabled={isRebase || locked || !!review || discard || !changes?.files.length || !!state.conflicts.length} onClick={() => {setDiscard(true);setEditing(false);}}><Icon name="trash"/></button><button className="icon-button" aria-label={t("Close working changes")} disabled={busy || externalBusy} onClick={onClose}><Icon name="close" /></button></div></div>
+    {!review&&!editing&&!discard&&<RecordedActivityView membershipId={membershipId} refreshKey={state.sessionId??''} disabled={busy||externalBusy} onBusyChange={onBusyChange} onRefresh={onRefresh}/>}
     <div className="working-context"><strong>{state.phase !== 'pending' ? t('Session needs inspection') : state.conflicts.length ? t("{0} unresolved conflicts", [state.conflicts.length]) : t("Review {0} result", [lower])}</strong><span>{isRebase?state.branch:state.sourceOid?.slice(0, 8)}{state.mainline ? t(" · parent {0}", [state.mainline]) : ''} → {isRebase?state.sourceOid?.slice(0,8):state.branch}</span></div>
     {state.blockedReason && <p className="notice">{t(state.blockedReason ?? '')}</p>}{error && <div className="inline-error" role="alert">{t(error)}</div>}
     {emptyPending&&!isRebase && <p className="notice" role="status">{abortPreferred ? t('No file changes remain, but {0} is still active. To return to normal work or Pop a stash, review abort below. Discarding files does not cancel the operation.', [label]) : t('This merge has no file changes. Finishing still records both parents; review the merge commit, or abort to leave history unchanged. Finish or abort before using Pop.')}</p>}

@@ -95,12 +95,43 @@ impl Application {
     pub fn investigate_history(&self, request: &InvestigationRequest) -> Result<InvestigationPage> {
         self.git.validate_investigation(request)?;
         let sources = self.search_sources(&request.selection)?;
+        // Dependency identity lookup is catalog-only. The selected read scope still
+        // admits at most 32 locations; a larger workspace must not block one parent.
+        let mut registered = Vec::new();
+        if request.mode == "compare" {
+            let catalog = self.catalog()?;
+            let workspace = catalog
+                .workspaces
+                .iter()
+                .find(|w| w.id == request.selection.workspace_id)
+                .ok_or_else(|| AppError::new("stale_search", "Workspace changed. Search again."))?;
+            for member in &workspace.memberships {
+                let repository = catalog
+                    .repositories
+                    .iter()
+                    .find(|r| r.id == member.repository_id)
+                    .ok_or_else(|| AppError::new("storage", "Missing repository identity."))?;
+                let path = membership_path(&catalog, &member.id)?;
+                registered.push((
+                    SearchLocation {
+                        membership_id: member.id.clone(),
+                        repository_id: member.repository_id.clone(),
+                        worktree_id: member.worktree_id.clone(),
+                        name: member.name.clone(),
+                        path: NativePath::new(&path),
+                    },
+                    repository.common_dir.to_path()?,
+                ));
+            }
+        }
         let mut hits: Vec<CommitSearchHit> = vec![];
         let mut evidence = vec![];
         let started = std::time::Instant::now();
         // No persistent content index; each result is bound to a live ref snapshot.
         for source in sources {
             let mut item = InvestigationEvidence {
+                dependencies: vec![],
+                history_paths: Default::default(),
                 location: source.location.clone(),
                 source_oid: None,
                 target_oid: None,
@@ -126,6 +157,27 @@ impl Application {
                 });
                 match read {
                     Ok(commits) => {
+                        if request.mode == "compare" {
+                            if let (Some(source_oid), Some(target_oid)) =
+                                (&item.source_oid, &item.target_oid)
+                            {
+                                match self.git.release_dependencies(
+                                    &source.path,
+                                    source_oid,
+                                    target_oid,
+                                    &registered,
+                                ) {
+                                    Ok(deps) => {
+                                        item.limited |= deps.iter().any(|d| d.issue.is_some());
+                                        item.dependencies = deps;
+                                    }
+                                    Err(e) => {
+                                        item.limited = true;
+                                        item.issue = Some(e.to_string());
+                                    }
+                                }
+                            }
+                        }
                         for commit in commits {
                             if let Some(hit) = hits.iter_mut().find(|h| {
                                 h.commit.oid == commit.oid
@@ -134,6 +186,7 @@ impl Application {
                                 hit.locations.push(source.location.clone());
                             } else if hits.len() < 100 {
                                 hits.push(CommitSearchHit {
+                                    historical_path: item.history_paths.get(&commit.oid).cloned(),
                                     commit,
                                     excerpt: String::new(),
                                     locations: vec![source.location.clone()],

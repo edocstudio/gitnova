@@ -653,6 +653,14 @@ pub struct MergeRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RebasePlan {
+    #[serde(default)]
+    pub tip: String,
+    #[serde(default)]
+    pub preserve_merges: bool,
+    #[serde(default)]
+    pub parents: std::collections::BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    pub root: bool,
     pub base_oid: String,
     pub commits: Vec<String>,
     pub referenced_by: Vec<String>,
@@ -810,6 +818,8 @@ pub struct SearchLocation {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommitSearchHit {
+    #[serde(default)]
+    pub historical_path: Option<NativePath>,
     pub commit: Commit,
     pub excerpt: String,
     pub locations: Vec<SearchLocation>,
@@ -1375,6 +1385,20 @@ pub struct InitPreview {
     pub token: String,
 }
 
+/// Exact committed gitlink dependencies; never a semantic release verdict.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DependencyEvidence {
+    pub path: NativePath,
+    pub source_oid: Option<String>,
+    pub target_oid: Option<String>,
+    pub location: Option<SearchLocation>,
+    pub relation: String,
+    pub source_only: Option<usize>,
+    pub target_only: Option<usize>,
+    pub cached_remote_contains: Option<bool>,
+    pub issue: Option<String>,
+}
 /// Read-only local history evidence. No provider or release mutation is implied.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -1389,6 +1413,10 @@ pub struct InvestigationRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InvestigationEvidence {
+    #[serde(default)]
+    pub dependencies: Vec<DependencyEvidence>,
+    #[serde(default)]
+    pub history_paths: std::collections::BTreeMap<String, NativePath>,
     pub location: SearchLocation,
     pub source_oid: Option<String>,
     pub target_oid: Option<String>,
@@ -1440,11 +1468,26 @@ pub struct SubmoduleLifecycleRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SubmoduleLifecyclePreview {
+    #[serde(default)]
+    pub manifest_before: Option<String>,
+    #[serde(default)]
+    pub manifest_after: Option<String>,
     pub request: SubmoduleLifecycleRequest,
     pub branch: Option<String>,
     pub child_head: Option<String>,
     pub download: bool,
     pub recovery_dir: NativePath,
+    pub token: String,
+    pub blocked_reason: Option<String>,
+}
+
+/// Recovery applies only to the common-directory GitNova operation lock.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StaleLockPreview {
+    pub path: NativePath,
+    pub owner_pid: Option<u32>,
+    pub exists: bool,
     pub token: String,
     pub blocked_reason: Option<String>,
 }

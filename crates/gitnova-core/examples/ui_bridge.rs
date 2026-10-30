@@ -18,6 +18,8 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             .ok_or_else(|| AppError::new("test", format!("Missing {key}")))
     };
     let value = match command {
+        "preview_stale_lock" => json!(app.preview_stale_lock(&s("membershipId")?)?),
+        "recover_stale_lock" => json!(app.recover_stale_lock(&s("membershipId")?, &s("token")?)?),
         "recorded_activity" => json!(app.recorded_activity(&s("membershipId")?)?),
         "preview_operation_discard" | "discard_operation_changes" => {
             let request = serde_json::from_value(args["request"].clone())

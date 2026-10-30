@@ -1,10 +1,11 @@
+import {StaleLockRecovery} from './StaleLockRecovery';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { RecordedActivity } from './contracts';
 import { dateLocale, t } from './i18n';
 const kinds: Record<string, string> = {submodule_registration:'Submodule registration',stage_hunk:'Stage hunk',unstage_hunk:'Unstage hunk',worktree_maintenance:'Worktree metadata',sync_submodule:'Sync URLs',rebase_begin:'Rebase',rebase_resolve:'Resolve conflict',rebase_finish:'Continue rebase',rebase_skip:'Skip empty commit',rebase_abort:'Abort rebase',rebase_release:'Close session', create_hosted_repository:'Create hosted repository', add_remote:'Add remote', stage_submodule_pointer: 'Stage submodule pointer', unstage_submodule_pointer: 'Unstage submodule pointer', stage: 'Stage', unstage: 'Unstage', commit: 'Commit', discard_changes: 'Discard', stash_push: 'Stash', stash_pop: 'Pop', stash_apply: 'Apply stash', stash_drop: 'Drop stash', merge_discard: 'Discard', merge_unstage: 'Unstage', merge_begin: 'Start merge', merge_resolve: 'Resolve conflict', merge_finish: 'Finish merge', merge_abort: 'Abort merge', merge_release: 'Close session', switch_branch: 'Switch branch', switch_remote_branch: 'Switch remote branch', fetch_remote: 'Fetch', push_branch: 'Push', initialize_submodule: 'Initialize submodule', restore_submodule: 'Restore recorded version', update_submodule_remote: 'Update submodule version', create_worktree: 'Create worktree', remove_worktree: 'Remove worktree', ref_operation: 'Branch or tag operation', graph_action: 'Graph action' };
 const statuses: Record<string, string> = { succeeded: 'Succeeded', failed: 'Failed', unknown: 'Unconfirmed', started: 'Completion unconfirmed', pending: 'Pending', conflicted: 'Conflicts' };
-export function RecordedActivityView({ membershipId, refreshKey, disabled }: { membershipId: string; refreshKey: string; disabled: boolean }) {
+export function RecordedActivityView({ membershipId, refreshKey, disabled, onBusyChange, onRefresh }: { membershipId: string; refreshKey: string; disabled: boolean; onBusyChange:(value:boolean)=>void; onRefresh:()=>Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<RecordedActivity | null>(null); const [loading, setLoading] = useState(false); const [error, setError] = useState(''); const sequence = useRef(0);
   const load = useCallback(async () => {
@@ -17,6 +18,7 @@ export function RecordedActivityView({ membershipId, refreshKey, disabled }: { m
   const copy = async (text: string) => { try { await navigator.clipboard.writeText(text); } catch { setError('Could not copy the recovery location.'); } };
   const time = (value: number) => { const date=new Date(value*1000); return Number.isFinite(date.getTime()) ? date.toLocaleString(dateLocale()) : t('Unknown time'); };
   return <details className="recorded-activity" open={open} onToggle={event => { if(event.target===event.currentTarget) setOpen(event.currentTarget.open); }}><summary>{t('Recent activity & recovery')}</summary>{open && <div role="region" aria-label={t('Recorded GitNova operations')}>
+    <StaleLockRecovery key={membershipId} membershipId={membershipId} disabled={disabled} onBusyChange={onBusyChange} onRefresh={onRefresh}/>
     <p>{t('Recorded activity includes linked checkouts. Current Git state is shown separately above.')}</p>
     <button className="text-button" disabled={disabled || loading} onClick={() => void load()}>{loading ? t('Reading recorded activity…') : t('Refresh recorded activity')}</button>
     {error && <div role="alert" className="inline-error">{t(error)}</div>}

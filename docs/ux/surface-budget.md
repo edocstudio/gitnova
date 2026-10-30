@@ -235,3 +235,32 @@ parent, keeping the affected Git index explicit.
 ## M77 moved worktree destination
 
 A missing worktree has no usable graph at its old path, and its moved destination cannot be inferred reliably. Reuse that entry's existing Worktree metadata form for the destination input and reviewed Reattach action. No new screen, sidebar or navigation item is introduced; confirm the selected old → existing new folder and recovery location in that form.
+
+## M78 lifecycle and investigation extensions
+
+Registration Stage/Unstage changes the parent index, so reuse the selected
+Working changes/submodule registration review; pair .gitmodules and gitlink rather
+than adding a separate settings page. Missing checkout metadata pruning belongs
+to that worktree's existing metadata review, with the exact affected set and a
+recoverable metadata archive, not a global cleanup button.
+
+Root replay uses the existing graph Rebase review and rewrite acknowledgement.
+It must explicitly identify the full-history replay and never reinterpret a
+shallow boundary as a root. No separate screen or navigation is necessary.
+
+Rename-following file investigation is a Search mode, with an explicit exact file
+path and local revision. Dependency release evidence extends the existing branch
+comparison results: show each source/target gitlink and verified child evidence
+in that repository row. Neither requires a dashboard. Missing objects, unknown
+identity, stale refs and incomplete history must remain explicit; there is no
+inferred production-readiness verdict or automatic cross-repository write.
+
+### Stale operation lock recovery (M79)
+
+A leftover common-directory operation lock prevents ordinary Git actions, so the
+existing Recent activity & recovery disclosure is the natural place to inspect
+and explicitly archive it. Add one inspect/recover action there, with inline
+preview, process ownership and refusal reason; no screen, sidebar or preference.
+Never offer native Git lock deletion or implicit operation continuation. Recovery
+must recheck the same file and absent owner, retain the original bytes and leave
+Git journals, HEAD, index and working files alone.

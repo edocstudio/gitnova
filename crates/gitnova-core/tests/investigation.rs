@@ -69,7 +69,15 @@ fn request(app: &Application, mode: &str) -> InvestigationRequest {
 fn snapshot(path: &Path) -> (String, Vec<u8>, String, String) {
     (
         git(path, &["show-ref"]),
-        fs::read(path.join(".git/index")).unwrap(),
+        {
+            let index = PathBuf::from(git(path, &["rev-parse", "--git-path", "index"]));
+            fs::read(if index.is_absolute() {
+                index
+            } else {
+                path.join(index)
+            })
+            .unwrap()
+        },
         git(path, &["status", "--porcelain=v1", "--untracked-files=all"]),
         git(path, &["symbolic-ref", "HEAD"]),
     )
@@ -201,4 +209,104 @@ fn shared_worktrees_keep_locations_and_shallow_coverage_is_never_complete() {
     let p = app.investigate_history(&r).unwrap();
     assert!(p.partial);
     assert!(p.evidence.iter().all(|e| e.shallow));
+}
+
+#[test]
+fn follow_history_carries_each_historical_filename_and_never_changes_checkout() {
+    let t = tempfile::tempdir().unwrap();
+    let root = repo(t.path(), "follow");
+    git(&root, &["mv", "code.txt", "renamed [literal].txt"]);
+    git(&root, &["commit", "-m", "rename file"]);
+    fs::write(root.join("renamed [literal].txt"), "changed after rename\n").unwrap();
+    git(&root, &["commit", "-am", "edit renamed file"]);
+    let app = Application::new(t.path().join("catalog.json")).unwrap();
+    app.add_repository(&root).unwrap();
+    let mut r = request(&app, "follow");
+    r.path = "renamed [literal].txt".into();
+    r.source = "HEAD".into();
+    let before = snapshot(&root);
+    let page = app.investigate_history(&r).unwrap();
+    assert!(!page.partial, "{:?}", page.evidence);
+    assert_eq!(page.hits.len(), 4);
+    let old = page
+        .hits
+        .iter()
+        .find(|h| h.commit.subject == "base")
+        .unwrap();
+    assert_eq!(old.historical_path.as_ref().unwrap().display, "code.txt");
+    assert_eq!(
+        page.hits[0].historical_path.as_ref().unwrap().display,
+        "renamed [literal].txt"
+    );
+    assert_eq!(snapshot(&root), before);
+    r.path = ".".into();
+    let p = app.investigate_history(&r).unwrap();
+    assert!(p.partial);
+    assert!(p.hits.is_empty());
+    r.path = "renamed [literal].txt".into();
+    r.needle = "phrase".into();
+    assert!(app.investigate_history(&r).is_err());
+}
+
+#[test]
+fn release_dependency_evidence_uses_registered_child_identity_and_exact_gitlink_tips() {
+    let t = tempfile::tempdir().unwrap();
+    let child = repo(t.path(), "child-source");
+    let parent = repo(t.path(), "parent");
+    git(
+        &parent,
+        &[
+            "-c",
+            "protocol.file.allow=always",
+            "submodule",
+            "add",
+            child.to_str().unwrap(),
+            "library",
+        ],
+    );
+    git(&parent, &["commit", "-m", "record child"]);
+    git(&parent, &["branch", "-f", "release", "HEAD"]);
+    let checkout = parent.join("library");
+    git(&checkout, &["checkout", "main"]);
+    git(&parent, &["add", "library"]);
+    git(&parent, &["commit", "-m", "pin older child"]);
+    // source develop now intentionally rolls back the release pin.
+    let app = Application::new(t.path().join("catalog.json")).unwrap();
+    app.add_repository(&parent).unwrap();
+    let mut r = request(&app, "compare");
+    r.selection.scope = "current".into();
+    let unknown = app.investigate_history(&r).unwrap();
+    assert!(unknown.partial);
+    assert_eq!(unknown.evidence[0].dependencies[0].relation, "unknown");
+    app.add_repository(&checkout).unwrap();
+    app.add_repository(&parent).unwrap();
+    r = request(&app, "compare");
+    r.selection.scope = "current".into();
+    let before = snapshot(&parent);
+    let child_before = snapshot(&checkout);
+    let page = app.investigate_history(&r).unwrap();
+    assert!(!page.partial, "{:?}", page.evidence);
+    let dep = &page.evidence[0].dependencies[0];
+    assert_eq!(dep.relation, "rollback");
+    assert_eq!(dep.target_only, Some(1));
+    assert!(dep.location.is_some());
+    assert_eq!(snapshot(&parent), before);
+    assert_eq!(snapshot(&checkout), child_before);
+    r.source = "release".into();
+    r.target = "develop".into();
+    let page = app.investigate_history(&r).unwrap();
+    assert_eq!(page.evidence[0].dependencies[0].relation, "forward");
+    git(
+        &parent,
+        &[
+            "config",
+            "--file",
+            ".gitmodules",
+            "submodule.library.url",
+            "https://example.invalid/another.git",
+        ],
+    );
+    let page = app.investigate_history(&r).unwrap();
+    assert!(page.partial);
+    assert_eq!(page.evidence[0].dependencies[0].relation, "unknown");
 }

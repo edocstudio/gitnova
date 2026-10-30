@@ -4,6 +4,7 @@ mod batch;
 mod discard;
 mod gitlink;
 mod hunk;
+mod registration;
 use crate::{path_from_bytes, GitCli, RepositoryReader, StatusReader};
 use gitnova_domain::*;
 use sha2::{Digest, Sha256};

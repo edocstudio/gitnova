@@ -132,6 +132,21 @@ async fn run_progress<T: Send + 'static>(
     .await
 }
 #[tauri::command]
+async fn preview_stale_lock(
+    state: State<'_>,
+    membership_id: String,
+) -> Result<StaleLockPreview, AppError> {
+    run(state, move |a| a.preview_stale_lock(&membership_id)).await
+}
+#[tauri::command]
+async fn recover_stale_lock(
+    state: State<'_>,
+    membership_id: String,
+    token: String,
+) -> Result<NativePath, AppError> {
+    run(state, move |a| a.recover_stale_lock(&membership_id, &token)).await
+}
+#[tauri::command]
 async fn recorded_activity(
     state: State<'_>,
     membership_id: String,
@@ -1285,6 +1300,8 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         terminal::terminal_close,
         native_soak_report,
         recorded_activity,
+        preview_stale_lock,
+        recover_stale_lock,
         preview_operation_discard,
         discard_operation_changes,
         preview_discard,

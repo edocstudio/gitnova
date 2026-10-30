@@ -82,3 +82,5 @@ pub use gitnova_domain::{InvestigationEvidence, InvestigationPage, Investigation
 pub use gitnova_domain::{CommitIdentityContext, ConnectionCommitIdentity, GitCommitIdentity};
 
 pub use gitnova_domain::{SubmoduleLifecyclePreview, SubmoduleLifecycleRequest};
+
+pub use gitnova_domain::StaleLockPreview;

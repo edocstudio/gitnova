@@ -542,3 +542,103 @@ fn moved_worktree_repair_rejects_wrong_repository_and_stale_locator() {
     r.destination = foreign.canonicalize().unwrap().to_str().unwrap().into();
     assert!(a.preview_worktree_maintenance(&id, &r).is_err());
 }
+
+#[test]
+fn selected_prune_archives_missing_metadata_keeps_branch_dirty_other_checkout_and_removes_membership(
+) {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("prune-parent");
+    repo(&root);
+    let linked = d.path().join("missing");
+    let live = d.path().join("live");
+    git(
+        &root,
+        &[
+            "worktree",
+            "add",
+            "-b",
+            "missing-branch",
+            linked.to_str().unwrap(),
+        ],
+    );
+    git(
+        &root,
+        &[
+            "worktree",
+            "add",
+            "-b",
+            "live-branch",
+            live.to_str().unwrap(),
+        ],
+    );
+    let (a, id) = app(&root, d.path());
+    a.add_repository(&linked).unwrap();
+    a.add_repository(&root).unwrap();
+    fs::write(live.join("file"), "dirty keep\n").unwrap();
+    let tip = git(&root, &["rev-parse", "missing-branch"]);
+    fs::remove_dir_all(&linked).unwrap();
+    let r = WorktreeMaintenanceRequest {
+        destination: String::new(),
+        path: NativePath::new(&linked),
+        kind: "prune".into(),
+        reason: String::new(),
+    };
+    let p = a.preview_worktree_maintenance(&id, &r).unwrap();
+    assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+    assert_eq!(p.affected.len(), 1);
+    let backup = p.recovery_dir.unwrap().to_path().unwrap();
+    let result = a.maintain_worktree(&id, &r, &p.token).unwrap();
+    assert_eq!(result.status, "succeeded", "{result:?}");
+    assert!(backup.join("HEAD").exists());
+    assert!(backup.join("index").exists());
+    assert_eq!(git(&root, &["rev-parse", "missing-branch"]), tip);
+    assert_eq!(
+        fs::read_to_string(live.join("file")).unwrap(),
+        "dirty keep\n"
+    );
+    assert!(!a
+        .catalog()
+        .unwrap()
+        .worktrees
+        .iter()
+        .any(|t| t.root == NativePath::new(&linked)));
+}
+#[test]
+fn prune_refuses_locked_missing_other_missing_and_changed_metadata() {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("repo");
+    repo(&root);
+    let linked = d.path().join("missing");
+    git(
+        &root,
+        &["worktree", "add", "-b", "side", linked.to_str().unwrap()],
+    );
+    let (a, id) = app(&root, d.path());
+    git(&root, &["worktree", "lock", linked.to_str().unwrap()]);
+    fs::remove_dir_all(&linked).unwrap();
+    let r = WorktreeMaintenanceRequest {
+        destination: String::new(),
+        path: NativePath::new(&linked),
+        kind: "prune".into(),
+        reason: String::new(),
+    };
+    assert!(a.preview_worktree_maintenance(&id, &r).is_err());
+    git(&root, &["worktree", "unlock", linked.to_str().unwrap()]);
+    let p = a.preview_worktree_maintenance(&id, &r).unwrap();
+    fs::write(
+        root.join(".git/worktrees/missing/HEAD"),
+        b"ref: refs/heads/main\n",
+    )
+    .unwrap();
+    assert_ne!(
+        a.maintain_worktree(&id, &r, &p.token).unwrap().status,
+        "succeeded"
+    );
+    let other = d.path().join("other");
+    git(
+        &root,
+        &["worktree", "add", "-b", "other", other.to_str().unwrap()],
+    );
+    fs::remove_dir_all(other).unwrap();
+    assert!(a.preview_worktree_maintenance(&id, &r).is_err());
+}
