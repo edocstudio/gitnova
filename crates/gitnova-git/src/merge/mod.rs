@@ -393,6 +393,12 @@ impl GitCli {
         if request.operation == "rebase" {
             return rebase::preview(self, root, request);
         }
+        if !request.rebase_steps.is_empty() {
+            return Err(AppError::new(
+                "rebase",
+                "Replay editing is only available for Rebase.",
+            ));
+        }
         if request.operation != "merge" && request.method != MergeMethod::Auto {
             return Err(AppError::new(
                 "merge_method",

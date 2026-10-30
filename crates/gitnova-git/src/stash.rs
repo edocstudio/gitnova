@@ -8,6 +8,16 @@ use std::{
     path::PathBuf,
 };
 const PATCH: usize = 512 * 1024;
+// Preview text is bounded independently from the complete path/content identity.
+fn append_patch(target: &mut String, value: &str) -> bool {
+    let available = PATCH.saturating_sub(target.len());
+    let mut end = value.len().min(available);
+    while !value.is_char_boundary(end) {
+        end -= 1;
+    }
+    target.push_str(&value[..end]);
+    end < value.len()
+}
 fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
@@ -236,6 +246,8 @@ impl GitCli {
         let mut files = BTreeMap::new();
         let mut diff = String::new();
         let mut index_diff = String::new();
+        let mut truncated = false;
+        let mut index_truncated = false;
         let mut metadata_hash = None;
         if request.kind == StashKind::Push {
             if request.index.is_some() || request.oid.is_some() {
@@ -267,6 +279,7 @@ impl GitCli {
                         head,
                         "--",
                     ],
+                    &mut truncated,
                 )?;
                 index_diff = self.stash_diff(
                     root,
@@ -283,23 +296,22 @@ impl GitCli {
                         head,
                         "--",
                     ],
+                    &mut index_truncated,
                 )?;
                 if request.include_untracked {
-                    for file in changes.files.iter().filter(|f| f.index_status == "?") {
+                    for (position, file) in changes
+                        .files
+                        .iter()
+                        .filter(|f| f.index_status == "?")
+                        .enumerate()
+                    {
+                        if position >= 16 || diff.len() >= PATCH {
+                            truncated = true;
+                            break;
+                        }
                         let p = self.file_preview(root, &file.path, false)?;
-                        if p.truncated {
-                            return Err(AppError::new(
-                                "stash_budget",
-                                "Complete stash review exceeds the patch budget.",
-                            ));
-                        }
-                        diff.push_str(&p.diff);
-                        if diff.len() > PATCH {
-                            return Err(AppError::new(
-                                "stash_budget",
-                                "Complete stash review exceeds the patch budget.",
-                            ));
-                        }
+                        truncated |= p.truncated;
+                        truncated |= append_patch(&mut diff, &p.diff);
                     }
                 }
             }
@@ -324,64 +336,71 @@ impl GitCli {
                     "The selected object is not a supported stash.",
                 ));
             }
-            if detail.truncated {
-                return Err(AppError::new(
-                    "stash_budget",
-                    "Complete stash review exceeds the patch budget.",
-                ));
-            }
             let saved_index = self.detail(root, &detail.commit.parents[1])?;
-            if saved_index.commit.parents != vec![detail.commit.parents[0].clone()]
-                || saved_index.truncated
-            {
+            if saved_index.commit.parents != vec![detail.commit.parents[0].clone()] {
                 return Err(AppError::new(
                     "stash_shape",
-                    "The stash index parent is unsupported or exceeds the complete review budget.",
+                    "The stash index parent has an unsupported shape.",
                 ));
             }
-            index_diff = saved_index.diff;
-            diff = detail.diff;
-            for file in detail.files {
-                files.insert(file.path.hex.clone(), file.path);
+            index_truncated = saved_index.truncated;
+            index_truncated |= append_patch(&mut index_diff, &saved_index.diff);
+            truncated = detail.truncated;
+            truncated |= append_patch(&mut diff, &detail.diff);
+            for file in saved_index.files.iter().chain(detail.files.iter()) {
+                files.insert(file.path.hex.clone(), file.path.clone());
             }
             if let Some(untracked) = detail.commit.parents.get(2) {
                 let third = self.detail(root, untracked)?;
-                if third.truncated || !third.commit.parents.is_empty() {
+                if !third.commit.parents.is_empty() {
                     return Err(AppError::new(
                         "stash_shape",
-                        "The stash untracked parent is unsupported or oversized.",
+                        "The stash untracked parent has an unsupported shape.",
                     ));
                 }
-                diff.push_str(&third.diff);
+                truncated |= third.truncated;
+                truncated |= append_patch(&mut diff, &third.diff);
                 for file in third.files {
                     files.insert(file.path.hex.clone(), file.path);
                 }
             }
-            let raw = self
-                .read(
-                    root,
-                    &[
-                        "diff-tree".as_ref(),
-                        "--root".as_ref(),
-                        "--no-commit-id".as_ref(),
-                        "--no-renames".as_ref(),
-                        "--raw".as_ref(),
-                        "-r".as_ref(),
-                        "-z".as_ref(),
-                        detail.commit.parents[0].as_ref(),
-                        entry.oid.as_ref(),
-                        "--".as_ref(),
-                    ],
-                    4 * 1024 * 1024,
-                )?
-                .bytes;
-            if raw.split(|b| *b == 0).any(|r| {
-                r.starts_with(b":160000 ") || r.starts_with(b":") && r.get(8..14) == Some(b"160000")
-            }) {
-                blocked = Some(
-                    "Stashes that change submodule pointers require separate review with Git."
-                        .into(),
-                );
+            let mut versions = vec![
+                (Some(detail.commit.parents[0].as_str()), entry.oid.as_str()),
+                (
+                    Some(detail.commit.parents[0].as_str()),
+                    detail.commit.parents[1].as_str(),
+                ),
+            ];
+            if let Some(third) = detail.commit.parents.get(2) {
+                versions.push((None, third.as_str()));
+            }
+            for (base, tip) in versions {
+                let mut args: Vec<&OsStr> = vec![
+                    "diff-tree".as_ref(),
+                    "--root".as_ref(),
+                    "--no-commit-id".as_ref(),
+                    "--no-ext-diff".as_ref(),
+                    "--no-textconv".as_ref(),
+                    "--no-renames".as_ref(),
+                    "--raw".as_ref(),
+                    "-r".as_ref(),
+                    "-z".as_ref(),
+                ];
+                if let Some(base) = base {
+                    args.push(base.as_ref());
+                }
+                args.push(OsStr::new(tip));
+                args.push(OsStr::new("--"));
+                let raw = self.read(root, &args, 4 * 1024 * 1024)?.bytes;
+                if raw.split(|b| *b == 0).any(|r| {
+                    r.starts_with(b":160000 ")
+                        || r.starts_with(b":") && r.get(8..14) == Some(b"160000")
+                }) {
+                    blocked = Some(
+                        "Stashes that change submodule pointers require separate review with Git."
+                            .into(),
+                    );
+                }
             }
             if request.kind != StashKind::Drop && changes.status.dirty {
                 blocked=Some("Stash or commit current work before applying saved work. The working tree must be clean.".into());
@@ -428,10 +447,10 @@ impl GitCli {
                 }
             }
         }
-        if diff.len() > PATCH || index_diff.len() > PATCH {
+        if files.len() > 20_000 {
             return Err(AppError::new(
                 "stash_budget",
-                "Complete stash review exceeds the patch budget.",
+                "Stash file list exceeds 20,000 paths.",
             ));
         }
         let mut contents = vec![];
@@ -461,6 +480,9 @@ impl GitCli {
                 &request,
                 &diff,
                 &index_diff,
+                &truncated,
+                &index_truncated,
+                &files,
                 &contents,
                 &changes.token,
                 self.write_state(root).ok().map(|s| s.1),
@@ -471,12 +493,14 @@ impl GitCli {
             .map_err(|e| AppError::new("stash", e.to_string()))?,
         );
         Ok(StashPreview {
-            version: 1,
+            version: 2,
             request,
             stash_snapshot: metadata_hash.clone(),
             files: files.into_values().collect(),
             diff,
             index_diff,
+            truncated,
+            index_truncated,
             branch: changes.status.branch,
             head: changes.status.head,
             recovery_ref: format!("refs/gitnova/recovery/stash-{}", id.simple()),
@@ -489,17 +513,137 @@ impl GitCli {
             token,
         })
     }
-    fn stash_diff(&self, root: &Path, args: &[&str]) -> Result<String> {
-        Ok(String::from_utf8_lossy(
-            &self
-                .read(
-                    root,
-                    &args.iter().map(OsStr::new).collect::<Vec<_>>(),
-                    PATCH,
-                )?
-                .bytes,
-        )
-        .into())
+    fn stash_diff(&self, root: &Path, args: &[&str], truncated: &mut bool) -> Result<String> {
+        let output = self.execute(
+            root,
+            &args.iter().map(OsStr::new).collect::<Vec<_>>(),
+            PATCH,
+            true,
+        )?;
+        let mut text = String::new();
+        *truncated |= output.truncated;
+        *truncated |= append_patch(&mut text, &String::from_utf8_lossy(&output.bytes));
+        Ok(text)
+    }
+    pub fn stash_patch(
+        &self,
+        root: &Path,
+        request: &StashRequest,
+        token: &str,
+        path: &NativePath,
+        index: bool,
+    ) -> Result<HistoricalPatch> {
+        let preview = self.preview_stash(root, request)?;
+        if preview.token != token {
+            return Err(AppError::new("stale_preview", "Working state, stash list or configuration changed. Review the stash operation again."));
+        }
+        if !preview.files.contains(path) {
+            return Err(AppError::new(
+                "stash_request",
+                "Choose a file from this stash review.",
+            ));
+        }
+        let relative = crate::working::relative(path)?;
+        let mut patch = if request.kind == StashKind::Push {
+            let changes = self.working_changes(root)?;
+            let file = changes
+                .files
+                .iter()
+                .find(|file| file.path == *path)
+                .ok_or_else(|| {
+                    AppError::new(
+                        "stale_preview",
+                        "Selected stash path changed. Review again.",
+                    )
+                })?;
+            if file.index_status == "?" {
+                if index {
+                    HistoricalPatch {
+                        diff: String::new(),
+                        truncated: false,
+                    }
+                } else {
+                    let p = self.file_preview(root, path, false)?;
+                    HistoricalPatch {
+                        diff: p.diff,
+                        truncated: p.truncated,
+                    }
+                }
+            } else {
+                let head = preview.head.as_deref().ok_or_else(|| {
+                    AppError::new(
+                        "stash_request",
+                        "Create the first commit before using stashes.",
+                    )
+                })?;
+                let mut args: Vec<&OsStr> = vec![
+                    "--literal-pathspecs".as_ref(),
+                    "diff".as_ref(),
+                    "--no-ext-diff".as_ref(),
+                    "--no-textconv".as_ref(),
+                    "--no-renames".as_ref(),
+                    "--no-color".as_ref(),
+                    "--submodule=short".as_ref(),
+                    "--src-prefix=a/".as_ref(),
+                    "--dst-prefix=b/".as_ref(),
+                ];
+                if index {
+                    args.push("--cached".as_ref());
+                }
+                args.extend([head.as_ref(), "--".as_ref(), relative.as_os_str()]);
+                let output = self.execute(root, &args, PATCH, true)?;
+                HistoricalPatch {
+                    diff: String::from_utf8_lossy(&output.bytes).into_owned(),
+                    truncated: output.truncated,
+                }
+            }
+        } else {
+            let oid = request
+                .oid
+                .as_deref()
+                .ok_or_else(|| AppError::new("stash_request", "Missing stash identity."))?;
+            let parents = self.text(
+                root,
+                &[
+                    "show",
+                    "-s",
+                    "--no-show-signature",
+                    "--format=%P",
+                    oid,
+                    "--",
+                ],
+            )?;
+            let parents = parents.split_whitespace().collect::<Vec<_>>();
+            if index {
+                let parent = parents.get(1).ok_or_else(|| {
+                    AppError::new(
+                        "stash_shape",
+                        "The selected object is not a supported stash.",
+                    )
+                })?;
+                self.historical_patch(root, parent, path)?
+            } else {
+                let mut result = self.historical_patch(root, oid, path)?;
+                if let Some(untracked) = parents.get(2) {
+                    let third = self.historical_patch(root, untracked, path)?;
+                    result.truncated |= third.truncated;
+                    result.truncated |= append_patch(&mut result.diff, &third.diff);
+                }
+                result
+            }
+        };
+        let mut bounded = String::new();
+        patch.truncated |= append_patch(&mut bounded, &patch.diff);
+        patch.diff = bounded;
+        // Current files can change during a read; never label another snapshot's
+        // selected patch as belonging to the reviewed token.
+        if self.preview_stash(root, request)?.token != token {
+            return Err(AppError::new(
+                "stale_preview",
+                "Selected stash path changed. Review again.",
+            ));
+        }
+        Ok(patch)
     }
     fn pin_stash(&self, root: &Path, reference: &str, oid: &str) -> Result<()> {
         write(

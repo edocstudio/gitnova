@@ -391,6 +391,22 @@ fn staged_gitlink_removal_is_not_silently_included_in_a_commit() {
         app.commit_preview(&id).unwrap_err().code,
         "unsupported_write"
     );
+    let head = git(&repo, &["rev-parse", "HEAD"]);
+    let index = fs::read(repo.join(".git/index")).unwrap();
+    assert_eq!(
+        app.preview_amend(
+            &id,
+            &AmendRequest {
+                oid: head.clone(),
+                message: "review removal".into()
+            }
+        )
+        .unwrap_err()
+        .code,
+        "unsupported_write"
+    );
+    assert_eq!(git(&repo, &["rev-parse", "HEAD"]), head);
+    assert_eq!(fs::read(repo.join(".git/index")).unwrap(), index);
 }
 
 #[cfg(unix)]

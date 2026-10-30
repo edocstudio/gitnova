@@ -72,6 +72,7 @@ fn fixture() -> F {
 }
 fn request(f: &F, selected: bool, method: MergeMethod) -> MergeRequest {
     MergeRequest {
+        rebase_steps: vec![],
         acknowledge_rewrite: false,
         delete_source_branch: selected,
         method,

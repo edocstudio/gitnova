@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-local-distribution-evidence",
+  "date": "2026-10-30",
+  "platform": {
+    "os": "macOS",
+    "architecture": "arm64"
+  },
+  "version": "0.1.0",
+  "profile": "debug",
+  "signing": "ad-hoc",
+  "notarized": false,
+  "publicReleaseApproved": false,
+  "sourceBaseCommit": "f9568335eb0ffdc6f2f1988264f54bea69f124aa",
+  "uncommittedChanges": true,
+  "binarySha256": "fea931974d4f87b7e94020c425555549bd9a17e19aca32a95a58067c6e7c0306",
+  "licenseResourcesVerified": 5,
+  "licenseAuditComplete": false,
+  "unresolvedLicenseCandidates": 51,
+  "archive": {
+    "path": "target/distribution/m83-local-debug/GitNova-local-debug.zip",
+    "bytes": 14876045,
+    "sha256": "1669764e192bf520cd1e75623bdffef63483398750fea37838a6a2f0adc4c63b"
+  },
+  "installedCanonicalAppVerified": true
+}

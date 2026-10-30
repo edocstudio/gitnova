@@ -53,6 +53,7 @@ fn setup() -> (tempfile::TempDir, Application, PathBuf, String) {
 use gitnova_domain::*;
 fn request(oid: &str) -> MergeRequest {
     MergeRequest {
+        rebase_steps: vec![],
         acknowledge_rewrite: false,
         delete_source_branch: false,
         method: MergeMethod::Auto,

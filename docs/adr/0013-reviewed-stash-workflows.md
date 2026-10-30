@@ -16,6 +16,13 @@ Typed StashRequest/Preview/List DTOs cross core/IPC; the Git adapter remains ind
 
 The token includes request/operation identity, working/index/HEAD state, captured working/index patches, selected content hashes, configuration, complete visible list and the original reflog/ref digest for removal. Revalidation occurs inside the existing common-repository operation guard. Native index/HEAD locks and active operations block unsafe writes. Hidden index flags, existing conflicts, changed gitlinks/nested repositories, malformed stash parent structure and incomplete previews stop this increment. Applying requires a clean working tree and checks ignored/untracked/file-directory/symlink collisions at affected paths. Push blocks deleted index paths that still contain local files, preserving data that Git reset cleanup could otherwise replace.
 
+**Current extension:** [M85](../milestone-85.md) supersedes this increment's
+aggregate-code completeness requirement. Complete bounded path/content identity
+is still required, but code text may be partial and selected patches load lazily.
+Working/index truncation is explicit, saved index-only paths are included and
+all three stash deltas are checked for gitlink changes. Other write/removal and
+recovery guards in this decision remain applicable.
+
 A stash shape has two or three parents: the recorded base, an index commit based on that base and an optional root commit for untracked contents. Complete working/index patch reviews are limited to 512 KiB each. Existing 16 MiB per-file hashing, 2,000 changed-path and bounded metadata limits apply. Larger cases require Git inspection; truncation never enables confirmation.
 
 ## Execution and recovery

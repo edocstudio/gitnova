@@ -68,7 +68,7 @@ Cherry-pick นำการเปลี่ยนแปลงของ commit ห
 
 ### Rebase คืออะไร?
 
-Rebase นำ commit ไปเล่นซ้ำบนฐานใหม่และเปลี่ยนรหัส คลิกขวา commit ปลายทาง เลือก Rebase ตรวจ branch ปัจจุบัน → ปลายทางและช่วง commit แล้วยืนยันการเขียนใหม่ รองรับไม่เกิน 100 commit รวม root replay แบบเส้นตรงและการสร้าง merge สอง parent ใหม่ตามที่ตรวจ อาจต้องแก้ conflict ของ merge อีกครั้ง โดยปฏิเสธ shallow, octopus/cousin หรือ parent นอกช่วง และการเปลี่ยน pointer ของ submodule แก้ conflict ใน Working changes แล้วตรวจ Continue, Skip empty commit หรือ Abort ปลายเดิมยังใช้กู้คืนได้ และไม่ force push
+Rebase นำ commit ไม่เกิน 100 รายการไปเล่นซ้ำบนปลายทางที่ตรวจและเปลี่ยนรหัส ปรับแผนเส้นตรงด้วย Pick, Drop, Fixup และการเรียงลำดับ โดย Fixup เก็บข้อความและผู้เขียนของ Pick ก่อนหน้า รองรับ root replay จุดแยก cousin และ merge ที่ไม่มี conflict ไม่เกินแปด parent ตามลำดับ อาจต้องแก้ผล merge เดิมอีกครั้ง ยังปฏิเสธ shallow ประวัติที่เปลี่ยน submodule และ octopus ที่ทำนาย conflict แก้ conflict ใน Working changes แล้วตรวจ Continue, Skip ผลว่าง หรือ Abort เก็บปลายเดิมไว้กู้คืนและไม่ force push การแก้แผน interactive รองรับ Unix ในตอนนี้
 
 ### Amend กับ Revert คืออะไร?
 
@@ -76,7 +76,7 @@ Amend แทนที่ commit ล่าสุดด้วยข้อควา
 
 ### แก้ conflict อย่างไร?
 
-เปิด Working changes แล้วเลือก conflict เทียบ Current กับ Incoming เลือกทีละบล็อกข้อความหรือแก้ Result จากนั้นตรวจและ stage ผลที่แก้ ทำต่อหรือ commit operation เมื่อแก้ครบทุก conflict แล้ว Current/Incoming ให้อิง operation ที่แสดง โดยเฉพาะตอน rebase ส่วน binary และ submodule ต้องใช้ตัวเลือกเฉพาะ
+เปิด Working changes แล้วเลือก conflict ในพื้นที่ diff ให้ติ๊ก Current, Incoming หรือทั้งสองฝั่งสำหรับแต่ละจุด โดย Result ด้านล่างแสดงฉบับร่างทั้งไฟล์ ถ้าเลือกทั้งสองฝั่งจะวาง Current ก่อน Incoming ย้อนกลับไปเปลี่ยนหรือยกเลิกตัวเลือกได้ หรือกด Edit result เพื่อแก้เอง ยังไม่บันทึกหรือ stage จนกด Review edited result แล้ว Apply resolution ตัวเลือกแทนที่ทั้งไฟล์อยู่แยกต่างหาก ทำต่อหรือ commit เมื่อแก้ครบทุก conflict แล้ว Current/Incoming ให้อิง operation ที่แสดง โดยเฉพาะตอน rebase ส่วน binary และ submodule ต้องใช้ตัวเลือกเฉพาะ
 
 ## หลาย repository
 
@@ -193,3 +193,7 @@ Compare branches ตรวจ gitlink ใน source/target และแสดง
 มี native operation/lock หรืองาน Git อื่นกำลังทำงาน ระบบจะปฏิเสธการกู้คืน
 การตรวจนี้รองรับ macOS ในปัจจุบัน หลังย้ายเก็บให้ตรวจ operation ที่ยังเหลือแยกต่างหาก
 อย่าลบ `*.lock` ทั้งหมดหรือลองทำงานซ้ำโดยไม่ตรวจสอบ
+
+## จะดูได้อย่างไรว่าใครเปลี่ยนบรรทัดที่ commit แล้วล่าสุด
+
+เปิด Search commits เลือกที่มาของแต่ละบรรทัด (blame) ใส่ชื่อไฟล์และ revision บนเครื่อง แล้วเลือกไม่เกิน 200 บรรทัดใน repo ปัจจุบัน เลือกบรรทัดเพื่อเปิด commit และชื่อไฟล์ต้นทางโดยไม่ checkout ต้องเป็นไฟล์ข้อความ UTF-8 แบบปกติไม่เกิน 1 MiB โดยไม่รวมสิ่งที่แก้ค้าง การตาม rename ใช้เกณฑ์ของ Git และไม่ได้เปิดการตรวจการคัดลอกบรรทัด หากตั้งค่าไฟล์ ignore ของ blame ต้องตรวจด้วย Git ส่วน shallow history ยังถือว่าไม่ครบ

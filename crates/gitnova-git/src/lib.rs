@@ -764,6 +764,7 @@ impl GitCli {
             ],
         )?;
         let mut args: Vec<&OsStr> = vec![
+            "--literal-pathspecs".as_ref(),
             "diff-tree".as_ref(),
             "--root".as_ref(),
             "--no-commit-id".as_ref(),
@@ -905,8 +906,13 @@ pub mod worktree_remove;
 
 mod remote_delete;
 
+mod history_blame;
 mod history_follow;
 mod investigation;
 mod release_dependencies;
+mod release_packages;
+pub use release_packages::PackageRegistry;
 
 mod stale_lock;
+
+mod worktree_move;

@@ -642,3 +642,149 @@ fn prune_refuses_locked_missing_other_missing_and_changed_metadata() {
     fs::remove_dir_all(other).unwrap();
     assert!(a.preview_worktree_maintenance(&id, &r).is_err());
 }
+
+#[test]
+fn move_clean_linked_checkout_keeps_identity_refs_staging_and_dirty_parent() {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("move-parent");
+    repo(&root);
+    let linked = d.path().join("move-source");
+    git(
+        &root,
+        &["worktree", "add", "-b", "side", linked.to_str().unwrap()],
+    );
+    let (a, id) = app(&root, d.path());
+    let linked_id = a.add_repository(&linked).unwrap().workspaces[0]
+        .selected_id
+        .clone()
+        .unwrap();
+    fs::write(root.join("file"), "keep dirty parent\n").unwrap();
+    let index = fs::read(root.join(".git/index")).unwrap();
+    let refs = git(
+        &root,
+        &[
+            "for-each-ref",
+            "--format=%(refname) %(objectname)",
+            "refs/heads",
+            "refs/remotes",
+            "refs/tags",
+        ],
+    );
+    let destination = d.path().join("move target");
+    let r = WorktreeMaintenanceRequest {
+        kind: "move".into(),
+        path: NativePath::new(&linked),
+        destination: destination.to_str().unwrap().into(),
+        reason: String::new(),
+    };
+    let p = a.preview_worktree_maintenance(&id, &r).unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    let receipt = a.maintain_worktree(&id, &p.request, &p.token).unwrap();
+    assert_eq!(receipt.status, "succeeded", "{receipt:?}");
+    assert!(!linked.exists());
+    assert!(destination.join("file").exists());
+    assert_eq!(
+        a.path(&linked_id).unwrap(),
+        destination.canonicalize().unwrap()
+    );
+    assert_eq!(
+        git(
+            &root,
+            &[
+                "for-each-ref",
+                "--format=%(refname) %(objectname)",
+                "refs/heads",
+                "refs/remotes",
+                "refs/tags"
+            ]
+        ),
+        refs
+    );
+    assert_eq!(fs::read(root.join(".git/index")).unwrap(), index);
+    assert_eq!(
+        fs::read_to_string(root.join("file")).unwrap(),
+        "keep dirty parent\n"
+    );
+}
+#[test]
+fn move_refuses_dirty_locked_submodule_nested_and_changed_destinations() {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("move-guard-parent");
+    repo(&root);
+    let linked = d.path().join("move-guard-source");
+    git(
+        &root,
+        &["worktree", "add", "-b", "side", linked.to_str().unwrap()],
+    );
+    let (a, id) = app(&root, d.path());
+    let destination = d.path().join("new-folder");
+    let r = WorktreeMaintenanceRequest {
+        kind: "move".into(),
+        path: NativePath::new(&linked),
+        destination: destination.to_str().unwrap().into(),
+        reason: String::new(),
+    };
+    fs::write(linked.join("file"), "dirty\n").unwrap();
+    assert!(a.preview_worktree_maintenance(&id, &r).is_err());
+    git(&linked, &["restore", "file"]);
+    git(&root, &["worktree", "lock", linked.to_str().unwrap()]);
+    assert!(a.preview_worktree_maintenance(&id, &r).is_err());
+    git(&root, &["worktree", "unlock", linked.to_str().unwrap()]);
+    let p = a.preview_worktree_maintenance(&id, &r).unwrap();
+    fs::create_dir(&destination).unwrap();
+    assert!(a.maintain_worktree(&id, &p.request, &p.token).is_err());
+    assert!(linked.join("file").exists());
+    assert!(destination.exists());
+}
+
+#[test]
+fn move_refuses_ignored_nested_repositories_and_recorded_submodules() {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("move-nested-parent");
+    repo(&root);
+    let linked = d.path().join("move-nested-source");
+    git(
+        &root,
+        &["worktree", "add", "-b", "side", linked.to_str().unwrap()],
+    );
+    let (a, id) = app(&root, d.path());
+    let r = WorktreeMaintenanceRequest {
+        kind: "move".into(),
+        path: NativePath::new(&linked),
+        destination: d.path().join("new-folder").to_str().unwrap().into(),
+        reason: String::new(),
+    };
+    fs::write(root.join(".git/info/exclude"), "nested/\n").unwrap();
+    fs::create_dir(linked.join("nested")).unwrap();
+    fs::write(linked.join("nested/.git"), "independent metadata\n").unwrap();
+    assert!(a
+        .preview_worktree_maintenance(&id, &r)
+        .unwrap_err()
+        .message
+        .contains("Nested repositories"));
+    fs::remove_dir_all(linked.join("nested")).unwrap();
+    let head = git(&linked, &["rev-parse", "HEAD"]);
+    git(
+        &linked,
+        &[
+            "update-index",
+            "--add",
+            "--cacheinfo",
+            &format!("160000,{head},child"),
+        ],
+    );
+    fs::create_dir(linked.join("child")).unwrap();
+    fs::write(
+        linked.join(".gitmodules"),
+        "[submodule \"child\"]\n\tpath = child\n\turl = https://example.invalid/child.git\n",
+    )
+    .unwrap();
+    git(&linked, &["add", ".gitmodules"]);
+    git(&linked, &["commit", "-m", "record gitlink"]);
+    assert!(a
+        .preview_worktree_maintenance(&id, &r)
+        .unwrap_err()
+        .message
+        .contains("submodules"));
+    assert!(linked.exists());
+}

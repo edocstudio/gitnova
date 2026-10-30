@@ -109,6 +109,7 @@ fn fixture(ours: bool, incoming: bool) -> F {
 }
 fn request(f: &F) -> MergeRequest {
     MergeRequest {
+        rebase_steps: vec![],
         acknowledge_rewrite: false,
         delete_source_branch: false,
         method: MergeMethod::MergeCommit,

@@ -26,6 +26,18 @@ export function resolveBlock(text:string,block:ConflictBlock,choice:'current'|'i
  return text.slice(0,block.start)+(choice==='current'?block.current:choice==='incoming'?block.incoming:block.current+block.incoming)+text.slice(block.end);
 }
 
+export type ConflictChoice = 'current'|'incoming'|'both'|null;
+// Build from the stable draft snapshot, so a checkbox can undo/revise its own
+// choice without losing untouched content or choices made in other blocks.
+export function buildConflictResult(text:string,choices:readonly ConflictChoice[]):string {
+ const blocks=conflictBlocks(text);let offset=0;const pieces:string[]=[];
+ blocks.forEach((block,index)=>{
+  pieces.push(text.slice(offset,block.start));const choice=choices[index];
+  pieces.push(choice==='current'?block.current:choice==='incoming'?block.incoming:choice==='both'?block.current+block.incoming:text.slice(block.start,block.end));offset=block.end;
+ });
+ pieces.push(text.slice(offset));return pieces.join('');
+}
+
 export function hasConflictMarkers(text:string):boolean {
  return text.split('\n').some(line=>/^(?:<{7,}|>{7,}|\|{7,})(?:\s|$)/.test(line));
 }

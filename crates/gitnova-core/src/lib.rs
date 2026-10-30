@@ -280,6 +280,19 @@ impl Application {
             self.git.preview_stash(&self.path(membership_id)?, request)
         })
     }
+    pub fn stash_patch(
+        &self,
+        membership_id: &str,
+        request: &StashRequest,
+        token: &str,
+        path: &NativePath,
+        index: bool,
+    ) -> Result<HistoricalPatch> {
+        self.with_repo_identity(membership_id, || {
+            self.git
+                .stash_patch(&self.path(membership_id)?, request, token, path, index)
+        })
+    }
     pub fn apply_stash(
         &self,
         membership_id: &str,
@@ -1242,9 +1255,9 @@ impl Application {
             |git, root| {
                 let request=&actual_request;
                 git.maintain_worktree(root, request, token)?;
-                if request.kind=="reattach" || request.kind=="prune" {
+                if request.kind=="reattach" || request.kind=="move" || request.kind=="prune" {
                     let repository_id = self.catalog()?.workspaces.iter().flat_map(|w|&w.memberships).find(|m|m.id==id).map(|m|m.repository_id.clone()).ok_or_else(||AppError::new("operation_unknown","Worktree metadata changed but workspace identity is unavailable."))?;
-                    let repaired = if request.kind=="reattach" {Some(git.discover(Path::new(&request.destination))?)} else {None};
+                    let repaired = if request.kind=="reattach" || request.kind=="move" {Some(git.discover(Path::new(&request.destination))?)} else {None};
                     self.update(|catalog|{
                         let removed = catalog.worktrees.iter().filter(|t|t.repository_id==repository_id && t.root==request.path).map(|t|t.id.clone()).collect::<Vec<_>>();
                         if let Some(target)=&repaired {
@@ -1494,6 +1507,7 @@ impl Application {
             let cleanup_request = if action.kind == "finish" && p.state.delete_source_branch {
                 Some((
                     MergeRequest {
+                        rebase_steps: vec![],
                         acknowledge_rewrite: false,
                         delete_source_branch: true,
                         method: MergeMethod::Auto,

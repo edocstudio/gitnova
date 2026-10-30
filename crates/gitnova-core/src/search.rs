@@ -126,10 +126,13 @@ impl Application {
         }
         let mut hits: Vec<CommitSearchHit> = vec![];
         let mut evidence = vec![];
+        let mut package_registry = None;
         let started = std::time::Instant::now();
         // No persistent content index; each result is bound to a live ref snapshot.
         for source in sources {
             let mut item = InvestigationEvidence {
+                package_manifest: None,
+                line_attribution: vec![],
                 dependencies: vec![],
                 history_paths: Default::default(),
                 location: source.location.clone(),
@@ -161,6 +164,25 @@ impl Application {
                             if let (Some(source_oid), Some(target_oid)) =
                                 (&item.source_oid, &item.target_oid)
                             {
+                                match self.git.release_packages(
+                                    &source.path,
+                                    source_oid,
+                                    target_oid,
+                                    &registered,
+                                    &mut package_registry,
+                                ) {
+                                    Ok(package) => {
+                                        item.limited |= package.as_ref().is_some_and(|p| {
+                                            p.issue.is_some()
+                                                || p.requirements.iter().any(|r| r.issue.is_some())
+                                        });
+                                        item.package_manifest = package;
+                                    }
+                                    Err(error) => {
+                                        item.limited = true;
+                                        item.issue = Some(error.to_string());
+                                    }
+                                }
                                 match self.git.release_dependencies(
                                     &source.path,
                                     source_oid,

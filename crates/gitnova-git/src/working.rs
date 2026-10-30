@@ -413,6 +413,7 @@ impl WorkingTreeReader for GitCli {
     fn commit_preview(&self, root: &Path) -> Result<CommitPreview> {
         let (_, before) = self.commit_state(root)?;
         let changes = self.working_changes(root)?;
+        self.validate_registration_commit(root, &changes.files)?;
         if changes.files.iter().any(|f| {
             f.staged
                 && f.blocked_reason.is_some()

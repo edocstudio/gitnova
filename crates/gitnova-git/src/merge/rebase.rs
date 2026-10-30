@@ -1,5 +1,6 @@
 //! Owned native linear rebase. A prepared journal precedes every native step.
 use super::*;
+use std::collections::BTreeSet;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(super) struct Journal {
     plan: RebasePlan,
@@ -154,7 +155,11 @@ fn complete(git: &GitCli, root: &Path, marker: &Marker) -> Result<()> {
             &[
                 "rev-list",
                 "--reverse",
-                "--ancestry-path",
+                if journal.plan.preserve_merges {
+                    "--topo-order"
+                } else {
+                    "--ancestry-path"
+                },
                 &format!("{}..{tip}", marker.request.source_oid),
             ],
         )?
@@ -212,7 +217,13 @@ fn verify_topology(git: &GitCli, root: &Path, marker: &Marker, tip: &str) -> Res
     let mut reverse = BTreeMap::new();
     while let Some((old, new)) = pending.pop() {
         if !j.plan.commits.contains(&old) {
-            if new != marker.request.source_oid {
+            if &new
+                != if old == j.plan.base_oid {
+                    &marker.request.source_oid
+                } else {
+                    &old
+                }
+            {
                 return Err(err(
                     "Rebase changed an external parent. Inspect retained recovery.",
                 ));
@@ -387,8 +398,9 @@ pub(super) fn preview(
     let mut blocked = None;
     for row in range.lines() {
         let fields = row.split_whitespace().collect::<Vec<_>>();
-        if fields.len() > 3 || fields.len() < 2 && !replay_root {
-            blocked = Some("Octopus merge ranges require manual Git review.".into());
+        if fields.len() > 9 || fields.len() < 2 && !replay_root {
+            blocked =
+                Some("Merge ranges with more than eight parents require manual Git review.".into());
         }
         if let Some(oid) = fields.first() {
             crate::validate_oid(oid)?;
@@ -399,30 +411,83 @@ pub(super) fn preview(
                     .map(|p| (*p).to_string())
                     .collect::<Vec<_>>(),
             );
-            preserve_merges |= fields.len() == 3;
+            preserve_merges |= fields.len() >= 3;
             commits.push((*oid).to_string());
         }
-    }
-    if preserve_merges
-        && parents
-            .values()
-            .flatten()
-            .any(|p| !commits.contains(p) && p != &base)
-    {
-        blocked = Some(
-            "Merge replay with cousin histories or external parents needs manual Git review."
-                .into(),
-        );
     }
     if commits.len() > 100 {
         return Err(err(
             "Rebase exceeds the 100-commit preview budget. Choose a smaller range.",
         ));
     }
-    if commits.is_empty() || base == request.source_oid {
+    if commits.is_empty() || base == request.source_oid && request.rebase_steps.is_empty() {
         blocked = Some(
             "This branch is already based on the selected target; no rebase is needed.".into(),
         );
+    }
+    let original_commits = commits.clone();
+    if request.rebase_steps.len() > 100 {
+        return Err(err("Replay editing exceeds the 100-commit review budget."));
+    }
+    if !request.rebase_steps.is_empty() {
+        if !cfg!(unix) {
+            return Err(err(
+                "Interactive replay currently requires a Unix Git environment.",
+            ));
+        }
+        if preserve_merges {
+            return Err(err(
+                "Edit a linear replay separately from topology-preserving Rebase.",
+            ));
+        }
+        let mut seen = BTreeSet::new();
+        let mut picks = Vec::new();
+        for step in &request.rebase_steps {
+            if !original_commits.contains(&step.oid)
+                || !seen.insert(step.oid.clone())
+                || !["pick", "drop", "fixup"].contains(&step.action.as_str())
+            {
+                return Err(err("Replay steps must include every original commit exactly once, using Pick, Drop or Fixup."));
+            }
+            if step.action == "pick" {
+                picks.push(step.oid.clone());
+            }
+            if step.action == "fixup" && picks.is_empty() {
+                return Err(err("Fixup needs an earlier kept commit."));
+            }
+        }
+        if seen.len() != original_commits.len() || picks.is_empty() {
+            return Err(err(
+                "Keep at least one Pick and include every original commit in the replay plan.",
+            ));
+        }
+        commits = picks;
+    }
+    let subjects_raw = git
+        .read(
+            root,
+            &std::iter::once(OsString::from("show"))
+                .chain(
+                    ["-s", "--no-show-signature", "--format=%H%x00%s"]
+                        .into_iter()
+                        .map(Into::into),
+                )
+                .chain(original_commits.iter().map(Into::into))
+                .collect::<Vec<_>>()
+                .iter()
+                .map(OsString::as_os_str)
+                .collect::<Vec<_>>(),
+            1024 * 1024,
+        )?
+        .bytes;
+    let mut subjects = BTreeMap::new();
+    for row in subjects_raw.split(|b| *b == b'\n') {
+        if let Some(at) = row.iter().position(|b| *b == 0) {
+            subjects.insert(
+                String::from_utf8_lossy(&row[..at]).into_owned(),
+                String::from_utf8_lossy(&row[at + 1..]).into_owned(),
+            );
+        }
     }
     if git
         .optional_text(
@@ -482,30 +547,31 @@ pub(super) fn preview(
         blocked = Some("Another Git operation holds a native lock. Wait and review again.".into());
     }
     let initial_refs = refs(git, root, &branch)?;
-    let mut referenced_by = Vec::new();
-    for oid in &commits {
-        let out = git
-            .read(
-                root,
-                &[
-                    "for-each-ref".as_ref(),
-                    format!("--contains={oid}").as_ref(),
-                    "--format=%(refname)".as_ref(),
-                    "refs/remotes".as_ref(),
-                ],
-                65536,
-            )?
-            .bytes;
-        for name in String::from_utf8_lossy(&out).lines() {
-            if !referenced_by.iter().any(|n| n == name) {
-                referenced_by.push(name.to_string());
-            }
-        }
-    }
+    // Multiple --contains filters are ORed by Git: one bounded traversal
+    // preserves publication evidence for every original commit, including Drop
+    // and Fixup steps, without spawning up to 100 identical Git processes.
+    let referenced_by = if original_commits.is_empty() {
+        Vec::new()
+    } else {
+        let mut args: Vec<std::ffi::OsString> =
+            vec!["for-each-ref".into(), "--format=%(refname)".into()];
+        args.extend(
+            original_commits
+                .iter()
+                .map(|oid| format!("--contains={oid}").into()),
+        );
+        args.push("refs/remotes".into());
+        let borrowed: Vec<&std::ffi::OsStr> = args.iter().map(|arg| arg.as_os_str()).collect();
+        let out = git.read(root, &borrowed, 65536)?.bytes;
+        String::from_utf8_lossy(&out)
+            .lines()
+            .map(str::to_owned)
+            .collect()
+    };
     // Validate the entire replay range before prediction: a first conflict must
     // not hide a later submodule-pointer change that native Continue would replay.
     if blocked.is_none() {
-        for oid in &commits {
+        for oid in &original_commits {
             let original_parents = parents.get(oid).cloned().unwrap_or_default();
             let baselines = if original_parents.is_empty() {
                 vec![None]
@@ -556,22 +622,38 @@ pub(super) fn preview(
             scratch.run(&["mktree".into()], Some(b""), false)?;
         }
         let mut mapped = BTreeMap::<String, String>::new();
-        for oid in &commits {
+        let replay = if request.rebase_steps.is_empty() {
+            original_commits.clone()
+        } else {
+            request
+                .rebase_steps
+                .iter()
+                .filter(|s| s.action != "drop")
+                .map(|s| s.oid.clone())
+                .collect()
+        };
+        let mut cursor = request.source_oid.clone();
+        for (replay_index, oid) in replay.iter().enumerate() {
             let original_parents = parents.get(oid).cloned().unwrap_or_default();
-            let rewritten = if original_parents.is_empty() {
+            let rewritten = if !preserve_merges {
+                vec![cursor.clone()]
+            } else if original_parents.is_empty() {
                 vec![request.source_oid.clone()]
             } else {
                 original_parents
                     .iter()
                     .map(|p| {
-                        mapped
-                            .get(p)
-                            .cloned()
-                            .unwrap_or_else(|| request.source_oid.clone())
+                        mapped.get(p).cloned().unwrap_or_else(|| {
+                            if p == &base {
+                                request.source_oid.clone()
+                            } else {
+                                p.clone()
+                            }
+                        })
                     })
                     .collect::<Vec<_>>()
             };
-            let (ours, incoming) = if original_parents.len() == 2 {
+            let (ours, incoming) = if original_parents.len() >= 2 {
                 (rewritten[0].clone(), rewritten[1].clone())
             } else {
                 let parent = replay_parent(git, root, oid)?;
@@ -600,18 +682,62 @@ pub(super) fn preview(
                 true,
             )?;
             let mut parts = output.split(|b| *b == 0);
-            let tree = std::str::from_utf8(parts.next().unwrap_or_default())
+            let mut tree = std::str::from_utf8(parts.next().unwrap_or_default())
                 .map_err(|_| err("Invalid preview tree."))?
-                .trim();
-            crate::validate_oid(tree)?;
+                .trim()
+                .to_owned();
+            crate::validate_oid(&tree)?;
             predicted = parts
                 .filter(|b| !b.is_empty())
                 .map(|b| Ok(NativePath::new(&crate::path_from_bytes(b.to_vec())?)))
                 .collect::<Result<Vec<_>>>()?;
+            if predicted.is_empty() && original_parents.len() > 2 {
+                for n in 2..rewritten.len() {
+                    let mut args = vec!["commit-tree".into(), tree.clone().into()];
+                    for parent in &rewritten[..n] {
+                        args.extend(["-p".into(), parent.into()]);
+                    }
+                    let accumulated = String::from_utf8(scratch.run(
+                        &args,
+                        Some(b"GitNova isolated octopus preview\n"),
+                        false,
+                    )?)
+                    .map_err(|_| err("Invalid preview commit."))?;
+                    let output = scratch.run(
+                        &[
+                            "merge-tree".into(),
+                            "--write-tree".into(),
+                            "--name-only".into(),
+                            "--no-messages".into(),
+                            "-z".into(),
+                            accumulated.trim().into(),
+                            rewritten[n].clone().into(),
+                        ],
+                        None,
+                        true,
+                    )?;
+                    let mut parts = output.split(|b| *b == 0);
+                    tree = std::str::from_utf8(parts.next().unwrap_or_default())
+                        .map_err(|_| err("Invalid preview tree."))?
+                        .trim()
+                        .to_owned();
+                    crate::validate_oid(&tree)?;
+                    predicted = parts
+                        .filter(|b| !b.is_empty())
+                        .map(|b| Ok(NativePath::new(&crate::path_from_bytes(b.to_vec())?)))
+                        .collect::<Result<Vec<_>>>()?;
+                    if !predicted.is_empty() {
+                        break;
+                    }
+                }
+            }
             if !predicted.is_empty() {
+                if parents.values().any(|p| p.len() > 2) {
+                    blocked=Some("Octopus replay requires a conflict-free prediction. Review interacting changes with Git.".into());
+                }
                 break;
             }
-            let mut command = vec!["commit-tree".into(), tree.into()];
+            let mut command = vec!["commit-tree".into(), tree.clone().into()];
             for parent in &rewritten {
                 command.extend(["-p".into(), parent.into()]);
             }
@@ -622,7 +748,8 @@ pub(super) fn preview(
             )?)
             .map_err(|_| err("Invalid preview commit."))?;
             mapped.insert(oid.clone(), value.trim().into());
-            if oid == &original {
+            cursor = value.trim().to_owned();
+            if replay_index + 1 == replay.len() {
                 result_tree = Some(tree.to_string());
             }
         }
@@ -664,6 +791,7 @@ pub(super) fn preview(
         ));
     }
     let plan = RebasePlan {
+        subjects,
         tip: original.clone(),
         root: replay_root,
         preserve_merges,
@@ -843,6 +971,16 @@ pub(super) fn begin(git: &GitCli, root: &Path, request: &MergeRequest, token: &s
         ),
     )?;
     let mut command = args();
+    if !p.request.rebase_steps.is_empty() {
+        let editor = replay_editor(&dir, &p.request.rebase_steps)?;
+        command.pop();
+        command.extend([
+            "-c".into(),
+            format!("sequence.editor={editor}").into(),
+            "rebase".into(),
+            "--interactive".into(),
+        ]);
+    }
     command.extend(
         [
             "--merge",
@@ -1051,4 +1189,37 @@ pub(super) fn apply_action(
         return Ok(());
     }
     after_step(git, root, &mut marker, result)
+}
+
+fn replay_editor(dir: &Path, steps: &[RebaseEdit]) -> Result<String> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let recipe = dir.join("reviewed-todo");
+        let script = dir.join("apply-reviewed-todo.sh");
+        let text = steps
+            .iter()
+            .map(|s| format!("{} {}\n", s.action, s.oid))
+            .collect::<String>();
+        recovery::private_file(&recipe, text.as_bytes())?;
+        let quote = |p: &Path| -> Result<String> {
+            let s = p
+                .to_str()
+                .ok_or_else(|| err("Replay editor paths must be UTF-8."))?;
+            Ok(format!("'{}'", s.replace('\'', "'\\''")))
+        };
+        recovery::private_file(
+            &script,
+            format!("#!/bin/sh\nexec /bin/cat {} > \"$1\"\n", quote(&recipe)?).as_bytes(),
+        )?;
+        fs::set_permissions(&script, fs::Permissions::from_mode(0o700))?;
+        quote(&script)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = (dir, steps);
+        Err(err(
+            "Interactive replay currently requires a Unix Git environment.",
+        ))
+    }
 }

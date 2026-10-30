@@ -106,6 +106,7 @@ fn fixture() -> F {
 }
 fn request(f: &F, mainline: Option<u32>) -> MergeRequest {
     MergeRequest {
+        rebase_steps: vec![],
         acknowledge_rewrite: false,
         delete_source_branch: false,
         method: MergeMethod::Auto,

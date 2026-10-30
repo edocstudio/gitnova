@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-followup-artifacts",
+  "files": [
+    {
+      "path": "rebase-publication-m81.json",
+      "bytes": 1064,
+      "sha256": "0582afe432e4c19716a27ec5cd122692df69613b56fbca2178356848a4c82a00"
+    },
+    {
+      "path": "native-soak-m81.json",
+      "bytes": 163759,
+      "sha256": "a5e46f7f9e9def242d258310a655df1bf19c8708ffe0e8a0bba5aad06045a1ae"
+    },
+    {
+      "path": "native-soak-m81-memory.csv",
+      "bytes": 18748,
+      "sha256": "447d6d1c104dd93a968dd4c763117e3ecdab52c4f616daaf34003912aa2c23e9"
+    }
+  ]
+}

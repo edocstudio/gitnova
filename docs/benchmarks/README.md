@@ -97,3 +97,32 @@ this supplemental report directly; no website implementation is changed here.
 
 In this protocol, “cold” means first observed in a new Application instance.
 It does not imply cold OS caches: fixture creation itself reads/writes the files.
+
+
+## Advanced lifecycle follow-up (M81)
+
+New samples remain separate from the historical M57 `latest.json` and M73
+core-only data. `rebase-publication-m81.json` has kind
+`gitnova-rebase-publication-query`: five fixed-order old/new query samples,
+Git-call counts and an equivalent-result assertion. This substep comparison
+must not be displayed as a complete Rebase or application speedup.
+
+`native-soak-m81.json` has kind `gitnova-native-soak`: the packaged local debug
+app, real background WKWebView, selected Git subprocess samples, UI/IPC latency
+and explicit attribution limits. Inspect `passed`, `failure`, actual duration,
+visibility and fixture validation before displaying it. Report units are named
+in the fields (milliseconds for latency; binary MiB for RSS). A fifteen-minute
+background run does not certify a full workday, foreground GPU/JS heap, remote
+network/provider performance or other OS targets. The data includes measured
+build identity and states whether its source had uncommitted changes.
+
+Reproduce separately, with the native app closed and without concurrent
+builds/tests; each script changes only fresh temporary fixtures:
+
+```sh
+python3 apps/desktop/scripts/bench-rebase-refs.py --output /tmp/rebase-query.json
+# First build the local app and ui_bridge, then finish those builds:
+python3 apps/desktop/scripts/soak-native.py --seconds 900 --commits 50000 --files 10000 --output /tmp/native-soak.json
+```
+
+See [the follow-up report](../verification/2026-10-30-performance-followup.md).
