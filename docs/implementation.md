@@ -147,7 +147,7 @@ Status and Working changes use the same expanded per-path count, including files
 
 Generic per-file index writes refuse gitlinks, conflicted indexes, pending operations and bare repositories. Existing direct submodule pointer modifications use a separate Stage/Unstage pointer review and can be included in a complete parent commit review; child checkout/files/refs stay intact. Submodule additions, removals and type changes retain their separate workflow blockers. Reviewed parent switches and submodule recorded-checkout operations handle their explicit supported pointer cases separately. File hashing is bounded to 16 MiB, index reads to 64 MiB, changed-path lists to 2,000 and patch previews to 512 KiB. Historical file manifests are separate complete reads limited to 4 MiB and 20,000 paths; oversized manifests fail explicitly. Normal commit review requires a complete staged manifest and loads bounded code per file when the combined patch is truncated. Amendment uses the same complete staged manifest and bounded per-file delta previews; truncating the combined code preview does not exclude staged files or block confirmation. Fresh index/tree validation, referenced-history acknowledgment and recovery retention still apply. Stage all reviews exact eligible unstaged paths, excludes paths requiring separate workflows, and publishes a prepared index after revalidation; it is limited to 256 MiB of working content and the existing per-file/path bounds. Read previews neutralize configured clean/process filters; raw working-file diffs/status can differ from normalized filter results. Review the actual staged patch before committing. Execution uses the repository’s configured filters/hooks/signing; hooks can alter content and run external programs. Git’s native locks and ref checks protect normal concurrent activity, but reads/revalidation do not form an atomic transaction with arbitrary external filesystem/ref edits. Failed or timed-out operations require inspection and are never automatically retried or rolled back.
 
-Next work: extend worktree prune/relocation and remaining submodule operations, improve status/polling and large-history search costs, and extend crash/recovery tooling beyond read-only receipt inspection. Commit search is available; file/code archaeology and the broader multi-repo acceptance review remain open.
+Next work: extend worktree prune/relocation and remaining submodule operations, improve status/polling and large-history search costs, and extend crash/recovery tooling beyond read-only receipt inspection. Commit search, bounded literal file/code history and coordinated branch-tip evidence are available (M72); deeper archaeology, dependency-aware release intelligence and the broader multi-repo acceptance review remain open.
 
 Product interaction rules for current and future features: [Workflow clarity across GitNova](ux/workflows.md).
 
@@ -223,3 +223,12 @@ app-token storage in unrelated credential helpers.
 - [Milestone 69: resizable graph columns](milestone-69.md).
 
 - [Milestone 70: hosted checks and UI state regressions](milestone-70.md).
+
+
+[Submodule URL/hunk correctness (M71)](milestone-71.md) adds supported relative URL synchronization and fixes raw-versus-redacted postconditions and literal diff-command hunk content. Existing Rebase/worktree bounds remain.
+
+[File/code investigation and cross-repository branch evidence (M72)](milestone-72.md) reuses Search commits and existing graph/diff navigation. It makes bounded, shallow, dirty and missing-ref evidence explicit without certifying release readiness.
+
+[Persistent-core resource profiling (M73)](milestone-73.md) adds an opt-in serial
+large-fixture soak and machine-readable evidence separate from native/WebKit
+profiling. Its scope and completion must be read with each actual run report.

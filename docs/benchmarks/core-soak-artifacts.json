@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-core-soak-artifacts",
+  "files": [
+    {
+      "path": "core-soak-latest.json",
+      "bytes": 90524,
+      "sha256": "6a83aac65ba26cb396bbc32c172a23211418636987a1408e3961b109774f88ea"
+    },
+    {
+      "path": "core-soak-memory.csv",
+      "bytes": 15784,
+      "sha256": "56fe4b7dc79c9646c92070668377bb048ef6ec162fd0035af976de493c965920"
+    }
+  ]
+}

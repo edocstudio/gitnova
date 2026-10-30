@@ -82,6 +82,11 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 .map_err(|e| AppError::new("search", format!("{e}")))?;
             json!(app.search_commits(&request)?)
         }
+        "investigate_history" => {
+            let request = serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("investigation", format!("{e}")))?;
+            json!(app.investigate_history(&request)?)
+        }
         "focus_commit" => {
             json!(app.focus_commit(&s("workspaceId")?, &s("membershipId")?, &s("oid")?)?)
         }

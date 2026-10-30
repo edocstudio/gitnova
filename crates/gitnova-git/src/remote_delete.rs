@@ -1,6 +1,6 @@
 //! One explicit remote branch deletion, with an exact server-side lease and local recovery.
 use crate::{
-    working::{run_fetch, run_offline_write, run_ref_transaction},
+    working::{run_fetch, run_ref_transaction},
     BranchReader, GitCli, RepositoryReader,
 };
 use gitnova_domain::*;
@@ -267,23 +267,13 @@ impl GitCli {
                 "The remote branch is still present or was recreated. Inspect it before retrying.",
             ));
         }
-        if let (Some(reference), Some(oid)) = (&review.tracking_ref, &review.tracking_oid) {
-            // Delete only the reviewed direct cache ref; never overwrite a concurrent fetch.
-            if self
-                .optional_text(path, &["symbolic-ref", "--quiet", reference])?
-                .is_some()
-            {
-                return Err(AppError::new("operation_unknown","Remote deletion succeeded, but the tracking ref changed. Refresh and inspect it."));
-            }
-            run_offline_write(
+        if let Some(reference) = &review.tracking_ref {
+            self.reconcile_tracking_ref(
                 path,
-                &[
-                    "update-ref".into(),
-                    "--no-deref".into(),
-                    "-d".into(),
-                    reference.into(),
-                    oid.into(),
-                ],
+                reference,
+                review.tracking_oid.as_deref(),
+                None,
+                request.oid.len(),
             )?;
         }
         if self.head_index_snapshot(path)? != before

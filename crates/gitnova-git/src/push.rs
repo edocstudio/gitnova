@@ -1,6 +1,6 @@
 //! One reviewed, pinned, non-force branch push. Destination inspection never runs push hooks.
 use crate::{
-    working::{run_fetch, run_offline_write},
+    working::{run_fetch, run_ref_transaction},
     BranchReader, GitCli, RemoteReader, RepositoryReader,
 };
 use gitnova_domain::*;
@@ -20,6 +20,37 @@ pub fn display_destination(url: &str) -> String {
     url.to_owned()
 }
 impl GitCli {
+    /// Git may update matching tracking refs even when push uses a URL. Accept
+    /// the verified result or the reviewed old value, never a third-party value.
+    /// Keep the final check/write atomic, including an already absent deletion.
+    pub(crate) fn reconcile_tracking_ref(
+        &self,
+        path: &Path,
+        reference: &str,
+        reviewed: Option<&str>,
+        desired: Option<&str>,
+        oid_len: usize,
+    ) -> Result<()> {
+        if self
+            .optional_text(path, &["symbolic-ref", "--quiet", reference])?
+            .is_some()
+        {
+            return Err(AppError::new("operation_unknown", "Remote operation succeeded, but the tracking ref became symbolic. Inspect it before retrying."));
+        }
+        let current = self.optional_text(path, &["rev-parse", "--verify", "--quiet", reference])?;
+        if current.as_deref() != reviewed && current.as_deref() != desired {
+            return Err(AppError::new("operation_unknown", "Remote operation succeeded, but the tracking ref changed concurrently. Inspect both sides before retrying."));
+        }
+        let zero = "0".repeat(oid_len);
+        let expected = current.as_deref().unwrap_or(&zero);
+        let command = match desired {
+            Some(oid) => format!("update {reference} {oid} {expected}\n"),
+            None if current.is_some() => format!("delete {reference} {expected}\n"),
+            None => format!("verify {reference} {zero}\n"),
+        };
+        run_ref_transaction(path, &format!("start\n{command}prepare\ncommit\n"))
+    }
+
     pub(crate) fn push_destination(&self, path: &Path, remote: &str) -> Result<String> {
         if !self
             .remote_branches(path)?
@@ -422,19 +453,12 @@ impl GitCli {
             return Err(AppError::new("operation_unknown","Push returned, but the destination differs from the reviewed commit. Inspect the remote before retrying."));
         }
         if let Some(ref tracking) = review.tracking_ref {
-            let old = review
-                .tracking_oid
-                .clone()
-                .unwrap_or_else(|| "0".repeat(request.oid.len()));
-            run_offline_write(
+            self.reconcile_tracking_ref(
                 path,
-                &[
-                    "update-ref".into(),
-                    "--no-deref".into(),
-                    tracking.into(),
-                    request.oid.clone().into(),
-                    old.into(),
-                ],
+                tracking,
+                review.tracking_oid.as_deref(),
+                Some(&request.oid),
+                request.oid.len(),
             )?;
             if request.set_upstream {
                 self.set_exact_upstream(
@@ -492,5 +516,107 @@ impl GitCli {
         ))
         .map_err(|_| AppError::new("hosting", "Could not inspect source state."))?;
         Ok((url, format!("{:x}", Sha256::digest(bytes))))
+    }
+}
+
+#[cfg(test)]
+mod tracking_tests {
+    use super::*;
+    use std::process::Command;
+
+    fn git(root: &Path, args: &[&str]) -> String {
+        let out = Command::new(crate::executable::git_executable())
+            .arg("-C")
+            .arg(root)
+            .args([
+                "-c",
+                "user.name=Fixture",
+                "-c",
+                "user.email=test@example.invalid",
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+            ])
+            .args(args)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env(
+                "GIT_CONFIG_GLOBAL",
+                if cfg!(windows) { "NUL" } else { "/dev/null" },
+            )
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8_lossy(&out.stdout).trim().into()
+    }
+    #[test]
+    fn tracking_reconciliation_accepts_native_results_and_preserves_concurrent_changes() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        git(root, &["init", "-b", "main"]);
+        let mut oids = Vec::new();
+        for message in ["Base", "Published", "Concurrent"] {
+            git(root, &["commit", "--allow-empty", "-m", message]);
+            oids.push(git(root, &["rev-parse", "HEAD"]));
+        }
+        let cli = GitCli;
+        let reference = "refs/remotes/origin/feature";
+        let (old, tip, foreign) = (&oids[0], &oids[1], &oids[2]);
+        // Older Git leaves the reviewed cache alone; newer Git may have already
+        // created/advanced it. Both paths must reach the same verified result.
+        for initial in [None, Some(old), Some(tip)] {
+            git(root, &["update-ref", "-d", reference]);
+            if let Some(oid) = initial {
+                git(root, &["update-ref", reference, oid]);
+            }
+            cli.reconcile_tracking_ref(
+                root,
+                reference,
+                initial.filter(|v| *v != tip).map(String::as_str),
+                Some(tip),
+                tip.len(),
+            )
+            .unwrap();
+            assert_eq!(git(root, &["rev-parse", reference]), *tip);
+        }
+        cli.reconcile_tracking_ref(root, reference, Some(old), Some(tip), tip.len())
+            .unwrap();
+        // Already absent after native deletion is valid; a retained old cache
+        // still needs deleting. Never recreate a deleted cache.
+        cli.reconcile_tracking_ref(root, reference, Some(tip), None, tip.len())
+            .unwrap();
+        cli.reconcile_tracking_ref(root, reference, Some(tip), None, tip.len())
+            .unwrap();
+        assert!(cli
+            .optional_text(root, &["rev-parse", "--verify", "--quiet", reference])
+            .unwrap()
+            .is_none());
+        git(root, &["update-ref", reference, foreign]);
+        for desired in [Some(tip.as_str()), None] {
+            assert!(cli
+                .reconcile_tracking_ref(root, reference, Some(old), desired, tip.len())
+                .is_err());
+            assert_eq!(git(root, &["rev-parse", reference]), *foreign);
+        }
+        git(root, &["update-ref", "-d", reference]);
+        git(root, &["symbolic-ref", reference, "refs/heads/main"]);
+        assert!(cli
+            .reconcile_tracking_ref(root, reference, Some(foreign), Some(tip), tip.len())
+            .is_err());
+        assert_eq!(git(root, &["symbolic-ref", reference]), "refs/heads/main");
+        git(root, &["symbolic-ref", "--delete", reference]);
+        let lock = root.join(".git/refs/remotes/origin/feature.lock");
+        std::fs::create_dir_all(lock.parent().unwrap()).unwrap();
+        std::fs::write(&lock, "other writer").unwrap();
+        assert!(cli
+            .reconcile_tracking_ref(root, reference, None, Some(tip), tip.len())
+            .is_err());
+        assert_eq!(std::fs::read_to_string(lock).unwrap(), "other writer");
+        assert_eq!(git(root, &["rev-parse", "HEAD"]), *foreign);
+        assert_eq!(git(root, &["status", "--porcelain"]), "");
     }
 }

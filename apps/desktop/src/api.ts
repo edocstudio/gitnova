@@ -18,6 +18,7 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  investigateHistory: (request: import('./contracts').InvestigationRequest) => call<import('./contracts').InvestigationPage>('investigate_history', {request}),
   previewInit: (request: import('./contracts').InitRequest) => call<import('./contracts').InitPreview>('preview_init', {request}),
   initRepository: (request: import('./contracts').InitRequest, token: string) => call<Catalog>('init_repository', {request, token}),
   previewWorktreeMaintenance:(membershipId:string,request:import('./contracts').WorktreeMaintenanceRequest)=>call<import('./contracts').WorktreeMaintenancePreview>('preview_worktree_maintenance',{membershipId,request}),

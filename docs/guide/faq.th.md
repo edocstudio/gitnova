@@ -48,6 +48,10 @@ Fetch รับประวัติจาก remote โดยยังไม่
 
 ↑ คือจำนวน commit ใน local ที่ remote branch ที่ติดตามยังไม่มี ส่วน ↓ คือ commit ฝั่ง remote ที่ local ยังไม่มี ถ้าประวัติแยกกันอาจมีทั้งสองค่า ตัวเลขอิงข้อมูล remote ที่ Fetch ล่าสุด ไม่ใช่สถานะสดบน server ควร Fetch ก่อนตัดสินใจรวมงาน
 
+### สืบค้นประวัติไฟล์หรือโค้ดอย่างไร?
+
+เปิด Search commits แล้วเลือก File / code history ใส่ path ใน repo แบบตรงตัว ข้อความโค้ด หรือทั้งสองอย่าง เลือกขอบเขต repo แล้วกด Search การค้นโค้ดหาจุดที่จำนวนข้อความเปลี่ยน ไม่ใช่ทุกครั้งที่แก้บรรทัดนั้น ตรวจ commit ล่าสุดไม่เกิน 2,000 รายการต่อพื้นที่ และแสดงผลไม่เกิน 100 รายการ Merge เทียบกับ parent แรก และไม่ตามการเปลี่ยนชื่อไฟล์ เลือกผลเพื่อเปิดกราฟและ diff ในอดีตโดยไม่ checkout หากประวัติเป็น shallow หรือถึงขีดจำกัดจะมีข้อความแจ้ง
+
 ## ประวัติและการกู้คืน
 
 ### Stash, Apply และ Pop ใช้อย่างไร?
@@ -82,11 +86,15 @@ Submodule เป็น Git repository แยกที่ parent บันทึ�
 
 ### ควร Restore submodule หรือ Stage pointer?
 
-ใช้แถว Submodules ของ branch ที่เลือกและ Manage เพื่อตรวจสถานะ เปิดกราฟของ child เพื่อจัดการไฟล์ Restore recorded คืน checkout ไป commit ที่ parent บันทึกไว้ ส่วน Stage pointer ให้ parent บันทึก commit ที่ checkout อยู่ ตรวจงานค้างและ commit ที่ยังไม่ push ก่อน Sync URLs นำ URL จาก .gitmodules ที่ตรวจแล้วไปใส่ config ของ child ที่ initialize แล้ว โดยไม่ fetch ไม่แก้ไฟล์ และไม่เปลี่ยน commit รุ่นนี้ต้องใช้ Git ภายนอกสำหรับ URL แบบ relative
+ใช้แถว Submodules ของ branch ที่เลือกและ Manage เพื่อตรวจสถานะ เปิดกราฟของ child เพื่อจัดการไฟล์ Restore recorded คืน checkout ไป commit ที่ parent บันทึกไว้ ส่วน Stage pointer ให้ parent บันทึก commit ที่ checkout อยู่ ตรวจงานค้างและ commit ที่ยังไม่ push ก่อน Sync URLs นำ URL จาก .gitmodules ที่ตรวจแล้วไปใส่ config ของ child ที่ initialize แล้ว โดยไม่ fetch ไม่แก้ไฟล์ และไม่เปลี่ยน commit สำหรับรูปแบบ URL มาตรฐานที่รองรับ จะคำนวณ relative URL จาก remote ของ branch ใน parent ต้องตรวจปลายทางที่คำนวณแล้วก่อนยืนยัน
 
 ### ควรใช้ linked worktree เมื่อไร?
 
 ใช้ linked worktree เพื่อมีอีก checkout ของ repository เดิม เช่น ตรวจ release โดยเก็บพื้นที่ทำ feature ไว้ เปิดหรือสร้างจากบริบทกราฟ ใน Related repositories เลือก Worktree metadata เพื่อตรวจและสั่ง Lock, Unlock หรือ Repair ของ linked checkout ที่มีอยู่ Lock ป้องกันการ prune ส่วน Unlock ยกเลิกการป้องกัน Repair ซ่อม metadata โดยไม่ลบไฟล์หรือย้าย branch ระบบไม่ลบ worktree ที่มีงานค้างให้อัตโนมัติ
+
+### เปรียบเทียบ release branch ข้าม repo ได้ไหม?
+
+ใน Search commits เลือก Compare branches across repositories และขอบเขต repo ปัจจุบัน ที่เลือก หรือทั้ง workspace ใส่ Source และ Target branch แล้วกด Search จะแสดง commit เฉพาะแต่ละฝั่ง SHA ปลาย branch และจำนวนไฟล์ต่างกันต่อพื้นที่ หากไม่มี ref ประวัติเป็น shallow หรือถึงขีดจำกัดจะแจ้งให้เห็น การเปรียบเทียบไม่ fetch remote ให้อัตโนมัติ เป็นหลักฐานจาก Git ที่ commit แล้ว ไม่รับรอง CI ความเข้ากันได้ของ dependency หรือความพร้อม release
 
 ## แชร์งานและการเชื่อมต่อ
 

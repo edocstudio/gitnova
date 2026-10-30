@@ -77,7 +77,7 @@ export const faqEntries = [
   {
     "group": "Multiple repositories",
     "question": "Should I restore a submodule or stage its pointer?",
-    "answer": "Use the Submodules row for the selected branch and Manage to inspect it. Open the child graph to handle its files. Restore recorded returns its checkout to the parent’s recorded commit; stage its pointer to record the checked-out commit. Review dirty files and unpushed commits first. Sync URLs copies the reviewed .gitmodules URL to the selected initialized child’s local configuration; it does not fetch, change files or update its commit. Relative URLs require external Git in this version."
+    "answer": "Use the Submodules row for the selected branch and Manage to inspect it. Open the child graph to handle its files. Restore recorded returns its checkout to the parent’s recorded commit; stage its pointer to record the checked-out commit. Review dirty files and unpushed commits first. Sync URLs copies the reviewed .gitmodules URL to the selected initialized child’s local configuration; it does not fetch, change files or update its commit. Relative URLs are resolved against the parent branch’s configured remote for supported standard URL shapes; review the resolved destination before confirming."
   },
   {
     "group": "Multiple repositories",
@@ -113,5 +113,15 @@ export const faqEntries = [
     "group": "History and recovery",
     "question": "What if an operation fails or stays pending?",
     "answer": "Open Working changes to inspect a pending merge, cherry-pick, revert or GitNova-started rebase. Resolve conflicts, then review commit/Continue or Abort. An uncertain interrupted journal needs inspection; the app never retries automatically. Handle an externally started rebase with Git outside the app. Zero changed files does not mean no operation is pending. Recent activity and recovery show retained references or backup locations; review them before recovery."
+  },
+  {
+    "group": "Everyday Git",
+    "question": "How do I investigate a file or code change?",
+    "answer": "Open Search commits and choose File / code history. Enter a literal repository-relative path, a literal code phrase, or both; choose the repository scope and Search. Code search finds changes in the phrase occurrence count, not every edit to lines containing it. It considers at most 2,000 recent local commits per location and shows up to 100 results; merge changes compare with the first parent and renames are not followed. Select a result to open its graph and historical diff without checkout. Shallow or bounded coverage is labelled."
+  },
+  {
+    "group": "Multiple repositories",
+    "question": "Can I compare release branches across repositories?",
+    "answer": "In Search commits, choose Compare branches across repositories and select the current, selected or entire-workspace scope. Enter Source and Target branch names, then Search. Evidence lists source-only and target-only commits, exact tip IDs and changed-file counts for each location. Missing refs, shallow history and limits remain explicit. Cached remote refs are not fetched automatically by this comparison. This is committed Git evidence; it does not certify CI, dependency compatibility or release readiness."
   }
 ] as const;

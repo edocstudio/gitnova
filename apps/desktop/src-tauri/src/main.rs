@@ -337,6 +337,13 @@ async fn search_commits(
     run(state, move |a| a.search_commits(&request)).await
 }
 #[tauri::command]
+async fn investigate_history(
+    state: State<'_>,
+    request: InvestigationRequest,
+) -> Result<InvestigationPage, AppError> {
+    run(state, move |a| a.investigate_history(&request)).await
+}
+#[tauri::command]
 async fn focus_commit(
     state: State<'_>,
     workspace_id: String,
@@ -1241,6 +1248,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         apply_stash,
         historical_patch,
         search_commits,
+        investigate_history,
         focus_commit,
         merge_state,
         preview_merge,
@@ -1899,6 +1907,20 @@ mod tests {
         let search = invoke("search_commits", search_args.clone(), "tauri://localhost").unwrap();
         assert_eq!(search["hits"][0]["commit"]["oid"], oid);
         assert_eq!(search["partial"], false);
+        let investigation_args = json!({"request": {"selection":search_args["request"],"mode":"history","path":"file.txt","needle":"","source":"main","target":"main"}});
+        assert!(invoke(
+            "investigate_history",
+            investigation_args.clone(),
+            "https://example.invalid"
+        )
+        .is_err());
+        let evidence = invoke(
+            "investigate_history",
+            investigation_args,
+            "tauri://localhost",
+        )
+        .unwrap();
+        assert!(evidence["evidence"].is_array());
         let focus_args = json!({"workspaceId":workspace,"membershipId":membership,"oid":oid});
         let focus = invoke("focus_commit", focus_args.clone(), "tauri://localhost").unwrap();
         assert_eq!(focus["page"]["rows"][0]["commit"]["oid"], oid);

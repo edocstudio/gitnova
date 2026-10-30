@@ -777,3 +777,11 @@ main { display: flex; flex: 1; min-height: 0; }
 .history-column-resize:hover::after,.history-column-resize:focus-visible::after { background:var(--accent);width:2px; }
 .history-column-resize:focus-visible { outline:1px solid var(--accent);outline-offset:-2px; }
 .history-heading:has(.history-column-resize:active) { cursor:col-resize;user-select:none; }
+
+.investigation-field {display:flex;flex-direction:column;gap:6px;margin:10px 0;color:var(--muted);}
+.investigation-refs {display:flex;align-items:end;gap:8px;margin:10px 0;}
+.investigation-refs label {display:flex;flex:1;min-width:0;flex-direction:column;gap:6px;color:var(--muted);}
+.investigation-refs input,.investigation-field input {width:100%;min-width:0;}
+.investigation-evidence {max-height:170px;overflow:auto;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;}
+.investigation-evidence p {margin:5px 0;overflow-wrap:anywhere;}
+.commit-search-popover:has(.investigation-field),.commit-search-popover:has(.investigation-refs) {overflow-y:auto;}

@@ -76,3 +76,5 @@ pub use gitnova_domain::{
 };
 
 pub use gitnova_domain::{InitPreview, InitRequest};
+
+pub use gitnova_domain::{InvestigationEvidence, InvestigationPage, InvestigationRequest};

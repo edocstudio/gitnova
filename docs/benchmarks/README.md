@@ -62,3 +62,38 @@ profile effects. They do not isolate Rust's contribution, compare languages or
 products, prove leak absence, or certify full-workday/production stability.
 
 Full protocol and interpretation are in the accompanying dated Markdown artifact.
+
+## Persistent Rust-core soak (M73)
+
+The separate core-only protocol leaves the normal app open and does not launch a
+WebView. Run it as the only build/test/benchmark workload, after building the
+probe (never compile while sampling):
+
+```sh
+CARGO_BUILD_JOBS=1 cargo build -p gitnova-core --example soak_history --locked -j1
+python3 apps/desktop/scripts/bench-core-soak.py \
+  --seconds 1800 --commits 50000 --files 10000 \
+  --output /tmp/gitnova-core-soak.json
+```
+
+The runner requires a Unix `/bin/ps`. On macOS it also checks memory pressure;
+failures are exported as failed reports, not silently retried. Inspect `passed`,
+`completion.fixtureStatePreserved`, duration and evidence limits before use.
+The kind `gitnova-core-soak` is separate from the M57 report schema: do not merge
+its RSS numbers into native/WebKit totals or replace historical baseline data.
+Latency observations include a cold sample and a capped warm tail per scenario;
+`partialObservations` records deliberate history/index coverage limits.
+
+Memory samples identify fixture preparation versus workload. Five-minute window
+medians use workload samples only; sampled descendant RSS may miss short-lived
+Git peaks. A flat short run is not a leak-free guarantee. Other running programs
+can affect elapsed latency. The executable SHA-256 and base-source/uncommitted
+flags identify the measured build; there is no new release/version claim.
+
+Current evidence: [core report](core-soak-latest.json),
+[memory CSV](core-soak-memory.csv), [integrity manifest](core-soak-artifacts.json)
+and [interpretation](../verification/2026-10-30-core-soak.md). A website can read
+this supplemental report directly; no website implementation is changed here.
+
+In this protocol, “cold” means first observed in a new Application instance.
+It does not imply cold OS caches: fixture creation itself reads/writes the files.

@@ -215,3 +215,28 @@ fn unused_filter_configuration_does_not_hide_hunks_and_active_filters_are_never_
     assert!(f.app.preview_hunks(&f.id, &path("file"), false).is_err());
     assert!(!f.root.join("FILTER_SHOULD_NOT_RUN").exists());
 }
+
+#[test]
+fn patch_command_text_inside_code_is_not_a_second_file_header() {
+    let f = fixture("file");
+    let value = text("diff --git a/example b/example", "two");
+    fs::write(f.root.join("file"), &value).unwrap();
+    let p = f.app.preview_hunks(&f.id, &path("file"), false).unwrap();
+    assert_eq!(p.headers.len(), 2);
+    let result = f
+        .app
+        .change_hunk(&f.id, &path("file"), false, 0, &p.token)
+        .unwrap();
+    assert_eq!(result.status, "succeeded", "{result:?}");
+    assert!(git(&f.root, &["show", ":file"]).contains("diff --git a/example b/example"));
+    let p = f.app.preview_hunks(&f.id, &path("file"), true).unwrap();
+    assert_eq!(
+        f.app
+            .change_hunk(&f.id, &path("file"), true, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert_eq!(fs::read_to_string(f.root.join("file")).unwrap(), value);
+    assert_eq!(git(&f.root, &["diff", "--cached"]), "");
+}

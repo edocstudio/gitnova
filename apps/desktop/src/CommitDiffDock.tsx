@@ -72,7 +72,7 @@ function PatchCode({ file, mode, before, after, hunks }: { hunks?:HunkControls; 
   </div>;
 }
 
-export function CommitDiffDock({ membershipId, detail = null, source = null, busy, collapsed, onToggle, size, onResize }: { membershipId?: string; detail?: CommitDetail | null; source?: DockPatch | null; busy: boolean; collapsed: boolean; onToggle: () => void; size: number | null; onResize: (height: number) => void }) {
+export function CommitDiffDock({ membershipId, preferredPath, detail = null, source = null, busy, collapsed, onToggle, size, onResize }: { membershipId?: string; preferredPath?: string; detail?: CommitDetail | null; source?: DockPatch | null; busy: boolean; collapsed: boolean; onToggle: () => void; size: number | null; onResize: (height: number) => void }) {
   const [historical, setHistorical] = useState<{key: string; diff: string; truncated: boolean} | null>(null);
   const [patchError, setPatchError] = useState('');
   const diff = source?.diff ?? historical?.diff ?? detail?.diff ?? '';
@@ -83,6 +83,11 @@ export function CommitDiffDock({ membershipId, detail = null, source = null, bus
   const dock = useRef<HTMLElement>(null); const drag = useRef<{ y: number; height: number } | null>(null);
   const controlledIndex = source?.selectedPath ? findPatch(files, source.selectedPath) : -1;
   const manifest = !source ? detail?.files ?? [] : [];
+  useEffect(()=>{
+    if(!preferredPath || !detail)return;
+    const index=detail.files.findIndex(file=>file.path.display===preferredPath || file.path.display.startsWith(`${preferredPath}/`));
+    if(index>=0)setFileIndex(index);
+  },[preferredPath,detail?.commit.oid]);
   const historicalFile = manifest[Math.min(fileIndex, Math.max(0, manifest.length - 1))];
   const patchKey = `${detail?.commit.oid}:${historicalFile?.path.hex}`;
   const needsLoad = Boolean(!source && detail?.truncated && historicalFile && membershipId);

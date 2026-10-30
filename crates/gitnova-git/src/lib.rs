@@ -896,3 +896,5 @@ pub mod worktree;
 pub mod worktree_remove;
 
 mod remote_delete;
+
+mod investigation;

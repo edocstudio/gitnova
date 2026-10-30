@@ -2,6 +2,11 @@ use super::*;
 use std::collections::BTreeSet;
 impl Application {
     pub fn search_commits(&self, request: &CommitSearchRequest) -> Result<CommitSearchPage> {
+        let sources = self.search_sources(request)?;
+        self.search_index
+            .query(&self.git, &self.search_dir, request, &sources)
+    }
+    fn search_sources(&self, request: &CommitSearchRequest) -> Result<Vec<gitnova_search::Source>> {
         let catalog = self.catalog()?;
         if catalog.active_workspace_id != request.workspace_id {
             return Err(AppError::new(
@@ -79,8 +84,83 @@ impl Application {
                 git_dir: worktree.map(|w| w.git_dir.to_path()).transpose()?,
             });
         }
-        self.search_index
-            .query(&self.git, &self.search_dir, request, &sources)
+        if sources.is_empty() || sources.len() > 32 {
+            return Err(AppError::new(
+                "search_scope",
+                "Select between one and 32 repository locations.",
+            ));
+        }
+        Ok(sources)
+    }
+    pub fn investigate_history(&self, request: &InvestigationRequest) -> Result<InvestigationPage> {
+        self.git.validate_investigation(request)?;
+        let sources = self.search_sources(&request.selection)?;
+        let mut hits: Vec<CommitSearchHit> = vec![];
+        let mut evidence = vec![];
+        let started = std::time::Instant::now();
+        // No persistent content index; each result is bound to a live ref snapshot.
+        for source in sources {
+            let mut item = InvestigationEvidence {
+                location: source.location.clone(),
+                source_oid: None,
+                target_oid: None,
+                source_only: None,
+                target_only: None,
+                changed_files: None,
+                dirty: None,
+                scanned: 0,
+                limited: false,
+                shallow: false,
+                issue: None,
+            };
+            if started.elapsed().as_secs() >= 20 {
+                item.limited = true;
+                item.issue =
+                    Some("Investigation time budget reached; narrow the repository scope.".into());
+            } else {
+                let read = self.git.discover(&source.path).and_then(|discovery| {
+                    if discovery.common_dir != source.common_dir || source.git_dir.as_ref().is_some_and(|dir| *dir != discovery.git_dir) {
+                        return Err(AppError::new("stale_search", "Repository identity changed. Reopen this location before investigating."));
+                    }
+                    self.git.investigate_history(&source.path, request, &mut item)
+                });
+                match read {
+                    Ok(commits) => {
+                        for commit in commits {
+                            if let Some(hit) = hits.iter_mut().find(|h| {
+                                h.commit.oid == commit.oid
+                                    && h.locations[0].repository_id == source.location.repository_id
+                            }) {
+                                hit.locations.push(source.location.clone());
+                            } else if hits.len() < 100 {
+                                hits.push(CommitSearchHit {
+                                    commit,
+                                    excerpt: String::new(),
+                                    locations: vec![source.location.clone()],
+                                });
+                            } else {
+                                item.limited = true;
+                            }
+                        }
+                    }
+                    Err(error) => {
+                        item.limited = true;
+                        item.issue = Some(error.to_string());
+                    }
+                }
+            }
+            evidence.push(item);
+        }
+        // Membership context may change while a bounded Git reader is running.
+        self.search_sources(&request.selection)?;
+        let partial = evidence
+            .iter()
+            .any(|e| e.limited || e.shallow || e.issue.is_some());
+        Ok(InvestigationPage {
+            hits,
+            evidence,
+            partial,
+        })
     }
     /// Locate read-only graph context without checking out or moving any ref.
     pub fn focus_commit(
