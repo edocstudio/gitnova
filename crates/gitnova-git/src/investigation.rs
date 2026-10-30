@@ -24,10 +24,12 @@ fn parse(bytes: &[u8]) -> Result<Vec<Commit>> {
 }
 impl GitCli {
     pub fn validate_investigation(&self, r: &InvestigationRequest) -> Result<()> {
-        if !matches!(r.mode.as_str(), "history" | "compare") || r.selection.cursor.is_some() {
+        if !matches!(r.mode.as_str(), "history" | "follow" | "compare")
+            || r.selection.cursor.is_some()
+        {
             return Err(invalid("Choose file/code history or a branch comparison."));
         }
-        if r.mode == "history" {
+        if r.mode == "history" || r.mode == "follow" {
             if (r.path.is_empty() && r.needle.trim().is_empty())
                 || r.path.len() > 1024
                 || r.needle.len() > 256
@@ -42,6 +44,18 @@ impl GitCli {
                     "Enter a repository-relative literal path or a code phrase (up to 256 bytes).",
                 ));
             }
+            if r.mode == "follow" {
+                if r.path.is_empty() || !r.needle.is_empty() {
+                    return Err(invalid(
+                        "Follow history requires one exact file path and no code phrase.",
+                    ));
+                }
+                self.investigation_ref(if r.source.is_empty() {
+                    "HEAD"
+                } else {
+                    &r.source
+                })?;
+            }
         } else {
             for value in [&r.source, &r.target] {
                 self.investigation_ref(value)?;
@@ -49,7 +63,7 @@ impl GitCli {
         }
         Ok(())
     }
-    fn investigation_ref(&self, value: &str) -> Result<String> {
+    pub(crate) fn investigation_ref(&self, value: &str) -> Result<String> {
         if value == "HEAD" {
             return Ok(value.into());
         }
@@ -91,6 +105,9 @@ impl GitCli {
         evidence: &mut InvestigationEvidence,
     ) -> Result<Vec<Commit>> {
         self.validate_investigation(r)?;
+        if r.mode == "follow" {
+            return self.follow_file_history(root, r, evidence);
+        }
         let snapshot = self.fingerprint(root)?;
         let status = self.status(root)?;
         evidence.dirty = (!status.bare).then_some(status.dirty);

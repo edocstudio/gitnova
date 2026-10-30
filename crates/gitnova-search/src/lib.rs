@@ -729,6 +729,7 @@ impl SearchIndex {
                     .map(|(_, source)| source.location.clone())
                     .collect();
                 page[position] = Some(CommitSearchHit {
+                    historical_path: None,
                     commit: entry.commit.clone(),
                     excerpt,
                     locations,

@@ -1,3 +1,4 @@
+import type {StaleLockPreview} from './contracts';
 import type {RepositoryCreateRequest,RepositoryCreateOptions,RepositoryCreatePreview,RepositoryCreateOutcome} from './contracts';
 import type {StageAllPreview,RemoteAddRequest,RemoteAddPreview} from './contracts';
 import type { JenkinsSelection, JenkinsSnapshot } from './contracts';
@@ -50,6 +51,8 @@ export const api = {
   previewClone: (request: CloneRequest) => call<ClonePreview>('preview_clone', { request }),
   cloneRepository: (request: CloneRequest, token: string, onProgress?: (event: WorkProgress) => void) => callProgress<CloneOutcome>('clone_repository', { request, token }, onProgress),
   recentClones: (workspaceId: string) => call<CloneOutcome[]>('recent_clones', { workspaceId }),
+  previewStaleLock: (membershipId:string) => call<StaleLockPreview>('preview_stale_lock',{membershipId}),
+  recoverStaleLock: (membershipId:string,token:string) => call<NativePath>('recover_stale_lock',{membershipId,token}),
   recordedActivity: (membershipId: string) => call<RecordedActivity>('recorded_activity', { membershipId }),
   previewDiscard: (membershipId: string, request: DiscardRequest, operationToken?: string, onProgress?: (event:WorkProgress)=>void) => callProgress<DiscardPreview>(operationToken ? 'preview_operation_discard' : 'preview_discard', { membershipId, request, ...(operationToken ? {operationToken} : {}) },onProgress).then(preview => { if (preview.version !== 1) throw new Error('Restart GitNova to load discard support. Nothing has been applied.'); return preview; }),
   discardChanges: (membershipId: string, request: DiscardRequest, token: string, operationToken?: string, onProgress?: (event:WorkProgress)=>void) => callProgress<OperationReceipt>(operationToken ? 'discard_operation_changes' : 'discard_changes', { membershipId, request, token, ...(operationToken ? {operationToken} : {}) },onProgress),

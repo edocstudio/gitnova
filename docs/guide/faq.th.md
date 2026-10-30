@@ -68,7 +68,7 @@ Cherry-pick นำการเปลี่ยนแปลงของ commit ห
 
 ### Rebase คืออะไร?
 
-Rebase นำ commit ไปเล่นซ้ำบนฐานใหม่และเปลี่ยนรหัส คลิกขวา commit ปลายทาง เลือก Rebase ตรวจ branch ปัจจุบัน → ปลายทางและช่วง commit แล้วยืนยันการเขียนใหม่ รองรับช่วงเส้นตรงไม่เกิน 100 commit โดยปฏิเสธช่วง merge/root และการเปลี่ยน pointer ของ submodule แก้ conflict ใน Working changes แล้วตรวจ Continue, Skip empty commit หรือ Abort ปลายเดิมยังใช้กู้คืนได้ และไม่ force push
+Rebase นำ commit ไปเล่นซ้ำบนฐานใหม่และเปลี่ยนรหัส คลิกขวา commit ปลายทาง เลือก Rebase ตรวจ branch ปัจจุบัน → ปลายทางและช่วง commit แล้วยืนยันการเขียนใหม่ รองรับไม่เกิน 100 commit รวม root replay แบบเส้นตรงและการสร้าง merge สอง parent ใหม่ตามที่ตรวจ อาจต้องแก้ conflict ของ merge อีกครั้ง โดยปฏิเสธ shallow, octopus/cousin หรือ parent นอกช่วง และการเปลี่ยน pointer ของ submodule แก้ conflict ใน Working changes แล้วตรวจ Continue, Skip empty commit หรือ Abort ปลายเดิมยังใช้กู้คืนได้ และไม่ force push
 
 ### Amend กับ Revert คืออะไร?
 
@@ -170,3 +170,26 @@ index กรณีเปลี่ยนโครงสร้าง nested submod
 ### ซ่อม worktree ที่ย้ายโฟลเดอร์อย่างไร?
 
 เปิด Worktree metadata จากรายการที่หาย แล้วระบุโฟลเดอร์ใหม่ที่มีอยู่ ตรวจ Reattach ก่อนยืนยัน Git locator ต้องชี้ worktree เดิมที่ลงทะเบียนไว้ ระบบเก็บไฟล์ staging และ branch พร้อมอัปเดต path ใน workspace ที่ตรงกัน Action นี้ไม่ย้ายโฟลเดอร์และไม่ prune metadata
+
+### ติดตามไฟล์และตรวจ dependency ข้าม repo
+
+Search → Follow file renames ใช้ path ของไฟล์เดียว ณ revision บนเครื่อง ผลลัพธ์แนบชื่อไฟล์ในประวัติและเปิด diff โดยไม่ checkout แสดงไม่เกิน 100 รายการ และใช้กฎการเลือกประวัติ merge ของ Git
+
+Compare branches ตรวจ gitlink ใน source/target และแสดง ancestor แบบ forward, rollback หรือ diverged ของ child ที่ลงทะเบียนไว้ ตัวตนที่ยังไม่ยืนยัน URL ที่เปลี่ยน object ที่ขาด ประวัติ shallow และขอบเขตเวลา/ผลลัพธ์ต้องแสดงว่าไม่ทราบหรือไม่ครบ ไม่รับรอง CI ความเข้ากันได้ของ package/runtime หรือความพร้อม release
+
+### Stage/Unstage registration ของ submodule
+
+เลือก gitlink ที่เพิ่ม/ลบหรือ .gitmodules ใน Working changes แล้วตรวจ Stage/Unstage registration ระบบเปลี่ยน staging ของ manifest ทั้งไฟล์พร้อม pointer ที่เลือก สำรอง index ก่อน โดยไม่เปลี่ยนไฟล์ commit หรือ branch ของ child การแก้ manifest ส่วนอื่นต้องตรวจแยกต่างหาก
+
+### Prune metadata ของ worktree ที่หาย
+
+เลือกจาก Worktree metadata ของรายการที่หาย ต้องไม่ล็อกและเป็น prunable พร้อมปฏิเสธเมื่อมี registration กำกวมหรือ worktree อื่นที่หายหรือเสีย การยืนยันย้ายเฉพาะ metadata ของรายการที่เลือกไปเก็บ ระบบสำรอง metadata และเก็บ branch/tip ก่อนนำ registration และ membership ที่ตรงกันออก ไม่สามารถกู้ไฟล์บนดิสก์ที่หาย หากย้ายโฟลเดอร์ให้ใช้ Reattach
+
+### กู้คืน lock ของ GitNova ที่ค้างอย่างไร?
+
+เปิด Working changes → Recent activity & recovery → Recover stale lock…
+ตรวจผลตรวจ process แล้วเลือก Archive stale lock หากปุ่มเปิดให้ใช้ ระบบเก็บ lock
+เดิมไว้ตามตำแหน่งที่แสดง ไม่เปลี่ยนไฟล์ staging branch หรือ journal หากเจ้าของยังอยู่
+มี native operation/lock หรืองาน Git อื่นกำลังทำงาน ระบบจะปฏิเสธการกู้คืน
+การตรวจนี้รองรับ macOS ในปัจจุบัน หลังย้ายเก็บให้ตรวจ operation ที่ยังเหลือแยกต่างหาก
+อย่าลบ `*.lock` ทั้งหมดหรือลองทำงานซ้ำโดยไม่ตรวจสอบ

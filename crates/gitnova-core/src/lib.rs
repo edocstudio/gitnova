@@ -825,7 +825,8 @@ impl Application {
                     "unstage_hunk" => "Hunk unstaged; working file preserved".into(),
                     "unstage" => "File unstaged; working file preserved".into(),
                     "initialize_submodule" => receipt.submodule.as_ref().map_or_else(|| "Submodule initialized".into(), |sub| format!("Initialized {} at recorded {}", sub.path.display, &sub.target_oid[..8])),
-                    "submodule_registration" => "Submodule registration staged; review .gitmodules and the pointer before committing. Child files and history retained.".into(),
+                    "submodule_registration_index" => "Registration staging updated; child files and branches retained.".into(),
+                     "submodule_registration" => "Submodule registration staged; review .gitmodules and the pointer before committing. Child files and history retained.".into(),
                     "update_submodule_remote" => "Submodule updated from cached remote branch; parent staging preserved. Review and stage its pointer separately.".into(),
                     "restore_submodule" => receipt.submodule.as_ref().map_or_else(|| "Submodule restored".into(), |sub| format!("Restored {} to recorded {}; parent index preserved", sub.path.display, &sub.target_oid[..8])),
                     "graph_action" => receipt.graph_action.as_ref().map_or_else(|| "Graph action completed".into(), |action| match action.kind {
@@ -887,6 +888,7 @@ impl Application {
                         | "initialize_submodule"
                         | "restore_submodule"
                         | "submodule_registration"
+                        | "submodule_registration_index"
                         | "update_submodule_remote"
                         | "stage_submodule_pointer"
                         | "unstage_submodule_pointer"
@@ -1230,6 +1232,7 @@ impl Application {
         token: &str,
     ) -> Result<OperationReceipt> {
         let preview = self.preview_worktree_maintenance(id, request)?;
+        let actual_request = preview.request.clone();
         self.execute_write_detailed(
             id,
             "worktree_maintenance",
@@ -1237,13 +1240,26 @@ impl Application {
             None,
             Some(PlannedOperation::WorktreeMaintenance(preview)),
             |git, root| {
+                let request=&actual_request;
                 git.maintain_worktree(root, request, token)?;
-                if request.kind=="reattach" {
-                    let target=NativePath::new(Path::new(&request.destination));
+                if request.kind=="reattach" || request.kind=="prune" {
+                    let repository_id = self.catalog()?.workspaces.iter().flat_map(|w|&w.memberships).find(|m|m.id==id).map(|m|m.repository_id.clone()).ok_or_else(||AppError::new("operation_unknown","Worktree metadata changed but workspace identity is unavailable."))?;
+                    let repaired = if request.kind=="reattach" {Some(git.discover(Path::new(&request.destination))?)} else {None};
                     self.update(|catalog|{
-                        for tree in &mut catalog.worktrees {if tree.root==request.path {tree.root=target.clone();}}
+                        let removed = catalog.worktrees.iter().filter(|t|t.repository_id==repository_id && t.root==request.path).map(|t|t.id.clone()).collect::<Vec<_>>();
+                        if let Some(target)=&repaired {
+                            for tree in &mut catalog.worktrees {
+                                if tree.repository_id==repository_id && tree.root==request.path && tree.git_dir==NativePath::new(&target.git_dir) {tree.root=NativePath::new(target.root.as_ref().ok_or_else(||AppError::new("operation_unknown","Repaired checkout root unavailable."))?);}
+                            }
+                        }else{
+                            catalog.worktrees.retain(|t|!removed.contains(&t.id));
+                            for workspace in &mut catalog.workspaces {
+                                workspace.memberships.retain(|m|m.repository_id!=repository_id || !m.worktree_id.as_ref().is_some_and(|w|removed.contains(w)));
+                                if workspace.selected_id.as_ref().is_some_and(|id|!workspace.memberships.iter().any(|m|&m.id==id)){workspace.selected_id=workspace.memberships.first().map(|m|m.id.clone());}
+                            }
+                        }
                         Ok(())
-                    }).map_err(|e|AppError::new("operation_unknown",format!("Worktree repaired, but workspace paths could not be saved: {}. Inspect before retrying.",e.message)))?;
+                    }).map_err(|e|AppError::new("operation_unknown",format!("Worktree metadata changed, but workspace paths could not be saved: {}. Inspect before retrying.",e.message)))?;
                 }
                 Ok(())
             },
@@ -1269,7 +1285,11 @@ impl Application {
         let p = self.preview_submodule_lifecycle(id, request)?;
         self.execute_write_detailed(
             id,
-            "submodule_registration",
+            if ["stage", "unstage"].contains(&request.kind.as_str()) {
+                "submodule_registration_index"
+            } else {
+                "submodule_registration"
+            },
             None,
             None,
             Some(PlannedOperation::SubmoduleLifecycle(Box::new(p))),
@@ -1845,3 +1865,5 @@ fn register_identity(
     };
     (repository_id, worktree_id)
 }
+
+mod stale_lock;

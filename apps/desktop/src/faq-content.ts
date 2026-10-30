@@ -64,7 +64,7 @@ export const faqEntries = [
   {
     "group": "History and recovery",
     "question": "What is Rebase?",
-    "answer": "Rebase replays commits onto a new base and changes their IDs. Right-click the target commit, choose Rebase, inspect current branch → target and the replay range, then acknowledge rewriting. GitNova supports up to 100 linear commits; merge/root ranges and submodule pointer changes are refused. Conflicts use Working changes, followed by reviewed Continue, Skip empty commit or Abort. Original tips remain recoverable; no force push occurs."
+    "answer": "Rebase replays commits onto a new base and changes their IDs. Right-click the target commit and review the branch, target, complete replay range and rewrite acknowledgement. Up to 100 commits are supported, including linear root replay onto an unrelated target and reviewed two-parent merge recreation. Merge resolutions may need to be applied again. Shallow, octopus, cousin/external-parent and submodule-changing ranges remain blocked. Conflicts use Working changes, followed by reviewed Continue, explicit empty Skip or Abort. Original tips remain recoverable; no force push occurs."
   },
   {
     "group": "History and recovery",
@@ -90,12 +90,12 @@ export const faqEntries = [
   {
     "group": "Multiple repositories",
     "question": "How do I add or remove a submodule?",
-    "answer": "Use Add submodule in the branch Submodules group. Review the repository source and relative folder, then add it. A new folder downloads the source default branch; an existing independent checkout keeps its commit and branch. Review the staged .gitmodules and gitlink before committing. Manage offers Remove registration, which stages removal while retaining child files, local history and Git metadata on disk. Open the immediate parent repository to manage a nested registration. Existing .gitmodules edits or overlapping registrations require investigation first."
+    "answer": "Use Add submodule in the branch Submodules group. Review the repository source and relative folder, then add it. A new folder downloads the source default branch; an existing independent checkout keeps its commit and branch. Review the staged .gitmodules and gitlink before committing. Manage offers Remove registration, which stages removal while retaining child files, local history and Git metadata on disk. Open the immediate parent repository to manage a nested registration. Existing .gitmodules edits or overlapping registrations require investigation first. For pending additions/removals, select the gitlink or .gitmodules in Working changes and use Stage/Unstage registration to change the manifest and pointer together; child files stay intact."
   },
   {
     "group": "Multiple repositories",
     "question": "When should I use a linked worktree?",
-    "answer": "Use a linked worktree to keep another checkout of the same repository, for example to review a release while keeping feature work open. Open or create one from the graph context. In Related repositories, Worktree metadata offers reviewed Lock, Unlock and Repair for an existing linked checkout. Lock protects against pruning; Unlock removes that protection. Repair fixes metadata without deleting files or moving branches. Dirty worktrees are not removed automatically. If you moved a linked folder outside the app, select its missing entry, enter the existing moved folder and review Reattach moved worktree. Original metadata must identify the same repository. Files, staging, branch and workspace identity are preserved; unrelated folders are never adopted."
+    "answer": "Use a linked worktree to keep another checkout of the same repository, for example to review a release while keeping feature work open. Open or create one from the graph context. In Related repositories, Worktree metadata offers reviewed Lock, Unlock and Repair for an existing linked checkout. Lock protects against pruning; Unlock removes that protection. Repair fixes metadata without deleting files or moving branches. Dirty worktrees are not removed automatically. If you moved a linked folder outside the app, select its missing entry, enter the existing moved folder and review Reattach moved worktree. Original metadata must identify the same repository. Files, staging, branch and workspace identity are preserved; unrelated folders are never adopted. An unlocked missing prunable checkout also offers reviewed Prune metadata, with a metadata archive and retained branch. It never deletes an existing checkout; reconnect moved or offline disks before choosing prune."
   },
   {
     "group": "Sharing and connections",
@@ -125,12 +125,12 @@ export const faqEntries = [
   {
     "group": "History and recovery",
     "question": "What if an operation fails or stays pending?",
-    "answer": "Open Working changes to inspect a pending merge, cherry-pick, revert or GitNova-started rebase. Resolve conflicts, then review commit/Continue or Abort. An uncertain interrupted journal needs inspection; the app never retries automatically. Handle an externally started rebase with Git outside the app. Zero changed files does not mean no operation is pending. Recent activity and recovery show retained references or backup locations; review them before recovery."
+    "answer": "Open Working changes to inspect a pending merge, cherry-pick, revert or GitNova-started rebase. Resolve conflicts, then review commit/Continue or Abort. An uncertain interrupted journal needs inspection; the app never retries automatically. Handle an externally started rebase with Git outside the app. Zero changed files does not mean no operation is pending. Recent activity and recovery show retained references or backup locations; review them before recovery. For a leftover GitNova lock, open Recent activity & recovery → Recover stale lock… and review Archive stale lock. macOS verifies ownership again; live processes and native Git operations block recovery. Only the original lock is archived; journals and working content stay intact."
   },
   {
     "group": "Everyday Git",
     "question": "How do I investigate a file or code change?",
-    "answer": "Open Search commits and choose File / code history. Enter a literal repository-relative path, a literal code phrase, or both; choose the repository scope and Search. Code search finds changes in the phrase occurrence count, not every edit to lines containing it. It considers at most 2,000 recent local commits per location and shows up to 100 results; merge changes compare with the first parent and renames are not followed. Select a result to open its graph and historical diff without checkout. Shallow or bounded coverage is labelled."
+    "answer": "Open Search commits and choose File / code history. Enter a literal repository-relative path, a literal code phrase, or both; choose the repository scope and Search. Code search finds changes in the phrase occurrence count, not every edit to lines containing it. It considers at most 2,000 recent local commits per location and shows up to 100 results; merge changes compare with the first parent and renames are not followed. Select a result to open its graph and historical diff without checkout. Shallow or bounded coverage is labelled. Follow file renames is a separate mode for one regular file at an exact local revision; results carry the historical filename. Compare branches also reports changed gitlink dependencies, including forward, rollback or diverged ancestry for registered children. Missing identity or objects stays unknown; cached remote evidence is not a production-readiness verdict."
   },
   {
     "group": "Multiple repositories",

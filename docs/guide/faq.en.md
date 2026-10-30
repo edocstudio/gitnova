@@ -68,7 +68,7 @@ Cherry-pick applies one commit’s changes onto your current branch as a new com
 
 ### What is Rebase?
 
-Rebase replays commits onto a new base and changes their IDs. Right-click the target commit, choose Rebase, inspect current branch → target and the replay range, then acknowledge rewriting. GitNova supports up to 100 linear commits; merge/root ranges and submodule pointer changes are refused. Conflicts use Working changes, followed by reviewed Continue, Skip empty commit or Abort. Original tips remain recoverable; no force push occurs.
+Rebase replays commits onto a new base and changes their IDs. Right-click the target commit, choose Rebase, inspect current branch → target and the replay range, then acknowledge rewriting. GitNova supports up to 100 commits, including linear root replay and reviewed two-parent merge recreation. Original merge resolutions may need reapplication. Shallow, octopus/cousin/external-parent ranges and submodule pointer changes remain refused. Conflicts use Working changes, followed by reviewed Continue, Skip empty commit or Abort. Original tips remain recoverable; no force push occurs.
 
 ### What are Amend and Revert?
 
@@ -176,3 +176,26 @@ Use Branch Submodules → Add submodule, supply a source and relative folder, th
 ### How do I repair a moved worktree?
 
 On its missing entry, open Worktree metadata and select the existing moved folder. Review Reattach before confirming. Its Git locator must identify the same registered worktree; GitNova preserves checkout files, staging and branch while updating matching workspace paths. This action does not move folders or prune metadata.
+
+### Follow file renames and investigate dependency changes
+
+Search → Follow file renames takes one regular file path at an exact local revision. It follows native Git rename history and attaches each historical filename to its result, for exact diff navigation without checkout. It is bounded to 100 results and native Git merge-history simplification.
+
+Compare branches across repositories also reads versioned gitlink dependencies at both tips. Registered child checkouts can provide forward, rollback or diverged ancestry and cached remote containment evidence. Unregistered children, changed URLs, missing objects, shallow history and time/output bounds remain unknown or partial. No CI approval, package/runtime compatibility or release-readiness verdict is inferred.
+
+### Stage or unstage a pending submodule registration
+
+Select the added/deleted gitlink or .gitmodules in Working changes. Stage/Unstage registration reviews the complete manifest together with that selected pointer and updates only the parent index. Original staging is saved first; child files, commits and branches stay intact. Other semantic manifest changes require separate review.
+
+### Prune missing worktree metadata
+
+Use the missing worktree entry's metadata review. Prune requires a missing, unlocked, prunable linked checkout and refuses ambiguous or other missing/broken registrations. Confirmation archives only the selected registration directory. It archives metadata and retains the branch/tip before removing the selected registration and matching workspace memberships. It cannot recover files on a missing disk; use Reattach for a moved folder.
+
+### How do I recover a stale GitNova lock?
+
+Open Working changes → Recent activity & recovery → Recover stale lock….
+Review the process check, then choose Archive stale lock if enabled. The original
+lock is kept at the displayed archive path. Files, staging, branches and journals
+are preserved. A live owner, native Git operation/lock or another running Git job
+blocks recovery. This verification currently requires macOS. Inspect any remaining
+operation separately; do not delete all `*.lock` files or retry blindly.

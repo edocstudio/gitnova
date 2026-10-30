@@ -183,7 +183,7 @@ The graph remains the primary interface as GitNova grows. The architecture follo
 | **5 · Smart change preview** | Explain planned changes and their risks before writing. |
 | **6 · Release intelligence** | Extend coordinated branch evidence into dependency-aware release investigation. |
 
-Reviewed linear Rebase and tracked-text Stage/Unstage hunk are available. See [scope and recovery](docs/milestone-56.md).
+Reviewed linear/root Rebase, bounded two-parent merge recreation and text Stage/Unstage hunk are available. Registration staging and missing-worktree pruning use separate reviewed actions. Search can follow file renames and inspect gitlink dependency ancestry across registered repositories. See [current scope and limits](docs/milestone-78.md).
 
 **Next priorities:** broader rebase/hunk support, remaining submodule/worktree operations, long-session performance/RAM measurement, and more recovery testing from real usage. SQLite FTS5 indexing is also planned; current catalog/index persistence uses JSON.
 

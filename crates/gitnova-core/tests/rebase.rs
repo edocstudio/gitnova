@@ -280,7 +280,7 @@ fn originally_empty_commit_and_binary_rename_delete_keep_the_complete_sequence()
     assert!(!f.root.join("renamed file\t.txt").exists());
 }
 #[test]
-fn merge_topology_and_stale_start_are_refused() {
+fn stale_start_is_refused_and_two_parent_topology_is_reviewed_without_flattening() {
     let f = fixture(false);
     let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
     git(
@@ -295,13 +295,21 @@ fn merge_topology_and_stale_start_are_refused() {
     git(&f.root, &["commit", "-m", "side"]);
     git(&f.root, &["checkout", "feature"]);
     git(&f.root, &["merge", "--no-ff", "side", "-m", "merge side"]);
-    assert!(f
-        .app
-        .preview_merge(&f.id, &request(&f))
-        .unwrap()
-        .blocked_reason
-        .unwrap()
-        .contains("merge or root"));
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+    assert!(p.rebase.as_ref().unwrap().preserve_merges);
+    let original = git(&f.root, &["rev-parse", "HEAD"]);
+    let side = git(&f.root, &["rev-parse", "side"]);
+    let result = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert_eq!(result.status, "succeeded", "{result:?}");
+    assert_eq!(
+        git(&f.root, &["rev-list", "--parents", "-n", "1", "HEAD"])
+            .split_whitespace()
+            .count(),
+        3
+    );
+    assert_eq!(git(&f.root, &["rev-parse", "side"]), side);
+    assert_eq!(git(&f.root, &["rev-parse", &p.recovery_ref]), original);
 }
 #[test]
 fn foreign_native_todo_and_interrupted_journal_never_authorize_continue() {
@@ -478,4 +486,211 @@ fn interrupted_rebase_journal_uses_metadata_only_cleanup_after_external_recovery
         "private unstaged\n"
     );
     assert_eq!(f.app.merge_state(&f.id).unwrap().phase, "none");
+}
+
+fn unrelated_fixture(conflict: bool) -> F {
+    let mut f = fixture(false);
+    git(&f.root, &["checkout", "--orphan", "unrelated"]);
+    git(&f.root, &["rm", "-rf", "."]);
+    fs::write(
+        f.root.join(if conflict { "file" } else { "separate" }),
+        "independent\n",
+    )
+    .unwrap();
+    git(&f.root, &["add", "."]);
+    git(&f.root, &["commit", "-m", "independent target"]);
+    f.target = git(&f.root, &["rev-parse", "HEAD"]);
+    git(&f.root, &["branch", "-f", "main", &f.target]);
+    git(&f.root, &["checkout", "feature"]);
+    f
+}
+#[test]
+fn root_replay_onto_an_unrelated_target_keeps_every_author_and_target_history() {
+    let f = unrelated_fixture(false);
+    let old = git(
+        &f.root,
+        &["log", "--reverse", "--format=%an %ae %at", "feature"],
+    );
+    let before = git(&f.root, &["status", "--porcelain"]);
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+    assert!(p.rebase.as_ref().unwrap().root);
+    assert_eq!(p.rebase.as_ref().unwrap().commits.len(), 2);
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.original);
+    assert_eq!(git(&f.root, &["status", "--porcelain"]), before);
+    let result = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert_eq!(result.status, "succeeded", "{result:?}");
+    assert_eq!(
+        git(
+            &f.root,
+            &[
+                "log",
+                "--reverse",
+                "--format=%an %ae %at",
+                &format!("{}..HEAD", f.target)
+            ]
+        ),
+        old
+    );
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD~2"]), f.target);
+    assert_eq!(git(&f.root, &["rev-parse", &p.recovery_ref]), f.original);
+    assert_eq!(
+        fs::read_to_string(f.root.join("separate")).unwrap(),
+        "independent\n"
+    );
+}
+#[test]
+fn conflicted_root_replay_can_abort_after_application_restart() {
+    let f = unrelated_fixture(true);
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+    assert!(!p.conflicts.is_empty());
+    let result = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert!(
+        ["pending", "conflicted"].contains(&result.status.as_str()),
+        "{result:?}"
+    );
+    let app = Application::new(f._dir.path().join("catalog.json")).unwrap();
+    let q = app.preview_merge_action(&f.id, &action("abort")).unwrap();
+    assert!(q.blocked_reason.is_none(), "{:?}", q.blocked_reason);
+    let result = app
+        .apply_merge_action(&f.id, &action("abort"), &q.token)
+        .unwrap();
+    assert_eq!(result.status, "succeeded", "{result:?}");
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.original);
+    assert_eq!(git(&f.root, &["status", "--porcelain"]), "");
+}
+#[test]
+fn shallow_boundary_is_never_mistaken_for_a_root_replay() {
+    let f = unrelated_fixture(false);
+    fs::write(f.root.join(".git/shallow"), format!("{}\n", f.original)).unwrap();
+    let error = f.app.preview_merge(&f.id, &request(&f)).unwrap_err();
+    assert!(error.message.contains("shallow"), "{error:?}");
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.original);
+}
+
+#[test]
+fn recreated_merge_conflict_requires_review_and_can_abort_without_flattening() {
+    let f = fixture(false);
+    let base = git(&f.root, &["merge-base", "main", "feature"]);
+    git(&f.root, &["checkout", "-b", "side", &base]);
+    fs::write(f.root.join("file"), "side edit\n").unwrap();
+    git(&f.root, &["commit", "-am", "side edit"]);
+    git(&f.root, &["checkout", "feature"]);
+    // Build an original two-parent merge with an explicit resolution, without relying on merge's failure exit.
+    let _ = Command::new("git")
+        .arg("-C")
+        .arg(&f.root)
+        .args(["merge", "--no-ff", "side", "-m", "resolved merge"])
+        .output()
+        .unwrap();
+    fs::write(f.root.join("file"), "manual original resolution\n").unwrap();
+    git(&f.root, &["add", "file"]);
+    git(&f.root, &["commit", "-m", "resolved merge"]);
+    let original = git(&f.root, &["rev-parse", "HEAD"]);
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+    assert!(p.rebase.as_ref().unwrap().preserve_merges);
+    assert!(!p.conflicts.is_empty());
+    let r = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert!(
+        ["pending", "conflicted"].contains(&r.status.as_str()),
+        "{r:?}"
+    );
+    let app = Application::new(f._dir.path().join("catalog.json")).unwrap();
+    let q = app.preview_merge_action(&f.id, &action("abort")).unwrap();
+    let r = app
+        .apply_merge_action(&f.id, &action("abort"), &q.token)
+        .unwrap();
+    assert_eq!(r.status, "succeeded", "{r:?}");
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), original);
+    assert_eq!(
+        fs::read_to_string(f.root.join("file")).unwrap(),
+        "manual original resolution\n"
+    );
+}
+
+#[test]
+fn recreated_merge_can_resolve_continue_and_foreign_label_changes_block_writes() {
+    let f = fixture(false);
+    let base = git(&f.root, &["merge-base", "main", "feature"]);
+    git(&f.root, &["checkout", "-b", "side", &base]);
+    fs::write(f.root.join("file"), "side edit\n").unwrap();
+    git(&f.root, &["commit", "-am", "side edit"]);
+    git(&f.root, &["checkout", "feature"]);
+    let _ = Command::new("git")
+        .arg("-C")
+        .arg(&f.root)
+        .args(["merge", "--no-ff", "side", "-m", "resolved merge"])
+        .output()
+        .unwrap();
+    fs::write(f.root.join("file"), "original resolution\n").unwrap();
+    git(&f.root, &["add", "file"]);
+    git(&f.root, &["commit", "-m", "resolved merge"]);
+    let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
+    assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
+    let r = f.app.begin_merge(&f.id, &p.request, &p.token).unwrap();
+    assert!(
+        ["pending", "conflicted"].contains(&r.status.as_str()),
+        "{r:?}"
+    );
+    let labels = git(
+        &f.root,
+        &[
+            "for-each-ref",
+            "--format=%(refname) %(objectname)",
+            "refs/rewritten/",
+        ],
+    );
+    let fields = labels
+        .lines()
+        .next()
+        .unwrap()
+        .split_whitespace()
+        .collect::<Vec<_>>();
+    git(&f.root, &["update-ref", fields[0], &f.original]);
+    assert_eq!(f.app.snapshot(&f.id).unwrap().merge.phase, "incomplete");
+    assert!(f
+        .app
+        .preview_merge_action(&f.id, &action("finish"))
+        .unwrap()
+        .blocked_reason
+        .is_some());
+    git(&f.root, &["update-ref", fields[0], fields[1]]);
+    git(&f.root, &["symbolic-ref", fields[0], "refs/heads/main"]);
+    match f.app.preview_merge_action(&f.id, &action("finish")) {
+        Err(_) => {}
+        Ok(p) => {
+            assert_ne!(p.state.phase, "pending");
+            assert!(p.blocked_reason.is_some());
+        }
+    }
+    git(&f.root, &["update-ref", "--no-deref", fields[0], fields[1]]);
+    let state = f.app.snapshot(&f.id).unwrap().merge;
+    assert_eq!(state.phase, "pending");
+    let resolve = MergeAction {
+        kind: "resolve".into(),
+        path: Some(state.conflicts[0].path.clone()),
+        choice: Some("edited".into()),
+        content: Some("reviewed new resolution\n".into()),
+        message: String::new(),
+    };
+    let q = f.app.preview_merge_action(&f.id, &resolve).unwrap();
+    assert!(q.blocked_reason.is_none(), "{:?}", q.blocked_reason);
+    f.app.apply_merge_action(&f.id, &resolve, &q.token).unwrap();
+    let next = action("finish");
+    let q = f.app.preview_merge_action(&f.id, &next).unwrap();
+    assert!(q.blocked_reason.is_none(), "{:?}", q.blocked_reason);
+    let r = f.app.apply_merge_action(&f.id, &next, &q.token).unwrap();
+    assert_eq!(r.status, "succeeded", "{r:?}");
+    assert_eq!(
+        git(&f.root, &["rev-list", "--parents", "-n", "1", "HEAD"])
+            .split_whitespace()
+            .count(),
+        3
+    );
+    assert_eq!(
+        fs::read_to_string(f.root.join("file")).unwrap(),
+        "reviewed new resolution\n"
+    );
 }
