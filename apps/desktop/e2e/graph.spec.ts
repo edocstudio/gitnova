@@ -523,6 +523,34 @@ test('graph management renames, configures upstream and retains deleted branch a
   await manage(tip,'branch','spare'); await panel.getByRole('button',{name:'Delete local branch…',exact:true}).click(); const backup=await panel.locator('.recovery-ref').innerText(); await page.screenshot({path:testInfo.outputPath('delete-branch-recovery-review.png')}); await panel.getByRole('button',{name:'Delete local branch',exact:true}).click(); await expect(panel).toBeHidden({timeout:30000}); expect(git(repo,['branch','--list','spare'])).toBe(''); expect(git(repo,['rev-parse',backup])).toBe(tip); await expect(page.getByRole('button',{name:'Copy recovery ref',exact:true})).toHaveAttribute('title',backup);
   await manage(tip,'tag','review/tag'); await panel.getByRole('button',{name:'Delete local tag…',exact:true}).click(); await expect(panel.locator('summary')).toBeVisible(); await panel.getByRole('button',{name:'Back',exact:true}).focus(); await page.keyboard.press('Shift+Tab'); await expect(panel.locator('summary')).toBeFocused(); await page.keyboard.press('Enter'); await expect(panel).toContainText('Keep annotation'); const tagBackup=await panel.locator('.recovery-ref').innerText(); await panel.getByRole('button',{name:'Delete local tag',exact:true}).click(); await expect(panel).toBeHidden({timeout:30000}); expect(git(repo,['tag','--list'])).toBe(''); expect(git(repo,['rev-parse',tagBackup])).toBe(tagObject); expect(git(bare,['rev-parse','main'])).toBe(base); expect(git(repo,['diff','--','file.txt'])).toContain('uncommitted work stays');
 });
+test('annotated tag review retains keyboard focus after pending animation frames', async ({page}) => {
+  const {tip, manage, panel} = await managementFixture(page, 'tag-keyboard-focus');
+  await manage(tip, 'tag', 'review/tag');
+  await expect(panel.getByRole('button', {name:'Delete local tag…', exact:true})).toBeEnabled();
+  // Release delayed focus callbacks after keyboard navigation, so the race
+  // is reproducible without relying on CI load or arbitrary sleeps.
+  const now = new Date('2026-01-01T00:00:00Z');
+  await page.clock.install({time:now});
+  await page.clock.pauseAt(new Date(now.getTime()+1000));
+  await panel.getByRole('button', {name:'Delete local tag…', exact:true}).click();
+  const summary = panel.locator('summary');
+  await expect(summary).toBeVisible();
+  const back = panel.getByRole('button', {name:'Back', exact:true});
+  await back.focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(summary).toBeFocused();
+  await page.clock.runFor(32);
+  await expect(summary).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(panel).toContainText('Keep annotation');
+  await expect(panel.locator('details')).toHaveAttribute('open', '');
+  await page.keyboard.press('Tab');
+  await expect(back).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(panel.getByRole('button', {name:'Delete local tag', exact:true})).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(panel).toBeHidden();
+});
 test('graph push reviews first publication and sets upstream while preserving dirty work', async ({page},testInfo)=>{
   test.setTimeout(120000); const {repo,bare,base,tip,manage,panel}=await managementFixture(page,'push-graph'); await manage(tip,'branch','feature/manage'); await panel.getByRole('button',{name:'Push feature/manage…',exact:true}).click(); await page.getByLabel('Remote',{exact:true}).selectOption('origin'); await page.getByLabel('Destination branch',{exact:true}).fill('published/feature'); await page.getByLabel('Set this destination as upstream after push',{exact:true}).check(); await panel.getByText('Upload compatibility',{exact:true}).click();const buffered=panel.getByRole('checkbox',{name:'Use buffered HTTPS upload (16 MiB)',exact:true});await expect(buffered).not.toBeChecked();await buffered.check();await page.getByRole('button',{name:'Check destination & review',exact:true}).click();await expect(panel).toContainText('Buffered upload is available only for HTTPS destinations.');expect(git(bare,['for-each-ref','--format=%(refname)','refs/heads/published/feature'])).toBe('');await buffered.uncheck();await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await expect(panel).toContainText('Creates a new remote branch'); await expect(panel).toContainText('2 commits in this branch history'); await expect(panel).toContainText('First publication to this branch'); await expect(panel).toContainText(tip.slice(0,12)); expect(git(bare,['for-each-ref','--format=%(refname)','refs/heads/published/feature'])).toBe(''); await page.screenshot({path:testInfo.outputPath('push-outgoing-review.png')}); await panel.getByRole('button',{name:'Push reviewed branch',exact:true}).click(); await expect(panel).toBeHidden({timeout:45000}); expect(git(bare,['rev-parse','refs/heads/published/feature'])).toBe(tip); expect(git(bare,['rev-parse','main'])).toBe(base); expect(git(bare,['show','refs/heads/published/feature:file.txt'])).toBe('feature'); expect(git(repo,['config','branch.feature/manage.merge'])).toBe('refs/heads/published/feature'); expect(git(repo,['branch','--show-current'])).toBe('main'); await expect(page.locator('.status-line')).toContainText('Pushed feature/manage'); expect(git(repo,['diff','--','file.txt'])).toContain('uncommitted work stays');
 });

@@ -1,6 +1,6 @@
 import {RemoteSetup} from './RemoteSetup';
 import { t } from './i18n';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { BranchTracking, GitRef, OperationReceipt, PushPreview, RefOperation, RefOperationPreview, RemoteBranches } from './contracts';
 type Mode = 'actions' | 'rename' | 'upstream' | 'push' | 'review';
@@ -18,7 +18,12 @@ export function RefManager({ onConfigureRemote, initialRemote, initialDestinatio
   const [readingRemotes, setReadingRemotes] = useState(!tag);
   const [refReview, setRefReview] = useState<RefOperationPreview | null>(null); const [pushReview, setPushReview] = useState<PushPreview | null>(null);
   const root = useRef<HTMLDivElement>(null);
-  useEffect(() => { requestAnimationFrame(() => root.current?.querySelector<HTMLElement>('input:not(:disabled), select:not(:disabled), button:not(:disabled)')?.focus()); }, [mode, loading]);
+  // Focus the committed form before paint. A delayed frame can otherwise
+  // steal focus after the user has already navigated to the tag disclosure.
+  useLayoutEffect(() => {
+    if (loading || readingRemotes) return;
+    root.current?.querySelector<HTMLElement>('input:not(:disabled), select:not(:disabled), button:not(:disabled)')?.focus();
+  }, [mode, loading, readingRemotes]);
   const sequence = useRef(0); const inFlight = useRef(false); const locked = blocked || loading || writing || (mode === 'push' || mode === 'upstream') && readingRemotes;
   const loadRemotes = async () => { const value = await api.remoteBranches(membershipId); setListing(value); if (!remote && value.remotes.length === 1) setRemote(value.remotes[0]); return value; };
   useEffect(() => { let cancelled = false; if (!tag) void api.remoteBranches(membershipId).then(value => { if (!cancelled) { setListing(value); setRemote(current => current ? value.remotes.includes(current) ? current : '' : value.remotes.length === 1 ? value.remotes[0] : ''); } }).catch(e => { if (!cancelled) setError(errorMessage(e)); }).finally(() => { if (!cancelled) setReadingRemotes(false); }); return () => { cancelled = true; sequence.current++; }; }, [membershipId, tag]);

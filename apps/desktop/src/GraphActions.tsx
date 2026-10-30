@@ -79,8 +79,11 @@ export function GraphActions({ onConfigureRemote, pendingOperation = false, trac
     const observer = new ResizeObserver(fit); observer.observe(node); window.addEventListener('resize', fit); fit();
     return () => { observer.disconnect(); window.removeEventListener('resize', fit); };
   }, [intent]);
-  useEffect(() => {
-    requestAnimationFrame(() => root.current?.querySelector<HTMLElement>('input, button:not(:disabled)')?.focus());
+  useLayoutEffect(() => {
+    // RefManager owns focus inside its forms. Do not queue a parent callback
+    // that can override a field or keyboard navigation after it mounts.
+    if (loading || mode === 'manage' || mode === 'push' || mode === 'deleteLocal') return;
+    root.current?.querySelector<HTMLElement>('input:not(:disabled), select:not(:disabled), button:not(:disabled)')?.focus();
   }, [mode, loading]);
   useEffect(() => {
     const close = (event: PointerEvent) => { if ((event.target as Element)?.closest?.('dialog[open]')) return; if (!inFlight.current && !root.current?.contains(event.target as Node)) onClose(); };
