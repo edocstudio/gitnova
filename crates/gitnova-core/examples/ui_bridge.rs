@@ -167,6 +167,17 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 .map_err(|e| AppError::new("json", e.to_string()))?,
             &s("token")?
         )?),
+        "connection_commit_identity" => json!(app.connection_commit_identity(
+            &serde_json::from_value(args["profile"].clone())
+                .map_err(|e| AppError::new("json", e.to_string()))?
+        )?),
+        "set_connection_commit_identity" => json!(app.set_connection_commit_identity(
+            &serde_json::from_value(args["profile"].clone())
+                .map_err(|e| AppError::new("json", e.to_string()))?,
+            serde_json::from_value(args["identity"].clone())
+                .map_err(|e| AppError::new("json", e.to_string()))?
+        )?),
+        "commit_identity" => json!(app.commit_identity(&s("membershipId")?)?),
         "host_account" => json!(app.host_account(
             &serde_json::from_value(args["profile"].clone())
                 .map_err(|e| AppError::new("hosting", e.to_string()))?

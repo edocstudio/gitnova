@@ -144,3 +144,6 @@ export type InitPreview = {request: InitRequest; destination: NativePath; existi
 export interface InvestigationRequest { selection: CommitSearchRequest; mode: 'history' | 'compare'; path: string; needle: string; source: string; target: string }
 export interface InvestigationEvidence { location: SearchLocation; sourceOid: string | null; targetOid: string | null; sourceOnly: number | null; targetOnly: number | null; changedFiles: number | null; dirty: boolean | null; scanned: number; limited: boolean; shallow: boolean; issue: string | null }
 export interface InvestigationPage { hits: CommitSearchHit[]; evidence: InvestigationEvidence[]; partial: boolean }
+
+export interface GitCommitIdentity {name:string;email:string}
+export interface CommitIdentityContext {identity:GitCommitIdentity;connection:HostProfile|null}

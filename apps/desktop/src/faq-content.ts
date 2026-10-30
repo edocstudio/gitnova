@@ -1,4 +1,5 @@
 export const faqEntries = [
+
   {
     "group": "Start here",
     "question": "How do I make my first commit?",
@@ -8,6 +9,12 @@ export const faqEntries = [
     "group": "Start here",
     "question": "What are a workspace, repository and worktree?",
     "answer": "A workspace groups projects for quick switching; it is not a Git submodule. A repository stores Git history. A worktree is a checkout with its own files, HEAD and staging area; linked worktrees share repository history. Switch repositories from the workspace picker; search and pagination help with long lists."
+  },
+  {"group": "Everyday Git", "question": "How do I open a terminal in the current repository?", "answer": "Select Terminal beside Pull/Push to start a shell in the current repository or worktree folder. Hide keeps the session running; End session closes it after confirmation. Sessions stay separate when switching repositories, with at most four open. Commands use normal shell/Git settings, outside GitNova previews and connection commit identities. Auto fetch pauses while sessions are open. Refresh to inspect external changes. Scrollback is bounded and GitNova does not save transcripts; your shell may keep its usual history."},
+  {
+    "group": "Everyday Git",
+    "question": "Why can the commit author differ from my connected account?",
+    "answer": "A connection authenticates Git, PR/MR and CI requests; commit authorship comes from Git configuration unless you explicitly save a Commit identity in Settings → Connections. Enter the name and a verified email or GitHub noreply address for that host. GitNova matches origin, or the only remote, without editing Git config files. Review the Committer line before confirming. Amend, cherry-pick and rebase retain original authors. Changing this setting affects future operations, not commits already published."
   },
   {
     "group": "Everyday Git",

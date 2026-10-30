@@ -15,6 +15,7 @@ use std::{
 
 mod activity;
 mod clone;
+mod commit_identities;
 mod display_cache;
 pub mod git_credentials;
 mod hosting;
@@ -24,6 +25,7 @@ mod merge_cleanup;
 mod search;
 
 pub struct Application {
+    commit_identities: Mutex<Vec<ConnectionCommitIdentity>>,
     tracking_cache: display_cache::TrackingCache,
     pipeline_cache:
         Mutex<std::collections::VecDeque<(String, std::time::Instant, PipelineSnapshot)>>,
@@ -45,9 +47,12 @@ impl Application {
             .parent()
             .ok_or_else(|| AppError::new("storage", "Missing app data path."))?
             .join("search");
+        let identities =
+            commit_identities::load(&data_file.parent().unwrap().join("commit-identities.json"))?;
         let store = Store::new(data_file);
         let catalog = store.load_or_initialize(gitnova_workspace::empty_catalog)?;
         Ok(Self {
+            commit_identities: Mutex::new(identities),
             tracking_cache: display_cache::TrackingCache::default(),
             pipeline_cache: Mutex::new(std::collections::VecDeque::new()),
             jenkins_cache: Mutex::new(std::collections::VecDeque::new()),
@@ -262,14 +267,18 @@ impl Application {
         })
     }
     pub fn stashes(&self, membership_id: &str) -> Result<StashList> {
-        self.git.stashes(&self.path(membership_id)?)
+        self.with_repo_identity(membership_id, || {
+            self.git.stashes(&self.path(membership_id)?)
+        })
     }
     pub fn preview_stash(
         &self,
         membership_id: &str,
         request: &StashRequest,
     ) -> Result<StashPreview> {
-        self.git.preview_stash(&self.path(membership_id)?, request)
+        self.with_repo_identity(membership_id, || {
+            self.git.preview_stash(&self.path(membership_id)?, request)
+        })
     }
     pub fn apply_stash(
         &self,
@@ -277,22 +286,24 @@ impl Application {
         request: &StashRequest,
         token: &str,
     ) -> Result<OperationReceipt> {
-        let path = self.path(membership_id)?;
-        let preview = self.git.preview_stash(&path, request)?;
-        let kind = match request.kind {
-            StashKind::Push => "stash_push",
-            StashKind::Apply => "stash_apply",
-            StashKind::Pop => "stash_pop",
-            StashKind::Drop => "stash_drop",
-        };
-        self.execute_write_detailed(
-            membership_id,
-            kind,
-            None,
-            None,
-            Some(PlannedOperation::Stash(preview)),
-            |git, path| git.apply_stash(path, request, token),
-        )
+        self.with_repo_identity(membership_id, || {
+            let path = self.path(membership_id)?;
+            let preview = self.git.preview_stash(&path, request)?;
+            let kind = match request.kind {
+                StashKind::Push => "stash_push",
+                StashKind::Apply => "stash_apply",
+                StashKind::Pop => "stash_pop",
+                StashKind::Drop => "stash_drop",
+            };
+            self.execute_write_detailed(
+                membership_id,
+                kind,
+                None,
+                None,
+                Some(PlannedOperation::Stash(preview)),
+                |git, path| git.apply_stash(path, request, token),
+            )
+        })
     }
     pub fn detail(&self, membership_id: &str, oid: &str) -> Result<CommitDetail> {
         self.git.detail(&self.path(membership_id)?, oid)
@@ -639,7 +650,7 @@ impl Application {
             tracking: self
                 .display_tracking(&path, &fingerprint)
                 .unwrap_or_default(),
-            merge: self.git.merge_state(&path)?,
+            merge: self.merge_state(membership_id)?,
             fingerprint,
             changes: self.git.working_changes(&path)?,
         })
@@ -657,7 +668,9 @@ impl Application {
             .file_preview(&self.path(membership_id)?, file, staged)
     }
     pub fn commit_preview(&self, membership_id: &str) -> Result<CommitPreview> {
-        self.git.commit_preview(&self.path(membership_id)?)
+        self.with_repo_identity(membership_id, || {
+            self.git.commit_preview(&self.path(membership_id)?)
+        })
     }
     fn save_receipt(&self, receipt: &OperationReceipt) -> Result<()> {
         use std::io::Write;
@@ -1072,12 +1085,17 @@ impl Application {
         request: &DiscardRequest,
         operation_token: &str,
     ) -> Result<DiscardPreview> {
-        let mut request = request.clone();
-        if request.id.is_empty() {
-            request.id = id();
-        }
-        self.git
-            .preview_operation_discard(&self.path(membership_id)?, &request, operation_token)
+        self.with_repo_identity(membership_id, || {
+            let mut request = request.clone();
+            if request.id.is_empty() {
+                request.id = id();
+            }
+            self.git.preview_operation_discard(
+                &self.path(membership_id)?,
+                &request,
+                operation_token,
+            )
+        })
     }
     pub fn discard_operation_changes(
         &self,
@@ -1086,21 +1104,23 @@ impl Application {
         token: &str,
         operation_token: &str,
     ) -> Result<OperationReceipt> {
-        let p = self.preview_operation_discard(membership_id, request, operation_token)?;
-        if p.token != token {
-            return Err(AppError::new(
-                "stale_preview",
-                "Discard selection changed. Review the current files again.",
-            ));
-        }
-        self.execute_write_detailed(
-            membership_id,
-            "merge_discard",
-            None,
-            None,
-            Some(PlannedOperation::Discard(p)),
-            |git, root| git.discard_operation_changes(root, request, token, operation_token),
-        )
+        self.with_repo_identity(membership_id, || {
+            let p = self.preview_operation_discard(membership_id, request, operation_token)?;
+            if p.token != token {
+                return Err(AppError::new(
+                    "stale_preview",
+                    "Discard selection changed. Review the current files again.",
+                ));
+            }
+            self.execute_write_detailed(
+                membership_id,
+                "merge_discard",
+                None,
+                None,
+                Some(PlannedOperation::Discard(p)),
+                |git, root| git.discard_operation_changes(root, request, token, operation_token),
+            )
+        })
     }
     pub fn discard_changes(
         &self,
@@ -1150,7 +1170,9 @@ impl Application {
         path: &NativePath,
         token: &str,
     ) -> Result<FilePreview> {
-        self.git.commit_file_preview(&self.path(id)?, path, token)
+        self.with_repo_identity(id, || {
+            self.git.commit_file_preview(&self.path(id)?, path, token)
+        })
     }
     pub fn preview_remote_add(
         &self,
@@ -1270,14 +1292,18 @@ impl Application {
         )
     }
     pub fn amend_original(&self, membership_id: &str, oid: &str) -> Result<AmendOriginal> {
-        self.git.amend_original(&self.path(membership_id)?, oid)
+        self.with_repo_identity(membership_id, || {
+            self.git.amend_original(&self.path(membership_id)?, oid)
+        })
     }
     pub fn preview_amend(
         &self,
         membership_id: &str,
         request: &AmendRequest,
     ) -> Result<AmendPreview> {
-        self.git.preview_amend(&self.path(membership_id)?, request)
+        self.with_repo_identity(membership_id, || {
+            self.git.preview_amend(&self.path(membership_id)?, request)
+        })
     }
     pub fn amend_commit(
         &self,
@@ -1286,21 +1312,23 @@ impl Application {
         token: &str,
         acknowledge_rewrite: bool,
     ) -> Result<OperationReceipt> {
-        let preview = self.preview_amend(membership_id, request)?;
-        if preview.token != token {
-            return Err(AppError::new(
-                "stale_preview",
-                "Amend review changed. Review again.",
-            ));
-        }
-        self.execute_write_detailed(
-            membership_id,
-            "amend_commit",
-            None,
-            None,
-            Some(PlannedOperation::Amend(preview)),
-            |git, path| git.apply_amend(path, request, token, acknowledge_rewrite),
-        )
+        self.with_repo_identity(membership_id, || {
+            let preview = self.preview_amend(membership_id, request)?;
+            if preview.token != token {
+                return Err(AppError::new(
+                    "stale_preview",
+                    "Amend review changed. Review again.",
+                ));
+            }
+            self.execute_write_detailed(
+                membership_id,
+                "amend_commit",
+                None,
+                None,
+                Some(PlannedOperation::Amend(preview)),
+                |git, path| git.apply_amend(path, request, token, acknowledge_rewrite),
+            )
+        })
     }
     pub fn create_commit(
         &self,
@@ -1308,15 +1336,17 @@ impl Application {
         message: &str,
         token: &str,
     ) -> Result<OperationReceipt> {
-        self.execute_write(membership_id, "commit", |git, path| {
-            git.create_commit(path, message, token)
+        self.with_repo_identity(membership_id, || {
+            self.execute_write(membership_id, "commit", |git, path| {
+                git.create_commit(path, message, token)
+            })
         })
     }
     pub fn merge_state(&self, id: &str) -> Result<MergeState> {
-        self.git.merge_state(&self.path(id)?)
+        self.with_repo_identity(id, || self.git.merge_state(&self.path(id)?))
     }
     pub fn preview_merge(&self, id: &str, request: &MergeRequest) -> Result<MergeStartPreview> {
-        self.git.preview_merge(&self.path(id)?, request)
+        self.with_repo_identity(id, || self.git.preview_merge(&self.path(id)?, request))
     }
     pub fn begin_merge(
         &self,
@@ -1324,53 +1354,59 @@ impl Application {
         request: &MergeRequest,
         token: &str,
     ) -> Result<OperationReceipt> {
-        let p = self.preview_merge(id, request)?;
-        if p.token != token {
-            return Err(AppError::new(
-                "stale_preview",
-                "Operation review changed. Review again.",
-            ));
-        }
-        let cleanup_request = p
-            .request
-            .delete_source_branch
-            .then(|| (p.request.clone(), p.branch.clone()));
-        let plan = MergeReceipt {
-            operation: p.request.operation.clone(),
-            mainline: p.request.mainline,
-            kind: "begin".into(),
-            session_id: p.request.session_id.clone(),
-            branch: p.branch,
-            original_oid: p.original_oid,
-            source_oid: p.request.source_oid.clone(),
-            path: None,
-            choice: None,
-            expected_tree: p.result_tree,
-            recovery_ref: Some(p.recovery_ref),
-            recovery_dir: None,
-        };
-        let receipt = self.execute_write_detailed(
-            id,
-            "merge_begin",
-            None,
-            None,
-            Some(PlannedOperation::Merge(plan)),
-            |git, path| git.begin_merge(path, request, token),
-        )?;
-        self.complete_merge_source_cleanup(id, receipt, cleanup_request)
+        self.with_repo_identity(id, || {
+            let p = self.preview_merge(id, request)?;
+            if p.token != token {
+                return Err(AppError::new(
+                    "stale_preview",
+                    "Operation review changed. Review again.",
+                ));
+            }
+            let cleanup_request = p
+                .request
+                .delete_source_branch
+                .then(|| (p.request.clone(), p.branch.clone()));
+            let plan = MergeReceipt {
+                operation: p.request.operation.clone(),
+                mainline: p.request.mainline,
+                kind: "begin".into(),
+                session_id: p.request.session_id.clone(),
+                branch: p.branch,
+                original_oid: p.original_oid,
+                source_oid: p.request.source_oid.clone(),
+                path: None,
+                choice: None,
+                expected_tree: p.result_tree,
+                recovery_ref: Some(p.recovery_ref),
+                recovery_dir: None,
+            };
+            let receipt = self.execute_write_detailed(
+                id,
+                "merge_begin",
+                None,
+                None,
+                Some(PlannedOperation::Merge(plan)),
+                |git, path| git.begin_merge(path, request, token),
+            )?;
+            self.complete_merge_source_cleanup(id, receipt, cleanup_request)
+        })
     }
     pub fn merge_file(&self, id: &str, path: &NativePath) -> Result<MergeFile> {
-        self.git.merge_file(&self.path(id)?, path)
+        self.with_repo_identity(id, || self.git.merge_file(&self.path(id)?, path))
     }
     pub fn merge_file_scope(&self, id: &str, path: &NativePath, staged: bool) -> Result<MergeFile> {
-        self.git.merge_file_scope(&self.path(id)?, path, staged)
+        self.with_repo_identity(id, || {
+            self.git.merge_file_scope(&self.path(id)?, path, staged)
+        })
     }
     pub fn preview_merge_action(
         &self,
         id: &str,
         action: &MergeAction,
     ) -> Result<MergeActionPreview> {
-        self.git.preview_merge_action(&self.path(id)?, action)
+        self.with_repo_identity(id, || {
+            self.git.preview_merge_action(&self.path(id)?, action)
+        })
     }
     pub fn apply_merge_action(
         &self,
@@ -1378,53 +1414,55 @@ impl Application {
         action: &MergeAction,
         token: &str,
     ) -> Result<OperationReceipt> {
-        let p = self.preview_merge_action(id, action)?;
-        if p.token != token {
-            return Err(AppError::new(
-                "stale_preview",
-                "Operation action changed. Review again.",
-            ));
-        }
-        let cleanup_request = if action.kind == "finish" && p.state.delete_source_branch {
-            Some((
-                MergeRequest {
-                    acknowledge_rewrite: false,
-                    delete_source_branch: true,
-                    method: MergeMethod::Auto,
-                    operation: p.state.operation.clone(),
-                    mainline: None,
-                    source_oid: p.state.source_oid.clone().unwrap_or_default(),
-                    source_ref: p.state.source_ref.clone(),
-                    session_id: p.state.session_id.clone().unwrap_or_default(),
-                },
-                p.state.branch.clone().unwrap_or_default(),
-            ))
-        } else {
-            None
-        };
-        let plan = MergeReceipt {
-            operation: p.state.operation.clone(),
-            mainline: p.state.mainline,
-            kind: action.kind.clone(),
-            session_id: p.state.session_id.clone().unwrap_or_default(),
-            branch: p.state.branch.clone().unwrap_or_default(),
-            original_oid: p.state.original_oid.clone().unwrap_or_default(),
-            source_oid: p.state.source_oid.clone().unwrap_or_default(),
-            path: action.path.clone(),
-            choice: action.choice.clone(),
-            expected_tree: p.expected_tree,
-            recovery_ref: p.state.recovery_ref,
-            recovery_dir: p.recovery_dir,
-        };
-        let receipt = self.execute_write_detailed(
-            id,
-            &format!("merge_{}", action.kind),
-            None,
-            None,
-            Some(PlannedOperation::Merge(plan)),
-            |git, path| git.apply_merge_action(path, action, token),
-        )?;
-        self.complete_merge_source_cleanup(id, receipt, cleanup_request)
+        self.with_repo_identity(id, || {
+            let p = self.preview_merge_action(id, action)?;
+            if p.token != token {
+                return Err(AppError::new(
+                    "stale_preview",
+                    "Operation action changed. Review again.",
+                ));
+            }
+            let cleanup_request = if action.kind == "finish" && p.state.delete_source_branch {
+                Some((
+                    MergeRequest {
+                        acknowledge_rewrite: false,
+                        delete_source_branch: true,
+                        method: MergeMethod::Auto,
+                        operation: p.state.operation.clone(),
+                        mainline: None,
+                        source_oid: p.state.source_oid.clone().unwrap_or_default(),
+                        source_ref: p.state.source_ref.clone(),
+                        session_id: p.state.session_id.clone().unwrap_or_default(),
+                    },
+                    p.state.branch.clone().unwrap_or_default(),
+                ))
+            } else {
+                None
+            };
+            let plan = MergeReceipt {
+                operation: p.state.operation.clone(),
+                mainline: p.state.mainline,
+                kind: action.kind.clone(),
+                session_id: p.state.session_id.clone().unwrap_or_default(),
+                branch: p.state.branch.clone().unwrap_or_default(),
+                original_oid: p.state.original_oid.clone().unwrap_or_default(),
+                source_oid: p.state.source_oid.clone().unwrap_or_default(),
+                path: action.path.clone(),
+                choice: action.choice.clone(),
+                expected_tree: p.expected_tree,
+                recovery_ref: p.state.recovery_ref,
+                recovery_dir: p.recovery_dir,
+            };
+            let receipt = self.execute_write_detailed(
+                id,
+                &format!("merge_{}", action.kind),
+                None,
+                None,
+                Some(PlannedOperation::Merge(plan)),
+                |git, path| git.apply_merge_action(path, action, token),
+            )?;
+            self.complete_merge_source_cleanup(id, receipt, cleanup_request)
+        })
     }
     pub fn preview_ref_operation(
         &self,
@@ -1457,7 +1495,9 @@ impl Application {
         )
     }
     pub fn preview_tag(&self, membership_id: &str, request: &TagRequest) -> Result<TagPreview> {
-        self.git.preview_tag(&self.path(membership_id)?, request)
+        self.with_repo_identity(membership_id, || {
+            self.git.preview_tag(&self.path(membership_id)?, request)
+        })
     }
     pub fn change_tag(
         &self,
@@ -1465,26 +1505,28 @@ impl Application {
         request: &TagRequest,
         token: &str,
     ) -> Result<OperationReceipt> {
-        let preview = self.preview_tag(membership_id, request)?;
-        if preview.token != token {
-            return Err(AppError::new(
-                "stale_preview",
-                "Tag review changed. Review again.",
-            ));
-        }
-        let kind = if matches!(request, TagRequest::Create { .. }) {
-            "create_tag"
-        } else {
-            "push_tag"
-        };
-        self.execute_write_detailed(
-            membership_id,
-            kind,
-            None,
-            None,
-            Some(PlannedOperation::Tag(preview)),
-            |git, path| git.apply_tag(path, request, token),
-        )
+        self.with_repo_identity(membership_id, || {
+            let preview = self.preview_tag(membership_id, request)?;
+            if preview.token != token {
+                return Err(AppError::new(
+                    "stale_preview",
+                    "Tag review changed. Review again.",
+                ));
+            }
+            let kind = if matches!(request, TagRequest::Create { .. }) {
+                "create_tag"
+            } else {
+                "push_tag"
+            };
+            self.execute_write_detailed(
+                membership_id,
+                kind,
+                None,
+                None,
+                Some(PlannedOperation::Tag(preview)),
+                |git, path| git.apply_tag(path, request, token),
+            )
+        })
     }
     pub fn preview_remote_delete(
         &self,

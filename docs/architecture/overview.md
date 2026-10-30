@@ -156,3 +156,36 @@ Related metadata maintenance uses the same operation guards and durable receipts
 ## Bounded local history investigation (M72)
 
 Typed investigation requests reuse registered workspace/repository/worktree source selection, fixed offline Git argument arrays and post-read ref fingerprints. The core aggregates per-location coverage and immutable branch-tip comparison evidence; no Tauri types enter the domain/Git services. Literal file/code history uses bounded recent candidates rather than a new persistent content index. The existing search result navigator opens the exact graph commit and matching historical file. This initial read-only slice does not infer semantic or dependency release readiness. See [M72](../milestone-72.md).
+
+
+### Commit identity versus authentication
+
+Optional author/committer names and emails are saved separately from credentials
+in the local application-data `commit-identities.json` file. Settings →
+Connections owns these global host rules; provider logins never imply a verified
+commit email. Core validates and matches the configured fetch `origin` (otherwise
+the sole remote) using the same host/path boundary rules as CI connections. An
+ambiguous selection is refused; unmatched repositories use native Git settings.
+
+Synchronous core commit/amend/merge/replay/stash/tag workflows enter a root-scoped,
+thread-local command configuration guard. It restores prior context on exit or
+unwind, does not mutate process environment, and does not configure direct adapter calls for a different
+child repository root. Native Git helper/hook subprocesses may inherit command-local
+options in the usual way. Git receives validated fixed `-c` identity keys through
+argument arrays. Git config files and already-created commit objects are not
+edited. Commit review tokens include effective Git configuration; merge/amend
+reviews retain their existing configuration guards. Ordinary new commits use
+the chosen name/email; native amend/cherry-pick/rebase preserve original authors
+while using the selected committer. Token changes require a new review. No
+provider API or Keychain access is needed to select a commit identity.
+
+### Desktop terminal adapter
+
+The native desktop adapter owns PTY sessions; core Git/workspace crates remain
+independent of Tauri and terminal libraries. A terminal opens from a validated
+membership root and remains bound to that membership and an opaque session ID.
+The frontend lazily loads the terminal renderer in an on-demand graph dock.
+Sessions, output retention and paste/IPC work are bounded; no terminal transcript
+is persisted by GitNova. Shell commands bypass reviewed Git writes and connection
+commit identities, use normal shell/Git configuration, and may run startup files.
+Auto fetch pauses while terminal sessions are retained. See [M75](../milestone-75.md).

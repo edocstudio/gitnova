@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod terminal;
 use gitnova_core::Application;
 use gitnova_ipc::*;
 use std::{path::PathBuf, sync::Arc};
@@ -973,6 +974,31 @@ async fn create_repository(
     .await
 }
 #[tauri::command]
+async fn connection_commit_identity(
+    state: State<'_>,
+    profile: HostProfile,
+) -> Result<Option<GitCommitIdentity>, AppError> {
+    run(state, move |a| a.connection_commit_identity(&profile)).await
+}
+#[tauri::command]
+async fn set_connection_commit_identity(
+    state: State<'_>,
+    profile: HostProfile,
+    identity: Option<GitCommitIdentity>,
+) -> Result<(), AppError> {
+    run(state, move |a| {
+        a.set_connection_commit_identity(&profile, identity)
+    })
+    .await
+}
+#[tauri::command]
+async fn commit_identity(
+    state: State<'_>,
+    membership_id: String,
+) -> Result<CommitIdentityContext, AppError> {
+    run(state, move |a| a.commit_identity(&membership_id)).await
+}
+#[tauri::command]
 async fn host_account(state: State<'_>, profile: HostProfile) -> Result<HostingContext, AppError> {
     run(state, move |a| a.host_account(&profile)).await
 }
@@ -1229,6 +1255,11 @@ async fn apply_merge_action(
 }
 fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
+        terminal::terminal_open,
+        terminal::terminal_read,
+        terminal::terminal_write,
+        terminal::terminal_resize,
+        terminal::terminal_close,
         native_soak_report,
         recorded_activity,
         preview_operation_discard,
@@ -1267,6 +1298,9 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         repository_create_options,
         preview_repository_create,
         create_repository,
+        connection_commit_identity,
+        set_connection_commit_identity,
+        commit_identity,
         host_account,
         connect_host,
         disconnect_host,
@@ -1441,6 +1475,11 @@ fn main() {
         }
     }
     tauri::Builder::default()
+        .on_window_event(|window, event| {
+            if window.label() == "main" && matches!(event, tauri::WindowEvent::Destroyed) {
+                terminal::close_all();
+            }
+        })
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             if native_smoke() {
                 smoke_marker("REUSED_WINDOW");
@@ -1453,6 +1492,11 @@ fn main() {
             }
         }))
         .on_page_load(|window, payload| {
+            if window.label() == "main"
+                && matches!(payload.event(), tauri::webview::PageLoadEvent::Started)
+            {
+                terminal::close_all();
+            }
             if native_smoke() && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
             {
                 if let Ok(seconds) = std::env::var("GITNOVA_NATIVE_SOAK_SECONDS")
@@ -1549,6 +1593,65 @@ mod tests {
         };
         let catalog = invoke("add_repository", json!({"path":repo}), "tauri://localhost").unwrap();
         let membership = &catalog["workspaces"][0]["selectedId"];
+        for command in [
+            "terminal_open",
+            "terminal_read",
+            "terminal_write",
+            "terminal_resize",
+            "terminal_close",
+        ] {
+            assert!(invoke(command,json!({"membershipId":membership,"id":"missing","cols":80,"rows":24,"data":"echo blocked"}),"https://example.invalid").is_err());
+        }
+        assert!(invoke(
+            "terminal_open",
+            json!({"membershipId":"not-in-catalog","cols":80,"rows":24}),
+            "tauri://localhost"
+        )
+        .is_err());
+        let identity_profile = json!({"provider":"gitlab","origin":"https://gitlab.com"});
+        let identity_args = json!({"profile":identity_profile,"identity":{"name":"Personal Fixture","email":"personal@example.invalid"}});
+        assert!(invoke(
+            "set_connection_commit_identity",
+            identity_args.clone(),
+            "https://example.invalid"
+        )
+        .is_err());
+        assert_eq!(
+            invoke(
+                "connection_commit_identity",
+                json!({"profile":identity_profile}),
+                "tauri://localhost"
+            )
+            .unwrap(),
+            Value::Null
+        );
+        invoke(
+            "set_connection_commit_identity",
+            identity_args,
+            "tauri://localhost",
+        )
+        .unwrap();
+        assert_eq!(
+            invoke(
+                "commit_identity",
+                json!({"membershipId":membership}),
+                "tauri://localhost"
+            )
+            .unwrap()["identity"]["email"],
+            "personal@example.invalid"
+        );
+        assert!(invoke(
+            "commit_identity",
+            json!({"membershipId":membership}),
+            "https://example.invalid"
+        )
+        .is_err());
+        invoke(
+            "set_connection_commit_identity",
+            json!({"profile":identity_profile,"identity":null}),
+            "tauri://localhost",
+        )
+        .unwrap();
         let selection =
             json!({"remote":"origin","branch":"","oid":oid,"provider":"gitlab","origin":null});
         let args = json!({"membershipId":membership,"selection":selection});

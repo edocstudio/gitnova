@@ -184,3 +184,23 @@ Worktree lock/unlock/repair lives in an expandable metadata group in the existin
 ## M71–72 — local history investigation in the existing search
 
 URL sync and hunk fixes use existing reviews and diff actions; no new surface is needed. File/code archaeology and coordinated branch comparison require choosing a repository-relative path, literal phrase or source/target refs before any result exists, so an individual commit's graph context cannot supply that scope. Reuse the existing transient universal-search popover and scope selector. One mode selector reveals only the relevant inputs; results lead back to the graph/inspector without checkout. Per-location evidence stays inside that search, with explicit bounded/shallow/missing-ref results. This is local Git comparison evidence, not semantic release readiness, CI approval or a batch write. No permanent panel/dashboard or persistent setting is added.
+
+## Connection commit identity (2026-10-30)
+
+Authentication and Git authorship are independent. Reuse each existing Settings
+→ Connections card for optional name/email fields and explicit save/fallback;
+these are persistent global host settings, not commit-specific forms. Reuse the
+existing commit and merge review bodies for a small Committer context line.
+No new screen, navigation item, dialog or dashboard is required. Do not infer
+private email from a login, rewrite published authors or change Git config.
+
+## Repository terminal
+
+An interactive shell cannot be represented by commit selection or a diff. Reuse
+an on-demand bottom dock in the graph context, opened by one Terminal action
+beside Pull/Push; no new navigation or settings page. The dock identifies its
+starting repository/worktree and shell. Hide preserves the session; End session
+explicitly terminates it. Sessions stay associated with their original membership
+when switching repositories. Bound session count, output retention and scrollback.
+Terminal commands are user-directed shell commands, outside GitNova previews and
+connection commit-identity overrides; never inject a command from repository data.

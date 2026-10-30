@@ -123,3 +123,37 @@ Open Settings → Connections. Host accounts apply globally to matching Git host
 ### What if an operation fails or stays pending?
 
 Open Working changes to inspect a pending merge, cherry-pick, revert or GitNova-started rebase. Resolve conflicts, then review commit/Continue or Abort. An uncertain interrupted journal needs inspection; the app never retries automatically. Handle an externally started rebase with Git outside the app. Zero changed files does not mean no operation is pending. Recent activity and recovery show retained references or backup locations; review them before recovery.
+
+### Why can the commit author differ from my connected account?
+
+A connection authenticates Git, PR/MR and CI requests. Commit authorship normally
+comes from Git configuration. In **Settings → Connections → Commit identity**,
+you can explicitly save a name and email for that host. Use a verified email or
+your GitHub noreply address for GitHub attribution; GitNova does not infer an
+email from a provider login.
+
+GitNova matches the repository's `origin`, or its only remote when `origin` is
+absent. Multiple possible remotes or ambiguous host profiles require inspection;
+they do not choose an arbitrary account. With no matching override, Git settings
+remain the fallback. The override is local to GitNova and does not edit Git config
+files. Review the **Committer** line before confirming. Amend, cherry-pick and
+rebase preserve original authors. Existing commits and published history are
+never changed by saving an identity. Identity or remote changes invalidate a
+pending commit review; refresh and review again. Finish pending merge/rebase
+operations before changing their identity settings.
+
+## How do I open a terminal in the current repository?
+
+Select Terminal beside Pull/Push. The on-demand dock starts your shell in that
+repository or linked worktree folder. Each membership keeps its own session;
+switching repositories never sends input to the previous repository's shell.
+Hide preserves the shell; End session asks before closing it. Up to four sessions
+can stay open, and app/window closure or reload closes them. Detached/background
+programs may have their own lifetime. The starting folder remains shown even if
+you later run `cd`.
+
+Commands run directly with your normal shell/Git configuration, without GitNova
+write previews or connection commit identities. Refresh the graph to inspect
+external changes. Auto fetch pauses while any terminal session remains open.
+Scrollback/output retention is bounded; older output can be trimmed. Terminal
+transcripts are not stored by GitNova; your shell may keep its usual history.

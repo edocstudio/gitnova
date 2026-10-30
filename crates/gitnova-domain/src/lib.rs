@@ -1397,3 +1397,22 @@ pub struct InvestigationPage {
     pub evidence: Vec<InvestigationEvidence>,
     pub partial: bool,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GitCommitIdentity {
+    pub name: String,
+    pub email: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectionCommitIdentity {
+    pub profile: HostProfile,
+    pub identity: GitCommitIdentity,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitIdentityContext {
+    pub identity: GitCommitIdentity,
+    pub connection: Option<HostProfile>,
+}
