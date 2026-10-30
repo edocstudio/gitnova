@@ -1,4 +1,5 @@
 //! Bounded recursive discovery. Never runs submodule update, hooks or custom commands.
+pub mod lifecycle;
 pub mod sync;
 pub mod update;
 use gitnova_domain::*;

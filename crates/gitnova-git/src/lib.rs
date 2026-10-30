@@ -318,7 +318,11 @@ impl GitCli {
                 "Git output exceeded its bounded read budget",
             ));
         }
-        if !status.success() && !(truncated && allow_truncation) {
+        // `diff --no-index` uses exit 1 for a successful comparison with differences.
+        let compared_files = command == "diff"
+            && args.contains(&OsStr::new("--no-index"))
+            && status.code() == Some(1);
+        if !status.success() && !compared_files && !(truncated && allow_truncation) {
             let code = format!("git_exit_{}", status.code().unwrap_or(-1));
             let message = String::from_utf8_lossy(&error).trim().to_string();
             return Err(if protocols.is_empty() {
@@ -894,6 +898,7 @@ impl DiffReader for GitCli {
 }
 
 pub mod worktree;
+mod worktree_reattach;
 
 pub mod worktree_remove;
 

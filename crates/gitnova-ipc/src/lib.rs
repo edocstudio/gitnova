@@ -80,3 +80,5 @@ pub use gitnova_domain::{InitPreview, InitRequest};
 pub use gitnova_domain::{InvestigationEvidence, InvestigationPage, InvestigationRequest};
 
 pub use gitnova_domain::{CommitIdentityContext, ConnectionCommitIdentity, GitCommitIdentity};
+
+pub use gitnova_domain::{SubmoduleLifecyclePreview, SubmoduleLifecycleRequest};

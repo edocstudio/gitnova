@@ -204,3 +204,34 @@ explicitly terminates it. Sessions stay associated with their original membershi
 when switching repositories. Bound session count, output retention and scrollback.
 Terminal commands are user-directed shell commands, outside GitNova previews and
 connection commit-identity overrides; never inject a command from repository data.
+
+## Newer submodule revision
+
+Restore recorded and advancing to a different remote revision have opposite
+intent; one ambiguous restore control cannot express both safely. The existing
+initialized-submodule Manage actions therefore gain Review newer version… and
+reuse their current preview/confirmation. Show the cached ref, exact target and
+changed paths there. No extra panel, navigation, or settings surface is added.
+
+### Existing tag reference in Create tag
+
+The existing Create tag form now displays local/fetched tags, searchable and
+paginated at five names per page. This evidence is needed while choosing a new
+version name and cannot be inferred from refs attached only to the selected
+commit. It reuses graph refs without a network request or new navigation.
+Names use descending numeric name order, not a release-date or semantic-version
+recommendation. Duplicate names are flagged; native preview still revalidates.
+
+### Submodule registration lifecycle
+
+Add submodule belongs to the existing branch Submodules group: an absent
+registration has no graph node to select. Remove registration belongs to that
+child's existing Manage review. Reuse inline previews, loading, receipts and the
+Working changes commit flow; no new screen or sidebar. Removal stages the parent
+registration change while retaining child files/object stores and saved parent
+index/configuration. Nested registrations are managed by opening their immediate
+parent, keeping the affected Git index explicit.
+
+## M77 moved worktree destination
+
+A missing worktree has no usable graph at its old path, and its moved destination cannot be inferred reliably. Reuse that entry's existing Worktree metadata form for the destination input and reviewed Reattach action. No new screen, sidebar or navigation item is introduced; confirm the selected old → existing new folder and recovery location in that form.

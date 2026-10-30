@@ -18,7 +18,7 @@ export interface GraphCursor { version: number; offset: number; lanes: (GraphLan
 export interface GraphPage { tracking?: BranchTracking[]; rows: GraphRow[]; refs: GitRef[]; status: RepoStatus; next: GraphCursor | null; fingerprint: string }
 export interface CommitFile { path: NativePath; additions: number | null; deletions: number | null }
 export interface CommitDetail { files: CommitFile[]; commit: Commit; message: string; diff: string; truncated: boolean; comparison: string }
-export interface LinkedWorktree { path: NativePath; head: string | null; branch: string | null; bare: boolean; locked: boolean; prunable: boolean }
+export interface LinkedWorktree {missing?:boolean; path: NativePath; head: string | null; branch: string | null; bare: boolean; locked: boolean; prunable: boolean }
 export interface Submodule { relationId: string; parentRelationId: string | null; parentRepositoryId: string; parentWorktreeId: string | null; repositoryId: string | null; worktreeId: string | null; parentPath: NativePath; relativePath: NativePath; depth: number; configName: string | null; inspectionError: string | null; detached: boolean | null; path: NativePath; headOid: string | null; indexOid: string; checkedOutOid: string | null; initialized: boolean; dirty: boolean | null }
 export interface ChangedFile { path: NativePath; indexStatus: string; worktreeStatus: string; staged: boolean; unstaged: boolean; blockedReason: string | null }
 export interface WorkingChanges { files: ChangedFile[]; status: RepoStatus; token: string }
@@ -37,7 +37,7 @@ export interface RemoteBranch { remote: string; name: string; oid: string }
 export interface RemoteBranches { urls?: Record<string,string[]>; remotes: string[]; branches: RemoteBranch[] }
 export interface RemoteSwitchPreview { remote: string; remoteBranch: string; remoteOid: string; create: boolean; localOid: string | null; ahead: number; behind: number; switch: BranchSwitchPreview }
 
-export interface SubmoduleUpdatePreview { submodule: Submodule; mode: 'initialize' | 'restore'; url: string | null; sourceBase: string | null; parentStatus: RepoStatus; preservedBy: string[]; networkRequired: boolean; blockedReason: string | null; token: string }
+export interface SubmoduleUpdatePreview { targetOid: string; remoteRef: string | null; changedPaths: NativePath[] | null; submodule: Submodule; mode: 'initialize' | 'restore' | 'remote'; url: string | null; sourceBase: string | null; parentStatus: RepoStatus; preservedBy: string[]; networkRequired: boolean; blockedReason: string | null; token: string }
 
 export interface GraphAction { kind: 'checkoutCommit' | 'createBranch' | 'createTag'; oid: string; name: string }
 export interface GraphActionPreview { action: GraphAction; switch: BranchSwitchPreview | null; token: string; blockedReason: string | null }
@@ -134,8 +134,8 @@ export interface CreatedRepository {project:string;cloneUrl:string;webUrl:string
 export interface RepositoryCreatePreview {request:RepositoryCreateRequest;account:string;project:string;cloneUrl:string;token:string;created?:CreatedRepository|null}
 export interface RepositoryCreateOutcome {receipt:OperationReceipt;repository:CreatedRepository|null}
 
-export interface WorktreeMaintenanceRequest {path:NativePath;kind:'lock'|'unlock'|'repair';reason:string}
-export interface WorktreeMaintenancePreview {request:WorktreeMaintenanceRequest;tree:LinkedWorktree;affected:LinkedWorktree[];token:string;blockedReason:string|null}
+export interface WorktreeMaintenanceRequest {destination?:string;path:NativePath;kind:'lock'|'unlock'|'repair'|'reattach';reason:string}
+export interface WorktreeMaintenancePreview {recoveryDir?:NativePath|null;request:WorktreeMaintenanceRequest;tree:LinkedWorktree;affected:LinkedWorktree[];token:string;blockedReason:string|null}
 export interface SubmoduleSyncPreview {submodule:Submodule;previousUrl:string|null;childPreviousUrl:string|null;childRemote:string|null;url:string;recoveryDir:NativePath;token:string;blockedReason:string|null}
 
 export type InitRequest = {workspaceId: string; destination: string; branch: string};
@@ -147,3 +147,6 @@ export interface InvestigationPage { hits: CommitSearchHit[]; evidence: Investig
 
 export interface GitCommitIdentity {name:string;email:string}
 export interface CommitIdentityContext {identity:GitCommitIdentity;connection:HostProfile|null}
+
+export interface SubmoduleLifecycleRequest {kind:'add'|'remove';path:string;source:string;id:string}
+export interface SubmoduleLifecyclePreview {request:SubmoduleLifecycleRequest;branch:string|null;childHead:string|null;download:boolean;recoveryDir:NativePath;token:string;blockedReason:string|null}

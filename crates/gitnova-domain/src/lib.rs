@@ -244,6 +244,8 @@ pub struct CommitDetail {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LinkedWorktree {
+    #[serde(default)]
+    pub missing: bool,
     pub path: NativePath,
     pub head: Option<String>,
     pub branch: Option<String>,
@@ -457,6 +459,10 @@ pub struct RemoteSwitchPreview {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SubmoduleUpdatePreview {
+    /// Exact checkout destination, independent of the parent's recorded pointer.
+    pub target_oid: String,
+    pub remote_ref: Option<String>,
+    pub changed_paths: Option<Vec<NativePath>>,
     pub submodule: Submodule,
     pub mode: String,
     pub url: Option<String>,
@@ -595,6 +601,7 @@ pub struct TagPreview {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "preview", rename_all = "camelCase")]
 pub enum PlannedOperation {
+    SubmoduleLifecycle(Box<SubmoduleLifecyclePreview>),
     SubmoduleSync(Box<SubmoduleSyncPreview>),
     WorktreeMaintenance(WorktreeMaintenancePreview),
     RepositoryCreate(Box<RepositoryCreatePreview>),
@@ -1322,6 +1329,8 @@ pub struct RepositoryCreateOutcome {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WorktreeMaintenanceRequest {
+    #[serde(default)]
+    pub destination: String,
     pub path: NativePath,
     pub kind: String,
     pub reason: String,
@@ -1329,6 +1338,8 @@ pub struct WorktreeMaintenanceRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WorktreeMaintenancePreview {
+    #[serde(default)]
+    pub recovery_dir: Option<NativePath>,
     pub request: WorktreeMaintenanceRequest,
     pub tree: LinkedWorktree,
     pub affected: Vec<LinkedWorktree>,
@@ -1415,4 +1426,25 @@ pub struct ConnectionCommitIdentity {
 pub struct CommitIdentityContext {
     pub identity: GitCommitIdentity,
     pub connection: Option<HostProfile>,
+}
+
+/// Explicit parent registration change; removing a registration retains child files/history.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubmoduleLifecycleRequest {
+    pub kind: String,
+    pub path: String,
+    pub source: String,
+    pub id: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubmoduleLifecyclePreview {
+    pub request: SubmoduleLifecycleRequest,
+    pub branch: Option<String>,
+    pub child_head: Option<String>,
+    pub download: bool,
+    pub recovery_dir: NativePath,
+    pub token: String,
+    pub blocked_reason: Option<String>,
 }

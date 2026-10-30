@@ -882,3 +882,312 @@ fn branch_display_snapshot_follows_head_and_index_without_moving_child_or_pendin
         .is_empty());
     assert_eq!(git(&child, &["rev-parse", "HEAD"]), f.first);
 }
+
+#[test]
+fn cached_remote_update_keeps_parent_index_and_local_branches_and_exposes_pointer_change() {
+    let f = fixture();
+    initialize(&f);
+    let child = f.root.join("module");
+    git(
+        &f.root,
+        &[
+            "config",
+            "submodule.module.update",
+            "!touch CUSTOM_UPDATE_MUST_NOT_RUN",
+        ],
+    );
+    fs::write(f.root.join("pending.txt"), "keep unstaged\n").unwrap();
+    fs::write(f.root.join("prepared.txt"), "keep staged\n").unwrap();
+    git(&f.root, &["add", "prepared.txt"]);
+    let index = fs::read(f.root.join(".git/index")).unwrap();
+    let refs = git(
+        &child,
+        &[
+            "for-each-ref",
+            "--format=%(refname) %(objectname)",
+            "refs/heads",
+        ],
+    );
+    let preview = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(preview.blocked_reason.is_none(), "{preview:?}");
+    assert_eq!(preview.target_oid, f.second);
+    assert_eq!(
+        preview.remote_ref.as_deref(),
+        Some("refs/remotes/origin/main")
+    );
+    assert!(!preview.network_required);
+    assert_eq!(git(&child, &["rev-parse", "HEAD"]), f.first);
+    assert!(!f.root.join("CUSTOM_UPDATE_MUST_NOT_RUN").exists());
+    let receipt = f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &preview.token)
+        .unwrap();
+    assert_eq!(receipt.status, "succeeded", "{receipt:?}");
+    assert_eq!(receipt.kind, "update_submodule_remote");
+    assert_eq!(receipt.submodule.unwrap().target_oid, f.second);
+    assert_eq!(git(&child, &["rev-parse", "HEAD"]), f.second);
+    assert_eq!(git(&child, &["rev-parse", "--abbrev-ref", "HEAD"]), "HEAD");
+    assert_eq!(
+        git(
+            &child,
+            &[
+                "for-each-ref",
+                "--format=%(refname) %(objectname)",
+                "refs/heads"
+            ]
+        ),
+        refs
+    );
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), index);
+    assert_eq!(git(&f.root, &["show", ":prepared.txt"]), "keep staged");
+    assert_eq!(
+        fs::read_to_string(f.root.join("pending.txt")).unwrap(),
+        "keep unstaged\n"
+    );
+    assert!(!f.root.join("CUSTOM_UPDATE_MUST_NOT_RUN").exists());
+    let sub = f.app.submodules(&f.id).unwrap().remove(0);
+    assert_eq!(sub.index_oid, f.first);
+    assert_eq!(sub.checked_out_oid.as_deref(), Some(f.second.as_str()));
+    let again = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(again.blocked_reason.unwrap().contains("already matches"));
+}
+#[test]
+fn cached_remote_update_refuses_dirty_divergent_and_stale_child_state() {
+    let f = fixture();
+    initialize(&f);
+    let child = f.root.join("module");
+    let preview = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(preview.blocked_reason.is_none(), "{preview:?}");
+    fs::write(child.join("file.txt"), "keep private work\n").unwrap();
+    assert!(f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &preview.token)
+        .is_ok_and(|r| r.status != "succeeded"));
+    let dirty = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(dirty.blocked_reason.unwrap().contains("uncommitted"));
+    git(&child, &["add", "file.txt"]);
+    git(&child, &["commit", "-m", "private child commit"]);
+    let private = git(&child, &["rev-parse", "HEAD"]);
+    let diverged = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(diverged
+        .blocked_reason
+        .unwrap()
+        .contains("not a descendant"));
+    assert!(f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &diverged.token)
+        .is_ok_and(|r| r.status != "succeeded"));
+    assert_eq!(git(&child, &["rev-parse", "HEAD"]), private);
+}
+#[test]
+fn cached_remote_target_changes_invalidate_review_and_missing_ref_cannot_fall_back_to_recorded() {
+    let f = fixture();
+    initialize(&f);
+    let child = f.root.join("module");
+    let preview = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    git(
+        &child,
+        &["update-ref", "refs/remotes/origin/main", &f.first],
+    );
+    assert!(f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &preview.token)
+        .is_ok_and(|r| r.status != "succeeded"));
+    git(&child, &["update-ref", "-d", "refs/remotes/origin/main"]);
+    let missing = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(missing.blocked_reason.is_some(), "{missing:?}");
+    assert!(missing.remote_ref.is_none());
+    assert!(f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &missing.token)
+        .is_ok_and(|r| r.status != "succeeded"));
+    assert_eq!(git(&child, &["rev-parse", "HEAD"]), f.first);
+}
+#[test]
+fn configured_branch_local_override_and_parent_branch_inheritance_are_explicit() {
+    let f = fixture();
+    initialize(&f);
+    git(
+        &f.root,
+        &[
+            "config",
+            "-f",
+            ".gitmodules",
+            "submodule.module.branch",
+            "missing",
+        ],
+    );
+    git(&f.root, &["add", ".gitmodules"]);
+    git(&f.root, &["commit", "-m", "configure child branch"]);
+    let missing = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(missing.blocked_reason.is_some());
+    git(&f.root, &["config", "submodule.module.branch", "."]);
+    let inherited = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(inherited.blocked_reason.is_none(), "{inherited:?}");
+    assert_eq!(inherited.target_oid, f.second);
+    git(&f.root, &["switch", "--detach"]);
+    let detached = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(detached.blocked_reason.is_some());
+    assert!(detached.remote_ref.is_none());
+    git(&f.root, &["config", "submodule.module.branch", "main"]);
+    let explicit = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(explicit.blocked_reason.is_none(), "{explicit:?}");
+    assert_eq!(
+        explicit.remote_ref.as_deref(),
+        Some("refs/remotes/origin/main")
+    );
+}
+
+#[test]
+fn newer_child_revision_with_nested_layout_changes_requires_separate_review() {
+    let f = fixture();
+    initialize(&f);
+    let child = f.root.join("module");
+    git(&child, &["switch", "--detach", &f.second]);
+    fs::write(
+        child.join(".gitmodules"),
+        "[submodule \"nested\"]\n\tpath = nested\n\turl = https://example.invalid/nested.git\n",
+    )
+    .unwrap();
+    git(&child, &["add", ".gitmodules"]);
+    git(&child, &["commit", "-m", "nested layout"]);
+    let tip = git(&child, &["rev-parse", "HEAD"]);
+    git(&child, &["update-ref", "refs/remotes/origin/main", &tip]);
+    git(&child, &["switch", "--detach", &f.first]);
+    let p = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(
+        p.blocked_reason
+            .as_deref()
+            .is_some_and(|s| s.contains("nested submodule")),
+        "{p:?}"
+    );
+    assert!(f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &p.token)
+        .is_ok_and(|r| r.status != "succeeded"));
+    assert_eq!(git(&child, &["rev-parse", "HEAD"]), f.first);
+    assert!(!child.join(".gitmodules").exists());
+}
+
+#[test]
+fn cached_remote_update_refuses_grafted_history_before_ancestry_authorization() {
+    let f = fixture();
+    initialize(&f);
+    let child = f.root.join("module");
+    let grafts = PathBuf::from(git(
+        &child,
+        &[
+            "rev-parse",
+            "--path-format=absolute",
+            "--git-path",
+            "info/grafts",
+        ],
+    ));
+    fs::write(&grafts, "").unwrap();
+    let p = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(
+        p.blocked_reason
+            .as_deref()
+            .is_some_and(|r| r.contains("grafted")),
+        "{p:?}"
+    );
+    assert!(p.remote_ref.is_none());
+    assert!(f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &p.token)
+        .is_ok_and(|r| r.status != "succeeded"));
+    assert_eq!(git(&child, &["rev-parse", "HEAD"]), f.first);
+}
+
+#[test]
+fn configured_child_remote_matches_native_no_fetch_update_and_never_moves_local_branch() {
+    let f = fixture();
+    initialize(&f);
+    let child = f.root.join("module");
+    git(&child, &["switch", "-c", "topic", &f.first]);
+    git(&child, &["remote", "rename", "origin", "mirror"]);
+    git(&child, &["config", "branch.topic.remote", "mirror"]);
+    git(&f.root, &["config", "submodule.module.branch", "main"]);
+    // A deliberately unreachable URL proves these checks use cached refs, not a fetch.
+    git(
+        &child,
+        &[
+            "config",
+            "remote.mirror.url",
+            "https://example.invalid/not-contacted.git",
+        ],
+    );
+    let p = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    assert_eq!(p.remote_ref.as_deref(), Some("refs/remotes/mirror/main"));
+    git(
+        &f.root,
+        &[
+            "submodule",
+            "update",
+            "--remote",
+            "--no-fetch",
+            "--checkout",
+            "--",
+            "module",
+        ],
+    );
+    let native_target = git(&child, &["rev-parse", "HEAD"]);
+    assert_eq!(native_target, p.target_oid);
+    git(&child, &["switch", "topic"]);
+    let before = fs::read(f.root.join(".git/index")).unwrap();
+    let p = f
+        .app
+        .preview_submodule_update(&f.id, &module(), "remote")
+        .unwrap();
+    let receipt = f
+        .app
+        .update_submodule(&f.id, &module(), "remote", &p.token)
+        .unwrap();
+    assert_eq!(receipt.status, "succeeded", "{receipt:?}");
+    assert_eq!(git(&child, &["rev-parse", "HEAD"]), native_target);
+    assert_eq!(git(&child, &["rev-parse", "topic"]), f.first);
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), before);
+}

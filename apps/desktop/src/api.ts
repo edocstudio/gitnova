@@ -18,6 +18,8 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  previewSubmoduleLifecycle:(membershipId:string,request:import('./contracts').SubmoduleLifecycleRequest)=>call<import('./contracts').SubmoduleLifecyclePreview>('preview_submodule_lifecycle',{membershipId,request}),
+  changeSubmoduleLifecycle:(membershipId:string,request:import('./contracts').SubmoduleLifecycleRequest,token:string)=>call<OperationReceipt>('change_submodule_lifecycle',{membershipId,request,token}),
   terminalOpen:(membershipId:string,cols:number,rows:number)=>call<{id:string;path:string;shell:string}>('terminal_open',{membershipId,cols,rows}),
   terminalRead:(membershipId:string,id:string)=>call<{data:number[];dropped:boolean;exited:boolean}>('terminal_read',{membershipId,id}),
   terminalWrite:(membershipId:string,id:string,data:string)=>call<void>('terminal_write',{membershipId,id,data}),
@@ -100,8 +102,8 @@ export const api = {
   applyGraphAction: (membershipId: string, action: GraphAction, token: string) => call<OperationReceipt>('apply_graph_action', { membershipId, action, token }),
   previewSubmodulePointer: (membershipId: string, path: NativePath, stage: boolean) => call<SubmodulePointerPreview>('preview_submodule_pointer', {membershipId, path, stage}),
   changeSubmodulePointer: (membershipId: string, path: NativePath, stage: boolean, token: string) => call<OperationReceipt>('change_submodule_pointer', {membershipId, path, stage, token}),
-  previewSubmoduleUpdate: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore') => call<SubmoduleUpdatePreview>('preview_submodule_update', { membershipId, path, mode }),
-  updateSubmodule: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore', token: string) => call<OperationReceipt>('update_submodule', { membershipId, path, mode, token }),
+  previewSubmoduleUpdate: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore' | 'remote') => call<SubmoduleUpdatePreview>('preview_submodule_update', { membershipId, path, mode }),
+  updateSubmodule: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore' | 'remote', token: string) => call<OperationReceipt>('update_submodule', { membershipId, path, mode, token }),
   remoteBranches: (membershipId: string) => call<RemoteBranches>('remote_branches', { membershipId }),
   autoFetch: (membershipId:string)=>call<string|null>('auto_fetch',{membershipId}),
   fetchRemote: (membershipId: string, remote: string, branch: string | null = null) => call<OperationReceipt>('fetch_remote', { membershipId, remote, branch }),

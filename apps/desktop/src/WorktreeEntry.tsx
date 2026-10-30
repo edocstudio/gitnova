@@ -34,8 +34,8 @@ export function WorktreeEntry({ tree, membershipId, disabled, canRemove, onOpen,
     finally { inFlight.current = false; setWriting(false); onBusyChange(false); }
   };
   return <div className="worktree-entry submodule-entry">
-    <button className="submodule-open" disabled={disabled || writing || tree.prunable} title={tree.path.display} onClick={() => onOpen(tree.path)}>
-      <span><Icon name="branch" size={14} />{tree.branch ?? (tree.bare ? t('Bare repository') : t('Detached HEAD'))}{tree.locked ? t(' · locked') : ''}{tree.prunable ? t(' · prunable') : ''}</span><small>{tree.path.display}</small>
+    <button className="submodule-open" disabled={disabled || writing || tree.prunable || tree.missing} title={tree.path.display} onClick={() => onOpen(tree.path)}>
+      <span><Icon name="branch" size={14} />{tree.branch ?? (tree.bare ? t('Bare repository') : t('Detached HEAD'))}{tree.locked ? t(' · locked') : ''}{tree.missing ? t(' · missing') : tree.prunable ? t(' · prunable') : ''}</span><small>{tree.path.display}</small>
     </button>
     {canRemove&&<WorktreeMaintenance tree={tree} membershipId={membershipId} disabled={disabled||writing||loading||!!preview} onBusyChange={onBusyChange} onDone={onDone}/>}
     {canRemove && <button className="submodule-action" disabled={disabled || loading || writing} onClick={() => void review()}>{t('Remove worktree…')}</button>}

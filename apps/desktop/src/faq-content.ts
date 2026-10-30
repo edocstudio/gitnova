@@ -34,7 +34,7 @@ export const faqEntries = [
   {
     "group": "Everyday Git",
     "question": "Can I stage just part of a file?",
-    "answer": "Select a regular tracked text file in Working changes. Stage hunk or Unstage hunk on its diff header changes only that block in the index; working files stay intact. Full-file actions remain available. New/deleted files, mode changes, binary files, non-UTF-8 content and truncated patches require file staging. Stale previews are refused."
+    "answer": "Select a regular text file in Working changes. Stage hunk or Unstage hunk changes only the selected block in the index; working files stay intact. Text additions and deletions are supported, including before the first commit. Binary, mode-changing, non-UTF-8 or truncated patches require file staging. New files needing text, line-ending or encoding conversion also use native whole-file staging. Stale previews are refused."
   },
   {
     "group": "Everyday Git",
@@ -76,6 +76,7 @@ export const faqEntries = [
     "question": "How do I resolve a conflict?",
     "answer": "Open Working changes and select a conflict. Compare Current and Incoming, choose individual text blocks or edit Result, then review and stage the resolved result. Continue or commit the pending operation only after every conflict is resolved. Current/Incoming refer to the shown operation, especially during rebase. Binary and submodule conflicts need their dedicated choices."
   },
+  {"group": "Multiple repositories", "question": "How do I update a submodule to a newer version?", "answer": "Open and fetch the child repository first when you need current remote data. In the parent graph, choose the submodule’s Manage action, then Review newer version. Check the cached remote branch, exact target commit and changed paths before confirming. Only a clean, provable forward update is allowed here. The child checkout becomes detached; parent staging and nested checkouts stay unchanged. Stage the parent pointer separately if you want to record that version. Restore recorded instead returns to the parent index revision."},
   {
     "group": "Multiple repositories",
     "question": "What is a submodule?",
@@ -88,8 +89,13 @@ export const faqEntries = [
   },
   {
     "group": "Multiple repositories",
+    "question": "How do I add or remove a submodule?",
+    "answer": "Use Add submodule in the branch Submodules group. Review the repository source and relative folder, then add it. A new folder downloads the source default branch; an existing independent checkout keeps its commit and branch. Review the staged .gitmodules and gitlink before committing. Manage offers Remove registration, which stages removal while retaining child files, local history and Git metadata on disk. Open the immediate parent repository to manage a nested registration. Existing .gitmodules edits or overlapping registrations require investigation first."
+  },
+  {
+    "group": "Multiple repositories",
     "question": "When should I use a linked worktree?",
-    "answer": "Use a linked worktree to keep another checkout of the same repository, for example to review a release while keeping feature work open. Open or create one from the graph context. In Related repositories, Worktree metadata offers reviewed Lock, Unlock and Repair for an existing linked checkout. Lock protects against pruning; Unlock removes that protection. Repair fixes metadata without deleting files or moving branches. Dirty worktrees are not removed automatically."
+    "answer": "Use a linked worktree to keep another checkout of the same repository, for example to review a release while keeping feature work open. Open or create one from the graph context. In Related repositories, Worktree metadata offers reviewed Lock, Unlock and Repair for an existing linked checkout. Lock protects against pruning; Unlock removes that protection. Repair fixes metadata without deleting files or moving branches. Dirty worktrees are not removed automatically. If you moved a linked folder outside the app, select its missing entry, enter the existing moved folder and review Reattach moved worktree. Original metadata must identify the same repository. Files, staging, branch and workspace identity are preserved; unrelated folders are never adopted."
   },
   {
     "group": "Sharing and connections",

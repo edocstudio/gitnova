@@ -84,6 +84,7 @@ impl GitCli {
                     trees.push(tree);
                 }
                 current = Some(LinkedWorktree {
+                    missing: false,
                     path: NativePath::new(&crate::path_from_bytes(value.to_vec())?),
                     head: None,
                     branch: None,
@@ -109,6 +110,10 @@ impl GitCli {
         }
         if let Some(tree) = current {
             trees.push(tree);
+        }
+        for tree in &mut trees {
+            tree.missing = fs::symlink_metadata(tree.path.to_path()?)
+                .is_err_and(|e| e.kind() == std::io::ErrorKind::NotFound);
         }
         Ok(trees)
     }

@@ -488,6 +488,12 @@ impl Application {
                     "Submodule relation changed. Discover and review it again.",
                 )
             })?;
+        let target_oid = if mode == "remote" {
+            gitnova_submodule::update::preview(&self.git, &self.path(membership_id)?, &sub, mode)?
+                .target_oid
+        } else {
+            sub.index_oid.clone()
+        };
         let details = SubmoduleOperationReceipt {
             recovery_index: None,
             relation_id: sub.relation_id.clone(),
@@ -495,13 +501,15 @@ impl Application {
             parent_repository_id: sub.parent_repository_id.clone(),
             repository_id: sub.repository_id.clone(),
             head_before: sub.checked_out_oid.clone(),
-            target_oid: sub.index_oid.clone(),
+            target_oid,
             head_after: None,
         };
         self.execute_write_detailed(
             membership_id,
             if mode == "initialize" {
                 "initialize_submodule"
+            } else if mode == "remote" {
+                "update_submodule_remote"
             } else {
                 "restore_submodule"
             },
@@ -817,6 +825,8 @@ impl Application {
                     "unstage_hunk" => "Hunk unstaged; working file preserved".into(),
                     "unstage" => "File unstaged; working file preserved".into(),
                     "initialize_submodule" => receipt.submodule.as_ref().map_or_else(|| "Submodule initialized".into(), |sub| format!("Initialized {} at recorded {}", sub.path.display, &sub.target_oid[..8])),
+                    "submodule_registration" => "Submodule registration staged; review .gitmodules and the pointer before committing. Child files and history retained.".into(),
+                    "update_submodule_remote" => "Submodule updated from cached remote branch; parent staging preserved. Review and stage its pointer separately.".into(),
                     "restore_submodule" => receipt.submodule.as_ref().map_or_else(|| "Submodule restored".into(), |sub| format!("Restored {} to recorded {}; parent index preserved", sub.path.display, &sub.target_oid[..8])),
                     "graph_action" => receipt.graph_action.as_ref().map_or_else(|| "Graph action completed".into(), |action| match action.kind {
                         GraphActionKind::CheckoutCommit => format!("Checked out {} (detached HEAD)", &action.oid[..8]),
@@ -876,6 +886,8 @@ impl Application {
                         | "pull_current"
                         | "initialize_submodule"
                         | "restore_submodule"
+                        | "submodule_registration"
+                        | "update_submodule_remote"
                         | "stage_submodule_pointer"
                         | "unstage_submodule_pointer"
                 ) && !matches!(
@@ -1224,7 +1236,44 @@ impl Application {
             None,
             None,
             Some(PlannedOperation::WorktreeMaintenance(preview)),
-            |git, root| git.maintain_worktree(root, request, token),
+            |git, root| {
+                git.maintain_worktree(root, request, token)?;
+                if request.kind=="reattach" {
+                    let target=NativePath::new(Path::new(&request.destination));
+                    self.update(|catalog|{
+                        for tree in &mut catalog.worktrees {if tree.root==request.path {tree.root=target.clone();}}
+                        Ok(())
+                    }).map_err(|e|AppError::new("operation_unknown",format!("Worktree repaired, but workspace paths could not be saved: {}. Inspect before retrying.",e.message)))?;
+                }
+                Ok(())
+            },
+        )
+    }
+    pub fn preview_submodule_lifecycle(
+        &self,
+        id: &str,
+        request: &SubmoduleLifecycleRequest,
+    ) -> Result<SubmoduleLifecyclePreview> {
+        let mut request = request.clone();
+        if request.id.is_empty() {
+            request.id = gitnova_workspace::id().replace('-', "");
+        }
+        gitnova_submodule::lifecycle::preview(&self.git, &self.path(id)?, &request)
+    }
+    pub fn change_submodule_lifecycle(
+        &self,
+        id: &str,
+        request: &SubmoduleLifecycleRequest,
+        token: &str,
+    ) -> Result<OperationReceipt> {
+        let p = self.preview_submodule_lifecycle(id, request)?;
+        self.execute_write_detailed(
+            id,
+            "submodule_registration",
+            None,
+            None,
+            Some(PlannedOperation::SubmoduleLifecycle(Box::new(p))),
+            |git, root| gitnova_submodule::lifecycle::apply(git, root, request, token),
         )
     }
     pub fn preview_submodule_sync(

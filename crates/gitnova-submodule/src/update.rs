@@ -97,6 +97,131 @@ fn active_operation(git_dir: &Path) -> bool {
     .iter()
     .any(|marker| git_dir.join(marker).exists())
 }
+// Match native submodule remote/branch selection, but read only cached refs.
+// A preview never fetches or executes a configured submodule update command.
+fn remote_target(
+    git: &GitCli,
+    parent: &Path,
+    child: &Path,
+    sub: &Submodule,
+    parent_branch: Option<&str>,
+    child_branch: Option<&str>,
+) -> Result<(String, String)> {
+    let name = sub.config_name.as_ref().ok_or_else(|| {
+        AppError::new(
+            "submodule_remote",
+            "No unambiguous .gitmodules entry identifies this gitlink.",
+        )
+    })?;
+    let key = format!("submodule.{name}.branch");
+    let branch = match git.optional_text(parent, &["config", "--get", &key])? {
+        Some(value) => Some(value),
+        None => git.optional_text(
+            parent,
+            &[
+                "config",
+                "--no-includes",
+                "--file",
+                ".gitmodules",
+                "--get",
+                &key,
+            ],
+        )?,
+    };
+    let remote = if let Some(branch) = child_branch {
+        git.optional_text(
+            child,
+            &["config", "--get", &format!("branch.{branch}.remote")],
+        )?
+    } else {
+        None
+    }
+    .unwrap_or_else(|| "origin".into());
+    if remote == "."
+        || remote.is_empty()
+        || remote.starts_with('-')
+        || remote.chars().any(char::is_control)
+    {
+        return Err(AppError::new(
+            "submodule_remote",
+            "Choose an ordinary configured child remote before updating from its branch.",
+        ));
+    }
+    git.text(child, &["remote", "get-url", "--", &remote])?;
+    let prefix = format!("refs/remotes/{remote}/");
+    let reference=match branch.as_deref(){
+        Some(".")=>format!("{prefix}{}",parent_branch.ok_or_else(||AppError::new("submodule_remote","The submodule inherits its parent branch; check out a parent branch first."))?),
+        Some(branch)=>format!("{prefix}{branch}"),
+        None=>git.optional_text(child,&["symbolic-ref","--quiet",&format!("{prefix}HEAD")])?.ok_or_else(||AppError::new("submodule_remote","The child remote default branch is not cached. Open and fetch the submodule, then review again."))?,
+    };
+    if !reference.starts_with(&prefix) || reference == format!("{prefix}HEAD") {
+        return Err(AppError::new(
+            "submodule_remote",
+            "The cached remote branch does not match the configured child remote.",
+        ));
+    }
+    git.text(child, &["check-ref-format", &reference])?;
+    // Ref expressions and wildcards are rejected by check-ref-format above.
+    let oid = git
+        .text(
+            child,
+            &[
+                "rev-parse",
+                "--verify",
+                "--end-of-options",
+                &format!("{reference}^{{commit}}"),
+            ],
+        )?
+        .trim()
+        .to_owned();
+    gitnova_git::validate_oid(&oid)?;
+    Ok((reference, oid))
+}
+fn remote_changes(git: &GitCli, child: &Path, from: &str, to: &str) -> Result<Vec<NativePath>> {
+    let output = git.read(
+        child,
+        &[
+            "diff".as_ref(),
+            "--raw".as_ref(),
+            "-z".as_ref(),
+            "--no-ext-diff".as_ref(),
+            "--no-textconv".as_ref(),
+            "--no-renames".as_ref(),
+            "--no-color".as_ref(),
+            "--no-relative".as_ref(),
+            from.as_ref(),
+            to.as_ref(),
+            "--".as_ref(),
+        ],
+        256 * 1024,
+    )?;
+    let parts = output
+        .bytes
+        .split(|b| *b == 0)
+        .filter(|p| !p.is_empty())
+        .collect::<Vec<_>>();
+    if !parts.len().is_multiple_of(2) || parts.len() > 2000 {
+        return Err(AppError::new("submodule_remote","Changed paths exceed the complete 1,000-path review budget. Inspect this update in the child repository."));
+    }
+    let mut paths = Vec::new();
+    for pair in parts.as_chunks::<2>().0 {
+        let fields = pair[0].split(|b| *b == b' ').collect::<Vec<_>>();
+        if fields.len() != 5 || !fields[0].starts_with(b":") {
+            return Err(AppError::new(
+                "submodule_remote",
+                "Invalid changed-path metadata.",
+            ));
+        }
+        if fields[0] == b":160000"
+            || fields[1] == b"160000"
+            || pair[1].eq_ignore_ascii_case(b".gitmodules")
+        {
+            return Err(AppError::new("submodule_remote","This version changes nested submodule pointers or layout. Review those repositories in the child before updating here."));
+        }
+        paths.push(NativePath::new(&path_from_bytes(pair[1].to_vec())?));
+    }
+    Ok(paths)
+}
 pub fn preview(
     git: &GitCli,
     root: &Path,
@@ -112,10 +237,10 @@ fn preview_inner(
     mode: &str,
     held_index: bool,
 ) -> Result<SubmoduleUpdatePreview> {
-    if !matches!(mode, "initialize" | "restore") {
+    if !matches!(mode, "initialize" | "restore" | "remote") {
         return Err(AppError::new(
             "submodule_mode",
-            "Choose initialize or restore recorded version.",
+            "Choose initialize, restore recorded version or update from a cached remote branch.",
         ));
     }
     let parent = if sub.parent_path.hex.is_empty() {
@@ -130,6 +255,9 @@ fn preview_inner(
     let parent_state = git.working_changes(&parent)?;
     let root_state = git.working_changes(root)?;
     let settings = config(git, &parent)?;
+    let mut target_oid = sub.index_oid.clone();
+    let mut remote_ref = None;
+    let mut changed_paths = None;
     let mut preserved_by = vec![];
     let mut blocked = sub.inspection_error.clone();
     let mut url = None;
@@ -244,6 +372,38 @@ fn preview_inner(
         child_state = Some(git.working_changes(&child)?);
         child_settings = Some(config(git, &child)?);
         child_head_index = Some(git.head_index_snapshot(&child)?);
+        if mode == "remote"
+            && (child_discovery.common_dir.join("info/grafts").exists()
+                || !git
+                    .text(
+                        &child,
+                        &["for-each-ref", "--format=%(refname)", "refs/replace"],
+                    )?
+                    .is_empty())
+        {
+            blocked=Some("Replacement or grafted child histories require manual investigation before updating.".into());
+        } else if mode == "remote" {
+            match remote_target(
+                git,
+                &parent,
+                &child,
+                sub,
+                parent_status.branch.as_deref(),
+                status.branch.as_deref(),
+            ) {
+                Ok((reference, oid)) => {
+                    remote_ref = Some(reference);
+                    target_oid = oid;
+                }
+                Err(error) => {
+                    blocked = Some(if error.code == "submodule_remote" {
+                        error.message
+                    } else {
+                        "The configured cached remote target is unavailable. Check its configured branch and fetch in the child, then review again.".into()
+                    })
+                }
+            }
+        }
         if status.bare
             || child_discovery.root.as_deref() != Some(std::fs::canonicalize(&child)?.as_path())
         {
@@ -289,16 +449,44 @@ fn preview_inner(
                 .lines()
                 .map(str::to_owned)
                 .collect();
-            if head != &sub.index_oid && status.branch.is_none() && preserved_by.is_empty() {
+            if head != &target_oid
+                && mode != "remote"
+                && status.branch.is_none()
+                && preserved_by.is_empty()
+            {
                 blocked = Some("The detached checkout is not retained by a local branch. Create a branch for its commits before restoring; GitNova will not abandon them.".into());
             }
-            if head == &sub.index_oid && !status.dirty {
-                blocked = Some("The checkout already matches the recorded index revision.".into());
+            if head == &target_oid && !status.dirty && (mode != "remote" || remote_ref.is_some()) {
+                blocked = Some(
+                    if mode == "remote" {
+                        "The checkout already matches the cached remote revision."
+                    } else {
+                        "The checkout already matches the recorded index revision."
+                    }
+                    .into(),
+                );
+            }
+        }
+        if mode == "remote" && remote_ref.is_some() {
+            if let Some(head) = &status.head {
+                match remote_changes(git, &child, head, &target_oid) {
+                    Ok(paths) => changed_paths = Some(paths),
+                    Err(error) => blocked = Some(error.message),
+                }
+                match git.text(&child,&["merge-base","--is-ancestor",head,&target_oid]) {
+                    Ok(_)=>{},
+                    Err(error) if error.code=="git_exit_1"=>blocked=Some("The cached remote version is not a descendant of the current checkout. Open the child to compare or merge; local commits will not be abandoned.".into()),
+                    Err(error)=>return Err(error),
+                }
+            } else {
+                blocked = Some(
+                    "The child has no available current commit. Inspect it before updating.".into(),
+                );
             }
         }
         if let Err(error) = git.text(
             &child,
-            &["cat-file", "-e", &format!("{}^{{commit}}", sub.index_oid)],
+            &["cat-file", "-e", &format!("{}^{{commit}}", target_oid)],
         ) {
             if error.code.starts_with("git_exit_") {
                 blocked = Some("The recorded commit is not available locally. Fetch this child repository first, then review Restore again.".into());
@@ -318,11 +506,20 @@ fn preview_inner(
         child_head_index,
         &url,
         &source_base,
-        &preserved_by,
+        (
+            &preserved_by,
+            &remote_ref,
+            &target_oid,
+            &changed_paths,
+            &blocked,
+        ),
         child_state.map(|state| state.token),
     ))
     .map_err(|error| AppError::new("snapshot", error.to_string()))?;
     Ok(SubmoduleUpdatePreview {
+        target_oid,
+        remote_ref,
+        changed_paths,
         submodule: sub.clone(),
         mode: mode.into(),
         url: url.as_deref().map(display_url),
@@ -386,7 +583,7 @@ pub fn apply(git: &GitCli, root: &Path, sub: &Submodule, mode: &str, token: &str
     if mode == "initialize" {
         git.initialize_recorded(&parent, &sub.relative_path.to_path()?)?;
     } else {
-        git.restore_recorded(&child, &sub.index_oid)?;
+        git.restore_recorded(&child, &confirmed.target_oid)?;
     }
     let after = git.status(&child)?;
     let current = git
@@ -404,7 +601,7 @@ pub fn apply(git: &GitCli, root: &Path, sub: &Submodule, mode: &str, token: &str
         .bytes;
     if git.head_index_snapshot(root)? != root_snapshot
         || git.head_index_snapshot(&parent)? != parent_snapshot
-        || after.head.as_deref() != Some(sub.index_oid.as_str())
+        || after.head.as_deref() != Some(confirmed.target_oid.as_str())
         || !current
             .split(|byte| *byte == 0)
             .any(|entry| entry.starts_with(format!("160000 {} 0\t", sub.index_oid).as_bytes()))

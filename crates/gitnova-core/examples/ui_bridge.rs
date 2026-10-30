@@ -1,6 +1,9 @@
 //! Test-only transport for browser E2E against the real Rust core. Not shipped in the app.
 use gitnova_core::Application;
-use gitnova_domain::{AppError, GraphCursor, NativePath, Result, WorktreeMaintenanceRequest};
+use gitnova_domain::{
+    AppError, GraphCursor, NativePath, Result, SubmoduleLifecycleRequest,
+    WorktreeMaintenanceRequest,
+};
 use serde_json::{json, Value};
 use std::{io::Read, path::PathBuf};
 fn dispatch(app: &Application, request: &Value) -> Result<Value> {
@@ -336,6 +339,15 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.preview_worktree_maintenance(&s("membershipId")?, &r)?)
             } else {
                 json!(app.maintain_worktree(&s("membershipId")?, &r, &s("token")?)?)
+            }
+        }
+        "preview_submodule_lifecycle" | "change_submodule_lifecycle" => {
+            let r: SubmoduleLifecycleRequest = serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("test", e.to_string()))?;
+            if command == "preview_submodule_lifecycle" {
+                json!(app.preview_submodule_lifecycle(&s("membershipId")?, &r)?)
+            } else {
+                json!(app.change_submodule_lifecycle(&s("membershipId")?, &r, &s("token")?)?)
             }
         }
         "preview_submodule_sync" | "sync_submodule" => {

@@ -58,11 +58,11 @@ The following phases express delivery order, not a list of wholly unimplemented 
 7. Advanced Git writes and recovery: separately reviewed merge/rebase/cherry-pick/revert/conflict workflows. No blind batch writes.
 8. Artifact/review integration and cross-platform hardening. Trusted approvals must not unlock deployments.
 
-Current implemented scope includes reviewed Clone from the workspace picker; recorded submodule initialize/restore and selected initialized-child URL sync; linked-worktree list/open/create/remove and metadata Lock/Unlock/Repair; and workspace-wide commit search. Clone is described in [M32](../milestone-32.md). Worktree repair currently requires an existing registered linked directory; it does not discover moved checkouts or prune missing ones. See [M56](../milestone-56.md) for metadata maintenance and hunk/Rebase bounds. These individual capabilities do not establish full lifecycle, cross-platform or native desktop acceptance.
+Current implemented scope includes reviewed Clone from the workspace picker; recorded submodule initialize/restore and selected initialized-child URL sync; linked-worktree list/open/create/remove and metadata Lock/Unlock/Repair; and workspace-wide commit search. Clone is described in [M32](../milestone-32.md). M77 adds explicit repair of a moved linked checkout using its original Git locator, preserving catalog identity and dirty files; missing entries are distinguished even when locked. Automatic moved-folder discovery and metadata pruning are not performed. See [M56](../milestone-56.md) for metadata maintenance and hunk/Rebase bounds. These individual capabilities do not establish full lifecycle, cross-platform or native desktop acceptance.
 
 The current workspace picker also supports reviewed local initialization ([M68](../milestone-68.md)), preserving existing files without staging or creating an initial commit. A bounded active-repository auto-fetch scheduler ([M67](../milestone-67.md)) shares operation guards and noninteractive transport; local refresh and remote fetch remain distinct. History column widths ([M69](../milestone-69.md)) are device-local presentation preferences, separate from repository identity and graph topology. [M70](../milestone-70.md) records targeted CI/UI regression fixes and the limits of local verification.
 
-Remaining work includes worktree prune/moved-directory reconciliation, submodule add/remove and update-to-newer-remote workflows, broader Rebase/hunk support, file/code archaeology, smart preview and cross-repository release intelligence.
+M76 adds cached-ref, proven-forward newer submodule updates. M77 adds reviewed add/remove registration and regular text addition/deletion hunks. Removal keeps child files/object stores; staged registration additions/deletions can be committed or amended. Advanced topology-preserving/root rebase, arbitrary nested checkout transitions, worktree pruning, broader archaeology and cross-repository release intelligence remain separate scope. Initial bounded archaeology/branch comparison is implemented in M72.
 
 ## Risks
 
@@ -189,3 +189,11 @@ Sessions, output retention and paste/IPC work are bounded; no terminal transcrip
 is persisted by GitNova. Shell commands bypass reviewed Git writes and connection
 commit identities, use normal shell/Git configuration, and may run startup files.
 Auto fetch pauses while terminal sessions are retained. See [M75](../milestone-75.md).
+
+### Reviewed submodule remote revision
+
+The selected-child workflow can review a newer commit from its configured cached
+remote ref. It does not fetch while previewing or confirming. Forward ancestry,
+clean state, unchanged nested layout and complete bounded path evidence are
+required. Confirmation changes the child checkout while preserving parent index
+bytes and branch refs; staging the parent gitlink is separate. See [M76](../milestone-76.md).
