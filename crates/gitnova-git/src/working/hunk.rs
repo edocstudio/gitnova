@@ -6,7 +6,11 @@ fn blocked(message: &str) -> AppError {
 }
 fn split_patch(diff: &str) -> Result<(&str, Vec<&str>)> {
     if !diff.ends_with('\n')
-        || diff.matches("diff --git ").count() != 1
+        || diff
+            .lines()
+            .filter(|line| line.starts_with("diff --git "))
+            .count()
+            != 1
         || diff.lines().any(|line| {
             line.starts_with("new file mode ")
                 || line.starts_with("deleted file mode ")

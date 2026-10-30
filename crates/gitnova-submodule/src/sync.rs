@@ -68,6 +68,89 @@ fn child_remote(git: &GitCli, child: &Path) -> Result<String> {
     }
     Ok("origin".into())
 }
+// Resolve only ordinary absolute sources. Native sync remains the writer; its
+// postconditions must compare raw values, never redacted presentation strings.
+fn resolved_url(git: &GitCli, parent: &Path, configured: &str) -> Result<String> {
+    if !configured.starts_with("../") && !configured.starts_with("./") {
+        git.validate_submodule_source(configured)?;
+        return Ok(configured.into());
+    }
+    if configured.contains(['\\', '?', '#']) || configured.chars().any(char::is_control) {
+        return Err(err(
+            "Unsupported relative submodule URL. Inspect the source with Git.",
+        ));
+    }
+    let remote = child_remote(git, parent)?;
+    let base = git
+        .optional_text(
+            parent,
+            &["config", "--get", &format!("remote.{remote}.url")],
+        )?
+        .unwrap_or_else(|| parent.to_string_lossy().into_owned());
+    git.validate_submodule_source(&base)?;
+    let (prefix, path) = if let Some((scheme, rest)) = base.split_once("://") {
+        let (authority, path) = rest
+            .split_once('/')
+            .ok_or_else(|| err("The parent remote needs an absolute repository path."))?;
+        (format!("{scheme}://{authority}/"), path.to_string())
+    } else if Path::new(&base).is_absolute() {
+        // Git resolves URL components lexically; canonicalizing here would
+        // change a symlink/alias spelling and falsely report a partial sync.
+        let mut destination = PathBuf::from(&base);
+        for part in configured.split('/') {
+            match part {
+                "." => (),
+                ".." => {
+                    if !destination.pop() {
+                        return Err(err("Relative submodule URL escapes its local root."));
+                    }
+                }
+                "" => return Err(err("Empty relative URL components need manual inspection.")),
+                value => destination.push(value),
+            }
+        }
+        let value = destination
+            .to_str()
+            .ok_or_else(|| err("The source path is not UTF-8."))?;
+        git.validate_submodule_source(value)?;
+        return Ok(value.into());
+    } else if let Some((host, path)) = base.split_once(':') {
+        if host.contains('/') || path.starts_with('/') {
+            return Err(err("This relative SSH URL needs manual inspection."));
+        }
+        (format!("{host}:"), path.to_string())
+    } else {
+        return Err(err(
+            "Relative submodule URLs require an absolute parent remote.",
+        ));
+    };
+    let mut parts = path
+        .trim_end_matches('/')
+        .split('/')
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    if parts
+        .iter()
+        .any(|part| part.is_empty() || part == "." || part == "..")
+    {
+        return Err(err("The parent remote path needs manual normalization."));
+    }
+    for part in configured.split('/') {
+        match part {
+            "." => (),
+            ".." => {
+                if parts.pop().is_none() {
+                    return Err(err("Relative submodule URL escapes its remote root."));
+                }
+            }
+            "" => return Err(err("Empty relative URL components need manual inspection.")),
+            value => parts.push(value.into()),
+        }
+    }
+    let value = format!("{prefix}{}", parts.join("/"));
+    git.validate_submodule_source(&value)?;
+    Ok(value)
+}
 pub fn preview(git: &GitCli, root: &Path, sub: &Submodule) -> Result<SubmoduleSyncPreview> {
     let parent = parent(root, sub)?;
     let child = checked_child(&parent, &sub.relative_path.to_path()?)?;
@@ -101,12 +184,7 @@ pub fn preview(git: &GitCli, root: &Path, sub: &Submodule) -> Result<SubmoduleSy
     if !sub.initialized {
         blocked = Some("Initialize this submodule before synchronizing its URLs.".into());
     }
-    let url = configured.clone();
-    if configured.starts_with("../") || configured.starts_with("./") {
-        blocked=Some("Relative submodule URLs need an explicit absolute source before URL synchronization in GitNova.".into());
-    } else {
-        git.validate_submodule_source(&configured)?;
-    }
+    let url = resolved_url(git, &parent, &configured)?;
     let previous = git.optional_text(&parent, &["config", "--get", &key])?;
     let mut child_previous = None;
     let mut remote = None;
@@ -247,16 +325,30 @@ pub fn apply(git: &GitCli, root: &Path, sub: &Submodule, token: &str) -> Result<
             "Configuration changed while saving recovery. No URL was synchronized.",
         ));
     }
-    git.synchronize_submodule_urls(&parent, &sub.relative_path.to_path()?)?;
     let name = sub
         .config_name
         .as_deref()
         .ok_or_else(|| err("Missing submodule name."))?;
+    let configured = git
+        .optional_text(
+            &parent,
+            &[
+                "config",
+                "--no-includes",
+                "--file",
+                ".gitmodules",
+                "--get",
+                &format!("submodule.{name}.url"),
+            ],
+        )?
+        .ok_or_else(|| err("The recorded submodule URL disappeared."))?;
+    let expected_url = resolved_url(git, &parent, &configured)?;
+    git.synchronize_submodule_urls(&parent, &sub.relative_path.to_path()?)?;
     let now = git.optional_text(
         &parent,
         &["config", "--get", &format!("submodule.{name}.url")],
     )?;
-    if now.as_deref() != Some(p.url.as_str())
+    if now.as_deref() != Some(expected_url.as_str())
         || git.head_index_snapshot(&parent)? != parent_state
         || git.head_index_snapshot(root)? != root_state
         || bytes(&parent.join(".gitmodules"))? != modules
@@ -271,7 +363,7 @@ pub fn apply(git: &GitCli, root: &Path, sub: &Submodule, token: &str) -> Result<
                     &["config", "--get", &format!("remote.{remote}.url")],
                 )?
                 .as_deref()
-                != Some(p.url.as_str())
+                != Some(expected_url.as_str())
         {
             return Err(err("The child URL update needs inspection. Commits and configuration backups were retained."));
         }

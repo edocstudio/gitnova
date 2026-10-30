@@ -50,8 +50,8 @@ The following workflows are implemented in the current alpha. Availability does 
 | **Branches & remotes** | Set up a reviewed repository destination from Push; preview checkout, fetch, pull, push, rename/delete branches, and inspect local/upstream ahead/behind counts. Configure active-repository auto fetch in Settings → General. |
 | **Merge & selected changes** | Review a merge commit or fast-forward, resolve supported text conflicts in a three-way editor with per-block choices, cherry-pick/revert a commit, and review finish/abort. Optionally delete the local source branch after a successful merge. |
 | **Stashes** | Save work, inspect saved entries in the graph, and apply/pop onto the current branch. Recovery and conflict limits are documented. |
-| **Submodules & worktrees** | Inspect branch-specific submodules, open their graphs, initialize/restore recorded versions and stage pointer changes; sync selected initialized submodule URLs; list, create, open, lock/unlock, repair and safely remove supported linked worktrees. |
-| **Search** | Find commits by message, author, email or SHA across the current repository, selected repositories or workspace. |
+| **Submodules & worktrees** | Inspect branch-specific submodules, open their graphs, initialize/restore recorded versions and stage pointer changes; sync selected initialized submodule URLs, including supported relative URL shapes; list, create, open, lock/unlock, repair and safely remove supported linked worktrees. |
+| **Search** | Find commits by message, author, email or SHA; investigate literal file/code history and compare branch tips across the current repository, selected repositories or workspace. Investigation coverage is bounded and labelled. |
 | **Tags & collaboration** | Create/publish version tags, copy remote commit links, and create/open GitHub pull requests or GitLab merge requests. |
 | **CI visibility** | Display exact-commit GitLab pipelines and GitHub Actions workflow runs alongside checks/status in the graph, including available run numbers and links. Global host/company connections and optional Jenkins integration live in Settings. |
 | **Languages** | Switch between English and Thai from Settings → General without losing drafts or selection. |
@@ -177,9 +177,9 @@ The graph remains the primary interface as GitNova grows. The architecture follo
 | **1 · Workspace foundation** | Repository/worktree identities, memberships, switching and status. |
 | **2 · Everyday Git** | Visual history, working changes, remotes and reviewed Git operations. |
 | **3 · Submodules & worktrees** | Complete the remaining lifecycle and recovery workflows. |
-| **4 · Search & archaeology** | Extend workspace commit search into file and code investigation. |
+| **4 · Search & archaeology** | Extend bounded file/code investigation into deeper archaeology. |
 | **5 · Smart change preview** | Explain planned changes and their risks before writing. |
-| **6 · Release intelligence** | Investigate coordinated changes across repositories. |
+| **6 · Release intelligence** | Extend coordinated branch evidence into dependency-aware release investigation. |
 
 Reviewed linear Rebase and tracked-text Stage/Unstage hunk are available. See [scope and recovery](docs/milestone-56.md).
 

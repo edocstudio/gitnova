@@ -842,3 +842,48 @@ fn large_new_and_existing_branch_pushes_keep_full_scope_with_bounded_subject_rev
     assert_eq!(fs::read(repo.join(".git/config")).unwrap(), config);
     assert_eq!(fs::read_to_string(repo.join("file.txt")).unwrap(), "main\n");
 }
+
+#[cfg(unix)]
+#[test]
+fn push_accepts_tracking_ref_already_updated_by_native_git() {
+    use std::os::unix::fs::PermissionsExt;
+    for first_publication in [true, false] {
+        let (temp, app, repo, id) = setup();
+        let bare = remote(&repo, temp.path());
+        let oid = git(&repo, &["rev-parse", "feature"]);
+        let mut request = push_request(&oid);
+        if first_publication {
+            request.remote_branch = "published/feature".into();
+        }
+        request.set_upstream = true;
+        let reference = format!("refs/remotes/origin/{}", request.remote_branch);
+        // Emulate native Git's cache update on older Git too. The hook is
+        // explicit fixture configuration and runs only after confirmation.
+        let hook = repo.join(".git/hooks/pre-push");
+        fs::write(
+            &hook,
+            format!("#!/bin/sh\ngit update-ref {reference} {oid}\n"),
+        )
+        .unwrap();
+        fs::set_permissions(&hook, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::write(repo.join("file.txt"), "local draft\n").unwrap();
+        let review = app.preview_push(&id, &request).unwrap();
+        assert!(review.blocked_reason.is_none(), "{review:?}");
+        let result = app.push_branch(&id, &request, &review.token).unwrap();
+        assert_eq!(result.status, "succeeded", "{result:?}");
+        assert_eq!(remote_oid(&bare, &request.remote_branch), oid);
+        assert_eq!(git(&repo, &["rev-parse", &reference]), oid);
+        assert_eq!(
+            git(
+                &repo,
+                &["rev-parse", "--symbolic-full-name", "feature@{upstream}"]
+            ),
+            reference
+        );
+        assert_eq!(
+            fs::read_to_string(repo.join("file.txt")).unwrap(),
+            "local draft\n"
+        );
+        assert_eq!(git(&repo, &["branch", "--show-current"]), "main");
+    }
+}

@@ -140,3 +140,7 @@ export interface SubmoduleSyncPreview {submodule:Submodule;previousUrl:string|nu
 
 export type InitRequest = {workspaceId: string; destination: string; branch: string};
 export type InitPreview = {request: InitRequest; destination: NativePath; existingFolder: boolean; token: string};
+
+export interface InvestigationRequest { selection: CommitSearchRequest; mode: 'history' | 'compare'; path: string; needle: string; source: string; target: string }
+export interface InvestigationEvidence { location: SearchLocation; sourceOid: string | null; targetOid: string | null; sourceOnly: number | null; targetOnly: number | null; changedFiles: number | null; dirty: boolean | null; scanned: number; limited: boolean; shallow: boolean; issue: string | null }
+export interface InvestigationPage { hits: CommitSearchHit[]; evidence: InvestigationEvidence[]; partial: boolean }

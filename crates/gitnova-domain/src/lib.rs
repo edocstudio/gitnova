@@ -1363,3 +1363,37 @@ pub struct InitPreview {
     pub existing_folder: bool,
     pub token: String,
 }
+
+/// Read-only local history evidence. No provider or release mutation is implied.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InvestigationRequest {
+    pub selection: CommitSearchRequest,
+    pub mode: String,
+    pub path: String,
+    pub needle: String,
+    pub source: String,
+    pub target: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InvestigationEvidence {
+    pub location: SearchLocation,
+    pub source_oid: Option<String>,
+    pub target_oid: Option<String>,
+    pub source_only: Option<usize>,
+    pub target_only: Option<usize>,
+    pub changed_files: Option<usize>,
+    pub dirty: Option<bool>,
+    pub scanned: usize,
+    pub limited: bool,
+    pub shallow: bool,
+    pub issue: Option<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InvestigationPage {
+    pub hits: Vec<CommitSearchHit>,
+    pub evidence: Vec<InvestigationEvidence>,
+    pub partial: bool,
+}

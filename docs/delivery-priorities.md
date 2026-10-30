@@ -34,7 +34,7 @@ Amend acceptance: stage and message scope are explicit, preserve omitted unstage
 
 Hunk acceptance: use exact per-file patch identity and reviewed index/working snapshots, preserve unrelated staged/unstaged hunks, handle repeated context and new/deleted/renamed/binary cases honestly, and refuse stale or unsupported selections. Do not synthesize a successful partial stage from a truncated display patch.
 
-Remaining related-repository work includes reviewed worktree prune/relocation and submodule add/remove, relative-URL synchronization and remote-version update, including nested relationships, dirty worktrees and unpushed commit protection. Keep recorded-version restoration distinct from a newer-version update.
+Remaining related-repository work includes reviewed worktree prune/relocation and submodule add/remove, remaining relative-URL shapes and remote-version update, including nested relationships, dirty worktrees and unpushed commit protection. Keep recorded-version restoration distinct from a newer-version update.
 
 Performance follow-up (M57): [measured read-path optimization](milestone-57.md)
 adds a reproducible packaged native/background-WebKit soak. This does not close
@@ -51,3 +51,9 @@ broader rebase/hunk, related-repository and performance/recovery work remains op
 Initial tag creation/publication and provider create/open slices now exist in
 milestones 37/38. Hosted merge/checks/diffs and live-provider acceptance remain
 open alongside the previously recorded delivery priorities.
+
+
+M71 adds validated relative submodule URL synchronization and hunk correctness;
+M72 adds bounded literal file/code history and coordinated local branch evidence.
+Deeper archaeology and dependency-aware release readiness remain outstanding.
+See [M71](milestone-71.md) and [M72](milestone-72.md) for exact scope.

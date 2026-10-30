@@ -151,3 +151,8 @@ Typed DiscardRequest/Preview extends core receipts and the Tauri-independent Git
 The current adapter supports exact native-generated hunk application against a private index, with complete-patch and snapshot checks before atomic publication. Whole-file staging remains the explicit fallback for unsupported patch shapes. Rebase has a dedicated bounded linear plan and journal inside the shared operation envelope; native Git owns replay while the graph inspector owns reviewed conflict resolution, Continue/Skip/Abort and durable recovery. Foreign or inconsistent native state is never silently adopted.
 
 Related metadata maintenance uses the same operation guards and durable receipts: selected initialized-submodule URL synchronization preserves checkout/pointers and saves configuration backups; worktree Lock/Unlock/Repair previews the native metadata scope. See [M56](../milestone-56.md) for implemented bounds and remaining lifecycle work. These extend the earlier initial-stage limitations recorded above.
+
+
+## Bounded local history investigation (M72)
+
+Typed investigation requests reuse registered workspace/repository/worktree source selection, fixed offline Git argument arrays and post-read ref fingerprints. The core aggregates per-location coverage and immutable branch-tip comparison evidence; no Tauri types enter the domain/Git services. Literal file/code history uses bounded recent candidates rather than a new persistent content index. The existing search result navigator opens the exact graph commit and matching historical file. This initial read-only slice does not infer semantic or dependency release readiness. See [M72](../milestone-72.md).

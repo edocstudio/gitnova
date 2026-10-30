@@ -48,6 +48,10 @@ Fetch downloads remote history without merging into your local branch. Pull fetc
 
 ↑ counts local commits missing from the tracked remote branch; ↓ counts remote commits missing locally. Both can be nonzero when histories diverge. These counts describe the last fetched remote state, not live server state. Fetch before deciding how to integrate.
 
+### How do I investigate a file or code change?
+
+Open Search commits and choose File / code history. Enter a literal repository-relative path, a literal code phrase, or both; choose the repository scope and Search. Code search finds changes in the phrase occurrence count, not every edit to lines containing it. It considers at most 2,000 recent local commits per location and shows up to 100 results; merge changes compare with the first parent and renames are not followed. Select a result to open its graph and historical diff without checkout. Shallow or bounded coverage is labelled.
+
 ## History and recovery
 
 ### How do Stash, Apply and Pop work?
@@ -82,11 +86,15 @@ A submodule is a separate Git repository referenced by a recorded commit in its 
 
 ### Should I restore a submodule or stage its pointer?
 
-Use the Submodules row for the selected branch and Manage to inspect it. Open the child graph to handle its files. Restore recorded returns its checkout to the parent’s recorded commit; stage its pointer to record the checked-out commit. Review dirty files and unpushed commits first. Sync URLs copies the reviewed .gitmodules URL to the selected initialized child’s local configuration; it does not fetch, change files or update its commit. Relative URLs require external Git in this version.
+Use the Submodules row for the selected branch and Manage to inspect it. Open the child graph to handle its files. Restore recorded returns its checkout to the parent’s recorded commit; stage its pointer to record the checked-out commit. Review dirty files and unpushed commits first. Sync URLs copies the reviewed .gitmodules URL to the selected initialized child’s local configuration; it does not fetch, change files or update its commit. Relative URLs are resolved against the parent branch’s configured remote for supported standard URL shapes; review the resolved destination before confirming.
 
 ### When should I use a linked worktree?
 
 Use a linked worktree to keep another checkout of the same repository, for example to review a release while keeping feature work open. Open or create one from the graph context. In Related repositories, Worktree metadata offers reviewed Lock, Unlock and Repair for an existing linked checkout. Lock protects against pruning; Unlock removes that protection. Repair fixes metadata without deleting files or moving branches. Dirty worktrees are not removed automatically.
+
+### Can I compare release branches across repositories?
+
+In Search commits, choose Compare branches across repositories and select the current, selected or entire-workspace scope. Enter Source and Target branch names, then Search. Evidence lists source-only and target-only commits, exact tip IDs and changed-file counts for each location. Missing refs, shallow history and limits remain explicit. Cached remote refs are not fetched automatically by this comparison. This is committed Git evidence; it does not certify CI, dependency compatibility or release readiness.
 
 ## Sharing and connections
 

@@ -293,3 +293,36 @@ fn custom_mapping_same_repository_and_changed_configuration_are_not_silent_delet
         .contains("same repository"));
     assert!(exists(&f.root, "refs/heads/feature/cleanup"));
 }
+
+#[cfg(unix)]
+#[test]
+fn remote_delete_accepts_tracking_ref_already_removed_by_native_git() {
+    use std::os::unix::fs::PermissionsExt;
+    let f = fixture();
+    let hooks = f.root.join(".git/test-hooks");
+    fs::create_dir(&hooks).unwrap();
+    let hook = hooks.join("pre-push");
+    fs::write(
+        &hook,
+        "#!/bin/sh\ngit update-ref -d refs/remotes/origin/feature/cleanup\n",
+    )
+    .unwrap();
+    fs::set_permissions(&hook, fs::Permissions::from_mode(0o755)).unwrap();
+    git(
+        &f.root,
+        &["config", "core.hooksPath", hooks.to_str().unwrap()],
+    );
+    fs::write(f.root.join("file.txt"), "keep draft\n").unwrap();
+    let r = request(&f);
+    let p = f.app.preview_remote_delete(&f.id, &r).unwrap();
+    let out = f.app.delete_remote_branch(&f.id, &r, &p.token).unwrap();
+    assert_eq!(out.status, "succeeded", "{out:?}");
+    assert!(!exists(&f.remote, "refs/heads/feature/cleanup"));
+    assert!(!exists(&f.root, "refs/remotes/origin/feature/cleanup"));
+    assert_eq!(git(&f.root, &["rev-parse", "feature/cleanup"]), f.oid);
+    assert_eq!(git(&f.root, &["rev-parse", &p.recovery_ref]), f.oid);
+    assert_eq!(
+        fs::read_to_string(f.root.join("file.txt")).unwrap(),
+        "keep draft\n"
+    );
+}

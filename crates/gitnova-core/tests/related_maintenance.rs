@@ -271,3 +271,149 @@ fn repair_refuses_a_registered_locator_redirected_to_another_repository() {
     assert_eq!(fs::read_to_string(linked.join(".git")).unwrap(), locator);
     assert_eq!(git(&foreign, &["status", "--porcelain"]), "");
 }
+
+#[test]
+fn sync_relative_urls_matches_native_git_and_revalidates_parent_remote() {
+    for (base, relative, expected) in [
+        (
+            "https://example.invalid/team/parent.git",
+            "../child.git",
+            "https://example.invalid/team/child.git",
+        ),
+        (
+            "ssh://git@example.invalid:2222/team/parent.git",
+            "../child.git",
+            "ssh://git@example.invalid:2222/team/child.git",
+        ),
+        (
+            "git@example.invalid:team/parent.git",
+            "../../other/child.git",
+            "git@example.invalid:other/child.git",
+        ),
+    ] {
+        let f = sub();
+        let child = f.root.join("child");
+        git(&f.root, &["remote", "add", "origin", base]);
+        git(
+            &f.root,
+            &[
+                "config",
+                "--file",
+                ".gitmodules",
+                "submodule.child.url",
+                relative,
+            ],
+        );
+        fs::write(child.join("file"), "keep dirty relative sync\n").unwrap();
+        let head = git(&child, &["rev-parse", "HEAD"]);
+        let before = fs::read(f.root.join(".git/index")).unwrap();
+        let p = f
+            .app
+            .preview_submodule_sync(&f.id, &NativePath::new(Path::new("child")))
+            .unwrap();
+        assert!(p.blocked_reason.is_none(), "{p:?}");
+        let outcome = f
+            .app
+            .sync_submodule(&f.id, &p.submodule.path, &p.token)
+            .unwrap();
+        assert_eq!(outcome.status, "succeeded", "{outcome:?}");
+        assert_eq!(git(&f.root, &["config", "submodule.child.url"]), expected);
+        assert_eq!(git(&child, &["config", "remote.origin.url"]), expected);
+        assert_eq!(git(&child, &["rev-parse", "HEAD"]), head);
+        assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), before);
+        assert_eq!(
+            fs::read_to_string(child.join("file")).unwrap(),
+            "keep dirty relative sync\n"
+        );
+        git(
+            &f.root,
+            &[
+                "config",
+                "--file",
+                ".gitmodules",
+                "submodule.child.url",
+                "../another.git",
+            ],
+        );
+        let p = f
+            .app
+            .preview_submodule_sync(&f.id, &p.submodule.path)
+            .unwrap();
+        git(
+            &f.root,
+            &[
+                "remote",
+                "set-url",
+                "origin",
+                "https://example.invalid/changed/parent.git",
+            ],
+        );
+        assert_ne!(
+            f.app
+                .sync_submodule(&f.id, &p.submodule.path, &p.token)
+                .unwrap()
+                .status,
+            "succeeded"
+        );
+        assert_eq!(git(&child, &["config", "remote.origin.url"]), expected);
+    }
+}
+
+#[test]
+fn ssh_display_redaction_never_changes_sync_postconditions() {
+    let f = sub();
+    let url = "ssh://git@example.invalid:2222/team/child.git";
+    git(
+        &f.root,
+        &[
+            "config",
+            "--file",
+            ".gitmodules",
+            "submodule.child.url",
+            url,
+        ],
+    );
+    let p = f
+        .app
+        .preview_submodule_sync(&f.id, &NativePath::new(Path::new("child")))
+        .unwrap();
+    assert!(p.url.contains("[credentials]"));
+    let receipt = f
+        .app
+        .sync_submodule(&f.id, &p.submodule.path, &p.token)
+        .unwrap();
+    assert_eq!(receipt.status, "succeeded", "{receipt:?}");
+    assert_eq!(
+        git(&f.root.join("child"), &["config", "remote.origin.url"]),
+        url
+    );
+}
+
+#[test]
+fn relative_local_sync_without_a_parent_remote_matches_native_git() {
+    let f = sub();
+    git(
+        &f.root,
+        &[
+            "config",
+            "--file",
+            ".gitmodules",
+            "submodule.child.url",
+            "../source-new",
+        ],
+    );
+    let p = f
+        .app
+        .preview_submodule_sync(&f.id, &NativePath::new(Path::new("child")))
+        .unwrap();
+    assert!(p.blocked_reason.is_none(), "{p:?}");
+    let result = f
+        .app
+        .sync_submodule(&f.id, &p.submodule.path, &p.token)
+        .unwrap();
+    assert_eq!(result.status, "succeeded", "{result:?}");
+    assert_eq!(
+        git(&f.root.join("child"), &["config", "remote.origin.url"]),
+        p.url
+    );
+}
