@@ -13,6 +13,7 @@ use std::{
 pub const SCAN_LIMIT: usize = 20_000;
 const RAW_LIMIT: usize = 32 * 1024 * 1024;
 const CACHE_LIMIT: usize = 64 * 1024 * 1024;
+const RESIDENT_LIMIT: usize = 64 * 1024 * 1024;
 #[derive(Clone, Serialize, Deserialize)]
 struct IndexedCommit {
     commit: Commit,
@@ -30,8 +31,33 @@ struct Cache {
 }
 pub struct SearchIndex {
     requests: Mutex<()>,
-    caches: Mutex<BTreeMap<String, Arc<Mutex<Cache>>>>,
+    caches: Mutex<BTreeMap<PathBuf, ResidentIndex>>,
     traversals: moka::sync::Cache<TraversalKey, SharedTraversal>,
+}
+struct ResidentIndex {
+    index: Arc<Mutex<Cache>>,
+    bytes: usize,
+    used: std::time::Instant,
+}
+// Include owned strings, vector storage and an allowance for map allocations.
+// This is cache admission accounting, not a cap on allocator/process RSS.
+fn resident_bytes(cache: &Cache) -> usize {
+    1024 + cache
+        .entries
+        .iter()
+        .map(|(oid, entry)| {
+            let commit = &entry.commit;
+            256 + std::mem::size_of::<IndexedCommit>()
+                + oid.capacity()
+                + entry.message.capacity()
+                + commit.oid.capacity()
+                + commit.author.capacity()
+                + commit.email.capacity()
+                + commit.subject.capacity()
+                + commit.parents.capacity() * std::mem::size_of::<String>()
+                + commit.parents.iter().map(String::capacity).sum::<usize>()
+        })
+        .sum::<usize>()
 }
 type TraversalKey = (PathBuf, String);
 type SharedTraversal = Arc<(Vec<String>, bool)>;
@@ -241,19 +267,24 @@ impl SearchIndex {
         {
             return Err(AppError::new("identity", "Invalid search cache identity."));
         }
-        let mut caches = self
-            .caches
-            .lock()
-            .map_err(|_| AppError::new("search", "Search cache is unavailable."))?;
-        if let Some(cache) = caches.get(repository_id) {
-            return Ok(cache.clone());
-        }
         let path = directory.join(format!("{repository_id}.json"));
+        {
+            let mut caches = self
+                .caches
+                .lock()
+                .map_err(|_| AppError::new("search", "Search cache is unavailable."))?;
+            if let Some(cache) = caches.get_mut(&path) {
+                cache.used = std::time::Instant::now();
+                return Ok(cache.index.clone());
+            }
+        }
+        // Independent repository workers must not serialize disk I/O and JSON
+        // validation behind the global resident-map lock.
         let mut cache = Cache {
             version: 1,
             ..Default::default()
         };
-        if let Ok(file) = std::fs::File::open(path) {
+        if let Ok(file) = std::fs::File::open(&path) {
             let mut bytes = vec![];
             file.take(CACHE_LIMIT as u64 + 1).read_to_end(&mut bytes)?;
             if bytes.len() <= CACHE_LIMIT {
@@ -291,23 +322,43 @@ impl SearchIndex {
             }
         }
         // Cache files are disposable metadata; malformed/oversized files are rebuilt, never trusted as Git state.
+        let bytes = resident_bytes(&cache);
         let cache = Arc::new(Mutex::new(cache));
-        // At most two resident repository indexes. Up to three current search
-        // workers may hold temporary indexes; never retain an additional one
-        // just because all resident entries are busy.
-        if caches.len() >= 2 {
-            if let Some(key) = caches
-                .iter()
-                .find(|(_, cache)| Arc::strong_count(cache) == 1)
-                .map(|(id, _)| id.clone())
-            {
-                caches.remove(&key);
-            }
-        }
-        if caches.len() < 2 {
-            caches.insert(repository_id.into(), cache.clone());
-        }
+        self.retain_index(path, cache.clone(), bytes)?;
         Ok(cache)
+    }
+    fn retain_index(&self, path: PathBuf, index: Arc<Mutex<Cache>>, bytes: usize) -> Result<()> {
+        let mut caches = self
+            .caches
+            .lock()
+            .map_err(|_| AppError::new("search", "Search cache is unavailable."))?;
+        caches.remove(&path);
+        if bytes > RESIDENT_LIMIT {
+            return Ok(());
+        }
+        // Eviction drops resident ownership even if a bounded active worker
+        // still holds the index. Busy entries never force extra retention.
+        while caches.len() >= 32
+            || caches.values().map(|e| e.bytes).sum::<usize>() + bytes > RESIDENT_LIMIT
+        {
+            let Some(oldest) = caches
+                .iter()
+                .min_by_key(|(_, e)| e.used)
+                .map(|(key, _)| key.clone())
+            else {
+                break;
+            };
+            caches.remove(&oldest);
+        }
+        caches.insert(
+            path,
+            ResidentIndex {
+                index,
+                bytes,
+                used: std::time::Instant::now(),
+            },
+        );
+        Ok(())
     }
     fn reachable(
         &self,
@@ -340,8 +391,15 @@ impl SearchIndex {
         terms: &[String],
     ) -> Result<GroupResult> {
         let repository_id = sources[0].location.repository_id.clone();
-        let cache = self.cache(directory, &repository_id)?;
-        let mut cache = cache
+        let shared = self.cache(directory, &repository_id)?;
+        // Mutable/rebuilding indexes belong only to the bounded active workers.
+        // Re-admit with their new weight on success; an early error must not
+        // leave a grown index retained under its previous (or empty) weight.
+        self.caches
+            .lock()
+            .map_err(|_| AppError::new("search", "Search cache is unavailable."))?
+            .remove(&directory.join(format!("{repository_id}.json")));
+        let mut cache = shared
             .lock()
             .map_err(|_| AppError::new("search", "Repository index is unavailable."))?;
         let mut snapshots = vec![];
@@ -508,6 +566,11 @@ impl SearchIndex {
             file.persist(directory.join(format!("{repository_id}.json")))
                 .map_err(|e| AppError::new("search_cache", e.to_string()))?;
         }
+        self.retain_index(
+            directory.join(format!("{repository_id}.json")),
+            shared.clone(),
+            resident_bytes(&cache),
+        )?;
         let indexed = all
             .iter()
             .filter(|oid| cache.entries.contains_key(*oid))
@@ -758,17 +821,68 @@ impl SearchIndex {
 mod tests {
     use super::*;
     #[test]
-    fn busy_repository_indexes_never_grow_the_resident_map() {
+    fn busy_repository_indexes_never_exceed_resident_count_or_byte_budget() {
         let directory = tempfile::tempdir().unwrap();
         let index = SearchIndex::default();
         let mut held = vec![];
-        for i in 0..32 {
+        for i in 0..40 {
             held.push(index.cache(directory.path(), &format!("repo-{i}")).unwrap());
-            assert!(index.caches.lock().unwrap().len() <= 2);
+            assert!(index.caches.lock().unwrap().len() <= 32);
         }
         drop(held);
         index.cache(directory.path(), "next").unwrap();
-        assert!(index.caches.lock().unwrap().contains_key("next"));
+        assert!(
+            index
+                .caches
+                .lock()
+                .unwrap()
+                .contains_key(&directory.path().join("next.json"))
+        );
+        for i in 0..8 {
+            index
+                .retain_index(
+                    directory.path().join(format!("large-{i}.json")),
+                    Arc::new(Mutex::new(Cache::default())),
+                    RESIDENT_LIMIT / 3,
+                )
+                .unwrap();
+            let caches = index.caches.lock().unwrap();
+            assert!(caches.values().map(|entry| entry.bytes).sum::<usize>() <= RESIDENT_LIMIT);
+            assert!(caches.len() <= 32);
+        }
+        index
+            .retain_index(
+                directory.path().join("oversized.json"),
+                Arc::new(Mutex::new(Cache::default())),
+                RESIDENT_LIMIT + 1,
+            )
+            .unwrap();
+        assert!(
+            !index
+                .caches
+                .lock()
+                .unwrap()
+                .contains_key(&directory.path().join("oversized.json"))
+        );
+    }
+    #[test]
+    fn small_indexes_reuse_memory_across_many_repositories_and_isolate_directories() {
+        let directory = tempfile::tempdir().unwrap();
+        let index = SearchIndex::default();
+        let held = (0..10)
+            .map(|i| index.cache(directory.path(), &format!("repo-{i}")).unwrap())
+            .collect::<Vec<_>>();
+        for (i, cached) in held.iter().enumerate() {
+            assert!(Arc::ptr_eq(
+                cached,
+                &index.cache(directory.path(), &format!("repo-{i}")).unwrap()
+            ));
+        }
+        let other = tempfile::tempdir().unwrap();
+        assert!(!Arc::ptr_eq(
+            &held[0],
+            &index.cache(other.path(), "repo-0").unwrap()
+        ));
     }
     #[test]
     fn traversal_cache_evicts_under_weight_pressure() {
@@ -833,7 +947,10 @@ mod tests {
     fn byte_lengths_keep_nul_and_forged_headers_inside_their_commit_body() {
         let oid = "a".repeat(40);
         let other = "b".repeat(40);
-        let body=format!("tree {}\nauthor A <a@example.invalid> 1 +0000\ncommitter A <a@example.invalid> 1 +0000\n\nTitle\n\nNUL\0{other} commit 12\nbody\n","c".repeat(40));
+        let body = format!(
+            "tree {}\nauthor A <a@example.invalid> 1 +0000\ncommitter A <a@example.invalid> 1 +0000\n\nTitle\n\nNUL\0{other} commit 12\nbody\n",
+            "c".repeat(40)
+        );
         let raw = format!(
             "{oid} commit {}\n{body}\n{other} commit {}\n{body}\n",
             body.len(),
@@ -843,24 +960,30 @@ mod tests {
         let records = batch_records(&raw, &[oid, other]).unwrap();
         assert_eq!(records.len(), 2);
         assert_eq!(records[0].0, body.as_bytes());
-        assert!(parse_commit(&records[0].1, records[0].0)
-            .unwrap()
-            .message
-            .contains('\0'));
+        assert!(
+            parse_commit(&records[0].1, records[0].0)
+                .unwrap()
+                .message
+                .contains('\0')
+        );
     }
     #[test]
     fn incomplete_or_mismatched_batches_are_rejected_instead_of_returning_other_commits() {
         let oid = "a".repeat(40);
-        assert!(batch_records(
-            format!("{oid} commit 999\nshort\n").as_bytes(),
-            std::slice::from_ref(&oid)
-        )
-        .is_err());
-        assert!(batch_records(
-            format!("{} commit 0\n\n", "b".repeat(40)).as_bytes(),
-            &[oid]
-        )
-        .is_err());
+        assert!(
+            batch_records(
+                format!("{oid} commit 999\nshort\n").as_bytes(),
+                std::slice::from_ref(&oid)
+            )
+            .is_err()
+        );
+        assert!(
+            batch_records(
+                format!("{} commit 0\n\n", "b".repeat(40)).as_bytes(),
+                &[oid]
+            )
+            .is_err()
+        );
     }
 }
 

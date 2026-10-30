@@ -47,7 +47,7 @@ Right click a commit → **Create worktree here…** to check it out in a separa
 - Pinned repositories, recent-first selection order, branch/detached/bare and dirty status in the repository selector.
 - Real date-ordered, child-before-parent history with parallel branch lanes, stable positions/colors across pages, a dedicated Branch / Tag column, merge/HEAD rings, compact 36px rows, paginated IPC and a virtualized graph list.
 - Warm in-memory selection/scroll restoration per membership (up to eight graph sessions). Each session retains at most 1,000 rows; older-page loading evicts earlier rows with scroll adjustment.
-- Bounded Moka reachability cache for repeated commit searches, two resident parsed repository indexes, and page-only full search result materialization. Live working snapshots retain only the active checkout; native command dispatch runs at most two blocking commands with bounded admission. See [cache design and performance limits](adr/0024-bounded-read-caches.md). Catalog/index persistence is currently JSON; SQLite FTS5 remains outstanding.
+- Bounded Moka reachability cache for repeated commit searches, up to 32 parsed repository indexes within a 64 MiB estimated resident budget, and page-only full search result materialization. Live working snapshots retain only the active checkout; native command dispatch runs at most two blocking commands with bounded admission. See [cache design and performance limits](adr/0024-bounded-read-caches.md). Catalog/index persistence is currently JSON; SQLite FTS5 remains outstanding.
 - Local / Remotes branch picker with affected-path preview and explicit confirmation. Fetch a selected configured remote, create a local tracking branch or fast-forward its existing local branch; preserve ahead commits and block divergence.
 - Contextual branch rename, recoverable local branch/tag deletion and explicit upstream settings. Reviewed single-branch push inspects the live destination, pins the source commit and publishes by normal fast-forward rules; optional upstream and cache updates report partial failures.
 - Per-file stage/unstage with an isolated prepared index, native index lock, revalidation and atomic index publication.
@@ -299,3 +299,5 @@ no native Git locks are removed and no operation is automatically retried.
 ### M85 — large stash review
 
 [Stash preview bounds](milestone-85.md) separate code text from complete path/content identity. The existing inspector loads selected Working/Index patches, includes saved index-only paths and names partial code without blocking the entire stash. Full-content stale checks, collision/gitlink guards and reviewed Pop/Drop recovery remain in place.
+
+Performance follow-up: [M86](milestone-86.md) uses byte-budgeted search index retention, deferred Settings tabs, and viewport rendering for working/operation file lists over 200 entries. Counts and reviewed operation scope remain complete; this is not a whole-app RAM ceiling.

@@ -1,0 +1,16 @@
+# M86: Measured search retention and deferred UI work
+
+This increment targets measured workspace-search index churn and oversized file-list DOMs. It is not an app-wide optimization or release-readiness claim.
+
+- Search retains up to 32 parsed repository indexes within a **64 MiB estimated allocation budget**, evicting least-recently-used entries. Active read workers and query temporaries are separate bounded allocations. This replaces the historical two-index limit; no external service, dependency or storage migration was added.
+- Independent index-file reads/validation no longer hold the global cache-map lock. Rebuilding indexes leave resident ownership until their current weight is known. Directory plus repository identity isolates caches from separate application state directories.
+- Live Git identity/ref validation, worktree reachability, corruption recovery, literal substring semantics and **100-result pages** remain intact. Full metadata is materialized only for the requested result page.
+- Settings defers Connections/FAQ content until first tab activation. Visited tabs preserve drafts/query state until the dialog closes; merely opening General does not mount account readers or FAQ content.
+- Working changes, operation and historical-diff file lists over 200 entries render only the visible range plus four-row overscan. Complete counts/manifests remain available to reviewed Stage all, Commit, Amend and operation commands. Existing list scrolling and Arrow/Home/End navigation reach offscreen entries; accessible positions reflect the complete list.
+- The working commit composer keeps its action row outside its scrollable fields, including compact windows and long author/rewrite explanations. No new screen, navigation item or operation shortcut was introduced.
+
+The core benchmark over ten temporary repositories/20,000 commits reduced warm search median from **1,121.40 ms to 331.96 ms** in sequential local runs. Sampled core RSS rose from **27.75 MiB to 44.03 MiB**: retaining reusable metadata trades memory for latency within the admission budget. These are debug-core samples, not whole-app peak RAM or network-operation timings. See the [raw comparison](benchmarks/workspace-search-m86.json) and [verification report](verification/2026-10-30-search-and-ui-loading.md).
+
+Remaining: incremental indexing/SQLite FTS design without changing substring semantics, persisted-cache retention, obsolete read cancellation, foreground/full-workday WebKit/heap/GPU profiling and live-provider/network operation timing. The earlier positive WebKit RSS trend must not be declared fixed solely from bounded DOM/cache sizes.
+
+Two serial 15-minute native/background-WebKit runs completed successfully. Workspace search median improved from **13,916.50 ms to 3,094.00 ms** between initial M86 tuning and the final candidate; first indexing still took about 30 seconds. Maximum observed DOM nodes fell from **10,120 to 2,214**. The final fitted native/WebKit RSS trends after five minutes were negative, but foreground/full-workday memory acceptance remains open. The [exported summary](benchmarks/performance-m86.json) includes exact measurement scopes, raw data hashes and limitations.

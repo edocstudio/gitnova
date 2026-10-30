@@ -1,0 +1,304 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-workspace-search-comparison",
+  "measuredAt": "2026-10-30T15:45:06.866539+00:00",
+  "sourceBaseCommit": "392ad20ff792a59ee245ec97e3d4f902e1c8b625",
+  "sourceHasUncommittedChanges": true,
+  "host": {
+    "os": "Darwin",
+    "machine": "arm64"
+  },
+  "fixture": {
+    "repositories": 10,
+    "commitsPerRepository": 2000,
+    "totalCommits": 20000,
+    "query": "needle",
+    "pageSize": 100,
+    "warmQueriesPerRun": 10
+  },
+  "limitations": [
+    "Sequential fixed-order before/after runs on separate disposable but identical synthetic histories; filesystem cache and system load may affect results.",
+    "Unoptimized debug core only; no WebKit, network, authentication, full-workday or cross-product comparison.",
+    "RSS sampled after operations, not a high-water measurement; estimated resident-cache budget excludes active workers, query temporaries and allocator overhead."
+  ],
+  "before": {
+    "commits": 20000,
+    "locations": 10,
+    "measurements": [
+      {
+        "core_rss_kib": 8448,
+        "milliseconds": 223.34520799999999,
+        "scenario": "graph_initial"
+      },
+      {
+        "core_rss_kib": 8464,
+        "milliseconds": 60.808125,
+        "scenario": "commit_detail"
+      },
+      {
+        "core_rss_kib": 8496,
+        "milliseconds": 162.351958,
+        "scenario": "working_snapshot"
+      },
+      {
+        "core_rss_kib": 26416,
+        "milliseconds": 4109.156875,
+        "scenario": "workspace_search_cold"
+      },
+      {
+        "core_rss_kib": 27104,
+        "milliseconds": 1117.231917,
+        "scenario": "workspace_search_warm_0"
+      },
+      {
+        "core_rss_kib": 27136,
+        "milliseconds": 178.411709,
+        "scenario": "switch_graph_0"
+      },
+      {
+        "core_rss_kib": 27136,
+        "milliseconds": 1100.4865,
+        "scenario": "workspace_search_warm_1"
+      },
+      {
+        "core_rss_kib": 27136,
+        "milliseconds": 290.467167,
+        "scenario": "switch_graph_1"
+      },
+      {
+        "core_rss_kib": 27136,
+        "milliseconds": 1086.319083,
+        "scenario": "workspace_search_warm_2"
+      },
+      {
+        "core_rss_kib": 27136,
+        "milliseconds": 251.989209,
+        "scenario": "switch_graph_2"
+      },
+      {
+        "core_rss_kib": 27344,
+        "milliseconds": 1125.558542,
+        "scenario": "workspace_search_warm_3"
+      },
+      {
+        "core_rss_kib": 27344,
+        "milliseconds": 206.530708,
+        "scenario": "switch_graph_3"
+      },
+      {
+        "core_rss_kib": 27344,
+        "milliseconds": 1129.658292,
+        "scenario": "workspace_search_warm_4"
+      },
+      {
+        "core_rss_kib": 27344,
+        "milliseconds": 226.05366700000002,
+        "scenario": "switch_graph_4"
+      },
+      {
+        "core_rss_kib": 27360,
+        "milliseconds": 1103.295084,
+        "scenario": "workspace_search_warm_5"
+      },
+      {
+        "core_rss_kib": 27424,
+        "milliseconds": 346.748,
+        "scenario": "switch_graph_5"
+      },
+      {
+        "core_rss_kib": 27536,
+        "milliseconds": 1164.308083,
+        "scenario": "workspace_search_warm_6"
+      },
+      {
+        "core_rss_kib": 27552,
+        "milliseconds": 260.950833,
+        "scenario": "switch_graph_6"
+      },
+      {
+        "core_rss_kib": 28272,
+        "milliseconds": 1192.237166,
+        "scenario": "workspace_search_warm_7"
+      },
+      {
+        "core_rss_kib": 28272,
+        "milliseconds": 242.844458,
+        "scenario": "switch_graph_7"
+      },
+      {
+        "core_rss_kib": 28288,
+        "milliseconds": 1176.131542,
+        "scenario": "workspace_search_warm_8"
+      },
+      {
+        "core_rss_kib": 28320,
+        "milliseconds": 258.77666700000003,
+        "scenario": "switch_graph_8"
+      },
+      {
+        "core_rss_kib": 28336,
+        "milliseconds": 1116.7279999999998,
+        "scenario": "workspace_search_warm_9"
+      },
+      {
+        "core_rss_kib": 28352,
+        "milliseconds": 269.808125,
+        "scenario": "switch_graph_9"
+      },
+      {
+        "core_rss_kib": 28416,
+        "milliseconds": 1349.323,
+        "scenario": "workspace_search_persisted_restart"
+      }
+    ],
+    "profile": "debug core only; excludes WebKit, network, large binary patches and recovery copy"
+  },
+  "after": {
+    "commits": 20000,
+    "locations": 10,
+    "measurements": [
+      {
+        "core_rss_kib": 8336,
+        "milliseconds": 187.962833,
+        "scenario": "graph_initial"
+      },
+      {
+        "core_rss_kib": 8368,
+        "milliseconds": 55.862125,
+        "scenario": "commit_detail"
+      },
+      {
+        "core_rss_kib": 8384,
+        "milliseconds": 152.62258300000002,
+        "scenario": "working_snapshot"
+      },
+      {
+        "core_rss_kib": 36576,
+        "milliseconds": 3452.800875,
+        "scenario": "workspace_search_cold"
+      },
+      {
+        "core_rss_kib": 36912,
+        "milliseconds": 325.125208,
+        "scenario": "workspace_search_warm_0"
+      },
+      {
+        "core_rss_kib": 37008,
+        "milliseconds": 139.221709,
+        "scenario": "switch_graph_0"
+      },
+      {
+        "core_rss_kib": 37008,
+        "milliseconds": 332.059208,
+        "scenario": "workspace_search_warm_1"
+      },
+      {
+        "core_rss_kib": 37024,
+        "milliseconds": 161.684,
+        "scenario": "switch_graph_1"
+      },
+      {
+        "core_rss_kib": 37040,
+        "milliseconds": 348.046875,
+        "scenario": "workspace_search_warm_2"
+      },
+      {
+        "core_rss_kib": 37056,
+        "milliseconds": 173.395667,
+        "scenario": "switch_graph_2"
+      },
+      {
+        "core_rss_kib": 37088,
+        "milliseconds": 351.360958,
+        "scenario": "workspace_search_warm_3"
+      },
+      {
+        "core_rss_kib": 37088,
+        "milliseconds": 174.53712499999997,
+        "scenario": "switch_graph_3"
+      },
+      {
+        "core_rss_kib": 37104,
+        "milliseconds": 325.106292,
+        "scenario": "workspace_search_warm_4"
+      },
+      {
+        "core_rss_kib": 37120,
+        "milliseconds": 156.37083299999998,
+        "scenario": "switch_graph_4"
+      },
+      {
+        "core_rss_kib": 37136,
+        "milliseconds": 329.22024999999996,
+        "scenario": "workspace_search_warm_5"
+      },
+      {
+        "core_rss_kib": 37136,
+        "milliseconds": 159.784791,
+        "scenario": "switch_graph_5"
+      },
+      {
+        "core_rss_kib": 37136,
+        "milliseconds": 328.29987500000004,
+        "scenario": "workspace_search_warm_6"
+      },
+      {
+        "core_rss_kib": 37136,
+        "milliseconds": 170.192541,
+        "scenario": "switch_graph_6"
+      },
+      {
+        "core_rss_kib": 37200,
+        "milliseconds": 338.75525,
+        "scenario": "workspace_search_warm_7"
+      },
+      {
+        "core_rss_kib": 37200,
+        "milliseconds": 166.871917,
+        "scenario": "switch_graph_7"
+      },
+      {
+        "core_rss_kib": 37200,
+        "milliseconds": 343.02824999999996,
+        "scenario": "workspace_search_warm_8"
+      },
+      {
+        "core_rss_kib": 37216,
+        "milliseconds": 169.5215,
+        "scenario": "switch_graph_8"
+      },
+      {
+        "core_rss_kib": 37216,
+        "milliseconds": 331.87062499999996,
+        "scenario": "workspace_search_warm_9"
+      },
+      {
+        "core_rss_kib": 37248,
+        "milliseconds": 166.18670899999998,
+        "scenario": "switch_graph_9"
+      },
+      {
+        "core_rss_kib": 45088,
+        "milliseconds": 716.0745,
+        "scenario": "workspace_search_persisted_restart"
+      }
+    ],
+    "profile": "debug core only; excludes WebKit, network, large binary patches and recovery copy"
+  },
+  "summary": {
+    "before": {
+      "warm_median_ms": 1121.3952295,
+      "warm_max_ms": 1192.237166,
+      "sampled_peak_core_rss_mib": 27.75
+    },
+    "after": {
+      "warm_median_ms": 331.96491649999996,
+      "warm_max_ms": 351.360958,
+      "sampled_peak_core_rss_mib": 44.03125
+    }
+  },
+  "cacheConfiguration": {
+    "before": "two resident repository indexes",
+    "after": "up to 32 resident indexes, 64 MiB estimated allocation budget; active workers separate"
+  }
+}

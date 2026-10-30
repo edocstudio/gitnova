@@ -79,13 +79,30 @@ fn main() {
         .parse::<usize>()
         .unwrap();
     assert!((100..=20000).contains(&count));
+    let locations = std::env::args()
+        .nth(2)
+        .map(|s| s.parse::<usize>().unwrap())
+        .unwrap_or(2);
+    assert!((2..=10).contains(&locations));
     let temp = tempfile::tempdir().unwrap();
-    fixture(&temp.path().join("one"), count);
-    fixture(&temp.path().join("two"), 100);
+    let names = (0..locations)
+        .map(|i| format!("repo-{i}"))
+        .collect::<Vec<_>>();
+    let total = if locations == 2 {
+        count + 100
+    } else {
+        count * locations
+    };
+    for (i, name) in names.iter().enumerate() {
+        fixture(
+            &temp.path().join(name),
+            if locations == 2 && i == 1 { 100 } else { count },
+        );
+    }
     let state = temp.path().join("app/state.json");
     let app = Application::new(state.clone()).unwrap();
     let mut ids = vec![];
-    for name in ["one", "two"] {
+    for name in &names {
         let c = app.add_repository(&temp.path().join(name)).unwrap();
         ids.push(c.workspaces[0].selected_id.clone().unwrap());
     }
@@ -112,7 +129,7 @@ fn main() {
     let cold = measure(&mut rows, "workspace_search_cold", || {
         app.search_commits(&request).unwrap()
     });
-    assert_eq!(cold.total_matches, count + 100);
+    assert_eq!(cold.total_matches, total);
     for i in 0..10 {
         let result = measure(&mut rows, &format!("workspace_search_warm_{i}"), || {
             app.search_commits(&request).unwrap()
@@ -120,7 +137,7 @@ fn main() {
         assert_eq!(result.total_matches, cold.total_matches);
         assert_eq!(result.hits[0].commit.oid, cold.hits[0].commit.oid);
         measure(&mut rows, &format!("switch_graph_{i}"), || {
-            app.graph(&ids[i % 2], None).unwrap()
+            app.graph(&ids[i % locations], None).unwrap()
         });
     }
     drop(app);
@@ -128,5 +145,5 @@ fn main() {
     measure(&mut rows, "workspace_search_persisted_restart", || {
         reopened.search_commits(&request).unwrap()
     });
-    println!("{}", serde_json::to_string_pretty(&json!({"profile":"debug core only; excludes WebKit, network, large binary patches and recovery copy", "commits": count + 100, "measurements":rows})).unwrap());
+    println!("{}", serde_json::to_string_pretty(&json!({"profile":"debug core only; excludes WebKit, network, large binary patches and recovery copy", "commits": total, "locations":locations, "measurements":rows})).unwrap());
 }

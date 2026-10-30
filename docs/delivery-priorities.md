@@ -57,3 +57,7 @@ M71 adds validated relative submodule URL synchronization and hunk correctness;
 M72 adds bounded literal file/code history and coordinated local branch evidence.
 Deeper archaeology and dependency-aware release readiness remain outstanding.
 See [M71](milestone-71.md) and [M72](milestone-72.md) for exact scope.
+
+## 2026-10-30 performance-first follow-up
+
+Latest user direction prioritizes performance/RAM work, using lazy loading, pagination and bounded caching where justified by measurements. M86 targets multi-repository search index churn and unnecessary UI work. Existing graph/search pagination and per-file patch loading remain in place. Long-session WebKit memory investigation and incremental indexing are still required; Rust implementation alone is not evidence of application-wide speed.
