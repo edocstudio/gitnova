@@ -59,6 +59,7 @@ fn lock_unlock_and_repair_preserve_dirty_checkout_and_refs() {
     let (a, id) = app(&root, d.path());
     for kind in ["lock", "unlock", "repair"] {
         let request = WorktreeMaintenanceRequest {
+            destination: String::new(),
             path: NativePath::new(&linked),
             kind: kind.into(),
             reason: if kind == "lock" {
@@ -94,6 +95,7 @@ fn stale_lock_state_and_main_checkout_maintenance_are_refused() {
     );
     let (a, id) = app(&root, d.path());
     let mut r = WorktreeMaintenanceRequest {
+        destination: String::new(),
         path: NativePath::new(&linked),
         kind: "lock".into(),
         reason: String::new(),
@@ -227,6 +229,7 @@ fn repair_restores_a_broken_linked_locator_without_deleting_dirty_work() {
     )
     .unwrap();
     let r = WorktreeMaintenanceRequest {
+        destination: String::new(),
         path: NativePath::new(&linked),
         kind: "repair".into(),
         reason: String::new(),
@@ -258,6 +261,7 @@ fn repair_refuses_a_registered_locator_redirected_to_another_repository() {
     let locator = format!("gitdir: {}\n", foreign.join(".git").display());
     fs::write(linked.join(".git"), &locator).unwrap();
     let r = WorktreeMaintenanceRequest {
+        destination: String::new(),
         path: NativePath::new(&linked),
         kind: "repair".into(),
         reason: String::new(),
@@ -416,4 +420,125 @@ fn relative_local_sync_without_a_parent_remote_matches_native_git() {
         git(&f.root.join("child"), &["config", "remote.origin.url"]),
         p.url
     );
+}
+
+#[test]
+fn moved_worktree_reattach_preserves_dirty_index_branch_and_workspace_identity() {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("parent");
+    repo(&root);
+    let linked = d.path().join("linked");
+    git(
+        &root,
+        &["worktree", "add", "-b", "side", linked.to_str().unwrap()],
+    );
+    let (a, id) = app(&root, d.path());
+    let catalog = a.add_repository(&linked).unwrap();
+    let linked_id = catalog.workspaces[0].selected_id.clone().unwrap();
+    let worktree_id = catalog.workspaces[0]
+        .memberships
+        .iter()
+        .find(|m| m.id == linked_id)
+        .unwrap()
+        .worktree_id
+        .clone();
+    fs::write(linked.join("file"), "staged child\n").unwrap();
+    git(&linked, &["add", "file"]);
+    fs::write(linked.join("file"), "working child\n").unwrap();
+    let before = a
+        .worktrees(&id)
+        .unwrap()
+        .into_iter()
+        .find(|t| t.branch.as_deref() == Some("side"))
+        .unwrap();
+    let old = before.path.to_path().unwrap();
+    let moved = old.with_file_name("moved");
+    fs::rename(&old, &moved).unwrap();
+    let moved = moved.canonicalize().unwrap();
+    let admin = PathBuf::from(git(&moved, &["rev-parse", "--absolute-git-dir"]));
+    let index = fs::read(admin.join("index")).unwrap();
+    let head = fs::read(admin.join("HEAD")).unwrap();
+    let r = WorktreeMaintenanceRequest {
+        path: before.path.clone(),
+        kind: "reattach".into(),
+        destination: moved.to_str().unwrap().into(),
+        reason: String::new(),
+    };
+    let p = a.preview_worktree_maintenance(&id, &r).unwrap();
+    assert!(p.tree.missing);
+    assert!(p.blocked_reason.is_none());
+    assert!(!old.exists());
+    assert_eq!(
+        a.maintain_worktree(&id, &r, &p.token).unwrap().status,
+        "succeeded"
+    );
+    assert_eq!(
+        a.status(&linked_id).unwrap().branch.as_deref(),
+        Some("side")
+    );
+    assert_eq!(fs::read(admin.join("index")).unwrap(), index);
+    assert_eq!(fs::read(admin.join("HEAD")).unwrap(), head);
+    assert_eq!(
+        fs::read_to_string(moved.join("file")).unwrap(),
+        "working child\n"
+    );
+    let c = a.catalog().unwrap();
+    assert_eq!(
+        c.workspaces[0]
+            .memberships
+            .iter()
+            .find(|m| m.id == linked_id)
+            .unwrap()
+            .worktree_id,
+        worktree_id
+    );
+    assert!(c
+        .worktrees
+        .iter()
+        .any(|w| Some(&w.id) == worktree_id.as_ref() && w.root.to_path().unwrap() == moved));
+    assert!(p
+        .recovery_dir
+        .unwrap()
+        .to_path()
+        .unwrap()
+        .join("index")
+        .exists());
+}
+#[test]
+fn moved_worktree_repair_rejects_wrong_repository_and_stale_locator() {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("parent");
+    repo(&root);
+    let linked = d.path().join("linked");
+    git(
+        &root,
+        &["worktree", "add", "-b", "side", linked.to_str().unwrap()],
+    );
+    let (a, id) = app(&root, d.path());
+    let tree = a
+        .worktrees(&id)
+        .unwrap()
+        .into_iter()
+        .find(|t| t.branch.as_deref() == Some("side"))
+        .unwrap();
+    let old = tree.path.to_path().unwrap();
+    let moved = old.with_file_name("moved");
+    fs::rename(&old, &moved).unwrap();
+    let moved = moved.canonicalize().unwrap();
+    let mut r = WorktreeMaintenanceRequest {
+        path: tree.path,
+        kind: "reattach".into(),
+        destination: moved.to_str().unwrap().into(),
+        reason: String::new(),
+    };
+    let p = a.preview_worktree_maintenance(&id, &r).unwrap();
+    let gitfile = fs::read(moved.join(".git")).unwrap();
+    fs::write(moved.join(".git"), b"gitdir: /nonexistent\n").unwrap();
+    assert!(a.maintain_worktree(&id, &r, &p.token).is_err());
+    assert!(!old.exists());
+    fs::write(moved.join(".git"), gitfile).unwrap();
+    let foreign = d.path().join("foreign");
+    repo(&foreign);
+    r.destination = foreign.canonicalize().unwrap().to_str().unwrap().into();
+    assert!(a.preview_worktree_maintenance(&id, &r).is_err());
 }

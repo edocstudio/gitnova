@@ -313,6 +313,14 @@ impl GitCli {
         root: &Path,
         request: &WorktreeMaintenanceRequest,
     ) -> Result<WorktreeMaintenancePreview> {
+        if request.kind == "reattach" {
+            return self.preview_reattach_worktree(root, request);
+        }
+        if !request.destination.is_empty() {
+            return Err(request_error(
+                "Only moved-checkout repair accepts a destination.",
+            ));
+        }
         if !["lock", "unlock", "repair"].contains(&request.kind.as_str())
             || request.reason.len() > 512
             || request.reason.contains(['\0', '\n', '\r'])
@@ -442,6 +450,7 @@ impl GitCli {
         ))
         .map_err(|e| request_error(&e.to_string()))?;
         Ok(WorktreeMaintenancePreview {
+            recovery_dir: None,
             request: request.clone(),
             tree: tree.clone(),
             affected: if request.kind == "repair" {
@@ -459,6 +468,9 @@ impl GitCli {
         request: &WorktreeMaintenanceRequest,
         token: &str,
     ) -> Result<()> {
+        if request.kind == "reattach" {
+            return self.reattach_worktree(root, request, token);
+        }
         let p = self.preview_worktree_maintenance(root, request)?;
         if p.token != token {
             return Err(request_error(

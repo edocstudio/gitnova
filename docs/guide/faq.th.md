@@ -38,7 +38,7 @@ Stage นำการเปลี่ยนแปลงที่เลือก�
 
 ### Stage แค่บางส่วนของไฟล์ได้ไหม?
 
-เลือกไฟล์ข้อความปกติที่ Git ติดตามใน Working changes แล้วกด Stage hunk หรือ Unstage hunk ที่หัวบล็อก diff เพื่อแก้เฉพาะบล็อกนั้นใน index โดยเก็บไฟล์ทำงานไว้ ใช้ action รายไฟล์สำหรับไฟล์ใหม่ ไฟล์ที่ลบ เปลี่ยน mode, binary, เนื้อหาที่ไม่ใช่ UTF-8 หรือ patch ที่แสดงไม่ครบ ระบบจะปฏิเสธ preview ที่เก่าแล้ว
+เลือกไฟล์ข้อความปกติใน Working changes แล้วกด Stage hunk หรือ Unstage hunk ที่หัวบล็อก diff เพื่อแก้เฉพาะบล็อกนั้นใน index โดยเก็บไฟล์ทำงานไว้ รองรับไฟล์ข้อความที่เพิ่มหรือลบ รวมถึง index แรกของ repo ใหม่ ใช้ action รายไฟล์สำหรับการเปลี่ยน mode, binary, เนื้อหาที่ไม่ใช่ UTF-8 หรือ patch ที่แสดงไม่ครบ ไฟล์ใหม่ที่ต้องแปลง text/EOL/encoding/ident ใช้ Stage ทั้งไฟล์ผ่าน Git ระบบจะปฏิเสธ preview ที่เก่าแล้ว
 
 ### Fetch, Pull, Push และ Refresh ทำอะไร?
 
@@ -151,3 +151,22 @@ End session จะถามก่อนปิด เปิดค้างได�
 ที่ตั้งใน connection ของ GitNova ใช้ Refresh เพื่อดูการเปลี่ยนแปลงจากคำสั่งภายนอก
 Auto fetch จะพักระหว่างมีเซสชันเปิดอยู่ จำกัดประวัติ output เพื่อคุมหน่วยความจำ
 GitNova ไม่บันทึก transcript แต่เชลล์อาจเก็บประวัติตามการตั้งค่าปกติของคุณ
+
+### อัปเดต submodule ไปยังเวอร์ชันใหม่อย่างไร?
+
+เปิดและ fetch ที่เก็บโค้ดของ submodule ก่อนเมื่อต้องการข้อมูล remote ล่าสุด
+จากกราฟ parent เลือก Manage ของ submodule → Review newer version… ตรวจ remote
+branch ที่ fetch ไว้ commit ปลายทาง และรายการไฟล์ก่อนยืนยัน รองรับเฉพาะ checkout
+สะอาดที่พิสูจน์ได้ว่าไปข้างหน้า หลังอัปเดตจะเป็น detached HEAD ไม่เปลี่ยน staging
+ของ parent หรือ checkout ของ nested submodule ต้อง Stage pointer ที่ parent
+แยกต่างหากเพื่อบันทึกเวอร์ชันนั้น ส่วน Restore recorded คืนไปยัง commit ใน parent
+index กรณีเปลี่ยนโครงสร้าง nested submodule ประวัติแยก หรือพิสูจน์ ancestry ไม่ได้
+ต้องตรวจภายใน submodule ก่อน
+
+### เพิ่มหรือนำ submodule ออกอย่างไร?
+
+เลือก Branch Submodules → Add submodule ระบุ source และโฟลเดอร์สัมพัทธ์ แล้วตรวจและยืนยัน หากเป็น child checkout อิสระที่มีอยู่ ระบบเก็บ branch และไฟล์ไว้ ส่วน Manage → Remove registration นำ registration ออกจาก parent ใน staging โดยเก็บโฟลเดอร์ child, commit และ Git metadata ไว้ ตรวจ manifest และ pointer ที่ staged ก่อน commit สำหรับรายการซ้อน ให้เปิด repository ของ parent ชั้นที่เกี่ยวข้องก่อน
+
+### ซ่อม worktree ที่ย้ายโฟลเดอร์อย่างไร?
+
+เปิด Worktree metadata จากรายการที่หาย แล้วระบุโฟลเดอร์ใหม่ที่มีอยู่ ตรวจ Reattach ก่อนยืนยัน Git locator ต้องชี้ worktree เดิมที่ลงทะเบียนไว้ ระบบเก็บไฟล์ staging และ branch พร้อมอัปเดต path ใน workspace ที่ตรงกัน Action นี้ไม่ย้ายโฟลเดอร์และไม่ prune metadata

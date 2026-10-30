@@ -38,6 +38,7 @@ fn fixture(name: &str) -> F {
     git(&root, &["config", "user.name", "Fixture"]);
     git(&root, &["config", "user.email", "test@example.invalid"]);
     git(&root, &["config", "commit.gpgsign", "false"]);
+    git(&root, &["config", "core.autocrlf", "false"]);
     fs::write(root.join(name), text("base", "base")).unwrap();
     fs::write(root.join("other"), "before\n").unwrap();
     git(&root, &["add", "."]);
@@ -155,12 +156,8 @@ fn stale_file_index_config_and_index_lock_preserve_the_index() {
     assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), before);
 }
 #[test]
-fn new_deleted_binary_and_mode_changes_are_refused_without_guessing() {
+fn binary_and_mode_changes_are_refused_without_guessing() {
     let f = fixture("file");
-    fs::write(f.root.join("new"), "new\n").unwrap();
-    assert!(f.app.preview_hunks(&f.id, &path("new"), false).is_err());
-    fs::remove_file(f.root.join("file")).unwrap();
-    assert!(f.app.preview_hunks(&f.id, &path("file"), false).is_err());
     fs::write(f.root.join("file"), b"binary\0changed").unwrap();
     assert!(f.app.preview_hunks(&f.id, &path("file"), false).is_err());
     #[cfg(unix)]
@@ -239,4 +236,117 @@ fn patch_command_text_inside_code_is_not_a_second_file_header() {
     );
     assert_eq!(fs::read_to_string(f.root.join("file")).unwrap(), value);
     assert_eq!(git(&f.root, &["diff", "--cached"]), "");
+}
+
+#[test]
+fn added_and_deleted_text_hunks_roundtrip_without_touching_working_bytes_or_other_staging() {
+    let f = fixture("file");
+    fs::write(f.root.join("other"), "keep staged\n").unwrap();
+    git(&f.root, &["add", "other"]);
+    let name = "new tab\tand space.txt";
+    let bytes = "new text without final newline";
+    fs::write(f.root.join(name), bytes).unwrap();
+    let p = f.app.preview_hunks(&f.id, &path(name), false).unwrap();
+    assert_eq!(p.headers.len(), 1);
+    assert_eq!(
+        f.app
+            .change_hunk(&f.id, &path(name), false, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert_eq!(git(&f.root, &["show", &format!(":{name}")]), bytes);
+    let p = f.app.preview_hunks(&f.id, &path(name), true).unwrap();
+    assert_eq!(
+        f.app
+            .change_hunk(&f.id, &path(name), true, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert_eq!(git(&f.root, &["ls-files", "--", name]), "");
+    assert_eq!(fs::read_to_string(f.root.join(name)).unwrap(), bytes);
+    fs::remove_file(f.root.join("file")).unwrap();
+    let p = f.app.preview_hunks(&f.id, &path("file"), false).unwrap();
+    assert_eq!(
+        f.app
+            .change_hunk(&f.id, &path("file"), false, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert_eq!(git(&f.root, &["ls-files", "--", "file"]), "");
+    let p = f.app.preview_hunks(&f.id, &path("file"), true).unwrap();
+    assert_eq!(
+        f.app
+            .change_hunk(&f.id, &path("file"), true, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert_eq!(
+        git(&f.root, &["show", ":file"]),
+        text("base", "base").trim_end()
+    );
+    assert!(!f.root.join("file").exists());
+    assert_eq!(git(&f.root, &["show", ":other"]), "keep staged");
+}
+
+#[test]
+fn initial_repository_without_index_can_stage_then_unstage_a_text_hunk() {
+    let dir = tempfile::tempdir().unwrap();
+    git(dir.path(), &["init", "-b", "main"]);
+    git(dir.path(), &["config", "core.autocrlf", "false"]);
+    fs::write(dir.path().join("new"), "first\n").unwrap();
+    let app = Application::new(dir.path().join("catalog.json")).unwrap();
+    let id = app.add_repository(dir.path()).unwrap().workspaces[0]
+        .selected_id
+        .clone()
+        .unwrap();
+    let p = app.preview_hunks(&id, &path("new"), false).unwrap();
+    assert_eq!(
+        app.change_hunk(&id, &path("new"), false, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    let p = app.preview_hunks(&id, &path("new"), true).unwrap();
+    assert_eq!(
+        app.change_hunk(&id, &path("new"), true, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert_eq!(
+        fs::read_to_string(dir.path().join("new")).unwrap(),
+        "first\n"
+    );
+    assert_eq!(git(dir.path(), &["ls-files", "--", "new"]), "");
+}
+
+#[test]
+fn new_file_hunks_never_bypass_native_line_ending_or_attribute_conversion() {
+    let f = fixture("file");
+    fs::write(f.root.join("new"), b"first\r\nsecond\r\n").unwrap();
+    let before = fs::read(f.root.join(".git/index")).unwrap();
+    git(&f.root, &["config", "core.autocrlf", "true"]);
+    assert!(f.app.preview_hunks(&f.id, &path("new"), false).is_err());
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), before);
+    git(&f.root, &["config", "core.autocrlf", "false"]);
+    fs::write(f.root.join(".gitattributes"), "new text eol=lf\n").unwrap();
+    assert!(f.app.preview_hunks(&f.id, &path("new"), false).is_err());
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), before);
+    fs::remove_file(f.root.join(".gitattributes")).unwrap();
+    let p = f.app.preview_hunks(&f.id, &path("new"), false).unwrap();
+    assert_eq!(
+        f.app
+            .change_hunk(&f.id, &path("new"), false, 0, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    let app_oid = git(&f.root, &["rev-parse", ":new"]);
+    git(&f.root, &["reset", "--quiet", "HEAD", "--", "new"]);
+    git(&f.root, &["add", "new"]);
+    assert_eq!(git(&f.root, &["rev-parse", ":new"]), app_oid);
 }

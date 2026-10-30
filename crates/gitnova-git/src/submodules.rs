@@ -64,3 +64,56 @@ impl GitCli {
         )
     }
 }
+
+impl GitCli {
+    pub fn add_submodule_registration(&self, root: &Path, source: &str, path: &Path) -> Result<()> {
+        self.validate_submodule_source(source)?;
+        crate::working::relative(&NativePath::new(path))?;
+        run_fetch(
+            root,
+            &[
+                "-c".into(),
+                "submodule.recurse=false".into(),
+                "-c".into(),
+                "fetch.recurseSubmodules=false".into(),
+                "-c".into(),
+                "init.templateDir=".into(),
+                "submodule".into(),
+                "add".into(),
+                "--".into(),
+                source.into(),
+                path.as_os_str().into(),
+            ],
+        )
+    }
+    pub fn remove_submodule_registration(
+        &self,
+        root: &Path,
+        name: &str,
+        path: &Path,
+    ) -> Result<()> {
+        crate::working::relative(&NativePath::new(path))?;
+        // Keep the child's directory and Git metadata. Never use rm -r, deinit or --force.
+        run_offline_write(
+            root,
+            &[
+                "rm".into(),
+                "--cached".into(),
+                "--".into(),
+                path.as_os_str().into(),
+            ],
+        )?;
+        // --cached does not edit .gitmodules. Remove only the reviewed section.
+        run_offline_write(
+            root,
+            &[
+                "config".into(),
+                "--file".into(),
+                ".gitmodules".into(),
+                "--remove-section".into(),
+                format!("submodule.{name}").into(),
+            ],
+        )?;
+        run_offline_write(root, &["add".into(), "--".into(), ".gitmodules".into()])
+    }
+}

@@ -12,15 +12,13 @@ fn split_patch(diff: &str) -> Result<(&str, Vec<&str>)> {
             .count()
             != 1
         || diff.lines().any(|line| {
-            line.starts_with("new file mode ")
-                || line.starts_with("deleted file mode ")
-                || line.starts_with("old mode ")
+            line.starts_with("old mode ")
                 || line.starts_with("new mode ")
                 || line.starts_with("Binary files ")
                 || line.starts_with("GIT binary patch")
         })
     {
-        return Err(blocked("Hunks require a complete text modification with unchanged file mode. Use Stage or Unstage file for new, deleted, binary or mode-changing files."));
+        return Err(blocked("Hunks require a complete regular text patch. Use file staging for binary or mode-changing files."));
     }
     let starts = diff
         .match_indices("\n@@ ")
@@ -46,7 +44,7 @@ impl GitCli {
         file: &NativePath,
         staged: bool,
     ) -> Result<HunkPreview> {
-        self.registered_change(root, file, staged)?;
+        let entry = self.registered_change(root, file, staged)?;
         let before = self.preview_token(root, file, staged)?;
         let path = relative(file)?;
         let attributes = self
@@ -69,7 +67,44 @@ impl GitCli {
         if values.len() != 3 || !matches!(values[2], b"unspecified" | b"unset") {
             return Err(blocked("Configured clean filters require whole-file staging; partial staging is unavailable for this file."));
         }
-        // Only regular tracked files: no symlinks, gitlinks, intent-to-add or rename metadata.
+        // A no-index new-file patch reads raw bytes. Do not bypass native add's
+        // text/encoding/ident normalization: those files retain whole-file staging.
+        if !staged && entry.index_status == "?" {
+            let conversion = self
+                .read(
+                    root,
+                    &[
+                        "check-attr".as_ref(),
+                        "-z".as_ref(),
+                        "text".as_ref(),
+                        "eol".as_ref(),
+                        "working-tree-encoding".as_ref(),
+                        "ident".as_ref(),
+                        "--".as_ref(),
+                        path.as_os_str(),
+                    ],
+                    65536,
+                )?
+                .bytes;
+            let fields = conversion
+                .split(|b| *b == 0)
+                .filter(|v| !v.is_empty())
+                .collect::<Vec<_>>();
+            let autocrlf = self.optional_text(root, &["config", "--get", "core.autocrlf"])?;
+            if fields.len() != 12
+                || fields
+                    .as_chunks::<3>()
+                    .0
+                    .iter()
+                    .any(|row| !matches!(row[2], b"unspecified" | b"unset"))
+                || autocrlf.as_deref().is_some_and(|v| {
+                    !["false", "no", "off", "0"].contains(&v.to_ascii_lowercase().as_str())
+                })
+            {
+                return Err(blocked("New files with text, line-ending or encoding conversion require whole-file staging."));
+            }
+        }
+        // Regular text additions/deletions are supported; never apply symlink/gitlink or rename patches.
         if let Ok(meta) = fs::symlink_metadata(root.join(&path)) {
             if !meta.file_type().is_file() {
                 return Err(blocked("Hunks are available only for regular text files."));
@@ -88,8 +123,11 @@ impl GitCli {
                 65536,
             )?
             .bytes;
-        if !(index.starts_with(b"100644 ") || index.starts_with(b"100755 "))
-            || index.iter().filter(|b| **b == 0).count() != 1
+        let absent_index = index.is_empty()
+            && ((!staged && entry.index_status == "?") || (staged && entry.index_status == "D"));
+        if !absent_index
+            && (!(index.starts_with(b"100644 ") || index.starts_with(b"100755 "))
+                || index.iter().filter(|b| **b == 0).count() != 1)
         {
             return Err(blocked(
                 "Hunks are available only for tracked, unconflicted regular files.",
@@ -110,10 +148,19 @@ impl GitCli {
             "--diff-algorithm=myers".as_ref(),
             "--no-indent-heuristic".as_ref(),
         ];
-        if staged {
-            args.push("--cached".as_ref());
+        if !staged && entry.index_status == "?" {
+            args.extend([
+                "--no-index".as_ref(),
+                "--".as_ref(),
+                "/dev/null".as_ref(),
+                path.as_os_str(),
+            ]);
+        } else {
+            if staged {
+                args.push("--cached".as_ref());
+            }
+            args.extend(["--".as_ref(), path.as_os_str()]);
         }
-        args.extend(["--".as_ref(), path.as_os_str()]);
         let out = self.execute(root, &args, PATCH_LIMIT, true)?;
         if out.truncated {
             return Err(blocked(
@@ -123,6 +170,13 @@ impl GitCli {
         let diff = String::from_utf8(out.bytes).map_err(|_| {
             blocked("Hunks require valid UTF-8 text. Use file staging for this encoding.")
         })?;
+        if diff.lines().any(|line| {
+            (line.starts_with("new file mode ") || line.starts_with("deleted file mode "))
+                && !line.ends_with("100644")
+                && !line.ends_with("100755")
+        }) {
+            return Err(blocked("Hunks are available only for regular text files."));
+        }
         let (_, parts) = split_patch(&diff)?;
         let headers = parts
             .iter()
@@ -176,8 +230,12 @@ impl GitCli {
         let mut lock = OperationLock::acquire(d.git_dir.join("index.lock"))?;
         let original = index_bytes(&d.git_dir)?;
         let temporary = tempfile::NamedTempFile::new_in(&d.git_dir)?.into_temp_path();
-        fs::write(&temporary, &original)?;
-        preserve_index_timestamp(&d.git_dir.join("index"), &temporary)?;
+        if original.is_empty() {
+            fs::remove_file(&temporary)?;
+        } else {
+            fs::write(&temporary, &original)?;
+            preserve_index_timestamp(&d.git_dir.join("index"), &temporary)?;
+        }
         if self.preview_hunks(root, file, staged)?.token != token {
             return Err(AppError::new(
                 "stale_preview",

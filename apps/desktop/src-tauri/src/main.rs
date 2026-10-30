@@ -226,6 +226,29 @@ async fn maintain_worktree(
     .await
 }
 #[tauri::command]
+async fn preview_submodule_lifecycle(
+    state: State<'_>,
+    membership_id: String,
+    request: SubmoduleLifecycleRequest,
+) -> Result<SubmoduleLifecyclePreview, AppError> {
+    run(state, move |a| {
+        a.preview_submodule_lifecycle(&membership_id, &request)
+    })
+    .await
+}
+#[tauri::command]
+async fn change_submodule_lifecycle(
+    state: State<'_>,
+    membership_id: String,
+    request: SubmoduleLifecycleRequest,
+    token: String,
+) -> Result<OperationReceipt, AppError> {
+    run(state, move |a| {
+        a.change_submodule_lifecycle(&membership_id, &request, &token)
+    })
+    .await
+}
+#[tauri::command]
 async fn preview_submodule_sync(
     state: State<'_>,
     membership_id: String,
@@ -1269,6 +1292,8 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         preview_remove_worktree,
         preview_worktree_maintenance,
         maintain_worktree,
+        preview_submodule_lifecycle,
+        change_submodule_lifecycle,
         preview_submodule_sync,
         sync_submodule,
         remove_worktree,

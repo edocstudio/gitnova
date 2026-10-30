@@ -38,7 +38,7 @@ Stage copies the selected changes into the next commit’s staging area. Unstage
 
 ### Can I stage just part of a file?
 
-Select a regular tracked text file in Working changes. Stage hunk or Unstage hunk on its diff header changes only that block in the index; working files stay intact. Full-file actions remain available. New/deleted files, mode changes, binary files, non-UTF-8 content and truncated patches require file staging. Stale previews are refused.
+Select a regular text file in Working changes. Stage hunk or Unstage hunk on its diff header changes only that block in the index; working files stay intact. Full-file actions remain available. Added and deleted text files are supported, including the first index in a new repository. Mode changes, binary files, non-UTF-8 content and truncated patches require file staging. New-file text/EOL/encoding/ident conversion also requires native whole-file staging. Stale previews are refused.
 
 ### What do Fetch, Pull, Push and Refresh do?
 
@@ -157,3 +157,22 @@ write previews or connection commit identities. Refresh the graph to inspect
 external changes. Auto fetch pauses while any terminal session remains open.
 Scrollback/output retention is bounded; older output can be trimmed. Terminal
 transcripts are not stored by GitNova; your shell may keep its usual history.
+
+### How do I update a submodule to a newer version?
+
+Open and fetch the child repository first when you need current remote data. In
+the parent graph, choose the submodule's Manage action → Review newer version….
+Check the cached remote branch, exact target and changed paths before confirming.
+Only a clean, provable forward update is allowed here. Confirmation makes the
+child checkout detached, preserves parent staging and leaves nested checkouts in
+place. Stage the parent pointer separately to record that version. Restore
+recorded instead returns to the commit in the parent index. Nested layout changes,
+divergence and unknown ancestry need separate investigation inside the child.
+
+### How do I add or remove a submodule?
+
+Use Branch Submodules → Add submodule, supply a source and relative folder, then review and confirm. An existing independent child checkout keeps its branch and files. Manage → Remove registration stages removal from the parent while retaining the child folder, commits and Git metadata. Review the staged manifest and pointer before committing. For nested registrations, open their immediate parent repository.
+
+### How do I repair a moved worktree?
+
+On its missing entry, open Worktree metadata and select the existing moved folder. Review Reattach before confirming. Its Git locator must identify the same registered worktree; GitNova preserves checkout files, staging and branch while updating matching workspace paths. This action does not move folders or prune metadata.

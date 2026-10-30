@@ -106,6 +106,10 @@ impl Application {
                 continue;
             }
             let (location, reference) = match &receipt.planned {
+                Some(PlannedOperation::WorktreeMaintenance(p)) => (p.recovery_dir.clone(), None),
+                Some(PlannedOperation::SubmoduleLifecycle(p)) => {
+                    (Some(p.recovery_dir.clone()), None)
+                }
                 Some(PlannedOperation::SubmoduleSync(p)) => (Some(p.recovery_dir.clone()), None),
                 Some(PlannedOperation::AddRemote(p)) => (Some(p.recovery_path.clone()), None),
                 Some(PlannedOperation::Discard(p)) => (Some(p.recovery_dir.clone()), None),

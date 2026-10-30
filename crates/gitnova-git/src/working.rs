@@ -415,7 +415,7 @@ impl WorkingTreeReader for GitCli {
         if changes.files.iter().any(|f| {
             f.staged
                 && f.blocked_reason.is_some()
-                && !(f.index_status == "M"
+                && !(matches!(f.index_status.as_str(), "A" | "M" | "D")
                     && f.blocked_reason.as_deref()
                         == Some("Submodule pointer writes need a separate reviewed workflow"))
         }) {
