@@ -142,7 +142,7 @@ fn identity(path: &Path) -> Result<String> {
     }
     #[cfg(not(unix))]
     {
-        Ok(format!("{:?}", m.created()?))
+        crate::file_identity::directory(path)
     }
 }
 fn discard_watch(root: &Path, d: &crate::Discovery, branch: Option<&str>) -> Result<String> {

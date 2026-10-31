@@ -16,6 +16,9 @@ export function verifyLicenseInventory(sourceRoot = root) {
   return report;
 }
 export function verifyBundleLicenses(app, sourceRoot = root) {
+  return verifyResourceDirectory(join(app, 'Contents/Resources'), sourceRoot);
+}
+export function verifyResourceDirectory(resources, sourceRoot = root) {
   const report = verifyLicenseInventory(sourceRoot);
   const config = JSON.parse(readFileSync(join(sourceRoot, 'apps/desktop/src-tauri/tauri.conf.json'), 'utf8'));
   let checked = 0;
@@ -23,7 +26,7 @@ export function verifyBundleLicenses(app, sourceRoot = root) {
     if (!destination.startsWith('licenses/')) continue;
     if (!/^licenses\/[A-Za-z0-9._-]+$/.test(destination)) throw new Error('Unexpected license resource destination.');
     const expected = readFileSync(resolve(sourceRoot, 'apps/desktop/src-tauri', source));
-    const actual = readFileSync(join(app, 'Contents/Resources', destination));
+    const actual = readFileSync(join(resources, destination));
     if (!expected.equals(actual)) throw new Error(`Bundled license resource differs: ${destination}`);
     checked++;
   }

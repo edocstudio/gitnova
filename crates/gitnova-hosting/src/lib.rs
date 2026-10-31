@@ -1,7 +1,9 @@
 //! Bounded GitHub/GitLab API adapters. No Tauri or Git checkout mutations.
+mod credential_store;
 pub mod git_credentials;
 pub mod jenkins;
 mod repository;
+mod secure_prompt;
 use gitnova_domain::*;
 use reqwest::{blocking::Client, Method};
 use serde::{Deserialize, Serialize};
@@ -247,76 +249,15 @@ pub struct Credential {
     pub token: String,
     pub login: String,
 }
-#[cfg(target_os = "macos")]
 fn credential_account(c: &HostingContext) -> String {
     format!("{}:{}", c.provider, c.origin)
 }
-#[cfg(target_os = "macos")]
 pub fn credential(c: &HostingContext) -> Result<Credential> {
-    use security_framework::passwords::{generic_password, PasswordOptions};
-    let bytes = generic_password(PasswordOptions::new_generic_password(
-        "gitnova.hosting.v1",
-        &credential_account(c),
-    ))
-    .map_err(|_| err("Connect a provider account for this host first."))?;
+    let bytes = credential_store::read("gitnova.hosting.v1", &credential_account(c))?
+        .ok_or_else(|| err("Connect a provider account for this host first."))?;
     serde_json::from_slice(&bytes).map_err(|_| err("Reconnect this provider account."))
 }
-#[cfg(not(target_os = "macos"))]
-pub fn credential(_: &HostingContext) -> Result<Credential> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
-}
-#[cfg(target_os = "macos")]
-pub(crate) fn secure_token(prompt: &CredentialPrompt, identity: &str) -> Result<String> {
-    for value in [&prompt.message, &prompt.confirm, &prompt.cancel] {
-        if value.is_empty() || value.len() > 1024 || value.chars().any(char::is_control) {
-            return Err(err("Invalid secure account prompt."));
-        }
-    }
-    let escape = |value: &str| value.replace('\\', "\\\\").replace('"', "\\\"");
-    let message = escape(&format!("GitNova: {}. {}", identity, prompt.message));
-    let confirm = escape(&prompt.confirm);
-    let cancel = escape(&prompt.cancel);
-    let script=format!("text returned of (display dialog \"{message}\" default answer \"\" with hidden answer buttons {{\"{cancel}\", \"{confirm}\"}} default button \"{confirm}\" cancel button \"{cancel}\")");
-    let mut child = std::process::Command::new("/usr/bin/osascript")
-        .args(["-e", &script])
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null())
-        .spawn()
-        .map_err(|_| err("Could not open secure account entry."))?;
-    let mut bytes = Vec::new();
-    let read = child
-        .stdout
-        .take()
-        .ok_or_else(|| err("Could not read secure account entry."))?
-        .take(16385)
-        .read_to_end(&mut bytes);
-    if read.is_err() || bytes.len() > 16384 {
-        let _ = child.kill();
-        let _ = child.wait();
-        return Err(err(
-            "The provider token could not be read or exceeded 16 KiB.",
-        ));
-    }
-    if !child
-        .wait()
-        .map_err(|_| err("Secure account entry could not finish."))?
-        .success()
-    {
-        return Err(err("Account connection canceled."));
-    }
-    let token = String::from_utf8(bytes)
-        .map_err(|_| err("Invalid provider token."))?
-        .trim()
-        .to_owned();
-    if token.is_empty() {
-        return Err(err("Enter a provider access token."));
-    }
-    Ok(token)
-}
-#[cfg(target_os = "macos")]
+pub(crate) use secure_prompt::secure_token;
 pub fn connect(c: &HostingContext, prompt: &CredentialPrompt) -> Result<String> {
     let token = secure_token(prompt, &format!("{} at {}", c.provider, c.origin))?;
     let mut cred = Credential {
@@ -324,19 +265,12 @@ pub fn connect(c: &HostingContext, prompt: &CredentialPrompt) -> Result<String> 
         login: String::new(),
     };
     cred.login = HostingClient::new(c, &cred)?.login()?;
-    security_framework::passwords::set_generic_password(
+    credential_store::write(
         "gitnova.hosting.v1",
         &credential_account(c),
         &serde_json::to_vec(&cred).map_err(|_| err("Could not encode account credentials."))?,
-    )
-    .map_err(|_| err("Could not store this account in macOS Keychain."))?;
+    )?;
     Ok(cred.login)
-}
-#[cfg(not(target_os = "macos"))]
-pub fn connect(_: &HostingContext, _: &CredentialPrompt) -> Result<String> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
 }
 pub struct HostingClient<'a> {
     context: &'a HostingContext,
@@ -1128,19 +1062,8 @@ fn value_id(v: &Value) -> Result<String> {
         .ok_or_else(|| err("Provider identity is unavailable."))
 }
 
-#[cfg(target_os = "macos")]
 pub fn disconnect(c: &HostingContext) -> Result<()> {
-    security_framework::passwords::delete_generic_password(
-        "gitnova.hosting.v1",
-        &credential_account(c),
-    )
-    .map_err(|_| err("Could not remove the saved account. Inspect macOS Keychain."))
-}
-#[cfg(not(target_os = "macos"))]
-pub fn disconnect(_: &HostingContext) -> Result<()> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
+    credential_store::delete("gitnova.hosting.v1", &credential_account(c))
 }
 
 fn github_run_status(row: &Value) -> &'static str {

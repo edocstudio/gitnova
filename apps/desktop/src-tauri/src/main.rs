@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod browser;
 mod terminal;
 use gitnova_core::Application;
 use gitnova_ipc::*;
@@ -923,51 +924,7 @@ async fn commit_link(
 async fn open_ci_url(state: State<'_>, url: String) -> Result<(), AppError> {
     run(state, move |_| {
         let url = gitnova_core::validated_ci_url(&url)?;
-        #[cfg(target_os = "macos")]
-        {
-            let mut child = std::process::Command::new("/usr/bin/open")
-                .arg(url)
-                .stdin(std::process::Stdio::null())
-                .stdout(std::process::Stdio::null())
-                .stderr(std::process::Stdio::null())
-                .spawn()
-                .map_err(|_| {
-                    AppError::new(
-                        "hosting",
-                        "Could not open the browser. Copy this build link.",
-                    )
-                })?;
-            let start = std::time::Instant::now();
-            loop {
-                match child.try_wait() {
-                    Ok(Some(status)) if status.success() => return Ok(()),
-                    Ok(Some(_)) | Err(_) => {
-                        return Err(AppError::new(
-                            "hosting",
-                            "Could not open the browser. Copy this build link.",
-                        ))
-                    }
-                    Ok(None) => {}
-                }
-                if start.elapsed() > std::time::Duration::from_secs(5) {
-                    let _ = child.kill();
-                    let _ = child.wait();
-                    return Err(AppError::new(
-                        "hosting",
-                        "Could not open the browser. Copy this build link.",
-                    ));
-                }
-                std::thread::sleep(std::time::Duration::from_millis(25));
-            }
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            let _ = url;
-            Err(AppError::new(
-                "hosting",
-                "Could not open the browser. Copy this build link.",
-            ))
-        }
+        browser::open(&url)
     })
     .await
 }
@@ -1495,7 +1452,7 @@ fn main() {
         })();
         std::process::exit(if result.is_ok() { 0 } else { 1 });
     }
-    if cfg!(target_os = "macos") && !native_smoke() {
+    if !native_smoke() {
         if let Err(error) = std::env::current_exe()
             .map_err(AppError::from)
             .and_then(|path| {

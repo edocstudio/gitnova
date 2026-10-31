@@ -730,7 +730,6 @@ fn cousin_replay_retains_its_original_branch_point_and_other_refs() {
     assert_eq!(git(&f.root, &["status", "--porcelain"]), "");
 }
 
-#[cfg(unix)]
 #[test]
 fn interactive_reorder_drop_and_fixup_preserve_reviewed_tree_author_and_other_refs() {
     let f = fixture(false);
@@ -852,7 +851,6 @@ fn clean_octopus_rebase_preserves_all_three_ordered_parents() {
     assert!(f.root.join("side-b").exists() && f.root.join("side-c").exists());
 }
 
-#[cfg(unix)]
 #[test]
 fn interactive_fixup_onto_existing_base_handles_quoted_paths_and_original_author() {
     let mut f = fixture(false);
@@ -895,7 +893,6 @@ fn interactive_fixup_onto_existing_base_handles_quoted_paths_and_original_author
     );
     assert!(f.root.join("second").exists());
 }
-#[cfg(unix)]
 #[test]
 fn interactive_conflict_abort_after_restart_restores_original_tip() {
     let f = fixture(true);

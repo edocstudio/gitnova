@@ -1,8 +1,11 @@
 pub mod commit_identity;
 mod credentials;
 mod executable;
+#[cfg(windows)]
+mod file_identity;
 pub use credentials::install_transport_credential_helper;
 mod metrics;
+mod process;
 mod wait;
 pub use metrics::{measure_git, GitMetrics};
 mod clone;
@@ -175,6 +178,7 @@ impl GitCli {
             }
         }
         let mut cmd = Command::new(executable::git_executable());
+        process::configure(&mut cmd);
         for (key, _) in std::env::vars_os() {
             if key.to_string_lossy().starts_with("GIT_") {
                 cmd.env_remove(key);
@@ -225,16 +229,13 @@ impl GitCli {
             cmd.process_group(0);
         }
         let _timer = metrics::CommandTimer::new(command);
-        let mut child = cmd
-            .spawn()
+        let mut child = process::spawn(&mut cmd)
             .map_err(|e| AppError::new("git_unavailable", format!("Cannot launch Git: {e}")))?;
         let stdout = child
-            .stdout
-            .take()
+            .stdout()
             .ok_or_else(|| AppError::new("git", "Missing stdout"))?;
         let stderr = child
-            .stderr
-            .take()
+            .stderr()
             .ok_or_else(|| AppError::new("git", "Missing stderr"))?;
         let (wake_tx, wake_rx) = std::sync::mpsc::channel();
         let out_wake = wake_tx.clone();
@@ -257,8 +258,7 @@ impl GitCli {
         });
         let input_rx = if let Some(input) = input {
             let mut pipe = child
-                .stdin
-                .take()
+                .stdin()
                 .ok_or_else(|| AppError::new("git", "Missing batch input"))?;
             let input = input.to_vec();
             let (tx, rx) = std::sync::mpsc::channel();

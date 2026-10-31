@@ -36,7 +36,7 @@
 - **See the story in the graph.** Trace branches and merges, inspect commits, and reach contextual actions with a right click or a double click.
 - **Work across repositories.** Keep related repositories in a workspace, pin frequent projects, search the repository picker and retain graph context while switching.
 - **Review the change before applying it.** See the source, destination and selected scope. Git writes are revalidated; consequential operations retain receipts and recovery evidence.
-- **Keep your workflow local.** GitNova uses your installed Git and configured authentication. GitNova host accounts are optional and can also supply macOS HTTPS Git authentication; external Git credentials and SSH remain available.
+- **Keep your workflow local.** GitNova uses your installed Git and configured authentication. GitNova host accounts are optional and can also supply HTTPS Git authentication through the OS credential store; external Git credentials and SSH remain available.
 - **Built for a small resource footprint.** Rust services use bounded Git workers, read budgets, caches and virtualized history/diffs. Performance and long-session RAM validation remain active work.
 
 ## Features
@@ -75,7 +75,7 @@ Captured from a temporary Git fixture using the real Rust core through the brows
 
 ### Requirements
 
-- **Rust stable 1.98+**, Cargo, and an installed **Git** executable.
+- **Rust stable 1.98+**, Cargo, and an installed **Git 2.38+** executable.
 - **Node.js 20.x (20.19.0+) or 22.12.0+** and npm. The repository pins 20.20.2 in [`.nvmrc`](.nvmrc); the accepted range is declared in [package.json](apps/desktop/package.json).
 - The [Tauri system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS. The local macOS bundle targets macOS 13.0 or newer; see the platform validation limits below.
 
@@ -84,7 +84,7 @@ Captured from a temporary Git fixture using the real Rust core through the brows
 The commands below build the native app from source. **`npm ci` installs JavaScript dependencies only; `nvm` manages Node.js only. Neither installs Rust or Cargo.** A built standalone GitNova app does not need Rust/Cargo/Node on the recipient’s machine; it still needs Git. Public installers are not available yet.
 
 1. Install stable **Rust 1.98+ and Cargo** using [rustup](https://rust-lang.org/tools/install/). Cargo is included with the Rust installation. Reopen Terminal afterward so the updated `PATH` takes effect. On macOS/Linux, an existing rustup installation can also be activated in the current shell with `source "$HOME/.cargo/env"`. On Windows, reopen the terminal and check that `%USERPROFILE%\.cargo\bin` is in `PATH`. If Rust is installed but no default toolchain is configured, run `rustup default stable`; update an older rustup toolchain with `rustup update stable`.
-2. Install **Git**, then the [Tauri prerequisites for your OS](https://v2.tauri.app/start/prerequisites/): macOS desktop development needs Xcode Command Line Tools (`xcode-select --install`, then finish the installer); Windows needs Microsoft C++ Build Tools and WebView2; Linux needs the distribution-specific WebKitGTK/build packages listed there.
+2. Install **Git 2.38+**, then the [Tauri prerequisites for your OS](https://v2.tauri.app/start/prerequisites/): macOS desktop development needs Xcode Command Line Tools (`xcode-select --install`, then finish the installer); Windows needs Microsoft C++ Build Tools and WebView2; Linux needs the distribution-specific WebKitGTK/build packages listed there.
 3. Install a supported Node.js version and npm. With nvm, run `nvm install` followed by `nvm use` from the repository root. The `.nvmrc` does not install or select Rust.
 
 On **macOS/Linux**, the official rustup installation commands are:
@@ -143,7 +143,9 @@ Open the workspace picker and expand **Initialize repository…**. Enter a new f
 4. Review repository creation (if needed), then review and add the local remote. Creation and local configuration are separate effects; no code is sent by either step.
 5. Review the Push destination and upstream choice, then confirm publication.
 
-On macOS, HTTPS Git operations use the matching host account saved in GitNova Settings, with a process-local credential helper and Keychain access. Without a saved account, configured Git credentials remain available; SSH uses your agent. The token must have repository access and the required read/write permission. GitNova does not grant Git-host access automatically. See [first-project publication](docs/milestone-50.md) and [Push destination setup](docs/milestone-53.md) for bounds and verification.
+HTTPS Git operations can use the matching host account saved in GitNova Settings through a process-local credential helper and the OS credential store (Keychain, Credential Manager or Secret Service). See the [platform-specific background-access limits](docs/platforms.md#current-platform-specific-limits). Without a saved account, configured Git credentials remain available; SSH uses your agent. The token must have repository access and the required read/write permission. GitNova does not grant Git-host access automatically. See [first-project publication](docs/milestone-50.md) and [Push destination setup](docs/milestone-53.md) for bounds and verification.
+
+For Windows/Linux setup and native installer commands, see [Desktop platforms](docs/platforms.md).
 
 ### Build a standalone macOS app
 
@@ -164,7 +166,7 @@ This produces a local, ad-hoc-signed **debug build** with CPU-heavy first-party 
 | Platform | Current validation |
 | --- | --- |
 | **macOS · Apple Silicon** | Local development, debug packaging and targeted native smoke checks have been exercised. |
-| **Linux / Windows** | Core CI jobs are configured. Full native desktop acceptance and distribution remain unverified. |
+| **Windows x64 / Linux x64** | Native desktop CI, OS credential stores and alpha installer builds are configured. Hosted-run and manual native acceptance remain to be verified; see [platform setup and limits](docs/platforms.md). |
 
 The [checks workflow](.github/workflows/ci.yml) defines the repository's CI jobs; it is not a claim that a hosted run has passed. GitNova does not yet ship public release installers.
 

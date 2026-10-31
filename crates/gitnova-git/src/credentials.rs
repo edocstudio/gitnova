@@ -118,7 +118,7 @@ fn configure_helper(command: &mut Command, executable: &Path) {
 fn helper_value(executable: &Path) -> String {
     format!(
         "!{} --gitnova-credential-helper",
-        shell_quote(executable.to_str().unwrap())
+        shell_quote(&helper_path(executable))
     )
 }
 
@@ -229,5 +229,40 @@ mod tests {
             transport_error("git_exit_1", "connection lost".into()).code,
             "git_exit_1"
         );
+    }
+}
+
+pub(crate) fn helper_path(executable: &Path) -> String {
+    let value = executable.to_str().unwrap();
+    #[cfg(windows)]
+    {
+        if let Some(unc) = value.strip_prefix(r"\\?\UNC\") {
+            return format!("//{}", unc.replace('\\', "/"));
+        }
+        value
+            .strip_prefix(r"\\?\")
+            .unwrap_or(value)
+            .replace('\\', "/")
+    }
+    #[cfg(not(windows))]
+    value.to_owned()
+}
+
+#[cfg(all(test, windows))]
+mod windows_path_tests {
+    use super::*;
+    #[test]
+    fn git_shell_helper_keeps_spaces_and_normalizes_extended_paths() {
+        assert_eq!(
+            helper_path(Path::new(
+                r"\\?\C:\Program Files\GitNova\gitnova-desktop.exe"
+            )),
+            "C:/Program Files/GitNova/gitnova-desktop.exe"
+        );
+        assert_eq!(
+            helper_path(Path::new(r"\\?\UNC\host\share\GitNova.exe")),
+            "//host/share/GitNova.exe"
+        );
+        assert!(helper_value(Path::new(r"C:\user's folder\GitNova.exe")).contains(r"'\''"));
     }
 }

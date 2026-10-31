@@ -306,3 +306,7 @@ the write. The confirmation covers the complete path/content snapshot, not the
 displayed text prefix. Preserve dirty-state, collision, gitlink, immutable stash
 identity, reflog recovery and stale-token checks. Do not raise the patch cap or
 claim that a bounded code preview is complete.
+
+## Windows/Linux credential entry
+
+Reuse the existing Settings → Connections and provider-account actions. Native masked token dialogs are required because a graph row cannot securely collect a secret. macOS keeps its existing prompt; Windows uses a masked native form and Linux uses Zenity. No new navigation item, settings tab or graph button is added.
