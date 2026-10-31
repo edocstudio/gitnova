@@ -1,6 +1,13 @@
 // Injected only into the isolated debug native-soak profile. Reviewed branch writes target only its clean large-b fixture.
 (async()=>{
  if(window.__gitnovaSoakRunning)return;window.__gitnovaSoakRunning=true;
+ // Debug fixture telemetry only. Weak references must not retain canvases.
+ let canvasContexts=0,textMeasures=0;const contexts=new WeakSet();
+ const getContext=HTMLCanvasElement.prototype.getContext;
+ HTMLCanvasElement.prototype.getContext=function(...args){const value=Reflect.apply(getContext,this,args);if(args[0]==='2d'&&value&&!contexts.has(value)){contexts.add(value);canvasContexts++;}return value;};
+ const measureText=CanvasRenderingContext2D.prototype.measureText;
+ CanvasRenderingContext2D.prototype.measureText=function(...args){textMeasures++;return Reflect.apply(measureText,this,args);};
+ const diagnostics=()=>({tauri_callbacks:window.__TAURI_INTERNALS__.callbacks?.size??null,canvas_contexts_created:canvasContexts,text_measure_calls:textMeasures,js_heap_bytes:performance.memory?.usedJSHeapSize??null});
  // Foreground mode must not silently add fetch writes to a read/branch-switch
  // protocol. This storage belongs only to the isolated incognito fixture.
  const fetchKey='gitnova.auto-fetch-seconds';localStorage.setItem(fetchKey,'0');
@@ -54,7 +61,7 @@
      }
     });
    }
-   requireVisible();await report({kind:'cycle',cycle:++cycle,elapsed_ms:performance.now()-start,metrics:timings,visibility:document.visibilityState,dom_nodes:document.getElementsByTagName('*').length,visible_rows:document.querySelectorAll('.commit-row').length});
+   requireVisible();await report({kind:'cycle',cycle:++cycle,elapsed_ms:performance.now()-start,metrics:timings,visibility:document.visibilityState,dom_nodes:document.getElementsByTagName('*').length,visible_rows:document.querySelectorAll('.commit-row').length,diagnostics:diagnostics()});
    for(const key of Object.keys(timings))timings[key]=[];
    await pause(8000);
   }

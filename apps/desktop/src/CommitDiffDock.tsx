@@ -8,6 +8,7 @@ import { findPatch, parseDiff, splitDiffLines } from './diff';
 import type { DiffLine, PatchFile } from './diff';
 import { Icon } from './Icons';
 import { api, errorMessage } from './api';
+import {patchTextWidth} from './patch-text-width';
 
 type HunkControls={headers:string[];staged:boolean;disabled:boolean;onApply:(index:number)=>void};
 export type DockPatch = { truncationMessage?: string; hunks?:HunkControls; diff: string; truncated: boolean; label: string; title: string; comparison: string; before: string; after: string; selectedPath: NativePath | null; emptyMessage?: string; editor?: { before: string; incoming?: string | null; beforeUnavailable?: boolean; currentDeleted?: boolean; incomingDeleted?: boolean; currentLabel?: string; incomingLabel?: string; readOnly?: boolean; value: string; onChange: (value: string) => void; onEdit?: () => void; onReview?: () => void; disabled: boolean } };
@@ -34,14 +35,7 @@ function PatchCode({ file, mode, before, after, hunks }: { hunks?:HunkControls; 
   const pairs = useMemo(() => splitDiffLines(file.lines), [file.lines]);
   // Keep full-file widths stable when the longest line leaves the virtual window.
   const widths = useMemo(() => {
-    const context = document.createElement('canvas').getContext('2d');
-    if (context) context.font = '12px "SFMono-Regular", Consolas, monospace';
-    const measured = new Map<string, number>();
-    const width = (line: DiffLine | null) => {
-      const text = line?.text.replace(/\t/g, '    ') ?? '';
-      const cached = measured.get(text); if (cached !== undefined) return cached;
-      const value = context?.measureText(text).width ?? text.length * 8; measured.set(text, value); return value;
-    };
+    const width = (line: DiffLine | null) => patchTextWidth(line?.text??'');
     const result = { left: 82, right: 82 };
     for (const pair of pairs) { result.left = Math.max(result.left, Math.ceil(width(pair.left) + 82)); result.right = Math.max(result.right, Math.ceil(width(pair.right) + 82)); }
     return result;

@@ -141,3 +141,28 @@ python3 apps/desktop/scripts/soak-native.py --seconds 900 --commits 50000 --file
 ```
 
 See [the follow-up report](../verification/2026-10-30-performance-followup.md).
+
+
+## Foreground retention follow-up (2026-10-31)
+
+[30-minute raw run](native-retention-2026-10-31.json),
+[point-in-time memory ledgers](native-retention-ledgers-2026-10-31.json),
+[integrity manifest](native-retention-artifacts-2026-10-31.json) and
+[interpretation](../verification/2026-10-31/conflict-drafts-and-webview-retention.md)
+remain supplemental to historical data. A website may read the raw JSON
+directly using its `gitnova-native-soak` kind. Check `passed`, visibility,
+actual duration, source/binary identity and limits before displaying results.
+
+This run completed 151 cycles with preserved fixture Git state, but WebKit RSS
+and physical footprint continued growing. Do not describe it as flat RAM or a
+leak-free certificate. It measures a packaged local macOS debug build; there
+is no new cross-platform, provider-network or cross-product speed claim.
+The ledger JSON has a distinct diagnostic kind and original tool units.
+
+To reproduce after all builds finish, close GitNova and keep its isolated
+fixture window visible for the full foreground interval:
+
+```sh
+python3 apps/desktop/scripts/soak-native.py --seconds 1800 --foreground \
+  --output /tmp/native-retention.json
+```

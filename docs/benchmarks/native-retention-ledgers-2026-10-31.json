@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-native-memory-ledger-probes",
+  "sourceRun": "native-retention-2026-10-31.json",
+  "method": "Read-only vmmap -summary and ps snapshots during the native soak; probe overhead may perturb individual timings. Footprint text retains vmmap units. PID attribution checked against observed processes.",
+  "limits": "Point-in-time diagnostics, not JS heap snapshots, a complete allocation trace or a leak-free certification. Summing process ledgers may include shared graphics accounting.",
+  "probes": [
+    [
+      {
+        "role": "native",
+        "pid": 19339,
+        "measuredAt": "2026-10-31T14:42:27.838955+00:00",
+        "residentKiB": 225712,
+        "physicalFootprintText": "92.4M",
+        "physicalFootprintPeakText": "156.5M",
+        "probeMilliseconds": 1626.5
+      },
+      {
+        "role": "gpu",
+        "pid": 19344,
+        "measuredAt": "2026-10-31T14:42:29.153654+00:00",
+        "residentKiB": 52608,
+        "physicalFootprintText": "36.7M",
+        "physicalFootprintPeakText": "54.4M",
+        "probeMilliseconds": 1307.1
+      },
+      {
+        "role": "networking",
+        "pid": 19345,
+        "measuredAt": "2026-10-31T14:42:30.155253+00:00",
+        "residentKiB": 13472,
+        "physicalFootprintText": "4560K",
+        "physicalFootprintPeakText": "5520K",
+        "probeMilliseconds": 996.6
+      },
+      {
+        "role": "webContent",
+        "pid": 19346,
+        "measuredAt": "2026-10-31T14:42:31.355786+00:00",
+        "residentKiB": 378000,
+        "physicalFootprintText": "138.9M",
+        "physicalFootprintPeakText": "267.6M",
+        "probeMilliseconds": 1189.3
+      }
+    ],
+    [
+      {
+        "role": "native",
+        "pid": 19339,
+        "measuredAt": "2026-10-31T14:49:16.362359+00:00",
+        "residentKiB": 225680,
+        "physicalFootprintText": "91.7M",
+        "physicalFootprintPeakText": "156.5M",
+        "probeMilliseconds": 1308.9
+      },
+      {
+        "role": "gpu",
+        "pid": 19344,
+        "measuredAt": "2026-10-31T14:49:17.520300+00:00",
+        "residentKiB": 53760,
+        "physicalFootprintText": "18.2M",
+        "physicalFootprintPeakText": "54.4M",
+        "probeMilliseconds": 1141.4
+      },
+      {
+        "role": "networking",
+        "pid": 19345,
+        "measuredAt": "2026-10-31T14:49:18.571573+00:00",
+        "residentKiB": 13472,
+        "physicalFootprintText": "4560K",
+        "physicalFootprintPeakText": "5520K",
+        "probeMilliseconds": 1043.1
+      },
+      {
+        "role": "webContent",
+        "pid": 19346,
+        "measuredAt": "2026-10-31T14:49:19.796220+00:00",
+        "residentKiB": 441376,
+        "physicalFootprintText": "159.2M",
+        "physicalFootprintPeakText": "287.0M",
+        "probeMilliseconds": 1216.3
+      }
+    ],
+    [
+      {
+        "role": "native",
+        "pid": 19339,
+        "measuredAt": "2026-10-31T14:59:30.016146+00:00",
+        "residentKiB": 212112,
+        "physicalFootprintText": "99.8M",
+        "physicalFootprintPeakText": "156.5M",
+        "probeMilliseconds": 1630.0
+      },
+      {
+        "role": "gpu",
+        "pid": 19344,
+        "measuredAt": "2026-10-31T14:59:31.192512+00:00",
+        "residentKiB": 52720,
+        "physicalFootprintText": "23.7M",
+        "physicalFootprintPeakText": "56.4M",
+        "probeMilliseconds": 1163.8
+      },
+      {
+        "role": "networking",
+        "pid": 19345,
+        "measuredAt": "2026-10-31T14:59:32.242676+00:00",
+        "residentKiB": 11008,
+        "physicalFootprintText": "5504K",
+        "physicalFootprintPeakText": "5520K",
+        "probeMilliseconds": 1042.6
+      },
+      {
+        "role": "webContent",
+        "pid": 19346,
+        "measuredAt": "2026-10-31T14:59:33.532710+00:00",
+        "residentKiB": 501504,
+        "physicalFootprintText": "243.9M",
+        "physicalFootprintPeakText": "385.8M",
+        "probeMilliseconds": 1281.1
+      }
+    ]
+  ]
+}
