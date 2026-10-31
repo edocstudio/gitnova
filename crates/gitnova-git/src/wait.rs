@@ -6,8 +6,16 @@ use std::{
     sync::mpsc::{Receiver, RecvTimeoutError},
     time::{Duration, Instant},
 };
-pub(crate) fn wait_for_exit(
-    child: &mut Child,
+pub(crate) trait Waitable {
+    fn try_wait(&mut self) -> io::Result<Option<ExitStatus>>;
+}
+impl Waitable for Child {
+    fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
+        Child::try_wait(self)
+    }
+}
+pub(crate) fn wait_for_exit<C: Waitable>(
+    child: &mut C,
     budget: Duration,
     wake: &Receiver<()>,
     tick: Duration,

@@ -306,7 +306,6 @@ pub fn close_all() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(unix)]
     static TEST_LOCK: Mutex<()> = Mutex::new(());
     #[test]
     fn output_and_dimensions_are_bounded() {
@@ -367,13 +366,62 @@ mod tests {
         assert!(session("fixture", &opened.id).is_err());
     }
     #[test]
-    #[cfg(unix)]
+    #[cfg(windows)]
+    fn windows_pty_uses_current_repository_and_rejects_other_membership() {
+        let _guard = TEST_LOCK.lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("folder ' ; test");
+        std::fs::create_dir(&root).unwrap();
+        let mut command = CommandBuilder::new("powershell.exe");
+        command.args(["-NoLogo", "-NoProfile"]);
+        let opened = open_command("fixture".into(), &root, 300, 24, command).unwrap();
+        assert_eq!(Path::new(&opened.path), root.canonicalize().unwrap());
+        assert!(terminal_read("other".into(), opened.id.clone()).is_err());
+        assert!(terminal_close("other".into(), opened.id.clone()).is_err());
+        let handle = session("fixture", &opened.id).unwrap();
+        handle
+            .writer
+            .lock()
+            .unwrap()
+            .write_all(
+                b"[Console]::WriteLine(('PTY_' + 'OK:') + (Get-Location).ProviderPath); exit\r",
+            )
+            .unwrap();
+        drop(handle);
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+        let mut output = Vec::new();
+        loop {
+            let batch = terminal_read("fixture".into(), opened.id.clone()).unwrap();
+            output.extend(batch.data);
+            if batch.exited {
+                break;
+            }
+            assert!(
+                std::time::Instant::now() < deadline,
+                "PowerShell did not exit"
+            );
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+        terminal_close("fixture".into(), opened.id.clone()).unwrap();
+        let output = String::from_utf8_lossy(&output);
+        let normalized = output.replace(r"\\?\", "");
+        let expected = format!("PTY_OK:{}", root.to_str().unwrap());
+        assert!(normalized.contains(&expected), "{output}");
+        assert!(session("fixture", &opened.id).is_err());
+    }
+    #[test]
     fn session_limit_and_explicit_close_reap_shells() {
         let _guard = TEST_LOCK.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();
         let make_command = || {
+            #[cfg(unix)]
             let mut cmd = CommandBuilder::new("/bin/sh");
+            #[cfg(unix)]
             cmd.arg("-i");
+            #[cfg(windows)]
+            let mut cmd = CommandBuilder::new("powershell.exe");
+            #[cfg(windows)]
+            cmd.args(["-NoLogo", "-NoProfile"]);
             cmd.env("HOME", temp.path());
             cmd
         };

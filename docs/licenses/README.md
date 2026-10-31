@@ -40,3 +40,5 @@ node apps/desktop/scripts/verify-bundle-licenses.mjs /path/to/GitNova.app
 See the [distribution checklist](../contributing/binary-distribution.md) and
 [M83 verification](../verification/2026-10-30-distribution-evidence.md) for the
 remaining public distribution gates.
+
+Windows/Linux native packaging uses a separate inventory generated for the runner host and verifies all five attribution resources in the installed NSIS app, extracted Debian package and extracted AppImage. See [desktop platforms](../platforms.md). These inclusion checks do not resolve the inventory’s audit gaps or certify redistribution compliance.

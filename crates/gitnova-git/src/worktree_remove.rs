@@ -28,7 +28,7 @@ fn directory_identity(path: &Path) -> Result<String> {
     }
     #[cfg(not(unix))]
     {
-        Ok(format!("{:?}", metadata.created()?))
+        crate::file_identity::directory(path)
     }
 }
 pub fn membership_token(

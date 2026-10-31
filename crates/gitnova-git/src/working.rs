@@ -764,6 +764,7 @@ fn run_git_write_with_paths(
     budget: Duration,
 ) -> Result<()> {
     let mut command = Command::new(crate::executable::git_executable());
+    crate::process::configure(&mut command);
     for (key, _) in std::env::vars_os() {
         if key.to_string_lossy().starts_with("GIT_") {
             command.env_remove(key);
@@ -840,13 +841,11 @@ fn run_git_write_with_paths(
     }
     let _timer =
         crate::metrics::CommandTimer::new(args.first().and_then(|v| v.to_str()).unwrap_or("write"));
-    let mut child = command
-        .spawn()
+    let mut child = crate::process::spawn(&mut command)
         .map_err(|e| AppError::new("git_unavailable", e.to_string()))?;
     if let Some(bytes) = input {
         let result = child
-            .stdin
-            .take()
+            .stdin()
             .ok_or_else(|| AppError::new("git", "Missing Git input"))?
             .write_all(bytes);
         if let Err(error) = result {
@@ -856,12 +855,10 @@ fn run_git_write_with_paths(
         }
     }
     let stdout = child
-        .stdout
-        .take()
+        .stdout()
         .ok_or_else(|| AppError::new("git", "Missing stdout"))?;
     let stderr = child
-        .stderr
-        .take()
+        .stderr()
         .ok_or_else(|| AppError::new("git", "Missing stderr"))?;
     let (wake_tx, wake_rx) = mpsc::channel();
     let drain = |mut source: Box<dyn Read + Send>| {

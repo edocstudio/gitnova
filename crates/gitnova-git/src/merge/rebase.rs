@@ -430,11 +430,6 @@ pub(super) fn preview(
         return Err(err("Replay editing exceeds the 100-commit review budget."));
     }
     if !request.rebase_steps.is_empty() {
-        if !cfg!(unix) {
-            return Err(err(
-                "Interactive replay currently requires a Unix Git environment.",
-            ));
-        }
         if preserve_merges {
             return Err(err(
                 "Edit a linear replay separately from topology-preserving Rebase.",
@@ -1192,34 +1187,34 @@ pub(super) fn apply_action(
 }
 
 fn replay_editor(dir: &Path, steps: &[RebaseEdit]) -> Result<String> {
+    let recipe = dir.join("reviewed-todo");
+    let script = dir.join("apply-reviewed-todo.sh");
+    let text = steps
+        .iter()
+        .map(|s| format!("{} {}\n", s.action, s.oid))
+        .collect::<String>();
+    recovery::private_file(&recipe, text.as_bytes())?;
+    let quote = |p: &Path| -> Result<String> {
+        if p.to_str().is_none() {
+            return Err(err("Replay editor paths must be UTF-8."));
+        }
+        let value = crate::credentials::helper_path(p);
+        Ok(format!("'{}'", value.replace('\'', "'\\''")))
+    };
+    recovery::private_file(
+        &script,
+        format!("#!/bin/sh\nexec cat {} > \"$1\"\n", quote(&recipe)?).as_bytes(),
+    )?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let recipe = dir.join("reviewed-todo");
-        let script = dir.join("apply-reviewed-todo.sh");
-        let text = steps
-            .iter()
-            .map(|s| format!("{} {}\n", s.action, s.oid))
-            .collect::<String>();
-        recovery::private_file(&recipe, text.as_bytes())?;
-        let quote = |p: &Path| -> Result<String> {
-            let s = p
-                .to_str()
-                .ok_or_else(|| err("Replay editor paths must be UTF-8."))?;
-            Ok(format!("'{}'", s.replace('\'', "'\\''")))
-        };
-        recovery::private_file(
-            &script,
-            format!("#!/bin/sh\nexec /bin/cat {} > \"$1\"\n", quote(&recipe)?).as_bytes(),
-        )?;
         fs::set_permissions(&script, fs::Permissions::from_mode(0o700))?;
-        quote(&script)
     }
-    #[cfg(not(unix))]
-    {
-        let _ = (dir, steps);
-        Err(err(
-            "Interactive replay currently requires a Unix Git environment.",
-        ))
-    }
+    // Git for Windows supplies its POSIX shell and tools, just as it does for
+    // hooks. Invoke the interpreter explicitly; no Windows executable bit needed.
+    #[cfg(windows)]
+    let shell = "sh";
+    #[cfg(unix)]
+    let shell = "/bin/sh";
+    Ok(format!("{shell} {}", quote(&script)?))
 }

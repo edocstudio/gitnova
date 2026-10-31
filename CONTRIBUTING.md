@@ -67,3 +67,5 @@ Use the [delivery priorities](docs/delivery-priorities.md) and [architecture pla
 GitNova is [Apache-2.0 licensed](LICENSE). Contributions intentionally submitted for inclusion are governed by section 5 of that license unless explicitly stated otherwise; section 5 also preserves any separate license agreement that applies to a contribution. This clarification does not introduce a CLA, DCO or mandatory sign-off requirement.
 
 Keep third-party license/attribution requirements intact and use original or appropriately licensed code and assets. [NOTICE](NOTICE) records project attribution, not a completed dependency-license audit. Before distributing a binary, review the [license and artifact checklist](docs/contributing/binary-distribution.md), including direct/transitive components and assets. Build success alone does not establish distribution compliance.
+
+For Windows/Linux native development, installer builds, required system libraries and current validation limits, see [Desktop platforms](docs/platforms.md). Run only one verification runner at a time as described in AGENTS.md.

@@ -155,7 +155,7 @@ Use Stash or Pop beside Working changes in the graph. Pop restores the latest sa
 
 Interrupted owned sessions can be reviewed from Working changes after native Git recovery. **Review session cleanup…** archives only the session record and preserves current files/staging/refs; it cannot close a live native operation or a checkout moved from the original branch/HEAD. Large staged merge results use separate content-identity, visible-code and destructive-recovery budgets. See [milestone 18](milestone-18.md).
 
-Implemented initial flows: [version tags and selected-tag Push](milestone-37.md), and [GitHub PR / GitLab MR creation and opening](milestone-38.md). Provider connection uses native macOS token entry and Keychain; live-account acceptance, hosted merge/checks and provider diffs remain follow-ups.
+Implemented initial flows: [version tags and selected-tag Push](milestone-37.md), and [GitHub PR / GitLab MR creation and opening](milestone-38.md). Provider connection now uses native token entry and OS credential stores; see [desktop platform support and native acceptance limits](platforms.md). Live-account acceptance, hosted merge/checks and provider diffs remain follow-ups.
 
 Direct local/remote branch deletion: [M39](milestone-39.md).
 

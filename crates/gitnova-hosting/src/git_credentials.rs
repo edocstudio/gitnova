@@ -1,6 +1,5 @@
 //! Git credential-protocol adapter for the same host accounts used by provider APIs.
 //! Only HTTPS, exact authorities and segment-aligned host base paths are eligible.
-#[cfg(target_os = "macos")]
 use super::credential_account;
 use super::{host_context, Credential};
 use gitnova_domain::*;
@@ -162,20 +161,21 @@ fn response_with(
 
 pub fn response(input: &[u8]) -> Result<Option<Vec<u8>>> {
     response_with(input, |context| {
-        #[cfg(target_os = "macos")]
-        {
-            use security_framework::passwords::{generic_password, PasswordOptions};
-            match generic_password(PasswordOptions::new_generic_password("gitnova.hosting.v1", &credential_account(context))) {
-                Ok(bytes) => serde_json::from_slice(&bytes).map(Some).map_err(|_| AppError::new("git_auth", "Reconnect the saved host account.")),
-                Err(e) if e.code()==-25300 => Ok(None), // errSecItemNotFound only.
-                Err(_) => Err(AppError::new("git_auth", "Access to the saved host account was denied. Allow GitNova to read its Keychain item.")),
-            }
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            let _ = context;
-            Ok(None)
-        }
+        let account = credential_account(context);
+        #[cfg(target_os = "linux")]
+        let bytes = if std::env::var_os("GITNOVA_BACKGROUND_FETCH").is_some() {
+            crate::credential_store::read_background("gitnova.hosting.v1", &account)?
+        } else {
+            crate::credential_store::read("gitnova.hosting.v1", &account)?
+        };
+        #[cfg(not(target_os = "linux"))]
+        let bytes = crate::credential_store::read("gitnova.hosting.v1", &account)?;
+        bytes
+            .map(|bytes| {
+                serde_json::from_slice(&bytes)
+                    .map_err(|_| AppError::new("git_auth", "Reconnect the saved host account."))
+            })
+            .transpose()
     })
 }
 

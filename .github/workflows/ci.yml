@@ -4,7 +4,11 @@ permissions:
   contents: read
 jobs:
   core:
+    env:
+      CARGO_BUILD_JOBS: 2
+      RUST_TEST_THREADS: 1
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -13,6 +17,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - name: Linux core credential-store dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libssl-dev pkg-config
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --exclude gitnova-desktop --all-targets --locked -- -D warnings
       - run: cargo test --workspace --exclude gitnova-desktop --locked
@@ -41,3 +48,128 @@ jobs:
         working-directory: apps/desktop
       - run: npm run test:e2e
         working-directory: apps/desktop
+  desktop-platform:
+    name: desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      CARGO_BUILD_JOBS: 2
+      RUST_TEST_THREADS: 1
+      APPIMAGE_EXTRACT_AND_RUN: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+      - name: Linux desktop dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev zenity xdg-utils xvfb gnome-keyring dbus-x11 fonts-noto-core
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: native-desktop-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'apps/desktop/src-tauri/Cargo.toml') }}
+          restore-keys: native-desktop-${{ runner.os }}-
+      - run: npm ci
+        working-directory: apps/desktop
+      - run: npm run build
+        working-directory: apps/desktop
+      - run: cargo clippy -p gitnova-desktop --all-targets --locked -- -D warnings
+      - name: Linux native IPC and PTY tests
+        if: runner.os == 'Linux'
+        run: xvfb-run -a cargo test -p gitnova-desktop --locked -- --test-threads=1
+      - name: Windows native IPC and PTY tests
+        if: runner.os == 'Windows'
+        run: cargo test -p gitnova-desktop --locked -- --test-threads=1
+      - name: Frontend unit tests
+        run: npm test -- --maxWorkers=1
+        working-directory: apps/desktop
+      - name: Install browser test runtime
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/desktop
+      - name: All graph workflows against real temporary Git repositories
+        run: npm run test:e2e
+        working-directory: apps/desktop
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: native-platform-test-results-${{ matrix.os }}
+          if-no-files-found: ignore
+          path: apps/desktop/test-results/
+      - name: Windows Credential Manager isolation test
+        if: runner.os == 'Windows'
+        run: cargo test -p gitnova-hosting platform_store_round_trip --locked -- --ignored --test-threads=1
+      - name: Linux Secret Service isolation test
+        if: runner.os == 'Linux'
+        run: |
+          dbus-run-session -- bash -euc 'printf "fixture-keyring-password" | gnome-keyring-daemon --unlock --components=secrets; cargo test -p gitnova-hosting platform_store_round_trip --locked -- --ignored --test-threads=1'
+      - name: Collect native target license evidence
+        shell: bash
+        run: |
+          cargo fetch --locked
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          python apps/desktop/scripts/inventory-licenses.py --target "$host"
+      - name: Build native alpha installers
+        run: npm run build:desktop
+        working-directory: apps/desktop
+      - name: Verify packaged Linux attribution
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir "$RUNNER_TEMP/gitnova-deb"
+          dpkg-deb -x target/release/bundle/deb/*.deb "$RUNNER_TEMP/gitnova-deb"
+          mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-deb" -path '*/licenses/LICENSE')
+          test "${#texts[@]}" -eq 1
+          node apps/desktop/scripts/verify-platform-resources.mjs "$(dirname "$(dirname "${texts[0]}")")"
+      - name: Verify packaged AppImage attribution
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          image=$(realpath target/release/bundle/appimage/*.AppImage)
+          mkdir "$RUNNER_TEMP/gitnova-appimage"
+          (cd "$RUNNER_TEMP/gitnova-appimage" && "$image" --appimage-extract > /dev/null)
+          mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-appimage" -path '*/licenses/LICENSE')
+          test "${#texts[@]}" -eq 1
+          node apps/desktop/scripts/verify-platform-resources.mjs "$(dirname "$(dirname "${texts[0]}")")"
+      - name: Verify installed Windows attribution
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installer = Get-Item target/release/bundle/nsis/*.exe
+          $destination = Join-Path $env:RUNNER_TEMP 'gitnova-installer-test'
+          $process = Start-Process -FilePath $installer.FullName -ArgumentList '/S',"/D=$destination" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'Installer failed' }
+          node apps/desktop/scripts/verify-platform-resources.mjs $destination
+          if ($LASTEXITCODE -ne 0) { throw 'Installed attribution verification failed' }
+      - name: Verify Linux embedded UI
+        if: runner.os == 'Linux'
+        run: xvfb-run -a target/release/gitnova-desktop --verify-bundle
+      - name: Verify Windows embedded UI
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath target/release/gitnova-desktop.exe -ArgumentList '--verify-bundle' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'Embedded UI verification failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gitnova-alpha-${{ matrix.os }}
+          if-no-files-found: error
+          path: |
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/deb/*.deb
+            target/release/bundle/appimage/*.AppImage
+            docs/licenses/dependency-inventory.json
+            docs/licenses/third-party-license-evidence.txt

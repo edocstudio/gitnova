@@ -115,11 +115,15 @@ impl Scratch {
             objects.as_os_str().as_bytes().to_vec()
         };
         #[cfg(windows)]
-        let bytes = objects
-            .to_str()
-            .ok_or_else(|| AppError::new("encoding", "Cannot represent object-store path."))?
-            .replace('\\', "/")
-            .into_bytes();
+        let bytes = {
+            if objects.to_str().is_none() {
+                return Err(AppError::new(
+                    "encoding",
+                    "Cannot represent object-store path.",
+                ));
+            }
+            crate::credentials::helper_path(&objects).into_bytes()
+        };
         let alternate = OsString::from(format!(
             "\"{}\"",
             bytes
@@ -183,6 +187,7 @@ impl Scratch {
         partial: bool,
     ) -> Result<Vec<u8>> {
         let mut cmd = Command::new(crate::executable::git_executable());
+        crate::process::configure(&mut cmd);
         for (key, _) in std::env::vars_os() {
             if key.to_string_lossy().starts_with("GIT_") {
                 cmd.env_remove(key);
@@ -243,14 +248,12 @@ impl Scratch {
             use std::os::unix::process::CommandExt;
             cmd.process_group(0);
         }
-        let mut child = cmd.spawn()?;
+        let mut child = crate::process::spawn(&mut cmd)?;
         let stdout = child
-            .stdout
-            .take()
+            .stdout()
             .ok_or_else(|| AppError::new("git", "Missing output"))?;
         let stderr = child
-            .stderr
-            .take()
+            .stderr()
             .ok_or_else(|| AppError::new("git", "Missing error output"))?;
         let (wake_tx, wake_rx) = mpsc::channel();
         let drain = |mut pipe: Box<dyn Read + Send>| {
@@ -273,8 +276,7 @@ impl Scratch {
         drop(wake_tx);
         if let Some(input) = input {
             if let Err(error) = child
-                .stdin
-                .take()
+                .stdin()
                 .ok_or_else(|| AppError::new("git", "Missing input"))?
                 .write_all(input)
             {

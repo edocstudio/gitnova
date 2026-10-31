@@ -152,7 +152,7 @@ impl GitCli {
             args.extend([
                 "--no-index".as_ref(),
                 "--".as_ref(),
-                "/dev/null".as_ref(),
+                if cfg!(windows) { "NUL" } else { "/dev/null" }.as_ref(),
                 path.as_os_str(),
             ]);
         } else {

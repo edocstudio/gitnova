@@ -69,6 +69,7 @@ impl GitCli {
         )
         .map_err(|_| AppError::new("init", "Enter a valid initial branch name."))?;
         let identity = |p: &Path| -> Result<String> {
+            #[cfg(unix)]
             let m = fs::metadata(p)?;
             #[cfg(unix)]
             {
@@ -77,7 +78,7 @@ impl GitCli {
             }
             #[cfg(not(unix))]
             {
-                Ok(format!("{:?}", m.created()))
+                crate::file_identity::directory(p)
             }
         };
         let destination = NativePath::new(&destination);

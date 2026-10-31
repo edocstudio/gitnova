@@ -190,6 +190,7 @@ impl GitCli {
                 "This worktree exceeds the complete review limit of 10,000 paths.",
             ));
         }
+        #[cfg(unix)]
         let metadata = fs::metadata(&parent)?;
         #[cfg(unix)]
         let parent_identity = {
@@ -197,7 +198,7 @@ impl GitCli {
             format!("{}:{}", metadata.dev(), metadata.ino())
         };
         #[cfg(not(unix))]
-        let parent_identity = format!("{:?}", metadata.created().ok());
+        let parent_identity = crate::file_identity::directory(&parent)?;
         let bytes = serde_json::to_vec(&(
             request,
             NativePath::new(&destination),

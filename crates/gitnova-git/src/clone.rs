@@ -123,7 +123,7 @@ impl GitCli {
             format!("{}:{}", metadata.dev(), metadata.ino())
         };
         #[cfg(not(unix))]
-        let identity = format!("{:?}", metadata.created());
+        let identity = crate::file_identity::directory(&parent)?;
         let destination = NativePath::new(&destination);
         let request = CloneRequest {
             workspace_id: request.workspace_id.clone(),

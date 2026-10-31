@@ -5,7 +5,7 @@
   "features": [
     "gitnova-desktop/custom-protocol"
   ],
-  "cargoLockSha256": "69c3678a63d8b8de0f3fff5b0c5bf5b33f797abdd569fb11d0e0dd4d25ccefa2",
+  "cargoLockSha256": "dd0beb98cebf28067e7359b04d6afd90a1ab0a90e7e359a166b7c4b86ce73c4e",
   "npmLockSha256": "d6b229dcfc2e52ff64646b863bab7664de880570bad3f4f2fb1aa6f0d8ec7c05",
   "auditComplete": false,
   "components": [
@@ -4350,6 +4350,22 @@
       ]
     },
     {
+      "id": "cargo:subtle@2.6.1",
+      "ecosystem": "cargo",
+      "name": "subtle",
+      "version": "2.6.1",
+      "declaredLicense": "BSD-3-Clause",
+      "sourcePresent": true,
+      "classification": "resolved graph including runtime/build/development; actual binary contribution not classified",
+      "licenseFiles": [
+        {
+          "path": "LICENSE",
+          "bytes": 1582,
+          "sha256": "d1fc1bc0d155df60b2e7705b6b2ae02a05c96f948e1cec6e2fb86360b09f346b"
+        }
+      ]
+    },
+    {
       "id": "cargo:swift-rs@1.0.9",
       "ecosystem": "cargo",
       "name": "swift-rs",
@@ -5657,6 +5673,27 @@
           "path": "LICENSE-MIT",
           "bytes": 1082,
           "sha256": "8c7516d4b27b1e495be5e38b612298b63de48d05f49cdac94f70f3cd70f8864b"
+        }
+      ]
+    },
+    {
+      "id": "cargo:zeroize_derive@1.5.0",
+      "ecosystem": "cargo",
+      "name": "zeroize_derive",
+      "version": "1.5.0",
+      "declaredLicense": "Apache-2.0 OR MIT",
+      "sourcePresent": true,
+      "classification": "resolved graph including runtime/build/development; actual binary contribution not classified",
+      "licenseFiles": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1082,
+          "sha256": "b8c6939380a400f53e11923d50fcc4dd2fa1ba8339fd9d04cda38a0251b6c9b0"
         }
       ]
     },

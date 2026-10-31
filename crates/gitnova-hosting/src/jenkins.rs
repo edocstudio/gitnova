@@ -27,7 +27,6 @@ pub fn account_scope(controller: &str, username: &str) -> Result<Url> {
     }
     Ok(url)
 }
-#[cfg(any(target_os = "macos", test))]
 fn account_key(controller: &str, username: &str) -> Result<String> {
     Ok(format!(
         "{}:{}",
@@ -35,23 +34,12 @@ fn account_key(controller: &str, username: &str) -> Result<String> {
         username
     ))
 }
-#[cfg(target_os = "macos")]
 pub fn account_credential(controller: &str, username: &str) -> Result<Credential> {
-    use security_framework::passwords::{generic_password, PasswordOptions};
-    let bytes = generic_password(PasswordOptions::new_generic_password(
-        "gitnova.jenkins.v1",
-        &account_key(controller, username)?,
-    ))
-    .map_err(|_| err("Connect this Jenkins account first."))?;
+    let bytes =
+        crate::credential_store::read("gitnova.jenkins.v1", &account_key(controller, username)?)?
+            .ok_or_else(|| err("Connect this Jenkins account first."))?;
     serde_json::from_slice(&bytes).map_err(|_| err("Reconnect this Jenkins account."))
 }
-#[cfg(not(target_os = "macos"))]
-pub fn account_credential(_: &str, _: &str) -> Result<Credential> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
-}
-#[cfg(target_os = "macos")]
 pub fn connect_account(
     controller: &str,
     username: &str,
@@ -63,33 +51,15 @@ pub fn connect_account(
         login: username.into(),
     };
     verify_controller(&http_client()?, &cred, &url)?;
-    security_framework::passwords::set_generic_password(
+    crate::credential_store::write(
         "gitnova.jenkins.v1",
         &account_key(controller, username)?,
         &serde_json::to_vec(&cred).map_err(|_| err("Could not encode account credentials."))?,
-    )
-    .map_err(|_| err("Could not store this account in macOS Keychain."))?;
+    )?;
     Ok(cred.login)
 }
-#[cfg(not(target_os = "macos"))]
-pub fn connect_account(_: &str, _: &str, _: &CredentialPrompt) -> Result<String> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
-}
-#[cfg(target_os = "macos")]
 pub fn disconnect_account(controller: &str, username: &str) -> Result<()> {
-    security_framework::passwords::delete_generic_password(
-        "gitnova.jenkins.v1",
-        &account_key(controller, username)?,
-    )
-    .map_err(|_| err("Could not remove the saved account. Inspect macOS Keychain."))
-}
-#[cfg(not(target_os = "macos"))]
-pub fn disconnect_account(_: &str, _: &str) -> Result<()> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
+    crate::credential_store::delete("gitnova.jenkins.v1", &account_key(controller, username)?)
 }
 pub fn validate(selection: &JenkinsSelection) -> Result<(Url, Url)> {
     let parse = |raw: &str| -> Result<Url> {
@@ -146,50 +116,23 @@ pub fn validate(selection: &JenkinsSelection) -> Result<(Url, Url)> {
     }
     Ok((controller, job))
 }
-#[cfg(target_os = "macos")]
-fn credential_account(s: &JenkinsSelection) -> Result<String> {
-    let (controller, _) = validate(s)?;
-    Ok(format!("{}:{}", controller, s.username))
-}
-#[cfg(target_os = "macos")]
 pub fn credential(s: &JenkinsSelection) -> Result<Credential> {
-    use security_framework::passwords::{generic_password, PasswordOptions};
-    let bytes = generic_password(PasswordOptions::new_generic_password(
-        "gitnova.jenkins.v1",
-        &credential_account(s)?,
-    ))
-    .map_err(|_| err("Connect this Jenkins account first."))?;
-    serde_json::from_slice(&bytes).map_err(|_| err("Reconnect this Jenkins account."))
+    let (controller, _) = validate(s)?;
+    account_credential(controller.as_str(), &s.username)
 }
-#[cfg(not(target_os = "macos"))]
-pub fn credential(_: &JenkinsSelection) -> Result<Credential> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
-}
-#[cfg(target_os = "macos")]
 pub fn connect(s: &JenkinsSelection, prompt: &CredentialPrompt) -> Result<String> {
     let (controller, _) = validate(s)?;
-    let token = crate::secure_token(prompt, &format!("Jenkins {} at {}", s.username, controller))?;
     let cred = Credential {
-        token,
+        token: crate::secure_token(prompt, &format!("Jenkins {} at {}", s.username, controller))?,
         login: s.username.clone(),
     };
-    let client = JenkinsClient::new(s, &cred)?;
-    client.verify_account()?;
-    security_framework::passwords::set_generic_password(
+    JenkinsClient::new(s, &cred)?.verify_account()?;
+    crate::credential_store::write(
         "gitnova.jenkins.v1",
-        &credential_account(s)?,
+        &account_key(controller.as_str(), &s.username)?,
         &serde_json::to_vec(&cred).map_err(|_| err("Could not encode account credentials."))?,
-    )
-    .map_err(|_| err("Could not store this account in macOS Keychain."))?;
+    )?;
     Ok(cred.login)
-}
-#[cfg(not(target_os = "macos"))]
-pub fn connect(_: &JenkinsSelection, _: &CredentialPrompt) -> Result<String> {
-    Err(err(
-        "Provider account storage is currently supported on macOS.",
-    ))
 }
 
 pub fn cache_key(s: &JenkinsSelection, remote: &str, c: &Credential) -> Result<String> {

@@ -1,4 +1,3 @@
-#![cfg(target_os = "macos")]
 use gitnova_core::Application;
 use std::{
     fs,
@@ -11,7 +10,10 @@ fn git(p: &Path, args: &[&str]) -> String {
         .arg(p)
         .args(args)
         .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env(
+            "GIT_CONFIG_GLOBAL",
+            if cfg!(windows) { "NUL" } else { "/dev/null" },
+        )
         .output()
         .unwrap();
     assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
@@ -38,7 +40,13 @@ fn fixture() -> (tempfile::TempDir, PathBuf, Application, String) {
     (d, root, a, id)
 }
 fn dead_pid() -> u32 {
+    #[cfg(unix)]
     let mut p = Command::new("/usr/bin/true").spawn().unwrap();
+    #[cfg(windows)]
+    let mut p = Command::new("cmd.exe")
+        .args(["/D", "/C", "exit", "0"])
+        .spawn()
+        .unwrap();
     let id = p.id();
     p.wait().unwrap();
     id
@@ -90,11 +98,14 @@ fn alive_owner_malformed_symlink_and_native_state_are_never_removed() {
     fs::write(&lock, "foreign lock").unwrap();
     assert!(a.preview_stale_lock(&id).unwrap().blocked_reason.is_some());
     fs::remove_file(&lock).unwrap();
-    std::os::unix::fs::symlink(root.join("file"), &lock).unwrap();
-    assert!(a.preview_stale_lock(&id).unwrap().blocked_reason.is_some());
-    assert!(a.recover_stale_lock(&id, &"a".repeat(64)).is_err());
-    assert_eq!(fs::read_to_string(root.join("file")).unwrap(), "base\n");
-    fs::remove_file(&lock).unwrap();
+    #[cfg(unix)]
+    {
+        std::os::unix::fs::symlink(root.join("file"), &lock).unwrap();
+        assert!(a.preview_stale_lock(&id).unwrap().blocked_reason.is_some());
+        assert!(a.recover_stale_lock(&id, &"a".repeat(64)).is_err());
+        assert_eq!(fs::read_to_string(root.join("file")).unwrap(), "base\n");
+        fs::remove_file(&lock).unwrap();
+    }
     stale(&root);
     for marker in [
         "index.lock",
@@ -154,9 +165,22 @@ fn orphan_git_process_blocks_recovery_until_it_exits() {
     stale(&root);
     let p = a.preview_stale_lock(&id).unwrap();
     assert!(p.blocked_reason.is_none(), "{p:?}");
-    let sleeper = root.join("git-upload-pack");
-    fs::copy("/bin/sleep", &sleeper).unwrap();
-    let mut child = Command::new(&sleeper).arg("10").spawn().unwrap();
+    #[cfg(unix)]
+    let mut child = {
+        let sleeper = root.join("git-upload-pack");
+        fs::copy("/bin/sleep", &sleeper).unwrap();
+        Command::new(&sleeper).arg("10").spawn().unwrap()
+    };
+    #[cfg(windows)]
+    let mut child = {
+        let sleeper = root.join("git-upload-pack.exe");
+        fs::copy(std::env::current_exe().unwrap(), &sleeper).unwrap();
+        Command::new(&sleeper)
+            .args(["--ignored", "--exact", "lock_process_fixture"])
+            .env("GITNOVA_LOCK_PROCESS_FIXTURE", "1")
+            .spawn()
+            .unwrap()
+    };
     let blocked = a.preview_stale_lock(&id).unwrap();
     let result = a.recover_stale_lock(&id, &p.token);
     child.kill().unwrap();
@@ -165,4 +189,15 @@ fn orphan_git_process_blocks_recovery_until_it_exits() {
     assert!(result.is_err());
     assert!(root.join(".git/gitnova-operation.lock").exists());
     assert!(a.preview_stale_lock(&id).unwrap().blocked_reason.is_none());
+}
+
+#[cfg(windows)]
+#[test]
+#[ignore = "internal child process fixture only"]
+fn lock_process_fixture() {
+    assert_eq!(
+        std::env::var("GITNOVA_LOCK_PROCESS_FIXTURE").as_deref(),
+        Ok("1")
+    );
+    std::thread::sleep(std::time::Duration::from_secs(60));
 }

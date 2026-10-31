@@ -831,13 +831,11 @@ mod tests {
         }
         drop(held);
         index.cache(directory.path(), "next").unwrap();
-        assert!(
-            index
-                .caches
-                .lock()
-                .unwrap()
-                .contains_key(&directory.path().join("next.json"))
-        );
+        assert!(index
+            .caches
+            .lock()
+            .unwrap()
+            .contains_key(&directory.path().join("next.json")));
         for i in 0..8 {
             index
                 .retain_index(
@@ -857,13 +855,11 @@ mod tests {
                 RESIDENT_LIMIT + 1,
             )
             .unwrap();
-        assert!(
-            !index
-                .caches
-                .lock()
-                .unwrap()
-                .contains_key(&directory.path().join("oversized.json"))
-        );
+        assert!(!index
+            .caches
+            .lock()
+            .unwrap()
+            .contains_key(&directory.path().join("oversized.json")));
     }
     #[test]
     fn small_indexes_reuse_memory_across_many_repositories_and_isolate_directories() {
@@ -960,30 +956,24 @@ mod tests {
         let records = batch_records(&raw, &[oid, other]).unwrap();
         assert_eq!(records.len(), 2);
         assert_eq!(records[0].0, body.as_bytes());
-        assert!(
-            parse_commit(&records[0].1, records[0].0)
-                .unwrap()
-                .message
-                .contains('\0')
-        );
+        assert!(parse_commit(&records[0].1, records[0].0)
+            .unwrap()
+            .message
+            .contains('\0'));
     }
     #[test]
     fn incomplete_or_mismatched_batches_are_rejected_instead_of_returning_other_commits() {
         let oid = "a".repeat(40);
-        assert!(
-            batch_records(
-                format!("{oid} commit 999\nshort\n").as_bytes(),
-                std::slice::from_ref(&oid)
-            )
-            .is_err()
-        );
-        assert!(
-            batch_records(
-                format!("{} commit 0\n\n", "b".repeat(40)).as_bytes(),
-                &[oid]
-            )
-            .is_err()
-        );
+        assert!(batch_records(
+            format!("{oid} commit 999\nshort\n").as_bytes(),
+            std::slice::from_ref(&oid)
+        )
+        .is_err());
+        assert!(batch_records(
+            format!("{} commit 0\n\n", "b".repeat(40)).as_bytes(),
+            &[oid]
+        )
+        .is_err());
     }
 }
 
