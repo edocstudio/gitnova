@@ -9,6 +9,26 @@ type NativeChild = std::process::Child;
 #[cfg(windows)]
 type NativeChild = command_group::GroupChild;
 pub(crate) struct Child(NativeChild);
+/// Paths passed to Git's own parser must not use Windows verbatim prefixes.
+/// Preserve arbitrary native bytes on Unix; reject unrepresentable Windows paths.
+pub(crate) fn git_path(path: &std::path::Path) -> gitnova_domain::Result<std::ffi::OsString> {
+    #[cfg(windows)]
+    {
+        use std::path::{Component, Prefix};
+        if path.to_str().is_none()
+            || matches!(path.components().next(), Some(Component::Prefix(prefix))
+                if matches!(prefix.kind(), Prefix::Verbatim(_) | Prefix::DeviceNS(_)))
+        {
+            return Err(gitnova_domain::AppError::new(
+                "encoding",
+                "Cannot represent Git path.",
+            ));
+        }
+        Ok(crate::credentials::helper_path(path).into())
+    }
+    #[cfg(not(windows))]
+    Ok(path.as_os_str().to_owned())
+}
 pub(crate) fn configure(command: &mut Command) {
     #[cfg(windows)]
     command.args(["-c", "core.longpaths=true"]);
@@ -101,6 +121,22 @@ impl crate::wait::Waitable for Child {
 
 #[cfg(all(test, windows))]
 mod tests {
+    #[test]
+    fn windows_git_paths_preserve_scope_and_reject_device_namespaces() {
+        use std::{os::windows::ffi::OsStringExt, path::Path};
+        assert_eq!(
+            super::git_path(Path::new(r"\\?\C:\space ' ไทย\message")).unwrap(),
+            std::ffi::OsString::from("C:/space ' ไทย/message")
+        );
+        assert_eq!(
+            super::git_path(Path::new(r"\\?\UNC\host\share\message")).unwrap(),
+            std::ffi::OsString::from("//host/share/message")
+        );
+        assert!(super::git_path(Path::new(r"\\.\PIPE\message")).is_err());
+        assert!(super::git_path(Path::new(r"\\?\Volume{fake}\message")).is_err());
+        let invalid = std::ffi::OsString::from_wide(&[0xD800]);
+        assert!(super::git_path(Path::new(&invalid)).is_err());
+    }
     use super::*;
     use std::{
         io::{BufRead, BufReader},

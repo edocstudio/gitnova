@@ -1482,9 +1482,11 @@ fn main() {
         }
     }
     if native_smoke() {
+        let foreground = std::env::var_os("GITNOVA_NATIVE_SOAK_FOREGROUND").as_deref()
+            == Some(std::ffi::OsStr::new("1"));
         for window in &mut context.config_mut().app.windows {
-            window.visible = false;
-            window.focus = false;
+            window.visible = foreground;
+            window.focus = foreground;
             window.incognito = true;
         }
     }
@@ -1518,8 +1520,14 @@ fn main() {
                     .parse::<u64>()
                 {
                     if (60..=7200).contains(&seconds) {
+                        let foreground = std::env::var_os("GITNOVA_NATIVE_SOAK_FOREGROUND").as_deref()
+                            == Some(std::ffi::OsStr::new("1"));
+                        if foreground {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
                         let script = format!(
-                            "window.__gitnovaSoakSeconds={seconds};\n{}",
+                            "window.__gitnovaSoakSeconds={seconds};window.__gitnovaSoakRequireVisible={foreground};\n{}",
                             include_str!("../../scripts/native-soak-driver.js")
                         );
                         let _ = window.eval(&script);
@@ -1542,6 +1550,13 @@ fn main() {
 mod tests {
     use super::*;
     use serde_json::{json, Value};
+    fn local_ipc_origin() -> &'static str {
+        if cfg!(windows) {
+            "http://tauri.localhost"
+        } else {
+            "tauri://localhost"
+        }
+    }
     // Both IPC tests share the process-wide queue; one intentionally fills it.
     static IPC_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
     #[test]
@@ -1605,7 +1620,7 @@ mod tests {
             )
             .map(|body| body.deserialize::<Value>().unwrap())
         };
-        let catalog = invoke("add_repository", json!({"path":repo}), "tauri://localhost").unwrap();
+        let catalog = invoke("add_repository", json!({"path":repo}), local_ipc_origin()).unwrap();
         let membership = &catalog["workspaces"][0]["selectedId"];
         for command in [
             "terminal_open",
@@ -1619,7 +1634,7 @@ mod tests {
         assert!(invoke(
             "terminal_open",
             json!({"membershipId":"not-in-catalog","cols":80,"rows":24}),
-            "tauri://localhost"
+            local_ipc_origin()
         )
         .is_err());
         let identity_profile = json!({"provider":"gitlab","origin":"https://gitlab.com"});
@@ -1634,7 +1649,7 @@ mod tests {
             invoke(
                 "connection_commit_identity",
                 json!({"profile":identity_profile}),
-                "tauri://localhost"
+                local_ipc_origin()
             )
             .unwrap(),
             Value::Null
@@ -1642,14 +1657,14 @@ mod tests {
         invoke(
             "set_connection_commit_identity",
             identity_args,
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert_eq!(
             invoke(
                 "commit_identity",
                 json!({"membershipId":membership}),
-                "tauri://localhost"
+                local_ipc_origin()
             )
             .unwrap()["identity"]["email"],
             "personal@example.invalid"
@@ -1663,14 +1678,14 @@ mod tests {
         invoke(
             "set_connection_commit_identity",
             json!({"profile":identity_profile,"identity":null}),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         let selection =
             json!({"remote":"origin","branch":"","oid":oid,"provider":"gitlab","origin":null});
         let args = json!({"membershipId":membership,"selection":selection});
         assert_eq!(
-            invoke("commit_link", args.clone(), "tauri://localhost").unwrap(),
+            invoke("commit_link", args.clone(), local_ipc_origin()).unwrap(),
             format!("https://gitlab.com/team/project/-/commit/{oid}")
         );
         assert!(invoke("commit_link", args, "https://example.invalid").is_err());
@@ -1679,7 +1694,7 @@ mod tests {
         let invalid_host = json!({"profile":{"provider":"gitlab","origin":"http://git.example.com"},"prompt":{"message":"test","confirm":"test","cancel":"test"}});
         for command in ["host_account", "connect_host", "disconnect_host"] {
             assert!(invoke(command, invalid_host.clone(), "https://example.invalid").is_err());
-            assert!(invoke(command, invalid_host.clone(), "tauri://localhost").is_err());
+            assert!(invoke(command, invalid_host.clone(), local_ipc_origin()).is_err());
         }
         let invalid_jenkins = json!({"controller":"http://ci.example.com","username":"alice","prompt":{"message":"test","confirm":"test","cancel":"test"}});
         for command in [
@@ -1688,9 +1703,9 @@ mod tests {
             "disconnect_jenkins_account",
         ] {
             assert!(invoke(command, invalid_jenkins.clone(), "https://example.invalid").is_err());
-            assert!(invoke(command, invalid_jenkins.clone(), "tauri://localhost").is_err());
+            assert!(invoke(command, invalid_jenkins.clone(), local_ipc_origin()).is_err());
         }
-        assert!(invoke("ci_connection",json!({"membershipId":membership,"oid":oid,"profiles":[{"provider":"gitlab","origin":"http://invalid.example"}]}),"tauri://localhost").is_err());
+        assert!(invoke("ci_connection",json!({"membershipId":membership,"oid":oid,"profiles":[{"provider":"gitlab","origin":"http://invalid.example"}]}),local_ipc_origin()).is_err());
         // Invalid scope is rejected before any Keychain access, prompt or network call.
         let invalid = json!({"membershipId":membership,"selection":{"remote":"missing","branch":"","oid":oid,"provider":"gitlab","origin":null},"refresh":false,"prompt":{"message":"test","confirm":"test","cancel":"test"}});
         for command in [
@@ -1700,7 +1715,7 @@ mod tests {
             "ci_summary",
         ] {
             assert!(invoke(command, invalid.clone(), "https://example.invalid").is_err());
-            let error = invoke(command, invalid.clone(), "tauri://localhost").unwrap_err();
+            let error = invoke(command, invalid.clone(), local_ipc_origin()).unwrap_err();
             assert_eq!(error["code"], "remote");
         }
         assert!(invoke(
@@ -1712,14 +1727,14 @@ mod tests {
         let bad_link = invoke(
             "open_ci_url",
             json!({"url":"file:///tmp/private"}),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap_err();
         assert_eq!(bad_link["code"], "hosting");
         let jenkins = json!({"membershipId":membership,"selection":{"remote":"missing","oid":oid,"controller":"https://ci.example.com/jenkins/","jobUrl":"https://ci.example.com/jenkins/job/app/job/main/","username":"alice"},"refresh":false,"prompt":{"message":"test","confirm":"test","cancel":"test"}});
         for command in ["connect_jenkins", "jenkins_builds"] {
             assert!(invoke(command, jenkins.clone(), "https://example.invalid").is_err());
-            let error = invoke(command, jenkins.clone(), "tauri://localhost").unwrap_err();
+            let error = invoke(command, jenkins.clone(), local_ipc_origin()).unwrap_err();
             assert_eq!(error["code"], "remote");
         }
         assert_eq!(git(&["rev-parse", "HEAD"]), oid);
@@ -1782,19 +1797,19 @@ mod tests {
             )
             .map(|body| body.deserialize::<Value>().unwrap())
         };
-        let catalog = invoke("add_repository", json!({"path":repo}), "tauri://localhost").unwrap();
+        let catalog = invoke("add_repository", json!({"path":repo}), local_ipc_origin()).unwrap();
         let full_queue = COMMAND_QUEUE.clone().try_acquire_many_owned(32).unwrap();
-        let busy = invoke("catalog", json!({}), "tauri://localhost").unwrap_err();
+        let busy = invoke("catalog", json!({}), local_ipc_origin()).unwrap_err();
         assert_eq!(busy["code"], "busy");
         drop(full_queue);
-        assert!(invoke("catalog", json!({}), "tauri://localhost").is_ok());
+        assert!(invoke("catalog", json!({}), local_ipc_origin()).is_ok());
         let membership = catalog["workspaces"][0]["selectedId"].as_str().unwrap();
         let clone_path = directory.path().join("ipc-clone");
         let clone_request = json!({"workspaceId":catalog["activeWorkspaceId"],"source":repo,"destination":clone_path});
         let clone_preview = invoke(
             "preview_clone",
             json!({"request":clone_request}),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert_eq!(clone_preview["version"], 1);
@@ -1813,7 +1828,7 @@ mod tests {
         )
         .is_err());
         assert!(!clone_path.exists());
-        let cloned = invoke("clone_repository", clone_args, "tauri://localhost").unwrap();
+        let cloned = invoke("clone_repository", clone_args, local_ipc_origin()).unwrap();
         assert_eq!(cloned["status"], "succeeded");
         assert_eq!(
             cloned["catalog"]["workspaces"][0]["memberships"]
@@ -1824,7 +1839,7 @@ mod tests {
         );
         let journal_args = json!({"workspaceId":catalog["activeWorkspaceId"]});
         assert_eq!(
-            invoke("recent_clones", journal_args.clone(), "tauri://localhost")
+            invoke("recent_clones", journal_args.clone(), local_ipc_origin())
                 .unwrap()
                 .as_array()
                 .unwrap()
@@ -1838,13 +1853,13 @@ mod tests {
         invoke(
             "select_repository",
             json!({"membershipId":membership}),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         let page = invoke(
             "graph_page",
             json!({"membershipId":membership,"cursor":null}),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert_eq!(page["rows"][0]["commit"]["subject"], "IPC fixture");
@@ -1856,7 +1871,7 @@ mod tests {
             assert!(invoke(
                 command,
                 json!({"membershipId":membership}),
-                "tauri://localhost"
+                local_ipc_origin()
             )
             .is_err());
             assert!(invoke(
@@ -1867,55 +1882,54 @@ mod tests {
             .is_err());
         }
         let pull_args = json!({"membershipId":membership,"token":"unreviewed"});
-        let pull = invoke("pull_current", pull_args.clone(), "tauri://localhost").unwrap();
+        let pull = invoke("pull_current", pull_args.clone(), local_ipc_origin()).unwrap();
         assert_eq!(pull["status"], "failed");
         assert!(invoke("pull_current", pull_args, "https://example.invalid").is_err());
         let oid = page["rows"][0]["commit"]["oid"].as_str().unwrap();
         for method in ["auto", "mergeCommit", "fastForwardOnly"] {
             let args = json!({"membershipId":membership,"request":{"operation":"merge","method":method,"mainline":null,"sourceOid":oid,"sourceRef":null,"sessionId":""}});
-            let preview = invoke("preview_merge", args.clone(), "tauri://localhost").unwrap();
+            let preview = invoke("preview_merge", args.clone(), local_ipc_origin()).unwrap();
             assert_eq!(preview["request"]["method"], method);
             assert_eq!(preview["mode"], "up_to_date");
             assert!(invoke("preview_merge", args, "https://example.invalid").is_err());
         }
         let invalid_method = json!({"membershipId":membership,"request":{"operation":"merge","method":"silentlyFallback","sourceOid":oid,"sourceRef":null,"sessionId":""}});
-        assert!(invoke("preview_merge", invalid_method, "tauri://localhost").is_err());
+        assert!(invoke("preview_merge", invalid_method, local_ipc_origin()).is_err());
         let detail = invoke(
             "commit_detail",
             json!({"membershipId":membership,"oid":oid}),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert_eq!(detail["commit"]["oid"], oid);
         assert_eq!(detail["files"], json!([]));
         let patch_args = json!({"membershipId":membership,"oid":oid,"path":NativePath::new(std::path::Path::new("absent.txt"))});
-        let patch = invoke("historical_patch", patch_args.clone(), "tauri://localhost").unwrap();
+        let patch = invoke("historical_patch", patch_args.clone(), local_ipc_origin()).unwrap();
         assert_eq!(patch["diff"], "");
         assert_eq!(patch["truncated"], false);
         assert!(invoke("historical_patch", patch_args, "https://example.invalid").is_err());
         let saved = invoke(
             "stashes",
             json!({"membershipId":membership}),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert_eq!(saved["entries"], json!([]));
         let stash_args = json!({"membershipId":membership,"request":{"kind":"push","index":null,"oid":null,"message":"IPC stash","includeUntracked":false,"restoreIndex":true,"id":""}});
-        let stash_review =
-            invoke("preview_stash", stash_args.clone(), "tauri://localhost").unwrap();
+        let stash_review = invoke("preview_stash", stash_args.clone(), local_ipc_origin()).unwrap();
         assert!(stash_review["blockedReason"]
             .as_str()
             .unwrap()
             .contains("No changes"));
         assert_eq!(stash_review["version"], 2);
         let missing_patch = json!({"membershipId":membership,"request":stash_review["request"],"token":stash_review["token"],"path":NativePath::new(std::path::Path::new("absent.txt")),"index":false});
-        assert!(invoke("stash_patch", missing_patch.clone(), "tauri://localhost").is_err());
+        assert!(invoke("stash_patch", missing_patch.clone(), local_ipc_origin()).is_err());
         assert!(invoke("stash_patch", missing_patch, "https://example.invalid").is_err());
         let saved_path = repo.join("stash-ipc.txt");
         std::fs::write(&saved_path, "IPC saved preview\n").unwrap();
-        let positive=invoke("preview_stash",json!({"membershipId":membership,"request":{"kind":"push","index":null,"oid":null,"message":"IPC preview","includeUntracked":true,"restoreIndex":false,"id":""}}),"tauri://localhost").unwrap();
+        let positive=invoke("preview_stash",json!({"membershipId":membership,"request":{"kind":"push","index":null,"oid":null,"message":"IPC preview","includeUntracked":true,"restoreIndex":false,"id":""}}),local_ipc_origin()).unwrap();
         let args = json!({"membershipId":membership,"request":positive["request"],"token":positive["token"],"path":NativePath::new(std::path::Path::new("stash-ipc.txt")),"index":false});
-        let selected = invoke("stash_patch", args.clone(), "tauri://localhost").unwrap();
+        let selected = invoke("stash_patch", args.clone(), local_ipc_origin()).unwrap();
         assert!(selected["diff"]
             .as_str()
             .unwrap()
@@ -1923,7 +1937,7 @@ mod tests {
         assert!(invoke("stash_patch", args, "https://example.invalid").is_err());
         std::fs::remove_file(saved_path).unwrap();
         let stash_apply = json!({"membershipId":membership,"request":stash_review["request"],"token":stash_review["token"]});
-        let refused = invoke("apply_stash", stash_apply.clone(), "tauri://localhost").unwrap();
+        let refused = invoke("apply_stash", stash_apply.clone(), local_ipc_origin()).unwrap();
         assert_eq!(refused["status"], "failed");
         assert!(invoke(
             "stashes",
@@ -1937,7 +1951,7 @@ mod tests {
         let tree_review = invoke(
             "preview_create_worktree",
             worktree_args.clone(),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert!(tree_review["blockedReason"]
@@ -1946,7 +1960,7 @@ mod tests {
             .contains("already checked out"));
         let tree_apply = json!({"membershipId":membership,"request":tree_review["request"],"token":tree_review["token"]});
         assert_eq!(
-            invoke("create_worktree", tree_apply.clone(), "tauri://localhost").unwrap()["status"],
+            invoke("create_worktree", tree_apply.clone(), local_ipc_origin()).unwrap()["status"],
             "failed"
         );
         assert!(invoke(
@@ -1960,7 +1974,7 @@ mod tests {
         let removal_review = invoke(
             "preview_remove_worktree",
             removal_args.clone(),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert!(removal_review["blockedReason"]
@@ -1969,12 +1983,7 @@ mod tests {
             .contains("main worktree"));
         let removal_apply = json!({"membershipId":membership,"request":removal_review["request"],"token":removal_review["token"]});
         assert_eq!(
-            invoke(
-                "remove_worktree",
-                removal_apply.clone(),
-                "tauri://localhost"
-            )
-            .unwrap()["status"],
+            invoke("remove_worktree", removal_apply.clone(), local_ipc_origin()).unwrap()["status"],
             "failed"
         );
         assert!(repo.exists());
@@ -1988,7 +1997,7 @@ mod tests {
         std::fs::write(repo.join("discard.txt"), "IPC unsaved work").unwrap();
         let discard_args = json!({"membershipId":membership,"onProgress":"__CHANNEL__:91","request":{"paths":[NativePath::new(std::path::Path::new("discard.txt"))],"scope":"unstaged","id":""}});
         let discard_review =
-            invoke("preview_discard", discard_args.clone(), "tauri://localhost").unwrap();
+            invoke("preview_discard", discard_args.clone(), local_ipc_origin()).unwrap();
         assert!(discard_review["blockedReason"].is_null());
         let discard_apply = json!({"membershipId":membership,"request":discard_review["request"],"token":discard_review["token"]});
         assert!(invoke("preview_discard", discard_args, "https://example.invalid").is_err());
@@ -2000,14 +2009,14 @@ mod tests {
         .is_err());
         assert!(repo.join("discard.txt").exists());
         assert_eq!(
-            invoke("discard_changes", discard_apply, "tauri://localhost").unwrap()["status"],
+            invoke("discard_changes", discard_apply, local_ipc_origin()).unwrap()["status"],
             "succeeded"
         );
         assert!(!repo.join("discard.txt").exists());
         let operation_discard_args = json!({"membershipId":membership,"request":{"paths":[NativePath::new(std::path::Path::new("discard.txt"))],"scope":"all","id":""},"operationToken":"not-current","token":"not-current"});
         for command in ["preview_operation_discard", "discard_operation_changes"] {
             let error =
-                invoke(command, operation_discard_args.clone(), "tauri://localhost").unwrap_err();
+                invoke(command, operation_discard_args.clone(), local_ipc_origin()).unwrap_err();
             assert_eq!(error["code"], "discard_blocked");
             assert!(invoke(
                 command,
@@ -2024,7 +2033,7 @@ mod tests {
             "https://example.invalid"
         )
         .is_err());
-        let activity = invoke("recorded_activity", activity_args, "tauri://localhost").unwrap();
+        let activity = invoke("recorded_activity", activity_args, local_ipc_origin()).unwrap();
         assert!(activity["entries"]
             .as_array()
             .unwrap()
@@ -2036,7 +2045,7 @@ mod tests {
             "workspaceId": workspace, "currentMembershipId": membership,
             "scope": "workspace", "selectedIds": [], "query": "IPC fixture", "cursor": null
         }});
-        let search = invoke("search_commits", search_args.clone(), "tauri://localhost").unwrap();
+        let search = invoke("search_commits", search_args.clone(), local_ipc_origin()).unwrap();
         assert_eq!(search["hits"][0]["commit"]["oid"], oid);
         assert_eq!(search["partial"], false);
         let investigation_args = json!({"request": {"selection":search_args["request"],"mode":"history","path":"file.txt","needle":"","source":"main","target":"main"}});
@@ -2049,12 +2058,12 @@ mod tests {
         let evidence = invoke(
             "investigate_history",
             investigation_args,
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert!(evidence["evidence"].is_array());
         let focus_args = json!({"workspaceId":workspace,"membershipId":membership,"oid":oid});
-        let focus = invoke("focus_commit", focus_args.clone(), "tauri://localhost").unwrap();
+        let focus = invoke("focus_commit", focus_args.clone(), local_ipc_origin()).unwrap();
         assert_eq!(focus["page"]["rows"][0]["commit"]["oid"], oid);
         assert_eq!(focus["selectedIndex"], 0);
         assert!(invoke("search_commits", search_args, "https://example.invalid").is_err());
@@ -2113,7 +2122,7 @@ mod tests {
         let display = invoke(
             "submodule_snapshot",
             display_args.clone(),
-            "tauri://localhost",
+            local_ipc_origin(),
         )
         .unwrap();
         assert_eq!(display["submodules"][0]["indexOid"], recorded);
@@ -2129,7 +2138,7 @@ mod tests {
             let preview = invoke(
                 "preview_submodule_pointer",
                 args.clone(),
-                "tauri://localhost",
+                local_ipc_origin(),
             )
             .unwrap();
             assert_eq!(preview["version"], 1);
@@ -2149,7 +2158,7 @@ mod tests {
             )
             .is_err());
             assert_eq!(
-                invoke("change_submodule_pointer", apply, "tauri://localhost").unwrap()["status"],
+                invoke("change_submodule_pointer", apply, local_ipc_origin()).unwrap()["status"],
                 "succeeded"
             );
             assert_eq!(
@@ -2167,12 +2176,12 @@ mod tests {
         let request = json!({"kind":"create","name":"native/v1","oid":tagged,"annotation":null});
         let args = json!({"membershipId":pointer_membership,"request":request});
         assert!(invoke("preview_tag", args.clone(), "https://example.invalid").is_err());
-        let preview = invoke("preview_tag", args.clone(), "tauri://localhost").unwrap();
+        let preview = invoke("preview_tag", args.clone(), local_ipc_origin()).unwrap();
         let mut apply = args;
         apply["token"] = preview["token"].clone();
         assert!(invoke("change_tag", apply.clone(), "https://example.invalid").is_err());
         assert_eq!(
-            invoke("change_tag", apply, "tauri://localhost").unwrap()["status"],
+            invoke("change_tag", apply, local_ipc_origin()).unwrap()["status"],
             "succeeded"
         );
         assert_eq!(
@@ -2207,19 +2216,19 @@ mod tests {
         let args = json!({"membershipId":pointer_membership,"oid":tagged});
         assert!(invoke("amend_original", args.clone(), "https://example.invalid").is_err());
         assert_eq!(
-            invoke("amend_original", args, "tauri://localhost").unwrap()["commit"]["oid"],
+            invoke("amend_original", args, local_ipc_origin()).unwrap()["commit"]["oid"],
             tagged
         );
         let args = json!({"membershipId":pointer_membership,"request":{"oid":tagged,"message":"Native amend review"}});
         assert!(invoke("preview_amend", args.clone(), "https://example.invalid").is_err());
-        let preview = invoke("preview_amend", args.clone(), "tauri://localhost").unwrap();
+        let preview = invoke("preview_amend", args.clone(), local_ipc_origin()).unwrap();
         let recovery = preview["recoveryRef"].as_str().unwrap().to_owned();
         let mut args = args;
         args["token"] = preview["token"].clone();
         args["acknowledgeRewrite"] = json!(true);
         assert!(invoke("amend_commit", args.clone(), "https://example.invalid").is_err());
         assert_eq!(
-            invoke("amend_commit", args, "tauri://localhost").unwrap()["status"],
+            invoke("amend_commit", args, local_ipc_origin()).unwrap()["status"],
             "succeeded"
         );
         assert_ne!(fixture_git(&clone_path, &["rev-parse", "HEAD"]), tagged);

@@ -63,6 +63,9 @@ fn fixture(ours: bool, incoming: bool) -> F {
         ids.push(git(&child_source, &["rev-parse", "HEAD"]));
     }
     git(&root, &["init", "-b", "release"]);
+    git(&root, &["config", "user.name", "Merge Pointer Test"]);
+    git(&root, &["config", "user.email", "pointer@example.invalid"]);
+    git(&root, &["config", "commit.gpgsign", "false"]);
     git(
         &root,
         &["submodule", "add", child_source.to_str().unwrap(), "_dags"],
@@ -152,7 +155,7 @@ fn merge_that_keeps_current_gitlink_is_allowed_and_preserves_child_bytes_refs_an
         .app
         .begin_merge(&f.id, &preview.request, &preview.token)
         .unwrap();
-    assert_eq!(receipt.status, "pending");
+    assert_eq!(receipt.status, "pending", "{receipt:?}");
     let finish = MergeAction {
         kind: "finish".into(),
         path: None,

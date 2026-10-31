@@ -22,6 +22,7 @@ struct Output {
     bytes: VecDeque<u8>,
     dropped: bool,
     exited: bool,
+    child_exited: bool,
 }
 impl Output {
     fn append(&mut self, bytes: &[u8]) {
@@ -36,7 +37,7 @@ impl Output {
 }
 struct Session {
     membership: String,
-    master: Mutex<Box<dyn MasterPty + Send>>,
+    master: Arc<Mutex<Option<Box<dyn MasterPty + Send>>>>,
     writer: Mutex<Box<dyn Write + Send>>,
     child: Arc<Mutex<Box<dyn Child + Send + Sync>>>,
     output: Arc<Mutex<Output>>,
@@ -148,9 +149,10 @@ fn open_command(
     let child = Arc::new(Mutex::new(child));
     drop(pair.slave);
     let output = Arc::new(Mutex::new(Output::default()));
+    let master = Arc::new(Mutex::new(Some(pair.master)));
     let session = Arc::new(Session {
         membership,
-        master: Mutex::new(pair.master),
+        master: master.clone(),
         writer: Mutex::new(writer),
         child: child.clone(),
         output: output.clone(),
@@ -191,6 +193,13 @@ fn open_command(
                 Err(_) => true,
             };
             if done {
+                if let Ok(mut out) = output.lock() {
+                    out.child_exited = true;
+                }
+                // ConPTY keeps output alive until its pseudo-console closes.
+                // Release it while the reader drains; reader EOF marks exit.
+                let finished = master.lock().ok().and_then(|mut value| value.take());
+                drop(finished);
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(100));
@@ -242,7 +251,7 @@ pub fn terminal_read(membership_id: String, id: String) -> Result<Batch, AppErro
     Ok(Batch {
         data,
         dropped,
-        exited: out.exited && out.bytes.is_empty(),
+        exited: out.exited && out.child_exited && out.bytes.is_empty(),
     })
 }
 #[tauri::command]
@@ -280,6 +289,8 @@ pub fn terminal_resize(
         .master
         .lock()
         .map_err(err)?
+        .as_ref()
+        .ok_or_else(|| err("Terminal session is no longer available."))?
         .resize(size(cols, rows)?)
         .map_err(err)
 }
@@ -323,6 +334,25 @@ mod tests {
         assert!(size(0, 24).is_err());
         assert!(size(80, 65535).is_err());
         assert!(size(80, 24).is_ok());
+    }
+    #[test]
+    #[cfg(unix)]
+    fn output_eof_does_not_report_a_live_child_as_exited() {
+        let _guard = TEST_LOCK.lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let mut command = CommandBuilder::new("/bin/sh");
+        command.args(["-c", "exec </dev/null >/dev/null 2>&1; exec sleep 30"]);
+        let opened = open_command("fixture".into(), temp.path(), 80, 24, command).unwrap();
+        let handle = session("fixture", &opened.id).unwrap();
+        // Inject the reader's EOF event independently of process exit. A real
+        // controlling terminal can retain extra slave descriptors on Unix.
+        handle.output.lock().unwrap().exited = true;
+        assert!(
+            !terminal_read("fixture".into(), opened.id.clone())
+                .unwrap()
+                .exited
+        );
+        terminal_close("fixture".into(), opened.id).unwrap();
     }
     #[test]
     #[cfg(unix)]
@@ -394,9 +424,21 @@ mod tests {
         drop(handle);
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
         let mut output = Vec::new();
+        let mut cursor_reports = 0;
         loop {
             let batch = terminal_read("fixture".into(), opened.id.clone()).unwrap();
             output.extend(batch.data);
+            // xterm answers this PowerShell startup query in the real UI.
+            let requested = output.windows(4).filter(|v| *v == b"\x1b[6n").count();
+            if requested > cursor_reports {
+                let handle = session("fixture", &opened.id).unwrap();
+                let mut writer = handle.writer.lock().unwrap();
+                for _ in cursor_reports..requested {
+                    writer.write_all(b"\x1b[1;1R").unwrap();
+                }
+                writer.flush().unwrap();
+                cursor_reports = requested;
+            }
             if batch.exited {
                 break;
             }

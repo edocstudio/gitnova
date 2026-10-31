@@ -183,12 +183,17 @@ impl GitCli {
         .map(OsString::from)
         .collect();
         // Absolute empty hook/template directories override configured templates for this command only.
-        args[1] = format!("core.hooksPath={}", empty_template.display()).into();
-        args.push(format!("--template={}", empty_template.display()).into());
+        let empty_template_arg = crate::process::git_path(&empty_template)?;
+        let mut hooks = OsString::from("core.hooksPath=");
+        hooks.push(&empty_template_arg);
+        args[1] = hooks;
+        let mut template = OsString::from("--template=");
+        template.push(empty_template_arg);
+        args.push(template);
         args.extend([
             "--".into(),
             preview.request.source.into(),
-            destination.as_os_str().to_owned(),
+            crate::process::git_path(&destination)?,
         ]);
         run_clone(sandbox.path(), &args)?;
         emit("verifying-clone", 0, 0, "steps");

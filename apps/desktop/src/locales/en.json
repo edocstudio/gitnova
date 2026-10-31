@@ -1800,6 +1800,7 @@
   "Invalid terminal size.": "Invalid terminal size.",
   "Repository folder is no longer available.": "Repository folder is no longer available.",
   "Terminal session is no longer available.": "Terminal session is no longer available.",
+  "Cannot represent Git path.": "Cannot represent Git path.",
   "End an existing terminal session before opening another (maximum 4).": "End an existing terminal session before opening another (maximum 4).",
   "Terminal input exceeds its limit.": "Terminal input exceeds its limit.",
   "How do I open a terminal in the current repository?": "How do I open a terminal in the current repository?",

@@ -12,9 +12,21 @@ const root = resolve('../..');
 const bridge = join(root, 'target/debug/examples', process.platform === 'win32' ? 'ui_bridge.exe' : 'ui_bridge');
 let folder: string, repository: string, other: string;
 const longFile = (version: string) => Array.from({ length: 100 }, (_, i) => `export const entry${i} = "${version}-${i === 0 ? 'very-long-content-'.repeat(90) : 'value'}";`).join('\n') + '\n';
-function git(path: string, args: string[]) { return execFileSync('git', ['-C', path, '-c', 'user.name=GitNova Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args], { encoding: 'utf8', env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null' } }).trim(); }
+function git(path: string, args: string[]) {
+  const options = { encoding: 'utf8' as const, env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null' } };
+  const output = execFileSync('git', ['-C', path, '-c', 'user.name=GitNova Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args], options).trim();
+  // Command-local -c identity is not inherited by application subprocesses.
+  // Give only newly created disposable checkouts a persistent synthetic identity.
+  const created = args[0] === 'init' && !args.includes('--bare') ? path : args[0] === 'clone' ? resolve(path, args[args.length - 1]) : null;
+  if (created) {
+    if (!resolve(created).startsWith(resolve(folder) + (process.platform === 'win32' ? '\\' : '/'))) throw new Error('Fixture configuration escaped temporary root');
+    for (const [key, value] of [['user.name','GitNova Test'],['user.email','test@example.invalid'],['commit.gpgsign','false'],['core.autocrlf','false']]) execFileSync('git', ['-C', created, 'config', '--local', key, value], options);
+  }
+  return output;
+}
 test.beforeAll(() => {
   folder = mkdtempSync(join(tmpdir(), 'gitnova-ui-')); repository = join(folder, 'project-api'); other = join(folder, 'project-web');
+  mkdirSync(join(folder, 'empty-home'));
   for (const repo of [repository, other]) {
     mkdirSync(repo); git(repo, ['init', '-b', 'main']);
     mkdirSync(join(repo, 'src/auth'), { recursive: true });
@@ -50,7 +62,7 @@ async function connectRealCore(page: Page, state: string, observe?: (command: st
   await page.exposeBinding('gitnovaTestInvoke', async (_source, command: string, args: unknown) => runCoreSerially(async () => {
     observe?.(command, args);
     // Spawn with an argument array; the JSON request goes through stdin.
-    const child = exec(bridge, [state], { maxBuffer: 16 * 1024 * 1024 });
+    const child = exec(bridge, [state], { maxBuffer: 16 * 1024 * 1024, env: { ...process.env, HOME:join(folder,'empty-home'), USERPROFILE:join(folder,'empty-home'), XDG_CONFIG_HOME:join(folder,'empty-home') } });
     const channel=(args as {onProgress?:string})?.onProgress;const id=channel?.startsWith('__CHANNEL__:') ? Number(channel.split(':')[1]) : null;
     let index=0,buffer='',delivery:Promise<unknown>=Promise.resolve(),lastPhase='',lastTime=0;
     child.child.stderr?.on('data',chunk=>{buffer+=String(chunk);const lines=buffer.split('\n');buffer=lines.pop()!;for(const line of lines){if(!line.startsWith('GITNOVA_PROGRESS:') || id===null)continue;const event=JSON.parse(line.slice('GITNOVA_PROGRESS:'.length));const now=Date.now();if(event.phase===lastPhase && event.completed!==0 && event.completed!==event.total && now-lastTime<100)continue;lastPhase=event.phase;lastTime=now;const message={index:index++,message:event};delivery=delivery.then(()=>page.evaluate(({id,message})=>(window as unknown as {__TAURI_INTERNALS__:{receive:(id:number,data:unknown)=>void}}).__TAURI_INTERNALS__.receive(id,message),{id,message})).catch(()=>{});}});

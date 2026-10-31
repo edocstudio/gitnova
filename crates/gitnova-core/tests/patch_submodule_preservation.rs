@@ -63,6 +63,9 @@ fn fixture() -> F {
         ids.push(git(&origin, &["rev-parse", "HEAD"]));
     }
     git(&root, &["init", "-b", "main"]);
+    git(&root, &["config", "user.name", "Merge Pointer Test"]);
+    git(&root, &["config", "user.email", "pointer@example.invalid"]);
+    git(&root, &["config", "commit.gpgsign", "false"]);
     git(
         &root,
         &["submodule", "add", origin.to_str().unwrap(), "_dags"],

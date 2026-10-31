@@ -80,6 +80,9 @@ fn fixture() -> Fixture {
         ],
     );
     git(&root, &["config", "core.hooksPath", ".git/hooks"]);
+    git(&root, &["config", "user.name", "Fixture"]);
+    git(&root, &["config", "user.email", "fixture@example.invalid"]);
+    git(&root, &["config", "commit.gpgsign", "false"]);
     git(
         &root,
         &["config", "core.attributesFile", ".git/empty-attributes"],

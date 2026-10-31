@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-native-soak",
+  "measuredAt": "2026-10-31T12:25:37.509983+00:00",
+  "sourceBaseCommit": "bf716df47e454748ae8a4ecd15dc2d763b8c4fe1",
+  "sourceHasUncommittedChanges": true,
+  "binarySha256": "96ce4fa7ffd7792a2eb9c975dd2f6ac719394f638bcc9a14d14f02460bde0729",
+  "passed": false,
+  "failure": "Foreground soak observed a hidden WebView",
+  "requested_seconds": 900,
+  "sampled_seconds": 6.12,
+  "fixture": {
+    "large_commits": 50000,
+    "large_tracked_files": 10000,
+    "medium_commits": 5000,
+    "locations": 10,
+    "linked_worktrees": 2,
+    "submodules": 2,
+    "tracking_branches": 200,
+    "merge_commits": 10
+  },
+  "foregroundRequested": true,
+  "profile": "packaged debug app with optimized first-party crates, real WKWebView with observed visibility, scripted manual refresh/interaction; no GPU/JS-heap measurement, provider/network or cross-product comparison",
+  "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+  "observed_webkit_visibility": [
+    "hidden",
+    "visible"
+  ],
+  "idle_sleep_guard": "Temporary task-owned caffeinate -di tied to native PID; prevents display idle sleep only during foreground sampling; no preferences changed or session unlocked",
+  "latencies": {},
+  "memory": {
+    "peak_native_mib": 121.6875,
+    "peak_sampled_total_mib": 289.484375,
+    "native_warm_slope_mib_per_minute": null,
+    "webkit_warm_slope_mib_per_minute": null,
+    "last_5min_native_median_mib": null
+  },
+  "cycles": 0,
+  "max_dom_nodes": 0,
+  "max_visible_rows": 0,
+  "samples": [
+    {
+      "elapsed_seconds": 0.0,
+      "native_rss_kib": 32,
+      "webkit_rss_kib": 0,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 32,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 2.04,
+      "native_rss_kib": 121856,
+      "webkit_rss_kib": 120880,
+      "sampled_git_rss_kib": 10656,
+      "sampled_total_rss_kib": 253392,
+      "cpu_percent": 24.4
+    },
+    {
+      "elapsed_seconds": 4.08,
+      "native_rss_kib": 124016,
+      "webkit_rss_kib": 145152,
+      "sampled_git_rss_kib": 10736,
+      "sampled_total_rss_kib": 279904,
+      "cpu_percent": 43.5
+    },
+    {
+      "elapsed_seconds": 6.12,
+      "native_rss_kib": 124608,
+      "webkit_rss_kib": 171824,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 296432,
+      "cpu_percent": 21.0
+    }
+  ],
+  "ui_events": [
+    {
+      "auto_fetch_seconds": 0,
+      "kind": "ready",
+      "locations": 10
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "switch_repository_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "manual_refresh_ui",
+      "visibility": "hidden"
+    }
+  ]
+}
