@@ -38,7 +38,7 @@ Each row requires the same functional suite on all three native runners and an i
 
 ## Completion gate
 
-**Not yet certified as full parity.** Implementation has been enabled, and regression/native CI coverage has been expanded; actual Windows/Linux hosted results and installed-app checks remain pending. The maintainer's Mac cannot execute those native branches. Record the exact commit, OS/version, passed tests and any remaining defects before changing this status.
+**Not yet certified as full parity.** Implementation has been enabled, and regression/native CI coverage has been expanded; the first native CI run exposed failures and the corrections still need a passing Windows/Linux rerun and installed-app checks. See the [native CI findings](verification/2026-10-31/native-ci-corrections.md). The maintainer's Mac cannot execute those native branches. Record the exact commit, OS/version, passed tests and any remaining defects before changing this status.
 
 Windows filesystem restrictions (reserved names, unsupported characters, symlink privileges/Developer Mode and filesystem capabilities) remain real OS constraints. Handle them explicitly without selecting another path or silently changing scope. These constraints must not be used to hide a missing app workflow. Git for Windows must include its shell/tools; an arbitrary minimal Git executable is not enough for hooks or interactive replay.
 

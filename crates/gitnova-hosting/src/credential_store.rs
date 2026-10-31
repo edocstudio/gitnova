@@ -56,6 +56,31 @@ fn entry(service: &str, account: &str) -> Result<keyring::Entry> {
     })
 }
 
+/// Read only an already-unlocked, unique Secret Service item. Never unlock or
+/// create a collection in the background; the zero prompt timeout is defensive.
+#[cfg(target_os = "linux")]
+pub(crate) fn read_background(service: &str, account: &str) -> Result<Option<Vec<u8>>> {
+    use dbus_secret_service::{EncryptionType, SecretService};
+    use std::collections::HashMap;
+    let fail = || {
+        err("Could not access the system credential store. Unlock it and reconnect the account.")
+    };
+    let ss = SecretService::connect_with_max_prompt_timeout(EncryptionType::Dh, 0)
+        .map_err(|_| fail())?;
+    let found = ss
+        .search_items(HashMap::from([
+            ("service", service),
+            ("username", account),
+            ("target", "default"),
+        ]))
+        .map_err(|_| fail())?;
+    match (found.unlocked.len(), found.locked.len()) {
+        (0, 0) => Ok(None),
+        (1, 0) => found.unlocked[0].get_secret().map(Some).map_err(|_| fail()),
+        _ => Err(fail()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,30 +125,5 @@ mod tests {
         delete(service, &account).unwrap();
         assert!(read(service, &account).unwrap().is_none());
         delete(service, &account).unwrap();
-    }
-}
-
-/// Read only an already-unlocked, unique Secret Service item. Never unlock or
-/// create a collection in the background; the zero prompt timeout is defensive.
-#[cfg(target_os = "linux")]
-pub(crate) fn read_background(service: &str, account: &str) -> Result<Option<Vec<u8>>> {
-    use dbus_secret_service::{EncryptionType, SecretService};
-    use std::collections::HashMap;
-    let fail = || {
-        err("Could not access the system credential store. Unlock it and reconnect the account.")
-    };
-    let ss = SecretService::connect_with_max_prompt_timeout(EncryptionType::Dh, 0)
-        .map_err(|_| fail())?;
-    let found = ss
-        .search_items(HashMap::from([
-            ("service", service),
-            ("username", account),
-            ("target", "default"),
-        ]))
-        .map_err(|_| fail())?;
-    match (found.unlocked.len(), found.locked.len()) {
-        (0, 0) => Ok(None),
-        (1, 0) => found.unlocked[0].get_secret().map(Some).map_err(|_| fail()),
-        _ => Err(fail()),
     }
 }

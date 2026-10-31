@@ -2086,6 +2086,14 @@ mod tests {
             );
             String::from_utf8_lossy(&out.stdout).trim().to_owned()
         };
+        // A clone does not inherit the source repository's identity. Confirmed
+        // IPC writes must use fixture-local configuration, never the runner's.
+        fixture_git(&clone_path, &["config", "user.name", "IPC Pointer"]);
+        fixture_git(
+            &clone_path,
+            &["config", "user.email", "ipc@example.invalid"],
+        );
+        fixture_git(&clone_path, &["config", "commit.gpgsign", "false"]);
         fixture_git(
             &clone_path,
             &["submodule", "add", "--", repo.to_str().unwrap(), "module"],

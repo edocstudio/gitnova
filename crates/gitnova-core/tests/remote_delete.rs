@@ -10,7 +10,10 @@ fn git(root: &Path, args: &[&str]) -> String {
         .arg("-C")
         .arg(root)
         .args(args)
-        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env(
+            "GIT_CONFIG_GLOBAL",
+            if cfg!(windows) { "NUL" } else { "/dev/null" },
+        )
         .env("GIT_CONFIG_NOSYSTEM", "1")
         .output()
         .unwrap();
@@ -214,6 +217,26 @@ fn differing_push_destination_keeps_fetch_cache_and_rejects_mirror() {
             other.to_str().unwrap(),
         ],
     );
+    // Keep hook execution bound to the exact reviewed destination even though
+    // native automatic tracking is isolated behind a process-local remote.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let hooks = f.root.join(".git/destination-hooks");
+        fs::create_dir(&hooks).unwrap();
+        let hook = hooks.join("pre-push");
+        fs::write(
+            &hook,
+            "#!/bin/sh\nprintf '%s\\n%s\\n' \"$1\" \"$2\" > .git/push-destination\n",
+        )
+        .unwrap();
+        fs::set_permissions(hook, fs::Permissions::from_mode(0o755)).unwrap();
+        git(
+            &f.root,
+            &["config", "core.hooksPath", hooks.to_str().unwrap()],
+        );
+    }
+    let config = fs::read(f.root.join(".git/config")).unwrap();
     let r = request(&f);
     let p = f.app.preview_remote_delete(&f.id, &r).unwrap();
     assert!(p.tracking_ref.is_none());
@@ -222,6 +245,16 @@ fn differing_push_destination_keeps_fetch_cache_and_rejects_mirror() {
     assert!(exists(&f.remote, "refs/heads/feature/cleanup"));
     assert!(exists(&f.root, "refs/remotes/origin/feature/cleanup"));
     assert!(!exists(&other, "refs/heads/feature/cleanup"));
+    assert_eq!(fs::read(f.root.join(".git/config")).unwrap(), config);
+    assert!(!git(&f.root, &["remote"]).contains("gitnova-reviewed-"));
+    #[cfg(unix)]
+    {
+        let hook_args = fs::read_to_string(f.root.join(".git/push-destination")).unwrap();
+        let lines: Vec<_> = hook_args.lines().collect();
+        assert_eq!(lines.len(), 2);
+        assert!(lines[0].starts_with("gitnova-reviewed-"));
+        assert_eq!(lines[1], other.to_str().unwrap());
+    }
     git(
         &f.root,
         &[

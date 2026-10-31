@@ -15,6 +15,39 @@ pub(crate) fn configure(command: &mut Command) {
     #[cfg(unix)]
     let _ = command;
 }
+/// Pin an already-resolved push URL to a process-local remote with no fetch
+/// refspecs. Git 2.56 otherwise matches anonymous URL pushes to configured
+/// push URLs and can mutate a different server's fetch-tracking refs.
+/// Credential selection still receives the original reviewed arguments.
+/// The pre-push hook receives this temporary remote name and the exact URL.
+pub(crate) fn pinned_push_args(args: &[std::ffi::OsString]) -> Vec<std::ffi::OsString> {
+    let mut position = 0;
+    while args.get(position).is_some_and(|v| v == "-c") {
+        position += 2;
+    }
+    let mut result = args.to_vec();
+    if args.get(position).is_none_or(|v| v != "push") {
+        return result;
+    }
+    let Some(separator) = args
+        .iter()
+        .enumerate()
+        .skip(position + 1)
+        .find(|(_, v)| *v == "--")
+        .map(|(i, _)| i)
+    else {
+        return result;
+    };
+    let Some(url) = args.get(separator + 1) else {
+        return result;
+    };
+    let name = format!("gitnova-reviewed-{}", uuid::Uuid::new_v4().simple());
+    let mut assignment = std::ffi::OsString::from(format!("remote.{name}.url="));
+    assignment.push(url);
+    result[separator + 1] = name.into();
+    result.splice(0..0, [std::ffi::OsString::from("-c"), assignment]);
+    result
+}
 pub(crate) fn spawn(command: &mut Command) -> io::Result<Child> {
     #[cfg(unix)]
     let process = command.spawn()?;

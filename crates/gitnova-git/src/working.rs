@@ -809,6 +809,7 @@ fn run_git_write_with_paths(
     if literal_paths {
         command.arg("--literal-pathspecs");
     }
+    let execution_args = crate::process::pinned_push_args(args);
     command
         .args([
             "--no-pager",
@@ -819,7 +820,7 @@ fn run_git_write_with_paths(
             "-C",
         ])
         .arg(root)
-        .args(args)
+        .args(&execution_args)
         .env("GIT_TERMINAL_PROMPT", "0")
         .stdin(if input.is_some() {
             Stdio::piped()
@@ -829,6 +830,14 @@ fn run_git_write_with_paths(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     if let Some(index) = alternate_index {
+        #[cfg(windows)]
+        {
+            if index.to_str().is_none() {
+                return Err(AppError::new("encoding", "Cannot represent index path."));
+            }
+            command.env("GIT_INDEX_FILE", crate::credentials::helper_path(index));
+        }
+        #[cfg(unix)]
         command.env("GIT_INDEX_FILE", index);
     }
     if let Some(protocols) = protocols {
