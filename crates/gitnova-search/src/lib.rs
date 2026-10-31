@@ -467,7 +467,9 @@ impl SearchIndex {
             .values()
             .map(|c| c.encoded_size)
             .sum::<usize>();
-        for batch in missing.chunks(64) {
+        // Headers are small even for large commit bodies. Inspect more headers
+        // per process, while retaining the existing 64-object/5 MiB body bound.
+        for batch in missing.chunks(512) {
             let check = git
                 .read_input(
                     &sources[0].path,
@@ -508,16 +510,16 @@ impl SearchIndex {
                 raw_total += size + 512;
                 eligible.push(oid.clone());
             }
-            if !eligible.is_empty() {
+            for eligible in eligible.chunks(64) {
                 let bytes = git
                     .read_input(
                         &sources[0].path,
                         &[OsStr::new("cat-file"), OsStr::new("--batch")],
-                        &input(&eligible),
+                        &input(eligible),
                         5 * 1024 * 1024,
                     )?
                     .bytes;
-                for (raw, oid) in batch_records(&bytes, &eligible)? {
+                for (raw, oid) in batch_records(&bytes, eligible)? {
                     let entry = parse_commit(&oid, raw)?;
                     let size = entry.encoded_size;
                     if encoded_total.saturating_add(size) > RAW_LIMIT && can_prune {
