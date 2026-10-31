@@ -1,5 +1,13 @@
 # Portable performance evidence — schema 1
 
+The [native CI/foreground follow-up](../verification/2026-10-31/native-ci-followup.md)
+adds `native-foreground-2026-10-31.json` (kind `gitnova-native-soak`): a completed
+15-minute visible native run. It includes actual samples, latency distributions,
+binary provenance and growing WebKit RSS; it does **not** prove whole-app memory
+stability. The interrupted/occluded JSON attempts are retained with `passed: false`.
+These supplemental files do not replace `latest.json` or automatically change
+the website's committed benchmark snapshot.
+
 The [2026-10-31 follow-up](../verification/2026-10-31/search-index-and-core-memory.md)
 adds two supplemental reports: `search-index-2026-10-31.json` (kind
 `gitnova-search-index-comparison`, alternating first-index/restart samples) and

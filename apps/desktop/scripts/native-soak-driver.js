@@ -1,19 +1,26 @@
 // Injected only into the isolated debug native-soak profile. Reviewed branch writes target only its clean large-b fixture.
 (async()=>{
  if(window.__gitnovaSoakRunning)return;window.__gitnovaSoakRunning=true;
+ // Foreground mode must not silently add fetch writes to a read/branch-switch
+ // protocol. This storage belongs only to the isolated incognito fixture.
+ const fetchKey='gitnova.auto-fetch-seconds';localStorage.setItem(fetchKey,'0');
+ window.dispatchEvent(new StorageEvent('storage',{key:fetchKey,newValue:'0'}));
  const invoke=(command,args={})=>window.__TAURI_INTERNALS__.invoke(command,args);
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const wait=async(predicate,label,ms=90000)=>{const end=Date.now()+ms;while(Date.now()<end){const value=predicate();if(value)return value;await pause(100);}throw Error(`Timeout: ${label}`);};
  const input=(node,value)=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(node,value);node.dispatchEvent(new Event('input',{bubbles:true}));};
  const report=sample=>invoke('native_soak_report',{sample});
+ const requireVisible=()=>{if(window.__gitnovaSoakRequireVisible&&document.visibilityState!=='visible')throw Error('Foreground soak lost visible WebView; no foreground acceptance is claimed.');};
  const timings={};const measure=async(name,action)=>{await report({kind:'phase',cycle,name,visibility:document.visibilityState});const start=performance.now();const value=await action();(timings[name]??=[]).push(performance.now()-start);return value;};
  const start=performance.now();let cycle=0;
  try{
   await wait(()=>document.querySelector('.repo-picker .picker-name'),'initial graph');
+  if(window.__gitnovaSoakRequireVisible)await wait(()=>document.visibilityState==='visible','visible foreground WebView',30000);
 
   const catalog=await invoke('catalog');const workspace=catalog.workspaces.find(w=>w.id===catalog.activeWorkspaceId);const memberships=workspace.memberships;
-  await report({kind:'ready',locations:memberships.length});
+  await report({kind:'ready',locations:memberships.length,auto_fetch_seconds:Number(localStorage.getItem(fetchKey))});
   while(performance.now()-start<window.__gitnovaSoakSeconds*1000){
+   requireVisible();
    let target=cycle%3===0 ? memberships.find(m=>m.name==='large-a')??memberships[0] : memberships[cycle%memberships.length];
    if(document.querySelector('.repo-picker .picker-name')?.textContent===target.name)target=memberships[(memberships.indexOf(target)+1)%memberships.length];
    await measure('switch_repository_ui',async()=>{
@@ -47,10 +54,10 @@
      }
     });
    }
-   await report({kind:'cycle',cycle:++cycle,elapsed_ms:performance.now()-start,metrics:timings,visibility:document.visibilityState,dom_nodes:document.getElementsByTagName('*').length,visible_rows:document.querySelectorAll('.commit-row').length});
+   requireVisible();await report({kind:'cycle',cycle:++cycle,elapsed_ms:performance.now()-start,metrics:timings,visibility:document.visibilityState,dom_nodes:document.getElementsByTagName('*').length,visible_rows:document.querySelectorAll('.commit-row').length});
    for(const key of Object.keys(timings))timings[key]=[];
    await pause(8000);
   }
   await report({kind:'complete',cycle,elapsed_ms:performance.now()-start});
- }catch(e){await report({kind:'failed',cycle,error:String(e).slice(0,250),elapsed_ms:performance.now()-start});}
+ }catch(e){await report({kind:'failed',cycle,visibility:document.visibilityState,error:String(e).slice(0,250),elapsed_ms:performance.now()-start});}
 })();

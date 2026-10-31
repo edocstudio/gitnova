@@ -1800,6 +1800,7 @@
   "Invalid terminal size.": "ขนาดเทอร์มินัลไม่ถูกต้อง",
   "Repository folder is no longer available.": "ไม่พบโฟลเดอร์ของที่เก็บโค้ดแล้ว",
   "Terminal session is no longer available.": "เซสชันเทอร์มินัลนี้ไม่พร้อมใช้งานแล้ว",
+  "Cannot represent Git path.": "ไม่สามารถแปลงพาธนี้ให้ Git ใช้งานได้",
   "End an existing terminal session before opening another (maximum 4).": "จบเซสชันเทอร์มินัลที่เปิดอยู่ก่อนเปิดเพิ่ม (สูงสุด 4 เซสชัน)",
   "Terminal input exceeds its limit.": "ข้อความคำสั่งเกินขนาดที่กำหนด",
   "How do I open a terminal in the current repository?": "เปิดเทอร์มินัลในที่เก็บโค้ดปัจจุบันอย่างไร?",

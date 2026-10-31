@@ -667,7 +667,7 @@ impl GitCli {
             "commit".into(),
             "--cleanup=verbatim".into(),
             "--file".into(),
-            body.path().as_os_str().to_owned(),
+            crate::process::git_path(body.path())?,
         ];
         if amend {
             args.extend(["--amend".into(), "--allow-empty".into()]);
@@ -830,15 +830,7 @@ fn run_git_write_with_paths(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     if let Some(index) = alternate_index {
-        #[cfg(windows)]
-        {
-            if index.to_str().is_none() {
-                return Err(AppError::new("encoding", "Cannot represent index path."));
-            }
-            command.env("GIT_INDEX_FILE", crate::credentials::helper_path(index));
-        }
-        #[cfg(unix)]
-        command.env("GIT_INDEX_FILE", index);
+        command.env("GIT_INDEX_FILE", crate::process::git_path(index)?);
     }
     if let Some(protocols) = protocols {
         command.env("GIT_ALLOW_PROTOCOL", protocols);
@@ -984,7 +976,7 @@ impl GitCli {
             "commit".into(),
             "--cleanup=verbatim".into(),
             "--file".into(),
-            body.path().as_os_str().to_owned(),
+            crate::process::git_path(body.path())?,
         ];
         if state.operation == "cherryPick" {
             let source = state

@@ -30,7 +30,7 @@ struct F {
 }
 fn fixture() -> F {
     let dir = tempfile::tempdir().unwrap();
-    let root = dir.path().join("repo");
+    let root = dir.path().join("repo ' ไทย");
     fs::create_dir(&root).unwrap();
     git(&root, &["init", "-b", "main"]);
     git(&root, &["config", "user.name", "Original Author"]);

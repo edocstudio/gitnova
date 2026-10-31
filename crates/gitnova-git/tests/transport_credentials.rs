@@ -75,10 +75,34 @@ fn connected_helper_authenticates_real_https_push_and_fetch_without_persistent_c
 import http.server,ssl,sys,base64,pathlib,subprocess,os
 root=pathlib.Path(sys.argv[1])
 class Handler(http.server.BaseHTTPRequestHandler):
+ protocol_version='HTTP/1.1'
  def log_message(self,*args): pass
  def do_GET(self): self.respond()
  def do_POST(self): self.respond()
  def respond(self):
+  self.connection.settimeout(15)
+  # Drain the request before a challenge/rejection, so TLS shutdown does not
+  # race an in-flight upload and turn the intended response into a broken pipe.
+  chunked=self.headers.get('Transfer-Encoding','').lower()=='chunked'
+  if chunked:
+   parts=[];total=0
+   while True:
+    size=int(self.rfile.readline(8192).split(b';',1)[0],16)
+    if not size:
+     while True:
+      trailer=self.rfile.readline(8192)
+      if trailer==b'\r\n':break
+      if not trailer:raise ValueError('incomplete chunk trailer')
+     break
+    total+=size
+    if total>16*1024*1024:raise ValueError('fixture upload too large')
+    parts.append(self.rfile.read(size))
+    if self.rfile.read(2)!=b'\r\n':raise ValueError('invalid chunk')
+   data=b''.join(parts)
+  else:
+   size=int(self.headers.get('Content-Length','0'))
+   if not 0<=size<=16*1024*1024:raise ValueError('fixture upload too large')
+   data=self.rfile.read(size)
   if self.headers.get('Authorization')!='Basic '+base64.b64encode(b'fixture:fixture-test-only').decode():
    self.send_response(401);self.send_header('WWW-Authenticate','Basic realm="fixture"');self.send_header('Content-Length','0');self.end_headers();return
   with (root/'authenticated').open('a') as f:f.write('ok\n')
@@ -86,10 +110,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
    self.send_response(302);self.send_header('Location',f'https://localhost:{self.server.server_port}/outside.git/info/refs?service=git-upload-pack');self.send_header('Content-Length','0');self.end_headers();return
   if self.path.startswith('/outside.git'):
    (root/'leaked').write_text('unexpected authenticated redirect');self.send_response(403);self.send_header('Content-Length','0');self.end_headers();return
-  if (root/'reject-chunked').exists() and self.headers.get('Transfer-Encoding','').lower()=='chunked':
+  if (root/'reject-chunked').exists() and chunked:
    with (root/'rejected-chunked').open('a') as f:f.write('rejected\n')
    self.send_response(400);self.send_header('Content-Length','0');self.end_headers();return
-  data=self.rfile.read(int(self.headers.get('Content-Length','0')))
   path,_,query=self.path.partition('?')
   env={**{k:v for k,v in os.environ.items() if not k.startswith('GIT_')},'GIT_PROJECT_ROOT':str(root),'GIT_HTTP_EXPORT_ALL':'1','PATH_INFO':path,'QUERY_STRING':query,'REQUEST_METHOD':self.command,'REMOTE_USER':'fixture','REMOTE_ADDR':'127.0.0.1','CONTENT_TYPE':self.headers.get('Content-Type',''),'CONTENT_LENGTH':str(len(data)),'GIT_CONFIG_GLOBAL':'/dev/null','GIT_CONFIG_NOSYSTEM':'1'}
   result=subprocess.run([sys.argv[2]],input=data,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,env=env,timeout=10)
@@ -101,7 +124,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
   for k,v in pairs:
    if k.lower() not in ['status','content-length']:self.send_header(k,v.strip())
   self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
-server=http.server.HTTPServer(('localhost',0),Handler)
+server=http.server.ThreadingHTTPServer(('localhost',0),Handler)
 context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);context.load_cert_chain(root/'cert.pem',root/'key.pem');server.socket=context.wrap_socket(server.socket,server_side=True)
 print(server.server_port,flush=True);server.serve_forever()
 "#;

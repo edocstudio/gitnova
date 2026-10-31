@@ -1,0 +1,525 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-native-soak",
+  "measuredAt": "2026-10-31T12:22:07.029429+00:00",
+  "sourceBaseCommit": "bf716df47e454748ae8a4ecd15dc2d763b8c4fe1",
+  "sourceHasUncommittedChanges": true,
+  "binarySha256": "cf5e06d3ba337fb0c1a8e23e7d7b2510398a8f485ca3401128b8ceaf7d6ec359",
+  "passed": false,
+  "failure": "Error: Foreground soak lost visible WebView; no foreground acceptance is claimed.",
+  "requested_seconds": 900,
+  "sampled_seconds": 53.4,
+  "fixture": {
+    "large_commits": 50000,
+    "large_tracked_files": 10000,
+    "medium_commits": 5000,
+    "locations": 10,
+    "linked_worktrees": 2,
+    "submodules": 2,
+    "tracking_branches": 200,
+    "merge_commits": 10
+  },
+  "foregroundRequested": true,
+  "profile": "packaged debug app with optimized first-party crates, real WKWebView with observed visibility, scripted manual refresh/interaction; no GPU/JS-heap measurement, provider/network or cross-product comparison",
+  "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+  "observed_webkit_visibility": [
+    "visible"
+  ],
+  "idle_sleep_guard": "Temporary task-owned caffeinate -i tied to native PID; no display/lock settings changed",
+  "latencies": {
+    "branch_roundtrip_review_apply_ipc": {
+      "samples": 1,
+      "median_ms": 3417,
+      "p95_ms": 3417,
+      "max_ms": 3417
+    },
+    "detail_ui": {
+      "samples": 4,
+      "median_ms": 102.00000000000364,
+      "p95_ms": 202.00000000000364,
+      "max_ms": 202.00000000000364
+    },
+    "manual_refresh_ui": {
+      "samples": 4,
+      "median_ms": 1783.0,
+      "p95_ms": 1939,
+      "max_ms": 1939
+    },
+    "older_graph_ui": {
+      "samples": 2,
+      "median_ms": 756.9999999999964,
+      "p95_ms": 806,
+      "max_ms": 806
+    },
+    "snapshot_ipc": {
+      "samples": 4,
+      "median_ms": 373.0,
+      "p95_ms": 505,
+      "max_ms": 505
+    },
+    "switch_repository_ui": {
+      "samples": 4,
+      "median_ms": 1117.5,
+      "p95_ms": 2571,
+      "max_ms": 2571
+    }
+  },
+  "memory": {
+    "peak_native_mib": 127.515625,
+    "peak_sampled_total_mib": 383.734375,
+    "native_warm_slope_mib_per_minute": null,
+    "webkit_warm_slope_mib_per_minute": null,
+    "last_5min_native_median_mib": null
+  },
+  "cycles": 4,
+  "max_dom_nodes": 873,
+  "max_visible_rows": 23,
+  "samples": [
+    {
+      "elapsed_seconds": 0.01,
+      "native_rss_kib": 32,
+      "webkit_rss_kib": 0,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 32,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 2.04,
+      "native_rss_kib": 123744,
+      "webkit_rss_kib": 120832,
+      "sampled_git_rss_kib": 11952,
+      "sampled_total_rss_kib": 256528,
+      "cpu_percent": 33.4
+    },
+    {
+      "elapsed_seconds": 4.08,
+      "native_rss_kib": 125728,
+      "webkit_rss_kib": 151824,
+      "sampled_git_rss_kib": 9936,
+      "sampled_total_rss_kib": 287488,
+      "cpu_percent": 24.1
+    },
+    {
+      "elapsed_seconds": 6.12,
+      "native_rss_kib": 127264,
+      "webkit_rss_kib": 200672,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 327936,
+      "cpu_percent": 51.9
+    },
+    {
+      "elapsed_seconds": 8.16,
+      "native_rss_kib": 127504,
+      "webkit_rss_kib": 218352,
+      "sampled_git_rss_kib": 5744,
+      "sampled_total_rss_kib": 351600,
+      "cpu_percent": 50.6
+    },
+    {
+      "elapsed_seconds": 10.2,
+      "native_rss_kib": 127744,
+      "webkit_rss_kib": 218352,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 346096,
+      "cpu_percent": 2.6
+    },
+    {
+      "elapsed_seconds": 12.24,
+      "native_rss_kib": 127776,
+      "webkit_rss_kib": 218336,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 346112,
+      "cpu_percent": 0.1
+    },
+    {
+      "elapsed_seconds": 14.28,
+      "native_rss_kib": 127776,
+      "webkit_rss_kib": 213904,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 341680,
+      "cpu_percent": 0.7
+    },
+    {
+      "elapsed_seconds": 16.32,
+      "native_rss_kib": 127776,
+      "webkit_rss_kib": 213904,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 341680,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 18.36,
+      "native_rss_kib": 127728,
+      "webkit_rss_kib": 213632,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 341360,
+      "cpu_percent": 2.1
+    },
+    {
+      "elapsed_seconds": 20.4,
+      "native_rss_kib": 128848,
+      "webkit_rss_kib": 218224,
+      "sampled_git_rss_kib": 10944,
+      "sampled_total_rss_kib": 358016,
+      "cpu_percent": 24.1
+    },
+    {
+      "elapsed_seconds": 22.44,
+      "native_rss_kib": 129312,
+      "webkit_rss_kib": 222288,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 351600,
+      "cpu_percent": 10.2
+    },
+    {
+      "elapsed_seconds": 24.48,
+      "native_rss_kib": 129280,
+      "webkit_rss_kib": 225616,
+      "sampled_git_rss_kib": 6368,
+      "sampled_total_rss_kib": 361264,
+      "cpu_percent": 3.1
+    },
+    {
+      "elapsed_seconds": 26.51,
+      "native_rss_kib": 129248,
+      "webkit_rss_kib": 225696,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 354944,
+      "cpu_percent": 0.1
+    },
+    {
+      "elapsed_seconds": 28.59,
+      "native_rss_kib": 129248,
+      "webkit_rss_kib": 225488,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 354736,
+      "cpu_percent": 0.1
+    },
+    {
+      "elapsed_seconds": 30.67,
+      "native_rss_kib": 129328,
+      "webkit_rss_kib": 221024,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 350352,
+      "cpu_percent": 1.9,
+      "system_memory_free_percent": 71
+    },
+    {
+      "elapsed_seconds": 32.77,
+      "native_rss_kib": 129808,
+      "webkit_rss_kib": 232096,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 361904,
+      "cpu_percent": 8.1
+    },
+    {
+      "elapsed_seconds": 34.81,
+      "native_rss_kib": 129760,
+      "webkit_rss_kib": 236000,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 365760,
+      "cpu_percent": 0.2
+    },
+    {
+      "elapsed_seconds": 36.89,
+      "native_rss_kib": 129712,
+      "webkit_rss_kib": 236000,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 365712,
+      "cpu_percent": 3.8
+    },
+    {
+      "elapsed_seconds": 38.94,
+      "native_rss_kib": 129680,
+      "webkit_rss_kib": 233984,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 363664,
+      "cpu_percent": 2.0
+    },
+    {
+      "elapsed_seconds": 41.01,
+      "native_rss_kib": 129680,
+      "webkit_rss_kib": 233904,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 363584,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 43.09,
+      "native_rss_kib": 130224,
+      "webkit_rss_kib": 246528,
+      "sampled_git_rss_kib": 16192,
+      "sampled_total_rss_kib": 392944,
+      "cpu_percent": 44.2
+    },
+    {
+      "elapsed_seconds": 45.13,
+      "native_rss_kib": 130480,
+      "webkit_rss_kib": 255504,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 385984,
+      "cpu_percent": 18.6
+    },
+    {
+      "elapsed_seconds": 47.16,
+      "native_rss_kib": 130432,
+      "webkit_rss_kib": 255504,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 385936,
+      "cpu_percent": 10.0
+    },
+    {
+      "elapsed_seconds": 49.24,
+      "native_rss_kib": 130464,
+      "webkit_rss_kib": 257056,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 387520,
+      "cpu_percent": 1.0
+    },
+    {
+      "elapsed_seconds": 51.32,
+      "native_rss_kib": 130576,
+      "webkit_rss_kib": 257344,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 387920,
+      "cpu_percent": 0.3
+    },
+    {
+      "elapsed_seconds": 53.4,
+      "native_rss_kib": 130576,
+      "webkit_rss_kib": 257344,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 387920,
+      "cpu_percent": 0.5
+    }
+  ],
+  "ui_events": [
+    {
+      "auto_fetch_seconds": 0,
+      "kind": "ready",
+      "locations": 10
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "switch_repository_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "manual_refresh_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "snapshot_ipc",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "detail_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "older_graph_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "branch_roundtrip_review_apply_ipc",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 1,
+      "dom_nodes": 873,
+      "elapsed_ms": 9804,
+      "kind": "cycle",
+      "metrics": {
+        "branch_roundtrip_review_apply_ipc": [
+          3417
+        ],
+        "detail_ui": [
+          103
+        ],
+        "manual_refresh_ui": [
+          1627
+        ],
+        "older_graph_ui": [
+          806
+        ],
+        "snapshot_ipc": [
+          384
+        ],
+        "switch_repository_ui": [
+          2571
+        ]
+      },
+      "visibility": "visible",
+      "visible_rows": 14
+    },
+    {
+      "cycle": 1,
+      "kind": "phase",
+      "name": "switch_repository_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 1,
+      "kind": "phase",
+      "name": "manual_refresh_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 1,
+      "kind": "phase",
+      "name": "snapshot_ipc",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 1,
+      "kind": "phase",
+      "name": "detail_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 2,
+      "dom_nodes": 844,
+      "elapsed_ms": 21983,
+      "kind": "cycle",
+      "metrics": {
+        "branch_roundtrip_review_apply_ipc": [],
+        "detail_ui": [
+          202.00000000000364
+        ],
+        "manual_refresh_ui": [
+          1939
+        ],
+        "older_graph_ui": [],
+        "snapshot_ipc": [
+          505
+        ],
+        "switch_repository_ui": [
+          1425
+        ]
+      },
+      "visibility": "visible",
+      "visible_rows": 23
+    },
+    {
+      "cycle": 2,
+      "kind": "phase",
+      "name": "switch_repository_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 2,
+      "kind": "phase",
+      "name": "manual_refresh_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 2,
+      "kind": "phase",
+      "name": "snapshot_ipc",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 2,
+      "kind": "phase",
+      "name": "detail_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 3,
+      "dom_nodes": 528,
+      "elapsed_ms": 32215,
+      "kind": "cycle",
+      "metrics": {
+        "branch_roundtrip_review_apply_ipc": [],
+        "detail_ui": [
+          101.00000000000728
+        ],
+        "manual_refresh_ui": [
+          906
+        ],
+        "older_graph_ui": [],
+        "snapshot_ipc": [
+          290
+        ],
+        "switch_repository_ui": [
+          810
+        ]
+      },
+      "visibility": "visible",
+      "visible_rows": 15
+    },
+    {
+      "cycle": 3,
+      "kind": "phase",
+      "name": "switch_repository_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 3,
+      "kind": "phase",
+      "name": "manual_refresh_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 3,
+      "kind": "phase",
+      "name": "snapshot_ipc",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 3,
+      "kind": "phase",
+      "name": "detail_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 3,
+      "kind": "phase",
+      "name": "older_graph_ui",
+      "visibility": "visible"
+    },
+    {
+      "cycle": 4,
+      "dom_nodes": 844,
+      "elapsed_ms": 43745,
+      "kind": "cycle",
+      "metrics": {
+        "branch_roundtrip_review_apply_ipc": [],
+        "detail_ui": [
+          100
+        ],
+        "manual_refresh_ui": [
+          1939
+        ],
+        "older_graph_ui": [
+          707.9999999999927
+        ],
+        "snapshot_ipc": [
+          362
+        ],
+        "switch_repository_ui": [
+          303
+        ]
+      },
+      "visibility": "visible",
+      "visible_rows": 23
+    },
+    {
+      "cycle": 4,
+      "elapsed_ms": 51753.00000000001,
+      "error": "Error: Foreground soak lost visible WebView; no foreground acceptance is claimed.",
+      "kind": "failed"
+    }
+  ]
+}

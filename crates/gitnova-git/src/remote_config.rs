@@ -122,7 +122,7 @@ impl GitCli {
         let mut temporary = tempfile::NamedTempFile::new_in(&d.common_dir)?;
         temporary.write_all(&original)?;
         temporary.flush()?;
-        let file = temporary.path().as_os_str().to_owned();
+        let file = crate::process::git_path(temporary.path())?;
         for (key, value) in [
             (
                 format!("remote.{}.url", p.request.name),
