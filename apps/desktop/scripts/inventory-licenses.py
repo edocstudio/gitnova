@@ -5,6 +5,15 @@ ROOT=pathlib.Path(__file__).resolve().parents[3]
 ENV={k:v for k,v in os.environ.items() if not k.startswith('GIT_')}
 
 def digest(data):return hashlib.sha256(data).hexdigest()
+def supplemental_text(root,folder,kind,license_name,extra):
+    vcs=json.loads((folder/'.cargo_vcs_info.json').read_text()) if kind=='cargo' else {}
+    file=(root/'docs/licenses'/extra['file']).resolve()
+    if (not file.is_relative_to((root/'docs/licenses/upstream').resolve()) or license_name!=extra['license']
+        or vcs.get('git',{}).get('sha1')!=extra['revision']):
+        raise ValueError('Supplemental license evidence no longer matches its exact package source')
+    data=file.read_bytes();data.decode('utf-8')
+    if digest(data)!=extra['sha256']:raise ValueError('Supplemental license text digest mismatch')
+    return extra['file'],data
 def license_files(folder,declared_file=None):
     folder=folder.resolve();candidates=[]
     if declared_file:candidates.append(folder/declared_file)
@@ -33,12 +42,18 @@ def main():
     output=pathlib.Path(a.output).resolve();output.mkdir(parents=True,exist_ok=True)
     raw=subprocess.check_output(['cargo','metadata','--locked','--offline','--format-version','1','--filter-platform',a.target,'--features','gitnova-desktop/custom-protocol'],cwd=ROOT,env=ENV,timeout=120)
     cargo=json.loads(raw);members=set(cargo['workspace_members']);rows=[];texts={};unresolved=[];review=[]
+    supplements=json.loads((ROOT/'docs/licenses/supplemental-evidence.json').read_text())
+    if supplements.get('schemaVersion')!=1:raise ValueError('Unexpected supplemental evidence schema')
     def add(kind,name,version,license_name,folder,present,role,declared_file=None):
         ident=f'{kind}:{name}@{version}';found=license_files(folder,declared_file) if present else []
+        extra=supplements['components'].get(ident)
+        if extra and present:
+            found.append(supplemental_text(ROOT,folder,kind,license_name,extra))
         files=[]
         for path,data in found:
             sha=digest(data);texts.setdefault(sha,{'data':data,'components':[]})['components'].append(f'{ident} / {path}')
             files.append({'path':path,'bytes':len(data),'sha256':sha})
+            if extra and path==extra['file']:files[-1]['source']=extra['source']
         row={'id':ident,'ecosystem':kind,'name':name,'version':version,'declaredLicense':license_name,'sourcePresent':present,'classification':role,'licenseFiles':files}
         rows.append(row)
         if not present:unresolved.append({'component':ident,'reason':'Source not installed/cached for this target; license files not inspected.'})

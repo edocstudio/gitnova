@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod acceptance;
 mod browser;
 mod terminal;
 use gitnova_core::Application;
@@ -12,9 +13,10 @@ static COMMAND_SLOTS: std::sync::LazyLock<Arc<tokio::sync::Semaphore>> =
     std::sync::LazyLock::new(|| Arc::new(tokio::sync::Semaphore::new(2)));
 static COMMAND_QUEUE: std::sync::LazyLock<Arc<tokio::sync::Semaphore>> =
     std::sync::LazyLock::new(|| Arc::new(tokio::sync::Semaphore::new(32)));
-// Debug-only native smoke profile. It cannot fall back to the user's catalog.
+// Diagnostic profile: debug environment or explicit installed-app acceptance flag.
+// Both require a private fixture catalog; neither may fall back to user data.
 fn native_smoke() -> bool {
-    cfg!(debug_assertions)
+    (cfg!(debug_assertions) || std::env::args_os().any(|arg| arg == "--native-acceptance"))
         && std::env::var_os("GITNOVA_NATIVE_SMOKE").as_deref() == Some(std::ffi::OsStr::new("1"))
 }
 fn smoke_marker(marker: &str) {
@@ -30,21 +32,7 @@ fn native_smoke_state() -> Result<Option<PathBuf>, AppError> {
         std::env::var_os("GITNOVA_SMOKE_STATE")
             .ok_or_else(|| AppError::new("smoke", "Missing isolated smoke state"))?,
     );
-    let canonical = path.canonicalize()?;
-    let temporary = std::env::temp_dir().canonicalize()?;
-    let valid = path.is_absolute()
-        && canonical.starts_with(&temporary)
-        && canonical.file_name() == Some(std::ffi::OsStr::new("state.json"))
-        && canonical
-            .parent()
-            .and_then(|p| p.file_name())
-            .is_some_and(|name| name.to_string_lossy().starts_with("gitnova-native-smoke-"));
-    if !valid {
-        return Err(AppError::new(
-            "smoke",
-            "Smoke state must be inside its private temporary fixture",
-        ));
-    }
+    let canonical = acceptance::validate_fixture_catalog(&path, &std::env::temp_dir())?;
     Ok(Some(canonical))
 }
 
@@ -52,7 +40,7 @@ fn native_smoke_state() -> Result<Option<PathBuf>, AppError> {
 #[tauri::command]
 fn native_soak_report(sample: serde_json::Value) -> Result<(), AppError> {
     use std::io::Write;
-    if std::env::var_os("GITNOVA_NATIVE_SOAK_SECONDS").is_none() {
+    if !cfg!(debug_assertions) || std::env::var_os("GITNOVA_NATIVE_SOAK_SECONDS").is_none() {
         return Err(AppError::new("soak", "Isolated soak profile required"));
     }
     let state = native_smoke_state()?
@@ -1452,6 +1440,12 @@ fn main() {
         })();
         std::process::exit(if result.is_ok() { 0 } else { 1 });
     }
+    if arguments.iter().any(|arg| arg == "--native-acceptance")
+        && (!native_smoke() || native_smoke_state().is_err())
+    {
+        eprintln!("Installed acceptance requires an isolated temporary fixture catalog.");
+        std::process::exit(2);
+    }
     if !native_smoke() {
         if let Err(error) = std::env::current_exe()
             .map_err(AppError::from)
@@ -1470,7 +1464,7 @@ fn main() {
         match verify_embedded_ui(&context) {
             Ok(()) => {
                 println!(
-                    "GitNova {}: embedded UI assets verified; no dev server or workspace opened; native-smoke={}.",
+                    "GitNova {}: embedded UI assets verified; no dev server or workspace opened; native-smoke={}; native-acceptance=enabled.",
                     env!("CARGO_PKG_VERSION"), if cfg!(debug_assertions) { "enabled" } else { "disabled" }
                 );
                 return;
@@ -1513,7 +1507,7 @@ fn main() {
             {
                 terminal::close_all();
             }
-            if native_smoke() && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
+            if cfg!(debug_assertions) && native_smoke() && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
             {
                 if let Ok(seconds) = std::env::var("GITNOVA_NATIVE_SOAK_SECONDS")
                     .unwrap_or_default()
@@ -1829,7 +1823,7 @@ mod tests {
         .is_err());
         assert!(!clone_path.exists());
         let cloned = invoke("clone_repository", clone_args, local_ipc_origin()).unwrap();
-        assert_eq!(cloned["status"], "succeeded");
+        assert_eq!(cloned["status"], "succeeded", "{cloned}");
         assert_eq!(
             cloned["catalog"]["workspaces"][0]["memberships"]
                 .as_array()

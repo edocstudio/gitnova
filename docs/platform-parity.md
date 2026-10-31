@@ -1,5 +1,7 @@
 # Current-feature platform parity
 
+The [unsigned alpha acceptance follow-up](verification/2026-10-31/unsigned-alpha-acceptance.md) records the inspected hosted failures and the new installed-artifact checks. The new Windows/Linux candidate workflow still requires hosted and manual native confirmation.
+
 Scope: every feature currently available in the macOS alpha must also work on Windows/Linux. Installer generation alone does not satisfy this scope. New features beyond the current macOS baseline are separate work.
 
 The frontend and command/DTO surface are shared. Platform-specific implementations must preserve preview/confirmation, immutable scope, dirty-work protection, partial-failure reporting and recovery. No Windows/Linux replacement UI, reduced feature mode or mock Git backend is accepted.

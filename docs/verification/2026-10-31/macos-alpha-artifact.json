@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-alpha-artifact",
+  "version": "0.1.0",
+  "sourceCommit": null,
+  "target": "aarch64-apple-darwin",
+  "lockfiles": {
+    "cargo": "dd0beb98cebf28067e7359b04d6afd90a1ab0a90e7e359a166b7c4b86ce73c4e",
+    "npm": "d6b229dcfc2e52ff64646b863bab7664de880570bad3f4f2fb1aa6f0d8ec7c05"
+  },
+  "artifact": "GitNova-alpha-macos.zip",
+  "bytes": 14916414,
+  "sha256": "039a316dcd512eb76c0dace888250ad5bc260ead595338b919301d81cf99e06b",
+  "platform": "darwin",
+  "arch": "arm64",
+  "installedAcceptance": {
+    "schemaVersion": 1,
+    "kind": "gitnova-installed-acceptance",
+    "version": "0.1.0",
+    "passed": true,
+    "platform": "darwin",
+    "arch": "arm64",
+    "artifact": "GitNova-alpha-macos.zip",
+    "artifactSha256": "039a316dcd512eb76c0dace888250ad5bc260ead595338b919301d81cf99e06b",
+    "installedBinarySha256": "468321d217b418d9d6f580cb4128ca6c095703adbbd5f77aa5b7227d7636272d",
+    "checks": [
+      "embedded-ui",
+      "native-catalog-ipc",
+      "real-git-graph-ipc",
+      "single-instance",
+      "fixture-head-and-working-tree-preserved"
+    ],
+    "scope": "Startup and native IPC smoke only; full browser workflows, OS credentials and manual GUI acceptance are separate."
+  },
+  "attribution": {
+    "resourcesChecked": 5,
+    "auditComplete": false,
+    "unresolved": 50
+  },
+  "signing": "unsigned-alpha; no trusted platform signature is asserted",
+  "publicationGatePassed": false,
+  "blockers": [
+    "Native manual GUI acceptance for this exact artifact remains required.",
+    "Trusted signing/notarization is not configured.",
+    "Target-specific shipped dependency/asset license review remains required; bundled evidence is not an audit."
+  ],
+  "limits": [
+    "Hashes provide integrity, not publisher authenticity.",
+    "This manifest does not upload, install, sign or publish anything."
+  ]
+}

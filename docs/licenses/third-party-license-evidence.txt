@@ -15774,6 +15774,7 @@ SOFTWARE.
 
 Components / original relative paths:
 cargo:alloc-no-stdlib@3.0.0 / LICENSE
+cargo:alloc-stdlib@0.3.0 / upstream/alloc-stdlib-0.3.0-LICENSE.txt
 cargo:brotli-decompressor@6.0.1 / LICENSE
 cargo:brotli@9.0.0 / LICENSE.BSD-3-Clause
 Text SHA-256: c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae

@@ -26,7 +26,7 @@ fn git(root: &Path, args: &[&str]) -> String {
     String::from_utf8_lossy(&result.stdout).trim().into()
 }
 fn source(parent: &Path) -> std::path::PathBuf {
-    let source = parent.join("source");
+    let source = parent.join("source ' ไทย");
     fs::create_dir(&source).unwrap();
     git(&source, &["init", "-b", "main"]);
     fs::write(source.join("file.txt"), "source content\n").unwrap();

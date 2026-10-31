@@ -27,6 +27,17 @@ explicitly. Review changes to all evidence files; do not mark `auditComplete`
 true merely because collection or packaging succeeds. For another target,
 perform a separate inventory/review instead of reusing this target's evidence.
 
+`supplemental-evidence.json` records upstream texts omitted from a packaged
+crate. Each entry pins the published crate's VCS revision, declared license,
+original source URL and text hash. Collection fails if those values disagree;
+it never downloads a replacement implicitly. The current entry supplies the
+repository-root BSD text for `alloc-stdlib` 0.3.0. The current macOS inventory
+still has 50 unresolved entries and 27 component-specific terms to review.
+For example, the [pinned objc2 upstream licensing document](https://github.com/madsmtm/objc2/blob/d7d2fa23ceaa5e6096c923b081040e5d81b3b9df/LICENSE.md) discusses generated
+Apple SDK bindings; collecting that document alone would not resolve their
+redistribution terms. Missing texts, SDK terms and actual shipped material
+remain review items, not inferred passes.
+
 The local macOS app includes project LICENSE, NOTICE, terminal attribution,
 the inventory and collected texts under `Contents/Resources/licenses/`.
 `build:local` checks lockfile hashes before building and byte equality of all five
@@ -42,3 +53,6 @@ See the [distribution checklist](../contributing/binary-distribution.md) and
 remaining public distribution gates.
 
 Windows/Linux native packaging uses a separate inventory generated for the runner host and verifies all five attribution resources in the installed NSIS app, extracted Debian package and extracted AppImage. See [desktop platforms](../platforms.md). These inclusion checks do not resolve the inventory’s audit gaps or certify redistribution compliance.
+
+See [unsigned alpha candidates](../contributing/unsigned-alpha.md) for installed
+startup checks, artifact hashes and the deferred signing procedure.
