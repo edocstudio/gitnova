@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "components": {
+    "cargo:alloc-stdlib@0.3.0": {
+      "license": "BSD-3-Clause",
+      "revision": "0a81fd6928ea3b33c8cd484aa4575d50ffb98012",
+      "file": "upstream/alloc-stdlib-0.3.0-LICENSE.txt",
+      "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
+      "source": "https://github.com/dropbox/rust-alloc-no-stdlib/blob/0a81fd6928ea3b33c8cd484aa4575d50ffb98012/LICENSE",
+      "scope": "Repository-root license at the published crate vcs revision; crate declares BSD-3-Clause. Collected text evidence, not complete artifact compliance approval."
+    }
+  }
+}

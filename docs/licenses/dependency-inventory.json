@@ -80,7 +80,14 @@
       "declaredLicense": "BSD-3-Clause",
       "sourcePresent": true,
       "classification": "resolved graph including runtime/build/development; actual binary contribution not classified",
-      "licenseFiles": []
+      "licenseFiles": [
+        {
+          "path": "upstream/alloc-stdlib-0.3.0-LICENSE.txt",
+          "bytes": 1483,
+          "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
+          "source": "https://github.com/dropbox/rust-alloc-no-stdlib/blob/0a81fd6928ea3b33c8cd484aa4575d50ffb98012/LICENSE"
+        }
+      ]
     },
     {
       "id": "cargo:anyhow@1.0.104",
@@ -7697,10 +7704,6 @@
     }
   ],
   "unresolved": [
-    {
-      "component": "cargo:alloc-stdlib@0.3.0",
-      "reason": "Missing license declaration or collected license text; manual review required."
-    },
     {
       "component": "cargo:block2@0.6.2",
       "reason": "Missing license declaration or collected license text; manual review required."

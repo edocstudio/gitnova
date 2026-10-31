@@ -450,9 +450,15 @@ mod tests {
         }
         terminal_close("fixture".into(), opened.id.clone()).unwrap();
         let output = String::from_utf8_lossy(&output);
-        let normalized = output.replace(r"\\?\", "");
-        let expected = format!("PTY_OK:{}", root.to_str().unwrap());
-        assert!(normalized.contains(&expected), "{output}");
+        let reported = output
+            .lines()
+            .find_map(|line| line.strip_prefix("PTY_OK:"))
+            .expect("PowerShell must print the actual working directory");
+        assert_eq!(
+            Path::new(reported).canonicalize().unwrap(),
+            root.canonicalize().unwrap(),
+            "{output}"
+        );
         assert!(session("fixture", &opened.id).is_err());
     }
     #[test]

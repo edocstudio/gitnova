@@ -20,11 +20,17 @@ jobs:
       - name: Linux core credential-store dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libssl-dev pkg-config
+      - name: Isolate CI Git configuration
+        run: python apps/desktop/scripts/prepare-ci-home.py
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --exclude gitnova-desktop --all-targets --locked -- -D warnings
       - run: cargo test --workspace --exclude gitnova-desktop --locked
   desktop:
     runs-on: macos-latest
+    timeout-minutes: 90
+    env:
+      CARGO_BUILD_JOBS: 2
+      RUST_TEST_THREADS: 1
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -37,10 +43,19 @@ jobs:
           cache-dependency-path: apps/desktop/package-lock.json
       - run: npm ci
         working-directory: apps/desktop
+      - name: Isolate CI Git configuration
+        run: python apps/desktop/scripts/prepare-ci-home.py
       - run: npm run build
         working-directory: apps/desktop
       - run: npm test
         working-directory: apps/desktop
+      - name: CI home isolation checks
+        run: python apps/desktop/scripts/test_prepare_ci_home.py
+      - name: Packaging evidence checks
+        run: node --test scripts/alpha-artifact.test.mjs scripts/check-prerequisites.test.mjs
+        working-directory: apps/desktop
+      - name: Pinned license evidence checks
+        run: python apps/desktop/scripts/test_inventory_licenses.py
       - run: cargo clippy -p gitnova-desktop --locked -- -D warnings
       - run: cargo test -p gitnova-desktop --locked
       - run: cargo build -p gitnova-desktop --locked
@@ -48,6 +63,30 @@ jobs:
         working-directory: apps/desktop
       - run: npm run test:e2e
         working-directory: apps/desktop
+      - name: Collect macOS target license evidence
+        shell: bash
+        run: |
+          cargo fetch --locked
+          host=$(rustc -vV | sed -n 's/^host: //p')
+          python3 apps/desktop/scripts/inventory-licenses.py --target "$host"
+      - name: Build local macOS alpha app
+        run: npm run build:local
+        working-directory: apps/desktop
+      - name: Verify packaged macOS native startup
+        shell: bash
+        run: |
+          mkdir -p target/alpha-evidence
+          ditto -c -k --keepParent target/debug/bundle/macos/GitNova.app target/alpha-evidence/GitNova-alpha-macos.zip
+          mkdir "$RUNNER_TEMP/gitnova-macos-candidate"
+          ditto -x -k target/alpha-evidence/GitNova-alpha-macos.zip "$RUNNER_TEMP/gitnova-macos-candidate"
+          executable="$RUNNER_TEMP/gitnova-macos-candidate/GitNova.app/Contents/MacOS/gitnova-desktop"
+          node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact target/alpha-evidence/GitNova-alpha-macos.zip --report target/alpha-evidence/macos-acceptance.json
+          node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact target/alpha-evidence/GitNova-alpha-macos.zip --acceptance target/alpha-evidence/macos-acceptance.json --resources "$RUNNER_TEMP/gitnova-macos-candidate/GitNova.app/Contents/Resources" --output target/alpha-evidence/macos-artifact.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gitnova-alpha-macos
+          if-no-files-found: error
+          path: target/alpha-evidence/
   desktop-platform:
     name: desktop (${{ matrix.os }})
     strategy:
@@ -85,6 +124,8 @@ jobs:
           restore-keys: native-desktop-${{ runner.os }}-
       - run: npm ci
         working-directory: apps/desktop
+      - name: Isolate CI Git configuration
+        run: python apps/desktop/scripts/prepare-ci-home.py
       - run: npm run build
         working-directory: apps/desktop
       - run: cargo clippy -p gitnova-desktop --all-targets --locked -- -D warnings
@@ -94,6 +135,13 @@ jobs:
       - name: Windows native IPC and PTY tests
         if: runner.os == 'Windows'
         run: cargo test -p gitnova-desktop --locked -- --test-threads=1
+      - name: CI home isolation checks
+        run: python apps/desktop/scripts/test_prepare_ci_home.py
+      - name: Packaging evidence checks
+        run: node --test scripts/alpha-artifact.test.mjs scripts/check-prerequisites.test.mjs
+        working-directory: apps/desktop
+      - name: Pinned license evidence checks
+        run: python apps/desktop/scripts/test_inventory_licenses.py
       - name: Frontend unit tests
         run: npm test -- --maxWorkers=1
         working-directory: apps/desktop
@@ -122,6 +170,8 @@ jobs:
           cargo fetch --locked
           host=$(rustc -vV | sed -n 's/^host: //p')
           python apps/desktop/scripts/inventory-licenses.py --target "$host"
+      - name: Build isolated native acceptance bridge
+        run: cargo build -p gitnova-core --example ui_bridge --locked
       - name: Build native alpha installers
         run: npm run build:desktop
         working-directory: apps/desktop
@@ -133,7 +183,14 @@ jobs:
           dpkg-deb -x target/release/bundle/deb/*.deb "$RUNNER_TEMP/gitnova-deb"
           mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-deb" -path '*/licenses/LICENSE')
           test "${#texts[@]}" -eq 1
-          node apps/desktop/scripts/verify-platform-resources.mjs "$(dirname "$(dirname "${texts[0]}")")"
+          resources=$(dirname "$(dirname "${texts[0]}")")
+          node apps/desktop/scripts/verify-platform-resources.mjs "$resources"
+          executable=$(find "$RUNNER_TEMP/gitnova-deb" -type f -name gitnova-desktop)
+          test -n "$executable"
+          mkdir -p target/alpha-evidence
+          artifact=$(realpath target/release/bundle/deb/*.deb)
+          dbus-run-session -- xvfb-run -a node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact "$artifact" --report target/alpha-evidence/deb-acceptance.json
+          node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact "$artifact" --acceptance target/alpha-evidence/deb-acceptance.json --resources "$resources" --output target/alpha-evidence/deb-artifact.json
       - name: Verify packaged AppImage attribution
         if: runner.os == 'Linux'
         shell: bash
@@ -143,7 +200,12 @@ jobs:
           (cd "$RUNNER_TEMP/gitnova-appimage" && "$image" --appimage-extract > /dev/null)
           mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-appimage" -path '*/licenses/LICENSE')
           test "${#texts[@]}" -eq 1
-          node apps/desktop/scripts/verify-platform-resources.mjs "$(dirname "$(dirname "${texts[0]}")")"
+          resources=$(dirname "$(dirname "${texts[0]}")")
+          node apps/desktop/scripts/verify-platform-resources.mjs "$resources"
+          executable=$(find "$RUNNER_TEMP/gitnova-appimage" -type f -name gitnova-desktop)
+          test -n "$executable"
+          dbus-run-session -- xvfb-run -a node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact "$image" --report target/alpha-evidence/appimage-acceptance.json
+          node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact "$image" --acceptance target/alpha-evidence/appimage-acceptance.json --resources "$resources" --output target/alpha-evidence/appimage-artifact.json
       - name: Verify installed Windows attribution
         if: runner.os == 'Windows'
         shell: pwsh
@@ -154,6 +216,13 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Installer failed' }
           node apps/desktop/scripts/verify-platform-resources.mjs $destination
           if ($LASTEXITCODE -ne 0) { throw 'Installed attribution verification failed' }
+          New-Item -ItemType Directory -Force target/alpha-evidence | Out-Null
+          $binary = Get-ChildItem -Path $destination -Filter gitnova-desktop.exe -Recurse
+          if (@($binary).Count -ne 1) { throw 'Expected exactly one installed app executable' }
+          node apps/desktop/scripts/smoke-local.mjs --executable $binary.FullName --bridge target/debug/examples/ui_bridge.exe --artifact $installer.FullName --report target/alpha-evidence/windows-acceptance.json
+          if ($LASTEXITCODE -ne 0) { throw 'Installed native acceptance failed' }
+          node apps/desktop/scripts/alpha-artifact.mjs --executable $binary.FullName --artifact $installer.FullName --acceptance target/alpha-evidence/windows-acceptance.json --resources $destination --output target/alpha-evidence/windows-artifact.json
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate evidence verification failed' }
       - name: Verify Linux embedded UI
         if: runner.os == 'Linux'
         run: xvfb-run -a target/release/gitnova-desktop --verify-bundle
@@ -171,5 +240,6 @@ jobs:
             target/release/bundle/nsis/*.exe
             target/release/bundle/deb/*.deb
             target/release/bundle/appimage/*.AppImage
+            target/alpha-evidence/*.json
             docs/licenses/dependency-inventory.json
             docs/licenses/third-party-license-evidence.txt

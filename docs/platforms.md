@@ -1,5 +1,7 @@
 # Desktop platforms (alpha)
 
+The [unsigned alpha candidate workflow](contributing/unsigned-alpha.md) adds installed/extracted native WebView checks and artifact-bound evidence. Its Windows/Linux results must still be confirmed on the new hosted run; local macOS checks do not certify those platforms.
+
 Windows and Linux desktop support is being added alongside macOS. Native CI builds, IPC/PTY tests, synthetic credential-store checks and packaging checks are configured in `.github/workflows/ci.yml`. Configuration is not evidence of a passing hosted run: verify the checks for the exact commit before distributing its artifacts. The initial native CI run failed before completing acceptance; see the [findings and corrections](verification/2026-10-31/native-ci-corrections.md) and the [latest native CI follow-up](verification/2026-10-31/native-ci-followup.md). No passing Windows/Linux installed-app acceptance is claimed.
 
 | Platform | Build target | Secret storage | Terminal |

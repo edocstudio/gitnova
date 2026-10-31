@@ -202,7 +202,7 @@ impl Scratch {
             "-c",
             "color.ui=false",
             "-c",
-            "core.quotePath=false",
+            "core.quotePath=true",
             "-c",
             "protocol.allow=never",
             "-c",

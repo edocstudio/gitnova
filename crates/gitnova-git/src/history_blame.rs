@@ -145,7 +145,7 @@ impl GitCli {
             root,
             &[
                 "-c",
-                "core.quotePath=false",
+                "core.quotePath=true",
                 "blame",
                 "--line-porcelain",
                 "--root",

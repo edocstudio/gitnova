@@ -22,7 +22,7 @@ pub(crate) fn validate_clone_source(value: &str) -> Result<String> {
                 "Local clone source must be a repository directory.",
             ));
         }
-        return path.to_str().map(str::to_owned).ok_or_else(|| {
+        return crate::process::git_path(&path)?.into_string().map_err(|_| {
             AppError::new(
                 "clone_source",
                 "Enter a source path representable as UTF-8.",
