@@ -1,5 +1,12 @@
 # Portable performance evidence — schema 1
 
+The [2026-10-31 follow-up](../verification/2026-10-31/search-index-and-core-memory.md)
+adds two supplemental reports: `search-index-2026-10-31.json` (kind
+`gitnova-search-index-comparison`, alternating first-index/restart samples) and
+`core-soak-2026-10-31.json` (kind `gitnova-core-soak`, ten-minute core-only
+regression). Each declares its limits; neither replaces the historical
+`latest.json` baseline or establishes whole-app/full-day memory stability.
+
 `latest.json` is a measured-data report for consumers such as `gitnova-web`.
 `artifacts/` contains the exact evidence files identified by byte size and SHA-256.
 All inputs are synthetic real Git repositories; do not substitute confidential

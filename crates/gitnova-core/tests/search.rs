@@ -437,6 +437,56 @@ fn scopes_reject_foreign_workspace_memberships_and_recovery_roots_stay_hidden() 
         .is_err());
 }
 #[test]
+fn header_batches_keep_large_eligible_bodies_bounded_and_pages_exact() {
+    let (_temp, app, root, _) = setup();
+    let original = git(&root, &["rev-parse", "HEAD"]);
+    let mut child = Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["fast-import", "--quiet"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    // The combined bodies exceed one reader's 5 MiB output limit, but each
+    // commit is eligible. All must survive indexing and persisted-cache reload.
+    for i in 0..130 {
+        let message = format!("Batch needle {i}\n\n{}\n", "x".repeat(60_000));
+        let parent = if i == 0 {
+            format!("from {original}\n")
+        } else {
+            String::new()
+        };
+        write!(input, "commit refs/heads/main\ncommitter Batch Test <batch@example.invalid> {} +0000\ndata {}\n{}{parent}\n", 1700000000+i, message.len(), message).unwrap();
+    }
+    input.write_all(b"done\n").unwrap();
+    drop(input);
+    assert!(child.wait().unwrap().success());
+    git(&root, &["reset", "--hard", "HEAD"]);
+    let mut query = request(&app, "batch needle", "current", vec![]);
+    let first = app.search_commits(&query).unwrap();
+    assert!(!first.partial);
+    assert_eq!(first.total_matches, 130);
+    assert_eq!(first.hits.len(), 100);
+    query.cursor = first.next.clone();
+    let second = app.search_commits(&query).unwrap();
+    assert_eq!(second.hits.len(), 30);
+    assert!(second.next.is_none());
+    let unique = first
+        .hits
+        .iter()
+        .chain(&second.hits)
+        .map(|hit| &hit.commit.oid)
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique.len(), 130);
+    let reopened = Application::new(root.parent().unwrap().join("app/state.json")).unwrap();
+    assert_eq!(
+        serde_json::to_value(reopened.search_commits(&query).unwrap().hits).unwrap(),
+        serde_json::to_value(second.hits).unwrap()
+    );
+}
+#[test]
 fn large_and_shallow_histories_are_explicitly_partial() {
     let (_temp, app, root, base) = setup();
     let file = root.parent().unwrap().join("large-message");

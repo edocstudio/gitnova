@@ -1,0 +1,1269 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-core-soak",
+  "profile": "local debug, first-party CPU crates optimized at level 2",
+  "measuredAt": "2026-10-31T03:29:30.288202+00:00",
+  "sourceBaseCommit": "921e979b73ae33a5e4c2bbe00b0fdac660d49b53",
+  "sourceHasUncommittedChanges": true,
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "binarySha256": "2d794fc13ddccc0dbabd61a9a9d029e68f7377a6e032401314e19e110199cda3",
+  "fixture": {
+    "commits": 50000,
+    "durationSeconds": 600,
+    "event": "ready",
+    "locations": 3,
+    "trackedFiles": 10001
+  },
+  "completion": {
+    "cycles": 50,
+    "elapsedSeconds": 612.751512084,
+    "event": "complete",
+    "fixtureStatePreserved": true
+  },
+  "passed": true,
+  "failure": null,
+  "wallSeconds": 625.753445082999,
+  "memory": {
+    "sampleIntervalSeconds": 5,
+    "samples": [
+      {
+        "elapsedSeconds": 0.0,
+        "phase": "fixture",
+        "coreRssMiB": 0.03125,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 0.03125
+      },
+      {
+        "elapsedSeconds": 5.123,
+        "phase": "fixture",
+        "coreRssMiB": 7.421875,
+        "sampledDescendantRssMiB": 16.53125,
+        "sampledTotalRssMiB": 23.953125
+      },
+      {
+        "elapsedSeconds": 10.217,
+        "phase": "workload",
+        "coreRssMiB": 9.875,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 15.34375
+      },
+      {
+        "elapsedSeconds": 15.377,
+        "phase": "workload",
+        "coreRssMiB": 48.578125,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 48.578125
+      },
+      {
+        "elapsedSeconds": 20.393,
+        "phase": "workload",
+        "coreRssMiB": 57.40625,
+        "sampledDescendantRssMiB": 5.625,
+        "sampledTotalRssMiB": 63.03125
+      },
+      {
+        "elapsedSeconds": 25.573,
+        "phase": "workload",
+        "coreRssMiB": 57.46875,
+        "sampledDescendantRssMiB": 5.625,
+        "sampledTotalRssMiB": 63.09375
+      },
+      {
+        "elapsedSeconds": 30.592,
+        "phase": "workload",
+        "coreRssMiB": 58.515625,
+        "sampledDescendantRssMiB": 1.671875,
+        "sampledTotalRssMiB": 60.1875
+      },
+      {
+        "elapsedSeconds": 35.803,
+        "phase": "workload",
+        "coreRssMiB": 58.484375,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 58.484375
+      },
+      {
+        "elapsedSeconds": 40.965,
+        "phase": "workload",
+        "coreRssMiB": 58.828125,
+        "sampledDescendantRssMiB": 5.609375,
+        "sampledTotalRssMiB": 64.4375
+      },
+      {
+        "elapsedSeconds": 45.991,
+        "phase": "workload",
+        "coreRssMiB": 58.828125,
+        "sampledDescendantRssMiB": 0.515625,
+        "sampledTotalRssMiB": 59.34375
+      },
+      {
+        "elapsedSeconds": 51.084,
+        "phase": "workload",
+        "coreRssMiB": 58.828125,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 64.296875
+      },
+      {
+        "elapsedSeconds": 56.298,
+        "phase": "workload",
+        "coreRssMiB": 52.046875,
+        "sampledDescendantRssMiB": 5.609375,
+        "sampledTotalRssMiB": 57.65625
+      },
+      {
+        "elapsedSeconds": 61.555,
+        "phase": "workload",
+        "coreRssMiB": 52.015625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 52.015625
+      },
+      {
+        "elapsedSeconds": 66.672,
+        "phase": "workload",
+        "coreRssMiB": 45.28125,
+        "sampledDescendantRssMiB": 40.734375,
+        "sampledTotalRssMiB": 86.015625
+      },
+      {
+        "elapsedSeconds": 71.885,
+        "phase": "workload",
+        "coreRssMiB": 45.53125,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.0
+      },
+      {
+        "elapsedSeconds": 76.947,
+        "phase": "workload",
+        "coreRssMiB": 45.578125,
+        "sampledDescendantRssMiB": 10.359375,
+        "sampledTotalRssMiB": 55.9375
+      },
+      {
+        "elapsedSeconds": 82.043,
+        "phase": "workload",
+        "coreRssMiB": 45.8125,
+        "sampledDescendantRssMiB": 31.125,
+        "sampledTotalRssMiB": 76.9375
+      },
+      {
+        "elapsedSeconds": 87.045,
+        "phase": "workload",
+        "coreRssMiB": 45.78125,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 45.78125
+      },
+      {
+        "elapsedSeconds": 92.166,
+        "phase": "workload",
+        "coreRssMiB": 45.8125,
+        "sampledDescendantRssMiB": 1.109375,
+        "sampledTotalRssMiB": 46.921875
+      },
+      {
+        "elapsedSeconds": 97.378,
+        "phase": "workload",
+        "coreRssMiB": 45.828125,
+        "sampledDescendantRssMiB": 5.609375,
+        "sampledTotalRssMiB": 51.4375
+      },
+      {
+        "elapsedSeconds": 102.445,
+        "phase": "workload",
+        "coreRssMiB": 45.875,
+        "sampledDescendantRssMiB": 2.671875,
+        "sampledTotalRssMiB": 48.546875
+      },
+      {
+        "elapsedSeconds": 107.535,
+        "phase": "workload",
+        "coreRssMiB": 45.828125,
+        "sampledDescendantRssMiB": 1.09375,
+        "sampledTotalRssMiB": 46.921875
+      },
+      {
+        "elapsedSeconds": 112.535,
+        "phase": "workload",
+        "coreRssMiB": 45.796875,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 45.796875
+      },
+      {
+        "elapsedSeconds": 117.543,
+        "phase": "workload",
+        "coreRssMiB": 45.890625,
+        "sampledDescendantRssMiB": 27.359375,
+        "sampledTotalRssMiB": 73.25
+      },
+      {
+        "elapsedSeconds": 122.681,
+        "phase": "workload",
+        "coreRssMiB": 45.859375,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 45.859375
+      },
+      {
+        "elapsedSeconds": 127.711,
+        "phase": "workload",
+        "coreRssMiB": 45.90625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.375
+      },
+      {
+        "elapsedSeconds": 132.91,
+        "phase": "workload",
+        "coreRssMiB": 45.90625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.375
+      },
+      {
+        "elapsedSeconds": 138.124,
+        "phase": "workload",
+        "coreRssMiB": 45.90625,
+        "sampledDescendantRssMiB": 5.578125,
+        "sampledTotalRssMiB": 51.484375
+      },
+      {
+        "elapsedSeconds": 143.264,
+        "phase": "workload",
+        "coreRssMiB": 45.921875,
+        "sampledDescendantRssMiB": 5.484375,
+        "sampledTotalRssMiB": 51.40625
+      },
+      {
+        "elapsedSeconds": 148.498,
+        "phase": "workload",
+        "coreRssMiB": 45.890625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 45.890625
+      },
+      {
+        "elapsedSeconds": 153.531,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 18.5,
+        "sampledTotalRssMiB": 64.4375
+      },
+      {
+        "elapsedSeconds": 158.679,
+        "phase": "workload",
+        "coreRssMiB": 45.90625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 45.90625
+      },
+      {
+        "elapsedSeconds": 163.882,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.40625
+      },
+      {
+        "elapsedSeconds": 169.076,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 1.609375,
+        "sampledTotalRssMiB": 47.546875
+      },
+      {
+        "elapsedSeconds": 174.195,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 5.609375,
+        "sampledTotalRssMiB": 51.546875
+      },
+      {
+        "elapsedSeconds": 179.345,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 2.390625,
+        "sampledTotalRssMiB": 48.328125
+      },
+      {
+        "elapsedSeconds": 184.569,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 5.609375,
+        "sampledTotalRssMiB": 51.546875
+      },
+      {
+        "elapsedSeconds": 189.736,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 2.109375,
+        "sampledTotalRssMiB": 48.046875
+      },
+      {
+        "elapsedSeconds": 194.851,
+        "phase": "workload",
+        "coreRssMiB": 45.953125,
+        "sampledDescendantRssMiB": 0.109375,
+        "sampledTotalRssMiB": 46.0625
+      },
+      {
+        "elapsedSeconds": 199.863,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 24.21875,
+        "sampledTotalRssMiB": 70.15625
+      },
+      {
+        "elapsedSeconds": 204.876,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.40625
+      },
+      {
+        "elapsedSeconds": 209.944,
+        "phase": "workload",
+        "coreRssMiB": 45.90625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 45.90625
+      },
+      {
+        "elapsedSeconds": 215.154,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 5.453125,
+        "sampledTotalRssMiB": 51.390625
+      },
+      {
+        "elapsedSeconds": 220.323,
+        "phase": "workload",
+        "coreRssMiB": 45.9375,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.40625
+      },
+      {
+        "elapsedSeconds": 225.421,
+        "phase": "workload",
+        "coreRssMiB": 46.0,
+        "sampledDescendantRssMiB": 3.546875,
+        "sampledTotalRssMiB": 49.546875
+      },
+      {
+        "elapsedSeconds": 230.43,
+        "phase": "workload",
+        "coreRssMiB": 45.953125,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.421875
+      },
+      {
+        "elapsedSeconds": 235.564,
+        "phase": "workload",
+        "coreRssMiB": 45.953125,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 51.421875
+      },
+      {
+        "elapsedSeconds": 240.608,
+        "phase": "workload",
+        "coreRssMiB": 45.953125,
+        "sampledDescendantRssMiB": 1.125,
+        "sampledTotalRssMiB": 47.078125
+      },
+      {
+        "elapsedSeconds": 245.852,
+        "phase": "workload",
+        "coreRssMiB": 45.921875,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 45.921875
+      },
+      {
+        "elapsedSeconds": 251.031,
+        "phase": "workload",
+        "coreRssMiB": 45.953125,
+        "sampledDescendantRssMiB": 1.6875,
+        "sampledTotalRssMiB": 47.640625
+      },
+      {
+        "elapsedSeconds": 256.164,
+        "phase": "workload",
+        "coreRssMiB": 45.953125,
+        "sampledDescendantRssMiB": 5.5,
+        "sampledTotalRssMiB": 51.453125
+      },
+      {
+        "elapsedSeconds": 261.172,
+        "phase": "workload",
+        "coreRssMiB": 46.6875,
+        "sampledDescendantRssMiB": 3.796875,
+        "sampledTotalRssMiB": 50.484375
+      },
+      {
+        "elapsedSeconds": 266.272,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 271.293,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.484375,
+        "sampledTotalRssMiB": 52.125
+      },
+      {
+        "elapsedSeconds": 276.318,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 2.171875,
+        "sampledTotalRssMiB": 48.8125
+      },
+      {
+        "elapsedSeconds": 281.552,
+        "phase": "workload",
+        "coreRssMiB": 46.609375,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.609375
+      },
+      {
+        "elapsedSeconds": 286.742,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 0.171875,
+        "sampledTotalRssMiB": 46.8125
+      },
+      {
+        "elapsedSeconds": 291.783,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 0.109375,
+        "sampledTotalRssMiB": 46.75
+      },
+      {
+        "elapsedSeconds": 296.898,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.59375,
+        "sampledTotalRssMiB": 48.25
+      },
+      {
+        "elapsedSeconds": 302.075,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.484375,
+        "sampledTotalRssMiB": 52.125
+      },
+      {
+        "elapsedSeconds": 307.256,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 312.266,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 15.75,
+        "sampledTotalRssMiB": 62.390625
+      },
+      {
+        "elapsedSeconds": 317.473,
+        "phase": "workload",
+        "coreRssMiB": 46.609375,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.609375
+      },
+      {
+        "elapsedSeconds": 322.689,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 40.671875,
+        "sampledTotalRssMiB": 87.3125
+      },
+      {
+        "elapsedSeconds": 327.909,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 1.125,
+        "sampledTotalRssMiB": 47.765625
+      },
+      {
+        "elapsedSeconds": 332.989,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.609375,
+        "sampledTotalRssMiB": 48.265625
+      },
+      {
+        "elapsedSeconds": 338.172,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 343.42,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 348.503,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 353.601,
+        "phase": "workload",
+        "coreRssMiB": 46.609375,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.609375
+      },
+      {
+        "elapsedSeconds": 358.813,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 0.109375,
+        "sampledTotalRssMiB": 46.75
+      },
+      {
+        "elapsedSeconds": 363.941,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 3.609375,
+        "sampledTotalRssMiB": 50.25
+      },
+      {
+        "elapsedSeconds": 369.022,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.609375,
+        "sampledTotalRssMiB": 48.265625
+      },
+      {
+        "elapsedSeconds": 374.232,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 379.411,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 384.609,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.5,
+        "sampledTotalRssMiB": 52.140625
+      },
+      {
+        "elapsedSeconds": 389.692,
+        "phase": "workload",
+        "coreRssMiB": 46.609375,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.609375
+      },
+      {
+        "elapsedSeconds": 394.868,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.5,
+        "sampledTotalRssMiB": 52.140625
+      },
+      {
+        "elapsedSeconds": 400.025,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.109375
+      },
+      {
+        "elapsedSeconds": 405.264,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 1.609375,
+        "sampledTotalRssMiB": 48.25
+      },
+      {
+        "elapsedSeconds": 410.449,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 1.53125,
+        "sampledTotalRssMiB": 48.171875
+      },
+      {
+        "elapsedSeconds": 415.658,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 1.515625,
+        "sampledTotalRssMiB": 48.15625
+      },
+      {
+        "elapsedSeconds": 420.719,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 0.109375,
+        "sampledTotalRssMiB": 46.765625
+      },
+      {
+        "elapsedSeconds": 425.76,
+        "phase": "workload",
+        "coreRssMiB": 46.625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.625
+      },
+      {
+        "elapsedSeconds": 430.857,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.125
+      },
+      {
+        "elapsedSeconds": 436.107,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 2.6875,
+        "sampledTotalRssMiB": 49.34375
+      },
+      {
+        "elapsedSeconds": 441.165,
+        "phase": "workload",
+        "coreRssMiB": 46.671875,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.671875
+      },
+      {
+        "elapsedSeconds": 446.378,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.53125,
+        "sampledTotalRssMiB": 48.1875
+      },
+      {
+        "elapsedSeconds": 451.508,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.625,
+        "sampledTotalRssMiB": 48.28125
+      },
+      {
+        "elapsedSeconds": 456.65,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 28.375,
+        "sampledTotalRssMiB": 75.03125
+      },
+      {
+        "elapsedSeconds": 461.864,
+        "phase": "workload",
+        "coreRssMiB": 46.625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.625
+      },
+      {
+        "elapsedSeconds": 467.089,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 11.1875,
+        "sampledTotalRssMiB": 57.84375
+      },
+      {
+        "elapsedSeconds": 472.219,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.53125,
+        "sampledTotalRssMiB": 48.1875
+      },
+      {
+        "elapsedSeconds": 477.245,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 2.125,
+        "sampledTotalRssMiB": 48.78125
+      },
+      {
+        "elapsedSeconds": 482.252,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 0.5625,
+        "sampledTotalRssMiB": 47.21875
+      },
+      {
+        "elapsedSeconds": 487.325,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.515625,
+        "sampledTotalRssMiB": 48.171875
+      },
+      {
+        "elapsedSeconds": 492.579,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 29.34375,
+        "sampledTotalRssMiB": 76.0
+      },
+      {
+        "elapsedSeconds": 497.746,
+        "phase": "workload",
+        "coreRssMiB": 46.625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.625
+      },
+      {
+        "elapsedSeconds": 502.87,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 1.53125,
+        "sampledTotalRssMiB": 48.1875
+      },
+      {
+        "elapsedSeconds": 508.065,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 0.171875,
+        "sampledTotalRssMiB": 46.828125
+      },
+      {
+        "elapsedSeconds": 513.083,
+        "phase": "workload",
+        "coreRssMiB": 46.671875,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.671875
+      },
+      {
+        "elapsedSeconds": 518.31,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 5.484375,
+        "sampledTotalRssMiB": 52.140625
+      },
+      {
+        "elapsedSeconds": 523.351,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.125
+      },
+      {
+        "elapsedSeconds": 528.539,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.125
+      },
+      {
+        "elapsedSeconds": 533.575,
+        "phase": "workload",
+        "coreRssMiB": 46.625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.625
+      },
+      {
+        "elapsedSeconds": 538.61,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 45.828125,
+        "sampledTotalRssMiB": 92.484375
+      },
+      {
+        "elapsedSeconds": 543.769,
+        "phase": "workload",
+        "coreRssMiB": 46.65625,
+        "sampledDescendantRssMiB": 2.375,
+        "sampledTotalRssMiB": 49.03125
+      },
+      {
+        "elapsedSeconds": 548.923,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.640625
+      },
+      {
+        "elapsedSeconds": 553.968,
+        "phase": "workload",
+        "coreRssMiB": 46.671875,
+        "sampledDescendantRssMiB": 36.453125,
+        "sampledTotalRssMiB": 83.125
+      },
+      {
+        "elapsedSeconds": 559.105,
+        "phase": "workload",
+        "coreRssMiB": 46.640625,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.640625
+      },
+      {
+        "elapsedSeconds": 564.26,
+        "phase": "workload",
+        "coreRssMiB": 46.6875,
+        "sampledDescendantRssMiB": 5.609375,
+        "sampledTotalRssMiB": 52.296875
+      },
+      {
+        "elapsedSeconds": 569.517,
+        "phase": "workload",
+        "coreRssMiB": 46.6875,
+        "sampledDescendantRssMiB": 5.625,
+        "sampledTotalRssMiB": 52.3125
+      },
+      {
+        "elapsedSeconds": 574.628,
+        "phase": "workload",
+        "coreRssMiB": 46.6875,
+        "sampledDescendantRssMiB": 1.53125,
+        "sampledTotalRssMiB": 48.21875
+      },
+      {
+        "elapsedSeconds": 579.739,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 3.53125,
+        "sampledTotalRssMiB": 50.25
+      },
+      {
+        "elapsedSeconds": 584.757,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 0.453125,
+        "sampledTotalRssMiB": 47.171875
+      },
+      {
+        "elapsedSeconds": 589.84,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 5.578125,
+        "sampledTotalRssMiB": 52.296875
+      },
+      {
+        "elapsedSeconds": 595.004,
+        "phase": "workload",
+        "coreRssMiB": 46.6875,
+        "sampledDescendantRssMiB": 0.0,
+        "sampledTotalRssMiB": 46.6875
+      },
+      {
+        "elapsedSeconds": 600.149,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 5.609375,
+        "sampledTotalRssMiB": 52.328125
+      },
+      {
+        "elapsedSeconds": 605.313,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 2.484375,
+        "sampledTotalRssMiB": 49.203125
+      },
+      {
+        "elapsedSeconds": 610.347,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 1.515625,
+        "sampledTotalRssMiB": 48.234375
+      },
+      {
+        "elapsedSeconds": 615.404,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 18.609375,
+        "sampledTotalRssMiB": 65.328125
+      },
+      {
+        "elapsedSeconds": 620.541,
+        "phase": "workload",
+        "coreRssMiB": 46.71875,
+        "sampledDescendantRssMiB": 5.46875,
+        "sampledTotalRssMiB": 52.1875
+      }
+    ],
+    "windows": [
+      {
+        "startSeconds": 0,
+        "sampleCount": 57,
+        "medianCoreRssMiB": 45.9375
+      },
+      {
+        "startSeconds": 300,
+        "sampleCount": 58,
+        "medianCoreRssMiB": 46.65625
+      },
+      {
+        "startSeconds": 600,
+        "sampleCount": 5,
+        "medianCoreRssMiB": 46.71875
+      }
+    ],
+    "peakCoreRssMiB": 58.828125,
+    "peakSampledTotalRssMiB": 92.484375
+  },
+  "latency": {
+    "graph": {
+      "observations": 50,
+      "coldSampleMs": 1159.623083,
+      "retainedTailSamples": 49,
+      "partialObservations": 0,
+      "medianMs": 1051.235833,
+      "p95Ms": 1221.137041,
+      "samplesMs": [
+        956.466834,
+        929.021167,
+        1111.4302089999999,
+        1103.938125,
+        860.24175,
+        1085.740959,
+        1002.9630839999999,
+        829.1102500000001,
+        1034.554583,
+        1035.602959,
+        868.5744589999999,
+        1100.635583,
+        1739.951083,
+        941.3534999999999,
+        1151.565167,
+        1111.261167,
+        976.877375,
+        1097.33725,
+        1101.225625,
+        917.567125,
+        1117.246083,
+        1051.235833,
+        875.4060420000001,
+        1082.021667,
+        1020.627083,
+        892.9372920000001,
+        1061.6225,
+        1060.719167,
+        913.936375,
+        1083.204667,
+        989.6230419999999,
+        831.519083,
+        1128.549916,
+        1205.6283329999999,
+        935.969791,
+        1099.347667,
+        1094.096583,
+        874.2870409999999,
+        954.733583,
+        1331.474958,
+        904.183333,
+        1056.390334,
+        1127.445708,
+        1221.137041,
+        1134.481208,
+        1009.6897920000001,
+        895.738875,
+        1036.928625,
+        1183.5349589999998
+      ]
+    },
+    "snapshot": {
+      "observations": 50,
+      "coldSampleMs": 844.969291,
+      "retainedTailSamples": 49,
+      "partialObservations": 0,
+      "medianMs": 703.295625,
+      "p95Ms": 797.349667,
+      "samplesMs": [
+        703.7131250000001,
+        518.452667,
+        755.3435,
+        830.7555,
+        594.777625,
+        797.904333,
+        725.325417,
+        496.7745,
+        759.6672920000001,
+        673.599583,
+        485.449125,
+        728.37175,
+        703.295625,
+        521.914791,
+        746.926416,
+        717.0521669999999,
+        515.0214159999999,
+        739.7892499999999,
+        699.966709,
+        485.76975,
+        753.202584,
+        706.349834,
+        543.178875,
+        732.7632090000001,
+        710.133167,
+        524.584791,
+        730.660667,
+        694.680333,
+        534.489292,
+        702.180709,
+        699.317625,
+        510.93804200000005,
+        719.356167,
+        721.451042,
+        471.50287499999996,
+        750.1719999999999,
+        702.9625000000001,
+        513.91325,
+        711.231084,
+        797.349667,
+        488.28204200000005,
+        692.913583,
+        710.752791,
+        519.043917,
+        742.046125,
+        716.024875,
+        492.346458,
+        772.32675,
+        698.3335830000001
+      ]
+    },
+    "search": {
+      "observations": 50,
+      "coldSampleMs": 4785.258334,
+      "retainedTailSamples": 49,
+      "partialObservations": 50,
+      "medianMs": 920.998458,
+      "p95Ms": 1242.6526250000002,
+      "samplesMs": [
+        813.86575,
+        924.475625,
+        869.1464159999999,
+        939.0245,
+        1288.401583,
+        938.138334,
+        1114.388708,
+        1146.759958,
+        860.292875,
+        1145.2520829999999,
+        1155.0819589999999,
+        978.349917,
+        1413.468125,
+        1175.027625,
+        861.8350409999999,
+        848.172,
+        875.240542,
+        928.9535,
+        1115.203916,
+        916.332917,
+        915.456792,
+        894.982334,
+        910.634959,
+        1162.2380830000002,
+        853.9884589999999,
+        825.116209,
+        914.138875,
+        930.093291,
+        792.3667089999999,
+        838.81725,
+        946.669041,
+        875.312458,
+        870.222125,
+        880.572042,
+        1156.038,
+        948.44375,
+        887.3530830000001,
+        869.125375,
+        932.101042,
+        1216.274291,
+        845.7761660000001,
+        923.6035420000001,
+        919.284958,
+        866.246042,
+        1242.6526250000002,
+        993.6045829999999,
+        920.998458,
+        779.167834,
+        922.231958
+      ]
+    },
+    "file_history": {
+      "observations": 50,
+      "coldSampleMs": 2770.694166,
+      "retainedTailSamples": 49,
+      "partialObservations": 50,
+      "medianMs": 2578.166834,
+      "p95Ms": 2912.4288749999996,
+      "samplesMs": [
+        2578.8075839999997,
+        2987.571958,
+        2578.166834,
+        3066.1461660000004,
+        2792.40725,
+        2848.287042,
+        2703.2645410000005,
+        2517.209125,
+        2575.7255,
+        2550.2851250000003,
+        2523.237792,
+        2912.4288749999996,
+        2804.349625,
+        2666.016125,
+        2512.130666,
+        2530.928333,
+        2603.730041,
+        2550.55875,
+        2503.775542,
+        2652.7645829999997,
+        2513.854167,
+        2593.357375,
+        2681.934167,
+        2548.0877079999996,
+        2618.428167,
+        2564.7039170000003,
+        2642.961917,
+        2612.770959,
+        2614.367083,
+        2568.522209,
+        2606.477375,
+        2520.917708,
+        2601.742625,
+        2566.158333,
+        2523.010291,
+        2596.172,
+        2558.858042,
+        2577.9050420000003,
+        2659.291833,
+        2542.4431250000002,
+        2566.8232089999997,
+        2538.324125,
+        2523.800875,
+        2633.6976659999996,
+        2595.740417,
+        2568.3002500000002,
+        2559.653542,
+        2525.1629169999997,
+        2580.927
+      ]
+    },
+    "code_history": {
+      "observations": 50,
+      "coldSampleMs": 2607.3185,
+      "retainedTailSamples": 49,
+      "partialObservations": 50,
+      "medianMs": 2633.143208,
+      "p95Ms": 2891.642667,
+      "samplesMs": [
+        2621.500625,
+        2808.0853340000003,
+        2571.6014170000003,
+        2908.993375,
+        2739.710042,
+        2893.7361250000004,
+        2592.826667,
+        2609.655666,
+        2623.559834,
+        2577.53875,
+        2618.9619159999997,
+        2723.614167,
+        2673.6715000000004,
+        2627.2329999999997,
+        2681.0159169999997,
+        2637.468417,
+        2735.5857920000003,
+        2600.425917,
+        2617.269292,
+        2581.1349999999998,
+        2609.2572499999997,
+        2703.093667,
+        2561.869083,
+        2655.3500830000003,
+        2603.521792,
+        2644.564625,
+        2626.290583,
+        2770.846,
+        2553.456208,
+        2651.360208,
+        2555.719875,
+        2594.842125,
+        2654.430083,
+        2686.204125,
+        2516.06775,
+        2665.724667,
+        2573.4959160000003,
+        2612.960333,
+        2731.493667,
+        2655.8721250000003,
+        2648.849709,
+        2633.143208,
+        2625.435584,
+        2708.828375,
+        2655.8988750000003,
+        2621.344417,
+        2549.184833,
+        2649.582041,
+        2891.642667
+      ]
+    },
+    "comparison": {
+      "observations": 50,
+      "coldSampleMs": 2315.8393340000002,
+      "retainedTailSamples": 49,
+      "partialObservations": 0,
+      "medianMs": 2147.905667,
+      "p95Ms": 2329.20775,
+      "samplesMs": [
+        2311.437916,
+        2204.194208,
+        2144.078,
+        2357.656666,
+        2264.1625,
+        2329.20775,
+        2155.0861659999996,
+        2145.543416,
+        2153.0777080000003,
+        2152.7769160000003,
+        2150.974,
+        2382.8043340000004,
+        2195.950667,
+        2132.595541,
+        2131.730416,
+        2089.057459,
+        2152.397958,
+        2126.393791,
+        2095.0288330000003,
+        2136.870583,
+        2149.475458,
+        2210.146667,
+        2147.905667,
+        2135.593208,
+        2156.1320419999997,
+        2095.493916,
+        2215.824417,
+        2139.465084,
+        2127.112459,
+        2179.537667,
+        2125.459209,
+        2116.8353340000003,
+        2139.438959,
+        2137.0644589999997,
+        2121.0564999999997,
+        2300.715875,
+        2128.990833,
+        2203.584458,
+        2179.29375,
+        2115.39825,
+        2158.17475,
+        2142.865708,
+        2162.1672909999998,
+        2166.687958,
+        2136.369083,
+        2131.8595,
+        2102.651333,
+        2144.8121659999997,
+        2269.295084
+      ]
+    }
+  },
+  "limitations": [
+    "Rust core and sampled descendant processes only; excludes WebKit and native UI.",
+    "Synthetic local repositories; excludes network, provider credentials and write/recovery workloads.",
+    "RSS samples can miss short-lived peaks and do not prove absence of leaks.",
+    "Tail latency samples are capped at 2,048 per scenario; observation counts include the full run.",
+    "No before/after or cross-product comparison; elapsed run is not a full-workday acceptance test.",
+    "Other running applications can influence elapsed latency."
+  ]
+}
