@@ -37,9 +37,10 @@ fn git(root: &Path, args: &[&str]) -> String {
 }
 fn setup() -> (tempfile::TempDir, Application, PathBuf, String) {
     let dir = tempfile::tempdir().unwrap();
-    let repo = dir.path().join("source");
+    let repo = dir.path().join("source space ' ไทย");
     fs::create_dir(&repo).unwrap();
     git(&repo, &["init", "-b", "main"]);
+    git(&repo, &["config", "core.autocrlf", "false"]);
     fs::write(repo.join("file.txt"), "base\n").unwrap();
     git(&repo, &["add", "."]);
     git(&repo, &["commit", "-m", "Base"]);
@@ -77,7 +78,7 @@ fn discarded_content_and_recorded_location_survive_application_restart() {
     let receipt = app
         .discard_changes(&id, &preview.request, &preview.token)
         .unwrap();
-    assert_eq!(receipt.status, "succeeded");
+    assert_eq!(receipt.status, "succeeded", "{receipt:?}");
     drop(app);
     let app = Application::new(dir.path().join("app/state.json")).unwrap();
     let index = fs::read(repo.join(".git/index")).unwrap();

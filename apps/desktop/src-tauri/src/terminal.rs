@@ -100,9 +100,13 @@ fn open(membership: String, root: &Path, cols: u16, rows: u16) -> Result<Opened,
         .unwrap_or_else(|| "/bin/sh".into());
     #[cfg(windows)]
     let shell = std::ffi::OsString::from("powershell.exe");
-    let mut command = CommandBuilder::new(&shell);
+    let command = CommandBuilder::new(&shell);
     #[cfg(unix)]
-    command.arg("-l");
+    let command = {
+        let mut command = command;
+        command.arg("-l");
+        command
+    };
     open_command(membership, root, cols, rows, command)
 }
 fn open_command(
