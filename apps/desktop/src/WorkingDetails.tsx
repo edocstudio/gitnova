@@ -1,3 +1,4 @@
+import {useRecoveredLockError} from './useRecoveredLockError';
 import {CommitIdentityNotice} from './CommitIdentity';
 import { t, useLocale } from './i18n';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -40,6 +41,7 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
   const [reviewInvalidated,setReviewInvalidated]=useState(false);
   const [reviewedState, setReviewedState] = useState<string | null>(null);
   const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(false);
+  useRecoveredLockError(membershipId,setError);
   const [receipt, setReceipt] = useState<OperationReceipt | null>(null);
   const writing = useRef(false); const request = useRef(0); const latest = useRef(changes); latest.current = changes;
   const entries = useMemo(() => changes?.files.flatMap(file => [

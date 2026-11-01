@@ -69,7 +69,7 @@ async function connectRealCore(page: Page, state: string, observe?: (command: st
     child.child.stdin!.end(JSON.stringify({ command, args }));
     const { stdout } = await child;await delivery;
     if(id!==null)await page.evaluate(({id,index})=>(window as unknown as {__TAURI_INTERNALS__:{receive:(id:number,data:unknown)=>void}}).__TAURI_INTERNALS__.receive(id,{index,end:true}),{id,index}).catch(()=>{});
-    const result = JSON.parse(stdout); if (result.error) throw new Error(result.error.message); return result.ok;
+    const result = JSON.parse(stdout); if (result.error) return {__gitnovaTestError:result.error}; return result.ok;
   }));
   await page.addInitScript((fetchSeconds:number|null) => {
     // Unrelated suites must never contact fixture hostnames on a timer.
@@ -80,7 +80,7 @@ async function connectRealCore(page: Page, state: string, observe?: (command: st
       transformCallback:(callback:(value:unknown)=>void)=>{const id=++sequence;callbacks.set(id,callback);return id;},
       unregisterCallback:(id:number)=>callbacks.delete(id),
       receive:(id:number,value:unknown)=>{const event=value as {message?:unknown};if(event.message){const target=window as unknown as {gitnovaProgressEvents?:unknown[]};(target.gitnovaProgressEvents??=[]).push(event.message);}callbacks.get(id)?.(value);},
-      invoke: (command: string, args: unknown) => (window as unknown as { gitnovaTestInvoke: (c: string, a: unknown) => Promise<unknown> }).gitnovaTestInvoke(command, JSON.parse(JSON.stringify(args??{})))
+      invoke: (command: string, args: unknown) => (window as unknown as { gitnovaTestInvoke: (c: string, a: unknown) => Promise<unknown> }).gitnovaTestInvoke(command, JSON.parse(JSON.stringify(args??{}))).then(value=>{if(value&&typeof value==='object'&&'__gitnovaTestError' in value)throw value.__gitnovaTestError;return value;})
     } });
   },autoFetchSeconds);
 }
@@ -1853,6 +1853,17 @@ test('branch comparison displays registered gitlink ancestry and opens the match
  await page.getByRole('button',{name:'Search commits…',exact:true}).click();await page.getByLabel('Search mode',{exact:true}).selectOption('compare');await page.getByRole('button',{name:'Search',exact:true}).click();await page.getByText('Gitlink dependency evidence',{exact:false}).click();const dep=page.locator('.dependency-evidence');await expect(dep).toContainText('library');await expect(dep).toContainText('Dependency rollback');await expect(dep).toContainText(wanted.slice(0,12));await page.screenshot({path:testInfo.outputPath('gitlink-dependency-evidence.png')});await dep.getByRole('button',{name:'Inspect dependency commit · library',exact:true}).click();await expect(page.locator(`#commit-${wanted}`)).toHaveClass(/selected/);expect(git(repo,['rev-parse','HEAD'])).toBe(tip);expect(git(repo,['status','--porcelain'])).toBe('');
 });
 
+
+test('lock failures open recovery immediately and refresh after one confirmation without retrying the write',async({page})=>{
+ const repo=join(folder,'lock-dialog-ui');mkdirSync(repo);git(repo,['init','-b','main']);writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','base']);writeFileSync(join(repo,'file.txt'),'preserved work\n');
+ const lock=join(repo,'.git/gitnova-operation.lock');const child=spawnSync(process.execPath,['-e','process.exit(0)']);expect(child.status).toBe(0);writeFileSync(lock,`GitNova pid=${child.pid}\n`);
+ let writes=0;await connectRealCore(page,join(folder,'lock-dialog.json'),command=>{if(command==='change_index')writes++;});await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator('.working-row').click();
+ await page.getByLabel('Summary',{exact:true}).fill('Keep this draft');await page.locator('.unstaged-group .file-stage-action').click();
+ const dialog=page.getByRole('dialog',{name:'Repository is locked',exact:true});await expect(dialog).toBeVisible();await expect(dialog.getByRole('button',{name:'Recover and refresh',exact:true})).toBeEnabled();
+ await dialog.getByRole('button',{name:'Recover and refresh',exact:true}).click();await expect(dialog).toBeHidden();await expect(page.locator('.error-banner')).toHaveCount(0);await expect(page.getByLabel('Summary',{exact:true})).toHaveValue('Keep this draft');expect(existsSync(lock)).toBe(false);expect(git(repo,['diff','--cached','--name-only'])).toBe('');expect(writes).toBe(1);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('preserved work\n');
+ writeFileSync(lock,`GitNova pid=${process.pid}\n`);await page.locator('.unstaged-group .file-stage-action').click();await expect(dialog).toBeVisible();await expect(dialog).toContainText('still running');await expect(dialog.getByRole('button',{name:'Recover and refresh',exact:true})).toBeDisabled();await dialog.getByRole('button',{name:'Close',exact:true}).click();expect(existsSync(lock)).toBe(true);
+ writeFileSync(lock,`GitNova pid=${child.pid}\n`);await page.getByRole('button',{name:'Stash…',exact:true}).click();await page.getByRole('button',{name:'Stash on main',exact:true}).click();await expect(dialog).toBeVisible();await expect(dialog.getByRole('button',{name:'Recover and refresh',exact:true})).toBeEnabled();await dialog.getByRole('button',{name:'Recover and refresh',exact:true}).click();await expect(dialog).toBeHidden();await expect(page.locator('.error-banner')).toHaveCount(0);await expect(page.locator('.stash-controls .inline-error')).toHaveCount(0);expect(git(repo,['stash','list'])).toBe('');expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('preserved work\n');
+});
 
 test('stale lock recovery reviews ownership archives only the old lock and refuses a live owner',async({page})=>{
  const repo=join(folder,'stale-lock-ui');mkdirSync(repo);git(repo,['init','-b','main']);writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','Recovery fixture']);writeFileSync(join(repo,'file.txt'),'staged\n');git(repo,['add','file.txt']);writeFileSync(join(repo,'file.txt'),'working\n');

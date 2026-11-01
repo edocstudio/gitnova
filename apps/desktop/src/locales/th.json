@@ -2178,5 +2178,9 @@
   "Could not remove the account from the system credential store.": "ลบบัญชีจากที่เก็บข้อมูลลับของระบบไม่ได้",
   "Could not open secure account entry. Install Zenity on Linux.": "เปิดหน้าต่างกรอกข้อมูลลับไม่ได้ โปรดติดตั้ง Zenity บน Linux",
   "Stale lock recovery currently requires Unix process verification.": "การกู้คืนล็อกค้างต้องใช้การตรวจสอบโปรเซสบนระบบ Unix",
-  "Repository folder changed. Reopen it before continuing.": "โฟลเดอร์ของ repository เปลี่ยนไป โปรดเปิดใหม่ก่อนดำเนินการต่อ"
+  "Repository folder changed. Reopen it before continuing.": "โฟลเดอร์ของ repository เปลี่ยนไป โปรดเปิดใหม่ก่อนดำเนินการต่อ",
+  "Repository is locked": "คลังโค้ดถูกล็อกอยู่",
+  "Review the lock below. Recovery refreshes this repository automatically and does not retry the interrupted action.": "ตรวจสอบล็อกด้านล่าง เมื่อกู้คืนสำเร็จจะอัปเดตคลังโค้ดให้อัตโนมัติ โดยไม่สั่งงานที่ถูกขัดจังหวะซ้ำ",
+  "Check lock again": "ตรวจสอบล็อกอีกครั้ง",
+  "Recover and refresh": "กู้คืนและอัปเดตสถานะ"
 }
