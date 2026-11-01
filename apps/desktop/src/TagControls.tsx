@@ -17,7 +17,7 @@ export function TagControls({membershipId,oid,initialName='',initialPush=false,r
   const locked=blocked||loading||writing;
   return <div className="tag-controls" aria-label={t('Version tag review')} aria-busy={loading||writing}>
     <strong>{push?t('Push tag {0}',[name]):created?t('Tag created: {0}',[name]):t('Create tag at this commit')}</strong><p>{t('Commit')} <code>{oid.slice(0,12)}</code></p>
-    {(loading||writing)&&<p role="status" className="operation-wait"><span className="loading-spin">↻</span>{writing?push?t('Publishing selected tag…'):t('Creating tag…'):t('Inspecting tag and destination…')}</p>}
+    {(loading||writing)&&<p role="status" className="operation-wait"><span className="loading-spin" aria-hidden="true">↻</span>{writing?push?t('Publishing selected tag…'):t('Creating tag…'):t('Inspecting tag and destination…')}</p>}
     {created&&!push?<><p>{t('The local tag is ready. Publish it to a selected remote when needed.')}</p><div className="graph-action-footer"><button disabled={locked} onClick={onClose}>{t('Close')}</button><button className="primary" disabled={locked} onClick={()=>{setCreated(false);setPush(true);}}>{t('Push tag…')}</button></div></>:preview?<>
       <p>{t('Tag')} <b>{preview.request.name}</b></p>{preview.tagger&&<p>{t('Tagger')} {preview.tagger}</p>}{preview.annotation!==null&&<pre className="tag-annotation">{preview.annotation}</pre>}
       {preview.objectOid&&<p>{t('Tag object')} <code>{preview.objectOid}</code></p>}{preview.destination&&<p>{t('Destination')} {preview.destination}</p>}

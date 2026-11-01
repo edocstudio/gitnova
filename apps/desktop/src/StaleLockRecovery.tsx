@@ -10,7 +10,7 @@ export function StaleLockRecovery({membershipId,disabled,onBusyChange,onRefresh,
  useEffect(()=>{if(autoInspect&&!disabled&&!inspected.current){inspected.current=true;void inspect();}},[autoInspect,disabled]);
  const recover=async()=>{if(busy||disabled||!preview?.exists||preview.blockedReason)return;setArchiving(true);setBusy(true);onBusyChange(true);setError('');try{const location=await api.recoverStaleLock(membershipId,preview.token);if(alive.current){setArchive(location);setPreview(null);}try{await onRefresh();window.dispatchEvent(new CustomEvent('gitnova-lock-recovered',{detail:membershipId}));if(alive.current)onRecovered?.();}catch{if(alive.current)setError('Lock archived. Refresh Working changes to inspect the current Git state.');}}catch(e){if(alive.current){setPreview(null);setError(errorMessage(e));}}finally{if(alive.current){setBusy(false);setArchiving(false);}onBusyChange(false);}};
  return <div className="stale-lock-recovery">
- {(!autoInspect||!preview||Boolean(preview.blockedReason))&&<button disabled={busy||disabled} onClick={()=>void inspect()}>{busy?t(archiving?'Archiving lock…':'Inspecting lock…'):t(autoInspect?'Check lock again':'Recover stale lock…')}</button>}
+ {(!autoInspect||!preview||Boolean(preview.blockedReason))&&<button className={busy?"loading-status":undefined} disabled={busy||disabled} onClick={()=>void inspect()}>{busy?t(archiving?'Archiving lock…':'Inspecting lock…'):t(autoInspect?'Check lock again':'Recover stale lock…')}</button>}
  {error&&<p role="alert" className="notice">{t(error)}</p>}
  {preview&&<div role="region" aria-label={t('Review stale lock recovery')}>
  <code className="recovery-ref">{preview.path.display}</code>

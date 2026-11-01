@@ -79,7 +79,7 @@ export function PipelineStatus({membershipId,oid,onSnapshot}:{membershipId:strin
       <button disabled={loading||!remote} onClick={()=>void connect()}>{config?t('Reconnect account…'):t('Connect')}</button>
       {config&&<button disabled={loading} onClick={()=>{try{localStorage.removeItem(storageKey(membershipId));}catch{/* session */}clearPipelineCache();window.dispatchEvent(new Event('gitnova-ci-config'));setConfig(null);setSnapshot(null);callback.current(null);setEditing(false);setError('');}}>{t('Stop showing CI')}</button>}
     </details>}
-    {loading&&!snapshot&&<p role="status" className="operation-wait"><span className="loading-spin">↻</span>{t('Reading pipelines…')}</p>}
+    {loading&&!snapshot&&<p role="status" className="operation-wait"><span className="loading-spin" aria-hidden="true">↻</span>{t('Reading pipelines…')}</p>}
     {error&&<p role="alert" className="notice">{editing?t(error):snapshot?t('Showing cached CI status. Refresh failed.'):t('CI status unavailable. Check the connection and read permissions.')}</p>}
     {snapshot&&<><p className="hint">{snapshot.project} · <code>{oid.slice(0,8)}</code><br/>{t('Last checked')}: {formatTimestamp(snapshot.checkedAt, 'time')}</p>
       {!snapshot.runs.length&&<p className="hint">{t('No pipeline for this exact commit.')}</p>}

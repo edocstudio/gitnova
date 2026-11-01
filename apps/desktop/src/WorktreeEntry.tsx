@@ -39,7 +39,7 @@ export function WorktreeEntry({ tree, membershipId, disabled, canRemove, onOpen,
     </button>
     {canRemove&&<WorktreeMaintenance tree={tree} membershipId={membershipId} disabled={disabled||writing||loading||!!preview} onBusyChange={onBusyChange} onDone={onDone}/>}
     {canRemove && <button className="submodule-action" disabled={disabled || loading || writing} onClick={() => void review()}>{t('Remove worktree…')}</button>}
-    {loading && <p className="hint" role="status">{t('Checking worktree files and workspace impact…')}</p>}
+    {loading && <p className="loading-status hint" role="status">{t('Checking worktree files and workspace impact…')}</p>}
     {error && <div className="inline-error" role="alert">{t(error)}</div>}
     {preview && <div className="submodule-preview" role="region" aria-label={t('Review worktree removal')}>
       <strong>{t('Remove this checkout?')}</strong>

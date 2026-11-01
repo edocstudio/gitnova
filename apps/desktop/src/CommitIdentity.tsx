@@ -9,7 +9,7 @@ export function ConnectionIdentity({profile,blocked=false,onBusyChange}:{profile
  return <form className="connection-commit-identity" aria-label={t('Commit identity for {0}',[profile.origin])} onSubmit={e=>{e.preventDefault();void save({name:name.trim(),email:email.trim()});}}>
   <h4>{t('Commit identity')}</h4><p className="hint">{t('Optional name and email for commits made in GitNova. Authentication accounts and commit authors are independent.')}</p>
   <p className="hint">{t('Matches origin, or the only remote, on this host. Git configuration files stay unchanged. Existing commits are never rewritten.')}</p>
-  {loading?<p role="status">{t('Reading commit identity…')}</p>:<p className="hint">{saved?t('Saved commit identity: {0} <{1}>',[saved.name,saved.email]):t('Using Git configuration')}</p>}
+  {loading?<p role="status" className="loading-status">{t('Reading commit identity…')}</p>:<p className="hint">{saved?t('Saved commit identity: {0} <{1}>',[saved.name,saved.email]):t('Using Git configuration')}</p>}
   <label htmlFor={`commit-name-${profile.origin}`}>{t('Commit name')}</label><input id={`commit-name-${profile.origin}`} value={name} maxLength={256} disabled={blocked||loading||busy} onChange={e=>setName(e.target.value)}/>
   <label htmlFor={`commit-email-${profile.origin}`}>{t('Commit email')}</label><input id={`commit-email-${profile.origin}`} value={email} maxLength={254} disabled={blocked||loading||busy} onChange={e=>setEmail(e.target.value)} autoComplete="off"/>
   <p className="hint">{t('For GitHub attribution, use a verified email or your GitHub noreply address. It is not inferred from your login.')}</p>

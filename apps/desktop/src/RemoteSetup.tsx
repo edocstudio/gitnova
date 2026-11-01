@@ -30,6 +30,6 @@ export function RemoteSetup({membershipId,disabled,onBusyChange,onDone,onAdded,o
  <label htmlFor="setup-remote-name">{t('Remote name')}</label><input id="setup-remote-name" value={remote} disabled={locked} maxLength={128} onChange={e=>setRemote(e.target.value)}/>
  <div className="graph-action-footer"><button type="button" disabled={locked} onClick={onCancel}>{t('Cancel')}</button><button className="primary" disabled={locked||!remote||uncertain&&mode==='new'||mode==='new'&&!created&&(!namespace||!name)||mode==='existing'&&!created&&!(selected?project:url)}>{loading?t('Preparing…'):mode==='new'&&!created?t('Review repository creation'):t('Review remote')}</button></div>
  </form>}
- {loading&&<p className="operation-wait" role="status">{t('Loading account and repository details…')}</p>}{error&&<p role="alert" className="inline-error">{t(error)}</p>}
+ {loading&&<p className="loading-status operation-wait" role="status">{t('Loading account and repository details…')}</p>}{error&&<p role="alert" className="inline-error">{t(error)}</p>}
  </div>;
 }
