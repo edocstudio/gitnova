@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-benchmark-artifact-integrity",
+  "files": [
+    {
+      "path": "docs/benchmarks/native-date-formatters-background-2026-10-31.json",
+      "bytes": 125702,
+      "sha256": "367f500a9e036be9ca3670f840c8c27758b876e0e4e19ff32de9ddaa0a2715bb"
+    },
+    {
+      "path": "docs/benchmarks/native-date-formatters-cancelled-2026-10-31.json",
+      "bytes": 16823,
+      "sha256": "9ff9e4f4df7d71d367de366a7bf819f373a8b6901743a90f0176bd394e9eaa8a"
+    },
+    {
+      "path": "docs/benchmarks/native-date-formatters-hidden-2026-10-31.json",
+      "bytes": 5814,
+      "sha256": "91f85140b728063084817d5a09a97a8a40ede56402257fa10f4861e83f075230"
+    },
+    {
+      "path": "docs/benchmarks/native-date-formatters-interrupted-2026-10-31.json",
+      "bytes": 244593,
+      "sha256": "f219720950a87043e0459187d065567890ea54269380510f34da048454c8b245"
+    },
+    {
+      "path": "docs/benchmarks/native-date-formatters-ledgers-2026-10-31.json",
+      "bytes": 1595,
+      "sha256": "14699bf3e74fa9e9505ee5d84a83e97644f76075353ab13a39332fd89c885582"
+    },
+    {
+      "path": "docs/benchmarks/native-isolation-dates-2026-10-31.json",
+      "bytes": 29402,
+      "sha256": "e42010431a9c90f7b5a86ee67cae69134be52919656e58ef1d23a6699d512216"
+    },
+    {
+      "path": "docs/benchmarks/native-isolation-dates-cached-2026-10-31.json",
+      "bytes": 29876,
+      "sha256": "3fd730c2d5b57ef34d7793151ede9ea304109b33243d9adb3559e75f96a29f1b"
+    },
+    {
+      "path": "docs/benchmarks/native-isolation-ipc-2026-10-31.json",
+      "bytes": 162982,
+      "sha256": "fec07095cfb2dc9eead3958bf07bc942eee424b3f8c49546b4dfb2999150293e"
+    },
+    {
+      "path": "docs/verification/2026-10-31/webkit-date-formatters.md",
+      "bytes": 9887,
+      "sha256": "5b7b4c8bf170ec97afe60960fb3e9621524d8a96140af22959aec2d6e0700a54"
+    }
+  ]
+}

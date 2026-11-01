@@ -2,12 +2,15 @@
 (async()=>{
  if(window.__gitnovaSoakRunning)return;window.__gitnovaSoakRunning=true;
  // Debug fixture telemetry only. Weak references must not retain canvases.
+ let dateFormatters=0;
+ const NativeDateTimeFormat=Intl.DateTimeFormat;
+ Intl.DateTimeFormat=new Proxy(NativeDateTimeFormat,{construct(target,args,newTarget){dateFormatters++;return Reflect.construct(target,args,newTarget);}});
  let canvasContexts=0,textMeasures=0;const contexts=new WeakSet();
  const getContext=HTMLCanvasElement.prototype.getContext;
  HTMLCanvasElement.prototype.getContext=function(...args){const value=Reflect.apply(getContext,this,args);if(args[0]==='2d'&&value&&!contexts.has(value)){contexts.add(value);canvasContexts++;}return value;};
  const measureText=CanvasRenderingContext2D.prototype.measureText;
  CanvasRenderingContext2D.prototype.measureText=function(...args){textMeasures++;return Reflect.apply(measureText,this,args);};
- const diagnostics=()=>({tauri_callbacks:window.__TAURI_INTERNALS__.callbacks?.size??null,canvas_contexts_created:canvasContexts,text_measure_calls:textMeasures,js_heap_bytes:performance.memory?.usedJSHeapSize??null});
+ const diagnostics=()=>({date_formatters_created:dateFormatters,tauri_callbacks:window.__TAURI_INTERNALS__.callbacks?.size??null,canvas_contexts_created:canvasContexts,text_measure_calls:textMeasures,js_heap_bytes:performance.memory?.usedJSHeapSize??null});
  // Foreground mode must not silently add fetch writes to a read/branch-switch
  // protocol. This storage belongs only to the isolated incognito fixture.
  const fetchKey='gitnova.auto-fetch-seconds';localStorage.setItem(fetchKey,'0');
@@ -26,6 +29,30 @@
 
   const catalog=await invoke('catalog');const workspace=catalog.workspaces.find(w=>w.id===catalog.activeWorkspaceId);const memberships=workspace.memberships;
   await report({kind:'ready',locations:memberships.length,auto_fetch_seconds:Number(localStorage.getItem(fetchKey))});
+  // Isolate native payload reads and ICU formatter allocation from DOM churn.
+  const workload=window.__gitnovaSoakWorkload??'interactions';
+  if(workload!=='interactions'){
+   const target=memberships.find(m=>m.name==='large-a')??memberships[0];
+   const graph=await invoke('graph_page',{membershipId:target.id,cursor:null});
+   const oid=graph.rows[0].commit.oid;
+   const shortDate=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'});
+   const fullDate=new Intl.DateTimeFormat('en-US',{year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'});
+   while(performance.now()-start<window.__gitnovaSoakSeconds*1000){
+    requireVisible();
+    if(workload.startsWith('dates')&&cycle<20){
+     for(let index=0;index<100;index++){
+      const date=new Date(1700000000000+(cycle*100+index)*1000);
+      if(workload==='dates'){date.toLocaleDateString('en-US',{month:'short',day:'numeric'});date.toLocaleString('en-US');}
+      else{shortDate.format(date);fullDate.format(date);}
+     }
+    }
+    if(workload==='ipc')await measure('detail_ipc_only',()=>invoke('commit_detail',{membershipId:target.id,oid}));
+    await report({kind:'cycle',cycle:++cycle,workload,elapsed_ms:performance.now()-start,metrics:timings,visibility:document.visibilityState,dom_nodes:document.getElementsByTagName('*').length,diagnostics:diagnostics()});
+    for(const key of Object.keys(timings))timings[key]=[];
+    await pause(workload.startsWith('dates')?1000:100);
+   }
+   await report({kind:'complete',cycle,workload,elapsed_ms:performance.now()-start});return;
+  }
   while(performance.now()-start<window.__gitnovaSoakSeconds*1000){
    requireVisible();
    let target=cycle%3===0 ? memberships.find(m=>m.name==='large-a')??memberships[0] : memberships[cycle%memberships.length];

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-native-memory-ledger-probes",
+  "sourceRun": "native-date-formatters-interrupted-2026-10-31.json",
+  "method": "Read-only vmmap/ps snapshots during the run; original tool units retained. Probe overhead can perturb nearby timing samples.",
+  "limits": "Point-in-time physical footprint, not continuous JS heap or a leak-free certificate. Shared process accounting must not be summed as private memory.",
+  "probes": [
+    [
+      {
+        "role": "native",
+        "pid": 35909,
+        "measuredAt": "2026-10-31T15:56:04.091572+00:00",
+        "residentKiB": 218480,
+        "physicalFootprintText": "94.4M",
+        "physicalFootprintPeakText": "154.7M",
+        "probeMilliseconds": 2488.6
+      },
+      {
+        "role": "gpu",
+        "pid": 35919,
+        "measuredAt": "2026-10-31T15:56:05.724258+00:00",
+        "residentKiB": 51440,
+        "physicalFootprintText": "40.0M",
+        "physicalFootprintPeakText": "56.6M",
+        "probeMilliseconds": 1607.0
+      },
+      {
+        "role": "networking",
+        "pid": 35920,
+        "measuredAt": "2026-10-31T15:56:07.216566+00:00",
+        "residentKiB": 13376,
+        "physicalFootprintText": "4528K",
+        "physicalFootprintPeakText": "5408K",
+        "probeMilliseconds": 1485.2
+      },
+      {
+        "role": "webContent",
+        "pid": 35921,
+        "measuredAt": "2026-10-31T15:56:08.824313+00:00",
+        "residentKiB": 227136,
+        "physicalFootprintText": "144.5M",
+        "physicalFootprintPeakText": "256.9M",
+        "probeMilliseconds": 1602.7
+      }
+    ]
+  ]
+}

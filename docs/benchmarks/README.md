@@ -166,3 +166,15 @@ fixture window visible for the full foreground interval:
 python3 apps/desktop/scripts/soak-native.py --seconds 1800 --foreground \
   --output /tmp/native-retention.json
 ```
+
+
+## Formatter and historical-diff investigation (2026-10-31)
+
+See the [investigation](../verification/2026-10-31/webkit-date-formatters.md),
+[completed background data](native-date-formatters-background-2026-10-31.json)
+and [integrity manifest](native-date-formatters-artifacts-2026-10-31.json).
+The short formatter controls identify avoidable allocation; interrupted/hidden
+foreground runs are retained as failed attempts. The completed background run
+still exhibits growth. Do not display these results as a completed foreground
+acceptance, a whole-app memory-leak fix, or a cross-product speed comparison.
+Historical baseline reports remain unchanged.

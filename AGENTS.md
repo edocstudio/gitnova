@@ -21,3 +21,14 @@ User direction, 2026-10-28: persistent application/workspace/repository settings
 CI account scope: global host/company connections in Settings, independent of repository, branch and commit. GitLab/GitHub account identity is provider plus normalized HTTPS host/base path; Jenkins identity is controller plus username. Match repositories by validated fetch remote, never folder/project names or host substrings. Keep companies isolated, preserve Keychain credentials and explain global disconnect effects.
 
 User correction, 2026-10-28: Settings contains global host/account Connections; remove the repository-remotes section. Repository destination setup and hosted-repository creation belong to the existing Push context when a destination is missing. Keep reviewed repository creation, local remote configuration and code publication as distinct, honestly reported effects.
+
+# Code quality
+
+Use idiomatic, explicit imports and clear resource ownership. In Python prefer
+focused `from module import name` imports, with aliases for ambiguous names;
+avoid wildcard imports and use qualified imports when they clarify ownership.
+Keep typed, bounded caches and effect/subprocess cleanup explicit in TypeScript
+and Rust. Validate runtime preconditions with errors, not Python `assert`
+statements that disappear under optimization. Refactor the touched workflow
+coherently, preserve behavior, and verify affected callers; avoid repository-wide
+style rewrites mixed into a defect fix.

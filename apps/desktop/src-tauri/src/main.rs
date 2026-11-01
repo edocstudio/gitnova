@@ -1520,8 +1520,14 @@ fn main() {
                             let _ = window.show();
                             let _ = window.set_focus();
                         }
+                        let workload = match std::env::var("GITNOVA_NATIVE_SOAK_WORKLOAD").as_deref() {
+                            Ok("ipc") => "ipc",
+                            Ok("dates") => "dates",
+                            Ok("dates-cached") => "dates-cached",
+                            _ => "interactions",
+                        };
                         let script = format!(
-                            "window.__gitnovaSoakSeconds={seconds};window.__gitnovaSoakRequireVisible={foreground};\n{}",
+                            "window.__gitnovaSoakSeconds={seconds};window.__gitnovaSoakRequireVisible={foreground};window.__gitnovaSoakWorkload='{workload}';\n{}",
                             include_str!("../../scripts/native-soak-driver.js")
                         );
                         let _ = window.eval(&script);

@@ -1,0 +1,1208 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-native-soak",
+  "measuredAt": "2026-10-31T15:37:20.991186+00:00",
+  "sourceBaseCommit": "0fde87d60e835be43ea41157a5fe849397979ec4",
+  "sourceHasUncommittedChanges": true,
+  "binarySha256": "d89b12139a930dd9407af5e36d18bb180b8e2d5380dcf09b6fe21456433e7ab8",
+  "passed": true,
+  "failure": null,
+  "requested_seconds": 60,
+  "sampled_seconds": 62.35,
+  "fixture": {
+    "large_commits": 1000,
+    "large_tracked_files": 100,
+    "medium_commits": 200,
+    "locations": 10,
+    "linked_worktrees": 2,
+    "submodules": 2,
+    "tracking_branches": 200,
+    "merge_commits": 10
+  },
+  "foregroundRequested": false,
+  "workload": "dates-cached",
+  "profile": "packaged debug app with optimized first-party crates, real WKWebView with observed visibility, scripted manual refresh/interaction; optional frontend diagnostic counters; no GPU measurement, provider/network or cross-product comparison",
+  "diagnosticLimitations": "Frontend counters are debug-only observations. performance.memory may be unavailable (then no JS heap data is claimed). RSS growth alone cannot identify a leak or its owner.",
+  "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+  "observed_webkit_visibility": [
+    "hidden"
+  ],
+  "idle_sleep_guard": "Temporary task-owned caffeinate -i tied to native PID; no display/lock settings changed",
+  "latencies": {},
+  "memory": {
+    "peak_native_mib": 107.0625,
+    "peak_sampled_total_mib": 253.9375,
+    "native_warm_slope_mib_per_minute": null,
+    "webkit_warm_slope_mib_per_minute": null,
+    "last_5min_native_median_mib": 106.828125
+  },
+  "cycles": 59,
+  "frontend_diagnostics": {
+    "tauri_callbacks": {
+      "first": 2,
+      "last": 0,
+      "peak": 2
+    },
+    "canvas_contexts_created": {
+      "first": 0,
+      "last": 0,
+      "peak": 0
+    },
+    "text_measure_calls": {
+      "first": 0,
+      "last": 0,
+      "peak": 0
+    }
+  },
+  "max_dom_nodes": 2755,
+  "max_visible_rows": 0,
+  "samples": [
+    {
+      "elapsed_seconds": 0.0,
+      "native_rss_kib": 6912,
+      "webkit_rss_kib": 0,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 6912,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 2.04,
+      "native_rss_kib": 109632,
+      "webkit_rss_kib": 150400,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260032,
+      "cpu_percent": 6.5
+    },
+    {
+      "elapsed_seconds": 4.11,
+      "native_rss_kib": 109632,
+      "webkit_rss_kib": 150384,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260016,
+      "cpu_percent": 0.4
+    },
+    {
+      "elapsed_seconds": 6.19,
+      "native_rss_kib": 109440,
+      "webkit_rss_kib": 150416,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 259856,
+      "cpu_percent": 0.2
+    },
+    {
+      "elapsed_seconds": 8.25,
+      "native_rss_kib": 109456,
+      "webkit_rss_kib": 146480,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255936,
+      "cpu_percent": 0.4
+    },
+    {
+      "elapsed_seconds": 10.31,
+      "native_rss_kib": 109456,
+      "webkit_rss_kib": 146480,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255936,
+      "cpu_percent": 3.1
+    },
+    {
+      "elapsed_seconds": 12.41,
+      "native_rss_kib": 109376,
+      "webkit_rss_kib": 146208,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255584,
+      "cpu_percent": 1.3
+    },
+    {
+      "elapsed_seconds": 14.48,
+      "native_rss_kib": 109376,
+      "webkit_rss_kib": 146208,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255584,
+      "cpu_percent": 1.6
+    },
+    {
+      "elapsed_seconds": 16.56,
+      "native_rss_kib": 109440,
+      "webkit_rss_kib": 146208,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255648,
+      "cpu_percent": 1.7
+    },
+    {
+      "elapsed_seconds": 18.65,
+      "native_rss_kib": 109440,
+      "webkit_rss_kib": 146176,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255616,
+      "cpu_percent": 1.5
+    },
+    {
+      "elapsed_seconds": 20.73,
+      "native_rss_kib": 109392,
+      "webkit_rss_kib": 146176,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255568,
+      "cpu_percent": 1.1
+    },
+    {
+      "elapsed_seconds": 22.81,
+      "native_rss_kib": 109392,
+      "webkit_rss_kib": 146176,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255568,
+      "cpu_percent": 1.0
+    },
+    {
+      "elapsed_seconds": 24.89,
+      "native_rss_kib": 109392,
+      "webkit_rss_kib": 146080,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255472,
+      "cpu_percent": 0.4
+    },
+    {
+      "elapsed_seconds": 26.96,
+      "native_rss_kib": 109392,
+      "webkit_rss_kib": 146112,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255504,
+      "cpu_percent": 0.1
+    },
+    {
+      "elapsed_seconds": 29.02,
+      "native_rss_kib": 109392,
+      "webkit_rss_kib": 146112,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255504,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 31.1,
+      "native_rss_kib": 109440,
+      "webkit_rss_kib": 146128,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255568,
+      "cpu_percent": 0.2,
+      "system_memory_free_percent": 67
+    },
+    {
+      "elapsed_seconds": 33.2,
+      "native_rss_kib": 109440,
+      "webkit_rss_kib": 146128,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255568,
+      "cpu_percent": 0.6
+    },
+    {
+      "elapsed_seconds": 35.28,
+      "native_rss_kib": 109440,
+      "webkit_rss_kib": 146128,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255568,
+      "cpu_percent": 0.4
+    },
+    {
+      "elapsed_seconds": 37.36,
+      "native_rss_kib": 109392,
+      "webkit_rss_kib": 146128,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255520,
+      "cpu_percent": 0.2
+    },
+    {
+      "elapsed_seconds": 39.45,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146128,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255392,
+      "cpu_percent": 0.2
+    },
+    {
+      "elapsed_seconds": 41.52,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146144,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255408,
+      "cpu_percent": 0.2
+    },
+    {
+      "elapsed_seconds": 43.6,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146144,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255408,
+      "cpu_percent": 0.3
+    },
+    {
+      "elapsed_seconds": 45.69,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146160,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255424,
+      "cpu_percent": 0.2
+    },
+    {
+      "elapsed_seconds": 47.76,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146160,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255424,
+      "cpu_percent": 4.3
+    },
+    {
+      "elapsed_seconds": 49.85,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146160,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255424,
+      "cpu_percent": 2.1
+    },
+    {
+      "elapsed_seconds": 51.93,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146176,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255440,
+      "cpu_percent": 3.2
+    },
+    {
+      "elapsed_seconds": 54.01,
+      "native_rss_kib": 109264,
+      "webkit_rss_kib": 146176,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255440,
+      "cpu_percent": 2.2
+    },
+    {
+      "elapsed_seconds": 56.1,
+      "native_rss_kib": 109280,
+      "webkit_rss_kib": 146208,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255488,
+      "cpu_percent": 1.5
+    },
+    {
+      "elapsed_seconds": 58.19,
+      "native_rss_kib": 109280,
+      "webkit_rss_kib": 146208,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255488,
+      "cpu_percent": 0.6
+    },
+    {
+      "elapsed_seconds": 60.27,
+      "native_rss_kib": 109280,
+      "webkit_rss_kib": 146208,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255488,
+      "cpu_percent": 1.5
+    },
+    {
+      "elapsed_seconds": 62.35,
+      "native_rss_kib": 109280,
+      "webkit_rss_kib": 146208,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 255488,
+      "cpu_percent": 0.1
+    }
+  ],
+  "ui_events": [
+    {
+      "auto_fetch_seconds": 0,
+      "kind": "ready",
+      "locations": 10
+    },
+    {
+      "cycle": 1,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 2,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 650,
+      "elapsed_ms": 787,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 2,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 1792,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 3,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 2798,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 4,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 3808.000000000001,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 5,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 4814.000000000001,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 6,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 5822.000000000001,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 7,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 6830.000000000001,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 8,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 7840,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 9,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 8847,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 10,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 9859,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 11,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 10872,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 12,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 11885,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 13,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 12893.000000000002,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 14,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 13906.000000000002,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 15,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 14917,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 16,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 15928.000000000002,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 17,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 16939,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 18,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 17951,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 19,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 18961,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 20,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 19972,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 21,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 20983,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 22,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 21993,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 23,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 23005,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 24,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 24010.000000000004,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 25,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 25021,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 26,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 26029,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 27,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 27037,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 28,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 28050,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 29,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 29054,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 30,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 30065,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 31,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 31075,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 32,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 32090,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 33,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 33107,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 34,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 34128.00000000001,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 35,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 35146,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 36,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 36165,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 37,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 37175,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 38,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 38191,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 39,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 39198,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 40,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 40223,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 41,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 41233,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 42,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 42242,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 43,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 43256.00000000001,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 44,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 44269,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 45,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 45288,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 46,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 46313,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 47,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 47330,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 48,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 48348,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 49,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 49363,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 50,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 50377,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 51,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 51398,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 52,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 52420,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 53,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 53433.00000000001,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 54,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 54450,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 55,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 55467,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 56,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 56476,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 57,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 57502,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 58,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 58510,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 59,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2755,
+      "elapsed_ms": 59525,
+      "kind": "cycle",
+      "metrics": {},
+      "visibility": "hidden",
+      "workload": "dates-cached"
+    },
+    {
+      "cycle": 59,
+      "elapsed_ms": 60550,
+      "kind": "complete",
+      "workload": "dates-cached"
+    }
+  ]
+}
