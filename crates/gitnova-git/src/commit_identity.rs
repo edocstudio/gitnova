@@ -99,3 +99,96 @@ impl crate::GitCli {
         })
     }
 }
+
+impl crate::GitCli {
+    pub fn repository_commit_identity(&self, root: &Path) -> Result<Option<GitCommitIdentity>> {
+        if self
+            .optional_text(
+                root,
+                &[
+                    "config",
+                    "--local",
+                    "--bool",
+                    "--get",
+                    "gitnova.useRepositoryIdentity",
+                ],
+            )?
+            .as_deref()
+            != Some("true")
+        {
+            return Ok(None);
+        }
+        let name = self.text(root, &["config", "--local", "--get", "user.name"])?;
+        let email = self.text(root, &["config", "--local", "--get", "user.email"])?;
+        let identity = GitCommitIdentity {
+            name: name.trim_end_matches('\n').into(),
+            email: email.trim_end_matches('\n').into(),
+        };
+        validate_identity(&identity)?;
+        Ok(Some(identity))
+    }
+    pub fn repository_identity_token(&self, root: &Path) -> Result<String> {
+        use crate::RepositoryReader;
+        use sha2::{Digest, Sha256};
+        let config = self.discover(root)?.common_dir.join("config");
+        Ok(format!(
+            "{:x}",
+            Sha256::digest(crate::remote_config::config_bytes(&config)?)
+        ))
+    }
+    pub fn set_repository_commit_identity(
+        &self,
+        root: &Path,
+        identity: &GitCommitIdentity,
+        token: &str,
+    ) -> Result<()> {
+        use crate::{
+            working::{run_write, OperationLock},
+            RepositoryReader,
+        };
+        use std::io::Write;
+        validate_identity(identity)?;
+        let dir = self.discover(root)?.common_dir;
+        let mut guard = OperationLock::acquire(dir.join("config.lock"))?;
+        if self.repository_identity_token(root)? != token {
+            return Err(AppError::new(
+                "stale_preview",
+                "Repository configuration changed. Reopen identity settings and review again.",
+            ));
+        }
+        let config = dir.join("config");
+        let original = crate::remote_config::config_bytes(&config)?;
+        let mut temp = tempfile::NamedTempFile::new_in(&dir)?;
+        temp.write_all(&original)?;
+        temp.flush()?;
+        let file = crate::process::git_path(temp.path())?;
+        for (key, value) in [
+            ("user.name", identity.name.as_str()),
+            ("user.email", identity.email.as_str()),
+            ("gitnova.useRepositoryIdentity", "true"),
+        ] {
+            run_write(
+                root,
+                &[
+                    "config".into(),
+                    "--file".into(),
+                    file.clone(),
+                    "--replace-all".into(),
+                    "--".into(),
+                    key.into(),
+                    value.into(),
+                ],
+                None,
+            )?;
+        }
+        let updated = crate::remote_config::config_bytes(temp.path())?;
+        if self.repository_identity_token(root)? != token {
+            return Err(AppError::new(
+                "stale_preview",
+                "Repository configuration changed. Original configuration was preserved.",
+            ));
+        }
+        guard.publish(&config, &updated, None)?;
+        Ok(())
+    }
+}

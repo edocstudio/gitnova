@@ -155,20 +155,63 @@ impl Application {
         if gitnova_git::commit_identity::is_scoped(&root) {
             return work();
         }
-        let identity = self
-            .selected_commit_identity(&root)?
-            .map(|row| row.identity);
+        let identity = match self.git.repository_commit_identity(&root)? {
+            Some(identity) => Some(identity),
+            None => self
+                .selected_commit_identity(&root)?
+                .map(|row| row.identity),
+        };
         gitnova_git::commit_identity::with_commit_identity(&root, identity, work)
     }
     pub fn commit_identity(&self, membership: &str) -> Result<CommitIdentityContext> {
         let root = membership_path(&self.catalog()?, membership)?;
-        let row = self.selected_commit_identity(&root)?;
+        let local = self.git.repository_commit_identity(&root)?;
+        let repository = local.is_some();
+        let row = if repository {
+            None
+        } else {
+            self.selected_commit_identity(&root)?
+        };
         let connection = row.as_ref().map(|r| r.profile.clone());
-        gitnova_git::commit_identity::with_commit_identity(&root, row.map(|r| r.identity), || {
-            Ok(CommitIdentityContext {
-                identity: self.git.effective_commit_identity(&root)?,
-                connection,
-            })
+        gitnova_git::commit_identity::with_commit_identity(
+            &root,
+            local.or_else(|| row.map(|r| r.identity)),
+            || {
+                Ok(CommitIdentityContext {
+                    repository,
+                    identity: self.git.effective_commit_identity(&root)?,
+                    connection,
+                })
+            },
+        )
+    }
+    pub fn repository_identity_settings(
+        &self,
+        membership: &str,
+    ) -> Result<RepositoryIdentitySettings> {
+        let root = membership_path(&self.catalog()?, membership)?;
+        let token = self.git.repository_identity_token(&root)?;
+        let identity = self
+            .commit_identity(membership)
+            .ok()
+            .map(|value| value.identity);
+        Ok(RepositoryIdentitySettings {
+            name: identity
+                .as_ref()
+                .map(|i| i.name.clone())
+                .unwrap_or_default(),
+            email: identity.map(|i| i.email).unwrap_or_default(),
+            token,
         })
+    }
+    pub fn set_repository_commit_identity(
+        &self,
+        membership: &str,
+        identity: GitCommitIdentity,
+        token: &str,
+    ) -> Result<()> {
+        let root = membership_path(&self.catalog()?, membership)?;
+        self.git
+            .set_repository_commit_identity(&root, &identity, token)
     }
 }

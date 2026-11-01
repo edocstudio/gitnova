@@ -1,3 +1,4 @@
+import {RepositoryIdentityFooter} from './RepositoryIdentity';
 import {LockRecoveryDialog} from './LockRecoveryDialog';
 import { formatTimestamp } from './date-format';
 import type {TerminalEntry} from './RepositoryTerminal';
@@ -38,9 +39,10 @@ export function App() {
   const [terminalEntries,setTerminalEntries]=useState<TerminalEntry[]>([]);
   const [terminalVisible,setTerminalVisible]=useState(false);
   const [settingsOpen,setSettingsOpen]=useState(false);
+  const [identityRequested,setIdentityRequested]=useState(false);
   const settingsButton=useRef<HTMLButtonElement>(null);
   const settingsReturn=useRef<HTMLElement|null>(null);
-  const closeSettings=useCallback(()=>{setSettingsOpen(false);requestAnimationFrame(()=>{const target=settingsReturn.current;settingsReturn.current=null;(target?.isConnected?target:settingsButton.current)?.focus();});},[]);
+  const closeSettings=useCallback(()=>{setSettingsOpen(false);setIdentityRequested(false);requestAnimationFrame(()=>{const target=settingsReturn.current;settingsReturn.current=null;(target?.isConnected?target:settingsButton.current)?.focus();});},[]);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [sessions, setSessions] = useState<Record<string, Session>>({});
   const [changes, setChanges] = useState<Record<string, WorkingChanges>>({});
@@ -258,7 +260,7 @@ export function App() {
       if(activeId.current!==lockRecovery)return;
       window.dispatchEvent(new Event('gitnova-write-completed'));
     }}/>}
-    <Settings open={settingsOpen} onClose={closeSettings} />
-    <footer className="app-footer"><span><span className="footer-dot" />{t("GitNova · by edocstudio")}</span><RemoteFooter membershipId={selectedId} branch={currentStatus?.branch} tracking={session?.page.tracking} revision={session?.page.fingerprint}/><span>{session ? session.rows.length ? t("{0}–{1} commits loaded", [session.base + 1, session.base + session.rows.length]) : t("0 commits loaded") : t("Git made simple.")}<span className="footer-separator">·</span><kbd>{t("⌘ / Ctrl O")}</kbd> {t("Switch repository")}</span></footer>
+    <Settings open={settingsOpen} onClose={closeSettings} membershipId={selectedId} repositoryName={selected?.name} identityRequested={identityRequested} blocked={writeBusy||busy} onBusyChange={onWriteBusy} />
+    <footer className="app-footer"><span><span className="footer-dot" />{t("GitNova · by edocstudio")}</span><RepositoryIdentityFooter membershipId={selectedId} revision={session?.page.fingerprint} blocked={writeBusy||busy} onEdit={()=>{settingsReturn.current=document.activeElement as HTMLElement;setIdentityRequested(true);setSettingsOpen(true);}}/><RemoteFooter membershipId={selectedId} branch={currentStatus?.branch} tracking={session?.page.tracking} revision={session?.page.fingerprint}/><span>{session ? session.rows.length ? t("{0}–{1} commits loaded", [session.base + 1, session.base + session.rows.length]) : t("0 commits loaded") : t("Git made simple.")}<span className="footer-separator">·</span><kbd>{t("⌘ / Ctrl O")}</kbd> {t("Switch repository")}</span></footer>
   </div>;
 }

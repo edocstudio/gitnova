@@ -2182,5 +2182,17 @@
   "Repository is locked": "คลังโค้ดถูกล็อกอยู่",
   "Review the lock below. Recovery refreshes this repository automatically and does not retry the interrupted action.": "ตรวจสอบล็อกด้านล่าง เมื่อกู้คืนสำเร็จจะอัปเดตคลังโค้ดให้อัตโนมัติ โดยไม่สั่งงานที่ถูกขัดจังหวะซ้ำ",
   "Check lock again": "ตรวจสอบล็อกอีกครั้ง",
-  "Recover and refresh": "กู้คืนและอัปเดตสถานะ"
+  "Recover and refresh": "กู้คืนและอัปเดตสถานะ",
+  "Repository identity": "ตัวตนเฉพาะคลังโค้ด",
+  "Edit repository commit identity": "แก้ไขตัวตนผู้สร้าง commit ของคลังโค้ด",
+  "Set the name and email for future commits.": "ตั้งชื่อและอีเมลสำหรับ commit ถัดไป",
+  "Set commit identity": "ตั้งตัวตนผู้สร้าง commit",
+  "Repository commit identity": "ตัวตนผู้สร้าง commit เฉพาะคลังโค้ด",
+  "Applies to this repository and its linked worktrees. Saves local Git name and email, overrides the connection identity in GitNova, and leaves other repositories unchanged.": "ใช้กับคลังโค้ดนี้และ linked worktrees เท่านั้น บันทึกชื่อและอีเมลใน Git ของคลังโค้ดนี้ โดยใช้ก่อนค่าจาก connection ใน GitNova และไม่เปลี่ยนคลังโค้ดอื่น",
+  "Only future commits are affected. Existing authors and Push authentication are unchanged.": "มีผลต่อ commit ถัดไปเท่านั้น ไม่แก้ผู้เขียนใน commit เดิมหรือบัญชีที่ใช้ Push",
+  "Save for this repository": "บันทึกสำหรับคลังโค้ดนี้",
+  "Repository commit identity saved.": "บันทึกตัวตนผู้สร้าง commit ของคลังโค้ดแล้ว",
+  "Repository configuration changed. Reopen identity settings and review again.": "การตั้งค่าคลังโค้ดเปลี่ยนไป กรุณาเปิดหน้าตั้งค่าตัวตนใหม่และตรวจสอบอีกครั้ง",
+  "Repository configuration changed. Original configuration was preserved.": "การตั้งค่าคลังโค้ดเปลี่ยนไป จึงเก็บการตั้งค่าเดิมไว้",
+  "Amend, cherry-pick and rebase preserve original authors. Edit repository identity in Settings → General, or host defaults in Connections.": "Amend, cherry-pick และ rebase ยังคงผู้เขียนเดิม แก้ตัวตนเฉพาะคลังโค้ดได้ที่ Settings → General หรือค่าเริ่มต้นของโฮสต์ใน Connections"
 }

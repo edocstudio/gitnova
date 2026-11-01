@@ -152,9 +152,11 @@ export interface InvestigationEvidence {packageManifest?:PackageManifestEvidence
 export interface InvestigationPage { hits: CommitSearchHit[]; evidence: InvestigationEvidence[]; partial: boolean }
 
 export interface GitCommitIdentity {name:string;email:string}
-export interface CommitIdentityContext {identity:GitCommitIdentity;connection:HostProfile|null}
+export interface CommitIdentityContext {repository?:boolean;identity:GitCommitIdentity;connection:HostProfile|null}
 
 export interface SubmoduleLifecycleRequest {kind:'add'|'remove'|'stage'|'unstage';path:string;source:string;id:string}
 export interface SubmoduleLifecyclePreview { manifestBefore?:string|null; manifestAfter?:string|null;request:SubmoduleLifecycleRequest;branch:string|null;childHead:string|null;download:boolean;recoveryDir:NativePath;token:string;blockedReason:string|null}
 
 export interface StaleLockPreview {path:NativePath;ownerPid:number|null;exists:boolean;token:string;blockedReason:string|null}
+
+export interface RepositoryIdentitySettings {name:string;email:string;token:string}

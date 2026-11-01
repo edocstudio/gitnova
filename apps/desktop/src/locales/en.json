@@ -2182,5 +2182,17 @@
   "Repository is locked": "Repository is locked",
   "Review the lock below. Recovery refreshes this repository automatically and does not retry the interrupted action.": "Review the lock below. Recovery refreshes this repository automatically and does not retry the interrupted action.",
   "Check lock again": "Check lock again",
-  "Recover and refresh": "Recover and refresh"
+  "Recover and refresh": "Recover and refresh",
+  "Repository identity": "Repository identity",
+  "Edit repository commit identity": "Edit repository commit identity",
+  "Set the name and email for future commits.": "Set the name and email for future commits.",
+  "Set commit identity": "Set commit identity",
+  "Repository commit identity": "Repository commit identity",
+  "Applies to this repository and its linked worktrees. Saves local Git name and email, overrides the connection identity in GitNova, and leaves other repositories unchanged.": "Applies to this repository and its linked worktrees. Saves local Git name and email, overrides the connection identity in GitNova, and leaves other repositories unchanged.",
+  "Only future commits are affected. Existing authors and Push authentication are unchanged.": "Only future commits are affected. Existing authors and Push authentication are unchanged.",
+  "Save for this repository": "Save for this repository",
+  "Repository commit identity saved.": "Repository commit identity saved.",
+  "Repository configuration changed. Reopen identity settings and review again.": "Repository configuration changed. Reopen identity settings and review again.",
+  "Repository configuration changed. Original configuration was preserved.": "Repository configuration changed. Original configuration was preserved.",
+  "Amend, cherry-pick and rebase preserve original authors. Edit repository identity in Settings → General, or host defaults in Connections.": "Amend, cherry-pick and rebase preserve original authors. Edit repository identity in Settings → General, or host defaults in Connections."
 }

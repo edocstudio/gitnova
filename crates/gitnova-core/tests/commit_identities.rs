@@ -413,3 +413,79 @@ fn identity_storage_bounds_reads_and_rejects_oversized_saves_before_replacing_go
     fs::write(file, vec![b' '; 32769]).unwrap();
     assert!(Application::new(data).is_err());
 }
+
+#[test]
+fn repository_identity_is_atomic_scoped_and_shared_with_linked_worktrees() {
+    let dir = tempfile::tempdir().unwrap();
+    let app = Application::new(dir.path().join("app/state.json")).unwrap();
+    let host = profile("github", "identity.example");
+    app.set_connection_commit_identity(&host, Some(identity("Connection")))
+        .unwrap();
+    let (root, id) = repo(
+        dir.path(),
+        &app,
+        "local",
+        "https://identity.example/team/local.git",
+    );
+    let (_, other) = repo(
+        dir.path(),
+        &app,
+        "other",
+        "https://identity.example/team/other.git",
+    );
+    let original_head = git(&root, &["rev-parse", "HEAD"]);
+    let settings = app.repository_identity_settings(&id).unwrap();
+    assert_eq!(settings.name, "Connection");
+    git(&root, &["config", "custom.preserve", "yes"]);
+    let before = fs::read(root.join(".git/config")).unwrap();
+    assert!(app
+        .set_repository_commit_identity(&id, identity("Local"), &settings.token)
+        .is_err());
+    assert_eq!(fs::read(root.join(".git/config")).unwrap(), before);
+    let settings = app.repository_identity_settings(&id).unwrap();
+    assert!(app
+        .set_repository_commit_identity(
+            &id,
+            GitCommitIdentity {
+                name: "Bad\nName".into(),
+                email: "bad@example.invalid".into()
+            },
+            &settings.token
+        )
+        .is_err());
+    fs::write(root.join(".git/config.lock"), "owned by another writer").unwrap();
+    assert!(app
+        .set_repository_commit_identity(&id, identity("Local"), &settings.token)
+        .is_err());
+    assert_eq!(fs::read(root.join(".git/config")).unwrap(), before);
+    fs::remove_file(root.join(".git/config.lock")).unwrap();
+    app.set_repository_commit_identity(&id, identity("Local"), &settings.token)
+        .unwrap();
+    assert_eq!(git(&root, &["config", "--local", "user.name"]), "Local");
+    assert_eq!(git(&root, &["config", "custom.preserve"]), "yes");
+    let effective = app.commit_identity(&id).unwrap();
+    assert!(effective.repository);
+    assert!(effective.connection.is_none());
+    assert_eq!(effective.identity, identity("Local"));
+    assert_eq!(
+        app.commit_identity(&other).unwrap().identity,
+        identity("Connection")
+    );
+    assert_eq!(git(&root, &["rev-parse", "HEAD"]), original_head);
+    let linked = dir.path().join("linked");
+    git(
+        &root,
+        &["worktree", "add", "-b", "linked", linked.to_str().unwrap()],
+    );
+    let catalog = app.add_repository(&linked).unwrap();
+    let linked_id = catalog.workspaces[0].selected_id.as_ref().unwrap();
+    assert_eq!(
+        app.commit_identity(linked_id).unwrap().identity,
+        identity("Local")
+    );
+    commit(&app, &id, &root);
+    assert_eq!(
+        git(&root, &["show", "-s", "--format=%an <%ae>|%cn <%ce>"]),
+        "Local <local@example.invalid>|Local <local@example.invalid>"
+    );
+}
