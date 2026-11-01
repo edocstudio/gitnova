@@ -856,3 +856,8 @@ main { display: flex; flex: 1; min-height: 0; }
 /* Busy feedback uses CSS only: no timers, React updates or permanent layers. */
 .loading-status::before { content: ""; display: inline-block; width: .85em; height: .85em; margin-inline-end: .55em; border: 2px solid currentColor; border-inline-end-color: transparent; border-radius: 50%; vertical-align: -.1em; animation: loading-spin 1s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .loading-status::before { animation: none; } }
+.footer-identity { display:block; text-align:left; color:inherit; font:inherit; border:0; background:transparent; padding:2px 4px; min-width:0; max-width:320px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; flex-shrink:1; }
+.footer-identity:hover { color:var(--accent); text-decoration:underline; }
+.repository-identity-settings { margin-top:24px; border-top:1px solid var(--line); padding-top:12px; }
+.repository-identity-settings label,.repository-identity-settings input { display:block; width:100%; }
+.repository-identity-settings input { margin:6px 0 14px; }

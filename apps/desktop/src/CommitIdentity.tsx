@@ -21,7 +21,7 @@ export function CommitIdentityNotice({membershipId,refreshKey}:{membershipId:str
  const [value,setValue]=useState<CommitIdentityContext|null>(null),[error,setError]=useState('');
  useEffect(()=>{let live=true;let sequence=0;const load=()=>{const request=++sequence;void api.commitIdentity(membershipId).then(v=>{if(live&&sequence===request){setValue(v);setError('');}}).catch(e=>{if(live&&sequence===request){setValue(null);setError(errorMessage(e));}});};load();window.addEventListener('gitnova-commit-identity',load);return()=>{live=false;window.removeEventListener('gitnova-commit-identity',load);};},[membershipId,refreshKey]);
  return <div className="commit-identity-notice" aria-label={t('Commit identity')}>
-  {value?<><span>{t('Committer')}: <strong>{value.identity.name}</strong> &lt;{value.identity.email}&gt;</span><small>{value.connection?t('Connection identity · {0}',[value.connection.origin]):t('Using Git configuration')}</small></>:<small role={error?'alert':'status'}>{error?t(error):t('Reading commit identity…')}</small>}
-  <small>{t('Amend, cherry-pick and rebase preserve original authors. Change commit identity in Settings → Connections.')}</small>
+  {value?<><span>{t('Committer')}: <strong>{value.identity.name}</strong> &lt;{value.identity.email}&gt;</span><small>{value.repository?t('Repository identity'):value.connection?t('Connection identity · {0}',[value.connection.origin]):t('Using Git configuration')}</small></>:<small role={error?'alert':'status'}>{error?t(error):t('Reading commit identity…')}</small>}
+  <small>{t('Amend, cherry-pick and rebase preserve original authors. Edit repository identity in Settings → General, or host defaults in Connections.')}</small>
  </div>;
 }

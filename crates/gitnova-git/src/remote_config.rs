@@ -11,7 +11,7 @@ use std::{
     io::{Read, Write},
     path::Path,
 };
-fn config_bytes(path: &Path) -> Result<Vec<u8>> {
+pub(crate) fn config_bytes(path: &Path) -> Result<Vec<u8>> {
     let meta = fs::symlink_metadata(path)?;
     if !meta.is_file() || meta.file_type().is_symlink() {
         return Err(AppError::new(

@@ -989,6 +989,28 @@ async fn set_connection_commit_identity(
     .await
 }
 #[tauri::command]
+async fn repository_identity_settings(
+    state: State<'_>,
+    membership_id: String,
+) -> Result<RepositoryIdentitySettings, AppError> {
+    run(state, move |a| {
+        a.repository_identity_settings(&membership_id)
+    })
+    .await
+}
+#[tauri::command]
+async fn set_repository_commit_identity(
+    state: State<'_>,
+    membership_id: String,
+    identity: GitCommitIdentity,
+    token: String,
+) -> Result<(), AppError> {
+    run(state, move |a| {
+        a.set_repository_commit_identity(&membership_id, identity, &token)
+    })
+    .await
+}
+#[tauri::command]
 async fn commit_identity(
     state: State<'_>,
     membership_id: String,
@@ -1303,6 +1325,8 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         connection_commit_identity,
         set_connection_commit_identity,
         commit_identity,
+        repository_identity_settings,
+        set_repository_commit_identity,
         host_account,
         connect_host,
         disconnect_host,

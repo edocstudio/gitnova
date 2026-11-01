@@ -240,3 +240,7 @@ Widths are device-local display preferences shared across repositories, persiste
 ### Contextual operation-lock recovery
 
 A lock failure interrupts the current graph action. The activity disclosure hides the next step and previously required a separate refresh. Open the existing ownership preview in a contextual dialog when an explicit action encounters a GitNova operation lock. One confirmation archives an eligible stale lock and refreshes repository state. Active or uncertain owners remain blocked. Preserve files and drafts, and never retry the interrupted write automatically. Background fetch must not open recovery dialogs.
+
+### Repository commit identity
+
+The footer exposes the effective name and email for the current repository; the existing commit notice is only visible during composition. Clicking the footer opens the existing Settings → General surface at a repository-scoped identity form, without adding a separate dialog or tab. Saving updates local Git user.name/user.email atomically and enables an explicit GitNova repository override before connection identities. Linked worktrees share this setting; global configuration, authentication, and existing commits stay unchanged. The footer and compose notices refresh after saving and on focus.

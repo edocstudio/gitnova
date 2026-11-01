@@ -1468,6 +1468,7 @@ pub struct ConnectionCommitIdentity {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommitIdentityContext {
+    pub repository: bool,
     pub identity: GitCommitIdentity,
     pub connection: Option<HostProfile>,
 }
@@ -1553,4 +1554,12 @@ pub struct PackageLocationEvidence {
     pub location: SearchLocation,
     pub oid: String,
     pub version: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RepositoryIdentitySettings {
+    pub name: String,
+    pub email: String,
+    pub token: String,
 }

@@ -191,6 +191,15 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             serde_json::from_value(args["identity"].clone())
                 .map_err(|e| AppError::new("json", e.to_string()))?
         )?),
+        "repository_identity_settings" => {
+            json!(app.repository_identity_settings(&s("membershipId")?)?)
+        }
+        "set_repository_commit_identity" => json!(app.set_repository_commit_identity(
+            &s("membershipId")?,
+            serde_json::from_value(args["identity"].clone())
+                .map_err(|e| AppError::new("json", e.to_string()))?,
+            &s("token")?
+        )?),
         "commit_identity" => json!(app.commit_identity(&s("membershipId")?)?),
         "host_account" => json!(app.host_account(
             &serde_json::from_value(args["profile"].clone())
