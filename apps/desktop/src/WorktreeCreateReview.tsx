@@ -49,7 +49,7 @@ export function WorktreeCreateReview({ membershipId, oid, locals, blocked, onBac
       {mode !== 'detached' && <><label htmlFor="worktree-create-branch">{t('Branch name')}</label>{mode === 'existingBranch' ? <select id="worktree-create-branch" disabled={loading || writing} value={branch} onChange={e => setBranch(e.target.value)}>{locals.map(ref => <option key={ref.name} value={ref.name.slice(11)}>{ref.name.slice(11)}</option>)}</select> : <input id="worktree-create-branch" value={branch} onChange={e => setBranch(e.target.value)} disabled={loading || writing} maxLength={256} autoComplete="off" spellCheck={false} required />}</>}
       <label htmlFor="worktree-create-destination">{t('New folder (absolute path)')}</label><input id="worktree-create-destination" value={destination} onChange={e => setDestination(e.target.value)} disabled={loading || writing} maxLength={4096} autoComplete="off" spellCheck={false} placeholder={t('/absolute/path/to/new-worktree')} required />
       <p className="hint">{t('Choose a new folder outside existing repositories. Its parent directory must already exist.')}</p>
-      {loading && <p role="status">{t('Inspecting destination and branch availability…')}</p>}
+      {loading && <p role="status" className="loading-status">{t('Inspecting destination and branch availability…')}</p>}
       <div className="graph-action-footer"><button type="button" disabled={loading || writing} onClick={onBack}>{t('Back')}</button><button className="primary" disabled={blocked || loading || writing || !destination || (mode !== 'detached' && !branch)}>{t('Review worktree')}</button></div>
     </form>}
     {error && <div className="inline-error" role="alert">{t(error)}</div>}

@@ -66,7 +66,7 @@ export function BranchSwitcher({ tracking = [], membershipId, status, blocked = 
         </>}
       </div>
       {scope === 'remote' && !preview && !writing && <p className="hint">{t("Choose a branch to fetch its latest revision and open it locally. Git uses your configured credentials or SSH agent.")}</p>}
-      {(loading || writing) && <p className="hint" role="status">{phase || t("Reading branches and switch preview…")}</p>}
+      {(loading || writing) && <p className="loading-status hint" role="status">{phase || t("Reading branches and switch preview…")}</p>}
       {error && <div className="inline-error" role="alert">{t(error)}</div>}
       {receipt && receipt.status !== 'succeeded' && <div className="inline-error" role="alert">{t(receipt.summary)}<p>{receipt.recovery}</p></div>}
       {receipt?.kind === 'fetch_remote' && receipt.status === 'succeeded' && !preview && !writing && <p className="hint" role="status">{t("Remote branches refreshed. Choose a branch to open locally.")}</p>}

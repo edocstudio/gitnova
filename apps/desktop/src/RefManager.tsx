@@ -58,7 +58,7 @@ export function RefManager({ onConfigureRemote, initialRemote, initialDestinatio
   const chooseMode = (next: Mode) => { setMode(next); setError(''); setRefReview(null); setPushReview(null); };
   return <div ref={root} className="ref-manager" aria-label={t("Manage {0} {1}", [tag ? t("tag") : t("branch"), name])}>
     <div className="ref-manager-heading"><strong>{tag ? t("Tag") : t("Local branch")} · {name}</strong><code>{selectedRef.oid.slice(0, 12)}</code></div>
-    {readingRemotes && (mode === 'push' || mode === 'upstream') && <p role="status">{t('Reading configured remotes…')}</p>}
+    {readingRemotes && (mode === 'push' || mode === 'upstream') && <p role="status" className="loading-status">{t('Reading configured remotes…')}</p>}
     {settingUp?<RemoteSetup membershipId={membershipId} disabled={blocked||writing} onConnections={onConfigureRemote} onBusyChange={value=>{setWriting(value);onBusyChange(value);}} onDone={onDone} onAdded={value=>{setRemote(value);setSetUpstream(true);setSettingUp(false);void loadRemotes().catch(e=>setError(errorMessage(e)));}} onCancel={()=>setSettingUp(false)}/>:mode==='push'&&!readingRemotes&&!listing.remotes.length?<div className="notice remote-empty" role="status"><p>{t('No remote is configured for this repository. Add a destination before pushing?')}</p><div className="graph-action-footer"><button className="primary" disabled={locked} onClick={()=>setSettingUp(true)}>{t('Add remote…')}</button><button disabled={locked} onClick={onClose}>{t('Cancel')}</button></div></div>:
 mode === 'actions' ? <div className="ref-manager-options">
       {!tag && <><button disabled={locked} onClick={() => chooseMode('push')}>{t("Push")} {name}…</button><button disabled={locked} onClick={() => chooseMode('rename')}>{t("Rename branch…")}</button><button disabled={locked} onClick={() => chooseMode('upstream')}>{t("Set or change upstream…")}</button><button disabled={locked} onClick={() => void reviewRef('unsetUpstream')}>{t("Remove upstream…")}</button></>}
@@ -72,7 +72,7 @@ mode === 'actions' ? <div className="ref-manager-options">
       {mode==='push'&&listing.remotes.length>0&&<button type="button" disabled={locked} onClick={()=>setSettingUp(true)}>{t("Add remote…")}</button>}
       <div className="graph-action-footer"><button type="button" disabled={writing} onClick={() => chooseMode('actions')}>{t("Back")}</button><button className="primary" disabled={locked || !remote || !destination}>{mode === 'push' ? t("Check destination & review") : t("Review upstream")}</button></div>
     </form> : <>
-      {loading && <p role="status">{editMode === 'push' ? t("Checking the live push destination and outgoing commits…") : t("Inspecting selected ref, configuration and worktrees…")}</p>}
+      {loading && <p role="status" className="loading-status">{editMode === 'push' ? t("Checking the live push destination and outgoing commits…") : t("Inspecting selected ref, configuration and worktrees…")}</p>}
       {refReview && <div className="ref-operation-review"><strong>{label} · {name}</strong>
         {refReview.action.kind === 'renameBranch' && <p>{name} → <b>{refReview.action.newName}</b><br />{t("Commit")} <code>{refReview.objectOid.slice(0, 12)}</code> {t("stays in place.")}</p>}
         {(refReview.action.kind === 'setUpstream' || refReview.action.kind === 'unsetUpstream') && <p>{t("Upstream:")} {refReview.upstreamBefore ?? t("None")} → <b>{refReview.upstreamAfter ?? t("None")}</b></p>}
@@ -91,6 +91,6 @@ mode === 'actions' ? <div className="ref-manager-options">
         <div className="graph-action-footer"><button disabled={writing} onClick={() => chooseMode('push')}>{t("Back")}</button><button className="primary" disabled={locked || Boolean(pushReview.blockedReason)} onClick={() => void apply()}>{writing ? t("Pushing…") : t("Push reviewed branch")}</button></div>
       </div>}
     </>}
-    {writing && <p role="status">{t("Git operation in progress…")}</p>}{error && <div className="inline-error" role="alert">{t(error)}</div>}
+    {writing && <p role="status" className="loading-status">{t("Git operation in progress…")}</p>}{error && <div className="inline-error" role="alert">{t(error)}</div>}
   </div>;
 }

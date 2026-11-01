@@ -58,7 +58,7 @@ export function JenkinsStatus({membershipId,oid,onSnapshot}:{membershipId:string
    <button disabled={loading||Object.values(draft).some(v=>!v.trim())} onClick={()=>void connect()}>{config?t('Reconnect Jenkins account…'):t('Connect Jenkins account…')}</button>
    {config&&<button disabled={loading} onClick={()=>{try{localStorage.removeItem(storageKey(membershipId));}catch{/* preferences */}cache.clear();setConfig(null);setValue(null);callback.current(null);setEditing(false);setError('');}}>{t('Stop showing Jenkins')}</button>}
   </details>}
-  {loading&&!value&&<p role="status" className="operation-wait"><span className="loading-spin">↻</span>{t('Reading Jenkins builds…')}</p>}
+  {loading&&!value&&<p role="status" className="operation-wait"><span className="loading-spin" aria-hidden="true">↻</span>{t('Reading Jenkins builds…')}</p>}
   {error&&<p role="alert" className="notice">{editing?t(error):value?t('Showing cached Jenkins status. Refresh failed.'):t('Jenkins status unavailable. Check connection settings and job read permission.')}</p>}
   {value&&<><p className="hint">{value.pipeline.origin}<br/>{value.pipeline.project}<br/><code>{oid.slice(0,8)}</code> · {t('Last checked')}: {formatTimestamp(value.pipeline.checkedAt, 'time')}</p>
    {value.pipeline.runs.map(run=><div className="pipeline-run" key={run.id}><span className={`ci-badge ci-${run.status}`}>{t(run.status)}</span> <CiRunLink url={run.url}>{t('Build #{0}',[run.id])} ↗</CiRunLink></div>)}
