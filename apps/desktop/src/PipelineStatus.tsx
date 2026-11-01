@@ -1,10 +1,11 @@
+import { formatTimestamp } from './date-format';
 import { CiRunLink } from './CiRunLink';
 import { JenkinsStatus } from './JenkinsStatus';
 import { readCi } from './ci-requests';
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { HostingSelection, PipelineSnapshot } from './contracts';
-import { t, dateLocale } from './i18n';
+import { t } from './i18n';
 
 type Config = {remote:string;origin:string};
 const storageKey = (id:string) => `gitnova.ci.gitlab.${id}`;
@@ -80,7 +81,7 @@ export function PipelineStatus({membershipId,oid,onSnapshot}:{membershipId:strin
     </details>}
     {loading&&!snapshot&&<p role="status" className="operation-wait"><span className="loading-spin">↻</span>{t('Reading pipelines…')}</p>}
     {error&&<p role="alert" className="notice">{editing?t(error):snapshot?t('Showing cached CI status. Refresh failed.'):t('CI status unavailable. Check the connection and read permissions.')}</p>}
-    {snapshot&&<><p className="hint">{snapshot.project} · <code>{oid.slice(0,8)}</code><br/>{t('Last checked')}: {new Date(snapshot.checkedAt*1000).toLocaleTimeString(dateLocale())}</p>
+    {snapshot&&<><p className="hint">{snapshot.project} · <code>{oid.slice(0,8)}</code><br/>{t('Last checked')}: {formatTimestamp(snapshot.checkedAt, 'time')}</p>
       {!snapshot.runs.length&&<p className="hint">{t('No pipeline for this exact commit.')}</p>}
       {snapshot.runs.map(run=><details className="pipeline-run" key={run.id}><summary><span className={`ci-badge ci-${run.status}`}>{t(run.status)}</span> #{run.id} · {run.reference}</summary>
         <p className="hint">{t('Pipeline source')}: {run.source||t('Status unavailable')}</p>

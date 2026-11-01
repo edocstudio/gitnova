@@ -1,4 +1,5 @@
-import { t, dateLocale } from './i18n';
+import { formatTimestamp } from './date-format';
+import { t } from './i18n';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { Catalog, InvestigationPage, CommitSearchPage, CommitSearchRequest, SearchCursor, SearchLocation, Workspace } from './contracts';
@@ -91,7 +92,7 @@ export function CommitSearch({ catalog, workspace, currentId, disabled, open, on
       }}>
         {mode!=='blame'&&page?.hits.map(hit => {
           const target = hit.locations.find(l => l.membershipId === currentId) ?? hit.locations[0];
-          return <button key={`${target.repositoryId}:${hit.commit.oid}`} className="commit-search-result" disabled={loading || navigating || disabled} onClick={() => void navigate(target, hit.commit.oid, hit.historicalPath?.display)} title={`${target.path.display}\n${hit.commit.oid}`}><span className="search-result-context"><span><Icon name="folder" size={13} />{target.name}{hit.locations.length > 1 ? t(" · {0} locations", [hit.locations.length]) : ''}</span><code>{hit.commit.oid.slice(0, 10)}</code></span><strong>{hit.commit.subject || t("(no commit message)")}</strong><span className="search-result-excerpt">{hit.historicalPath?.display??hit.excerpt}</span><small>{hit.commit.author} · {new Date(hit.commit.timestamp * 1000).toLocaleDateString(dateLocale())} · {target.path.display}</small></button>;
+          return <button key={`${target.repositoryId}:${hit.commit.oid}`} className="commit-search-result" disabled={loading || navigating || disabled} onClick={() => void navigate(target, hit.commit.oid, hit.historicalPath?.display)} title={`${target.path.display}\n${hit.commit.oid}`}><span className="search-result-context"><span><Icon name="folder" size={13} />{target.name}{hit.locations.length > 1 ? t(" · {0} locations", [hit.locations.length]) : ''}</span><code>{hit.commit.oid.slice(0, 10)}</code></span><strong>{hit.commit.subject || t("(no commit message)")}</strong><span className="search-result-excerpt">{hit.historicalPath?.display??hit.excerpt}</span><small>{hit.commit.author} · {formatTimestamp(hit.commit.timestamp, 'calendar')} · {target.path.display}</small></button>;
         })}
         {page && !page.hits.length && !loading && <p className="quiet-state">{mode!=='metadata'?t("No matching commits in the inspected history."):page.partial ? t("No matches in the indexed portion of local history.") : t("No matching commits in this scope.")}</p>}
         {!page && !loading && !error && <p className="quiet-state">{t("Search the history of your project. Select a scope above.")}</p>}

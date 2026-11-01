@@ -1,9 +1,10 @@
+import { formatTimestamp } from './date-format';
 import { CiRunLink } from './CiRunLink';
 import { useEffect,useRef,useState } from 'react';
 import { api,errorMessage } from './api';
 import { readCi } from './ci-requests';
 import type { JenkinsSelection,JenkinsSnapshot,PipelineSnapshot } from './contracts';
-import { t,dateLocale } from './i18n';
+import { t } from './i18n';
 type Config=Omit<JenkinsSelection,'oid'>;
 const storageKey=(id:string)=>`gitnova.ci.jenkins.${id}`;
 function saved(id:string):Config|null{
@@ -59,7 +60,7 @@ export function JenkinsStatus({membershipId,oid,onSnapshot}:{membershipId:string
   </details>}
   {loading&&!value&&<p role="status" className="operation-wait"><span className="loading-spin">↻</span>{t('Reading Jenkins builds…')}</p>}
   {error&&<p role="alert" className="notice">{editing?t(error):value?t('Showing cached Jenkins status. Refresh failed.'):t('Jenkins status unavailable. Check connection settings and job read permission.')}</p>}
-  {value&&<><p className="hint">{value.pipeline.origin}<br/>{value.pipeline.project}<br/><code>{oid.slice(0,8)}</code> · {t('Last checked')}: {new Date(value.pipeline.checkedAt*1000).toLocaleTimeString(dateLocale())}</p>
+  {value&&<><p className="hint">{value.pipeline.origin}<br/>{value.pipeline.project}<br/><code>{oid.slice(0,8)}</code> · {t('Last checked')}: {formatTimestamp(value.pipeline.checkedAt, 'time')}</p>
    {value.pipeline.runs.map(run=><div className="pipeline-run" key={run.id}><span className={`ci-badge ci-${run.status}`}>{t(run.status)}</span> <CiRunLink url={run.url}>{t('Build #{0}',[run.id])} ↗</CiRunLink></div>)}
    {!value.pipeline.runs.length&&<p className="hint">{t('No verified Jenkins build for this commit in the scanned history.')}</p>}
    {value.unlinked>0&&<p className="notice">{t('{0} builds could not be linked to this repository and commit. Their results are not shown on the graph.',[value.unlinked])}</p>}

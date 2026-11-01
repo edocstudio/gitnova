@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-native-soak",
+  "measuredAt": "2026-10-31T15:44:05.278776+00:00",
+  "sourceBaseCommit": "0fde87d60e835be43ea41157a5fe849397979ec4",
+  "sourceHasUncommittedChanges": true,
+  "binarySha256": "1ca171a9a25fbe30a1d55b9e954dc9b3c5ee5fb95915dbab506795f3b3febec1",
+  "passed": false,
+  "failure": "Error: Timeout: visible foreground WebView",
+  "requested_seconds": 1800,
+  "sampled_seconds": 32.92,
+  "fixture": {
+    "large_commits": 50000,
+    "large_tracked_files": 10000,
+    "medium_commits": 5000,
+    "locations": 10,
+    "linked_worktrees": 2,
+    "submodules": 2,
+    "tracking_branches": 200,
+    "merge_commits": 10
+  },
+  "foregroundRequested": true,
+  "workload": "interactions",
+  "profile": "packaged debug app with optimized first-party crates, real WKWebView with observed visibility, scripted manual refresh/interaction; optional frontend diagnostic counters; no GPU measurement, provider/network or cross-product comparison",
+  "diagnosticLimitations": "Frontend counters are debug-only observations. performance.memory may be unavailable (then no JS heap data is claimed). RSS growth alone cannot identify a leak or its owner.",
+  "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+  "observed_webkit_visibility": [
+    "hidden"
+  ],
+  "idle_sleep_guard": "Temporary task-owned caffeinate -di tied to native PID; prevents display idle sleep only during foreground sampling; no preferences changed or session unlocked",
+  "latencies": {},
+  "memory": {
+    "peak_native_mib": 107.359375,
+    "peak_sampled_total_mib": 258.84375,
+    "native_warm_slope_mib_per_minute": null,
+    "webkit_warm_slope_mib_per_minute": null,
+    "last_5min_native_median_mib": null
+  },
+  "cycles": 0,
+  "frontend_diagnostics": {},
+  "max_dom_nodes": 0,
+  "max_visible_rows": 0,
+  "samples": [
+    {
+      "elapsed_seconds": 0.0,
+      "native_rss_kib": 32,
+      "webkit_rss_kib": 0,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 32,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 2.04,
+      "native_rss_kib": 108224,
+      "webkit_rss_kib": 107152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 215376,
+      "cpu_percent": 2.0
+    },
+    {
+      "elapsed_seconds": 4.08,
+      "native_rss_kib": 109936,
+      "webkit_rss_kib": 155120,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 265056,
+      "cpu_percent": 0.1
+    },
+    {
+      "elapsed_seconds": 6.13,
+      "native_rss_kib": 109744,
+      "webkit_rss_kib": 155040,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 264784,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 8.17,
+      "native_rss_kib": 109520,
+      "webkit_rss_kib": 151696,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 261216,
+      "cpu_percent": 0.2
+    },
+    {
+      "elapsed_seconds": 10.22,
+      "native_rss_kib": 109520,
+      "webkit_rss_kib": 151648,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 261168,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 12.26,
+      "native_rss_kib": 109520,
+      "webkit_rss_kib": 151440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260960,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 14.31,
+      "native_rss_kib": 109488,
+      "webkit_rss_kib": 151168,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260656,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 16.35,
+      "native_rss_kib": 109664,
+      "webkit_rss_kib": 151168,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260832,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 18.4,
+      "native_rss_kib": 109664,
+      "webkit_rss_kib": 151152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260816,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 20.45,
+      "native_rss_kib": 109664,
+      "webkit_rss_kib": 151152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260816,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 22.49,
+      "native_rss_kib": 109664,
+      "webkit_rss_kib": 151152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260816,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 24.54,
+      "native_rss_kib": 109664,
+      "webkit_rss_kib": 151152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260816,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 26.63,
+      "native_rss_kib": 109648,
+      "webkit_rss_kib": 151152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260800,
+      "cpu_percent": 0.1
+    },
+    {
+      "elapsed_seconds": 28.71,
+      "native_rss_kib": 109648,
+      "webkit_rss_kib": 151152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260800,
+      "cpu_percent": 0.1
+    },
+    {
+      "elapsed_seconds": 30.81,
+      "native_rss_kib": 109664,
+      "webkit_rss_kib": 151152,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260816,
+      "cpu_percent": 0.8,
+      "system_memory_free_percent": 66
+    },
+    {
+      "elapsed_seconds": 32.92,
+      "native_rss_kib": 109680,
+      "webkit_rss_kib": 151168,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 260848,
+      "cpu_percent": 0.1
+    }
+  ],
+  "ui_events": [
+    {
+      "cycle": 0,
+      "elapsed_ms": 30857,
+      "error": "Error: Timeout: visible foreground WebView",
+      "kind": "failed",
+      "visibility": "hidden"
+    }
+  ]
+}

@@ -1,10 +1,11 @@
+import { formatTimestamp } from './date-format';
 import {HistoryColumnHeader} from './HistoryColumnHeader';
 import {HISTORY_COLUMNS,HISTORY_WIDTHS_KEY,parseHistoryWidths,historyColumnLayout} from './history-columns';
 import type {HistoryWidths,HistoryColumn} from './history-columns';
 import {ciStatusLabel} from './ci-requests';
 import type {GraphCiValue,GraphCiLink} from './ci-requests';
 import {useGraphCi} from './useGraphCi';
-import { t, dateLocale } from './i18n';
+import { t } from './i18n';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { StashList, MergeState, GraphPage, GraphRow } from './contracts';
@@ -23,12 +24,12 @@ function date(timestamp: number) {
   if (elapsed >= 0 && elapsed < 3600) return t('Just now');
   if (elapsed >= 3600 && elapsed < 86400) { const hours = Math.floor(elapsed / 3600); return t(hours === 1 ? '{0} hour ago' : '{0} hours ago', [hours]); }
   if (elapsed >= 86400 && elapsed < 604800) { const days = Math.floor(elapsed / 86400); return t(days === 1 ? '{0} day ago' : '{0} days ago', [days]); }
-  return new Date(timestamp * 1000).toLocaleDateString(dateLocale(), { month: 'short', day: 'numeric' });
+  return formatTimestamp(timestamp, 'shortDate');
 }
 function GraphCiCell({value,observed}:{value?:GraphCiValue;observed?:string}){
  const status=value?.status==='CI unavailable'&&observed?observed:value?.status??observed;
  const pipeline=value?.pipeline;
- const title=[pipeline?`${t(pipeline.kind==='workflow'?'Workflow':'Pipeline')} #${pipeline.id} · ${t(ciStatusLabel(status??'unknown'))}${pipeline.reference?` · ${pipeline.reference}`:''}`:status?t(ciStatusLabel(status)):t('Connect a matching host account in Settings → Connections to read CI.'),...(value?.workflows??[]).map(run=>`${run.name||t('Workflow')} #${run.id} · ${t(ciStatusLabel(run.status??'unknown'))} · ${run.reference}`),value?.partial?t('Some CI results are unavailable or incomplete.'):'',value?.stale?t('Showing cached CI status. Refresh failed.'):'',value?.checkedAt?`${t('Last checked')}: ${new Date(value.checkedAt*1000).toLocaleTimeString(dateLocale())}`:''].filter(Boolean).join('\n');
+ const title=[pipeline?`${t(pipeline.kind==='workflow'?'Workflow':'Pipeline')} #${pipeline.id} · ${t(ciStatusLabel(status??'unknown'))}${pipeline.reference?` · ${pipeline.reference}`:''}`:status?t(ciStatusLabel(status)):t('Connect a matching host account in Settings → Connections to read CI.'),...(value?.workflows??[]).map(run=>`${run.name||t('Workflow')} #${run.id} · ${t(ciStatusLabel(run.status??'unknown'))} · ${run.reference}`),value?.partial?t('Some CI results are unavailable or incomplete.'):'',value?.stale?t('Showing cached CI status. Refresh failed.'):'',value?.checkedAt?`${t('Last checked')}: ${formatTimestamp(value.checkedAt, 'time')}`:''].filter(Boolean).join('\n');
  return <span className="commit-ci" title={title}>{status?<span className={`ci-badge ci-${status}`}><span aria-hidden="true">{status==='success'?'✓':status==='failed'?'✕':['running','pending','created','preparing','waiting_for_resource','Reading CI…'].includes(status)?'◌':'•'}</span> {t(ciStatusLabel(status))}{pipeline?<span className="ci-pipeline-id"> · #{pipeline.id}</span>:!!value?.workflows?.length&&<span> · {t(value.workflows.length===1?'{0} workflow':'{0} workflows',[value.workflows.length])}</span>}</span>:<span className="ci-empty">—</span>}</span>;
 }
 function GraphMark({ row, width, naturalWidth, head, labelled, savedLanes }: { row: GraphRow; width: number; naturalWidth: number; head: boolean; labelled: boolean; savedLanes: number[] }) {
@@ -116,7 +117,7 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
             <span className="commit-description"><span className="subject">{row.commit.subject || t("(no commit message)")}</span>{head && <span className="head-label">{t("HEAD")}</span>}</span>
             <GraphCiCell value={graphCi[row.commit.oid]} observed={ciBadges?.[row.commit.oid]}/>
             <span className="author" title={`${row.commit.author} <${row.commit.email}>`}><span className="row-avatar" aria-hidden="true" style={{ '--author-color': authorColor(row.commit.author) } as CSSProperties}>{initials(row.commit.author)}</span><span>{row.commit.author}</span></span>
-            <span className="commit-date" title={new Date(row.commit.timestamp * 1000).toLocaleString(dateLocale())}>{date(row.commit.timestamp)}</span>
+            <span className="commit-date" title={formatTimestamp(row.commit.timestamp)}>{date(row.commit.timestamp)}</span>
           </button>;
         })}<div style={{ height: (items.length - range.end) * ROW_HEIGHT }} />
       </div>

@@ -1,0 +1,7506 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-native-soak",
+  "measuredAt": "2026-10-31T15:28:52.808187+00:00",
+  "sourceBaseCommit": "0fde87d60e835be43ea41157a5fe849397979ec4",
+  "sourceHasUncommittedChanges": true,
+  "binarySha256": "5f8770aede35b84292e12ec36d49811b2271810c0d93eef552f82b70d03df2ca",
+  "passed": true,
+  "failure": null,
+  "requested_seconds": 180,
+  "sampled_seconds": 182.63,
+  "fixture": {
+    "large_commits": 50000,
+    "large_tracked_files": 10000,
+    "medium_commits": 5000,
+    "locations": 10,
+    "linked_worktrees": 2,
+    "submodules": 2,
+    "tracking_branches": 200,
+    "merge_commits": 10
+  },
+  "foregroundRequested": false,
+  "workload": "ipc",
+  "profile": "packaged debug app with optimized first-party crates, real WKWebView with observed visibility, scripted manual refresh/interaction; optional frontend diagnostic counters; no GPU measurement, provider/network or cross-product comparison",
+  "diagnosticLimitations": "Frontend counters are debug-only observations. performance.memory may be unavailable (then no JS heap data is claimed). RSS growth alone cannot identify a leak or its owner.",
+  "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+  "observed_webkit_visibility": [
+    "hidden"
+  ],
+  "idle_sleep_guard": "Temporary task-owned caffeinate -i tied to native PID; no display/lock settings changed",
+  "latencies": {
+    "detail_ipc_only": {
+      "samples": 268,
+      "median_ms": 573.0,
+      "p95_ms": 725,
+      "max_ms": 1480
+    }
+  },
+  "memory": {
+    "peak_native_mib": 111.046875,
+    "peak_sampled_total_mib": 293.234375,
+    "native_warm_slope_mib_per_minute": null,
+    "webkit_warm_slope_mib_per_minute": null,
+    "last_5min_native_median_mib": 110.03125
+  },
+  "cycles": 268,
+  "frontend_diagnostics": {
+    "tauri_callbacks": {
+      "first": 2,
+      "last": 0,
+      "peak": 2
+    },
+    "canvas_contexts_created": {
+      "first": 0,
+      "last": 0,
+      "peak": 0
+    },
+    "text_measure_calls": {
+      "first": 0,
+      "last": 0,
+      "peak": 0
+    }
+  },
+  "max_dom_nodes": 2049,
+  "max_visible_rows": 0,
+  "samples": [
+    {
+      "elapsed_seconds": 0.01,
+      "native_rss_kib": 32,
+      "webkit_rss_kib": 0,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 32,
+      "cpu_percent": 0.0
+    },
+    {
+      "elapsed_seconds": 2.04,
+      "native_rss_kib": 108352,
+      "webkit_rss_kib": 107840,
+      "sampled_git_rss_kib": 15504,
+      "sampled_total_rss_kib": 231696,
+      "cpu_percent": 3.6
+    },
+    {
+      "elapsed_seconds": 4.08,
+      "native_rss_kib": 111968,
+      "webkit_rss_kib": 160704,
+      "sampled_git_rss_kib": 11088,
+      "sampled_total_rss_kib": 283760,
+      "cpu_percent": 13.6
+    },
+    {
+      "elapsed_seconds": 6.12,
+      "native_rss_kib": 111856,
+      "webkit_rss_kib": 164896,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 276752,
+      "cpu_percent": 8.8
+    },
+    {
+      "elapsed_seconds": 8.16,
+      "native_rss_kib": 111808,
+      "webkit_rss_kib": 165456,
+      "sampled_git_rss_kib": 11360,
+      "sampled_total_rss_kib": 288624,
+      "cpu_percent": 10.4
+    },
+    {
+      "elapsed_seconds": 10.2,
+      "native_rss_kib": 111824,
+      "webkit_rss_kib": 168720,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 280544,
+      "cpu_percent": 21.6
+    },
+    {
+      "elapsed_seconds": 12.23,
+      "native_rss_kib": 111856,
+      "webkit_rss_kib": 172944,
+      "sampled_git_rss_kib": 9520,
+      "sampled_total_rss_kib": 294320,
+      "cpu_percent": 7.8
+    },
+    {
+      "elapsed_seconds": 14.27,
+      "native_rss_kib": 111872,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 10848,
+      "sampled_total_rss_kib": 298096,
+      "cpu_percent": 4.1
+    },
+    {
+      "elapsed_seconds": 16.31,
+      "native_rss_kib": 111904,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 287280,
+      "cpu_percent": 9.7
+    },
+    {
+      "elapsed_seconds": 18.35,
+      "native_rss_kib": 111888,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 287264,
+      "cpu_percent": 9.6
+    },
+    {
+      "elapsed_seconds": 20.38,
+      "native_rss_kib": 111888,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 287264,
+      "cpu_percent": 4.3
+    },
+    {
+      "elapsed_seconds": 22.42,
+      "native_rss_kib": 111920,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 287312,
+      "cpu_percent": 10.1
+    },
+    {
+      "elapsed_seconds": 24.45,
+      "native_rss_kib": 111904,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 287312,
+      "cpu_percent": 8.6
+    },
+    {
+      "elapsed_seconds": 26.49,
+      "native_rss_kib": 111936,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 11216,
+      "sampled_total_rss_kib": 298560,
+      "cpu_percent": 15.9
+    },
+    {
+      "elapsed_seconds": 28.53,
+      "native_rss_kib": 111952,
+      "webkit_rss_kib": 175328,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 287280,
+      "cpu_percent": 14.3
+    },
+    {
+      "elapsed_seconds": 30.56,
+      "native_rss_kib": 111952,
+      "webkit_rss_kib": 175328,
+      "sampled_git_rss_kib": 7824,
+      "sampled_total_rss_kib": 295104,
+      "cpu_percent": 8.4,
+      "system_memory_free_percent": 67
+    },
+    {
+      "elapsed_seconds": 32.61,
+      "native_rss_kib": 113680,
+      "webkit_rss_kib": 175328,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 289008,
+      "cpu_percent": 18.6
+    },
+    {
+      "elapsed_seconds": 34.65,
+      "native_rss_kib": 113712,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 10224,
+      "sampled_total_rss_kib": 299312,
+      "cpu_percent": 13.1
+    },
+    {
+      "elapsed_seconds": 36.7,
+      "native_rss_kib": 113712,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 9216,
+      "sampled_total_rss_kib": 298320,
+      "cpu_percent": 32.3
+    },
+    {
+      "elapsed_seconds": 38.74,
+      "native_rss_kib": 113680,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 289072,
+      "cpu_percent": 48.1
+    },
+    {
+      "elapsed_seconds": 40.82,
+      "native_rss_kib": 113680,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 289072,
+      "cpu_percent": 21.2
+    },
+    {
+      "elapsed_seconds": 42.87,
+      "native_rss_kib": 113680,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 289072,
+      "cpu_percent": 42.6
+    },
+    {
+      "elapsed_seconds": 44.92,
+      "native_rss_kib": 113712,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 11168,
+      "sampled_total_rss_kib": 300272,
+      "cpu_percent": 18.2
+    },
+    {
+      "elapsed_seconds": 46.96,
+      "native_rss_kib": 113712,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 11152,
+      "sampled_total_rss_kib": 300256,
+      "cpu_percent": 32.0
+    },
+    {
+      "elapsed_seconds": 49.0,
+      "native_rss_kib": 113680,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 289072,
+      "cpu_percent": 41.4
+    },
+    {
+      "elapsed_seconds": 51.05,
+      "native_rss_kib": 113680,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 289072,
+      "cpu_percent": 7.9
+    },
+    {
+      "elapsed_seconds": 53.09,
+      "native_rss_kib": 113712,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 10384,
+      "sampled_total_rss_kib": 299488,
+      "cpu_percent": 14.2
+    },
+    {
+      "elapsed_seconds": 55.12,
+      "native_rss_kib": 113712,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 9264,
+      "sampled_total_rss_kib": 298368,
+      "cpu_percent": 31.0
+    },
+    {
+      "elapsed_seconds": 57.19,
+      "native_rss_kib": 113712,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 289104,
+      "cpu_percent": 31.6
+    },
+    {
+      "elapsed_seconds": 59.25,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288032,
+      "cpu_percent": 38.4
+    },
+    {
+      "elapsed_seconds": 61.35,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288016,
+      "cpu_percent": 40.3,
+      "system_memory_free_percent": 67
+    },
+    {
+      "elapsed_seconds": 63.44,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288016,
+      "cpu_percent": 36.9
+    },
+    {
+      "elapsed_seconds": 65.51,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288048,
+      "cpu_percent": 30.8
+    },
+    {
+      "elapsed_seconds": 67.55,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288032,
+      "cpu_percent": 12.4
+    },
+    {
+      "elapsed_seconds": 69.59,
+      "native_rss_kib": 112656,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288064,
+      "cpu_percent": 33.1
+    },
+    {
+      "elapsed_seconds": 71.63,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288048,
+      "cpu_percent": 28.6
+    },
+    {
+      "elapsed_seconds": 73.7,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288048,
+      "cpu_percent": 43.7
+    },
+    {
+      "elapsed_seconds": 75.78,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288016,
+      "cpu_percent": 49.7
+    },
+    {
+      "elapsed_seconds": 77.86,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175376,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288016,
+      "cpu_percent": 35.7
+    },
+    {
+      "elapsed_seconds": 79.92,
+      "native_rss_kib": 112640,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288032,
+      "cpu_percent": 24.7
+    },
+    {
+      "elapsed_seconds": 81.96,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 11120,
+      "sampled_total_rss_kib": 299184,
+      "cpu_percent": 17.5
+    },
+    {
+      "elapsed_seconds": 84.01,
+      "native_rss_kib": 112688,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 36.4
+    },
+    {
+      "elapsed_seconds": 86.09,
+      "native_rss_kib": 112656,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288048,
+      "cpu_percent": 5.5
+    },
+    {
+      "elapsed_seconds": 88.13,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 11104,
+      "sampled_total_rss_kib": 299200,
+      "cpu_percent": 12.4
+    },
+    {
+      "elapsed_seconds": 90.17,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 11296,
+      "sampled_total_rss_kib": 299392,
+      "cpu_percent": 36.8
+    },
+    {
+      "elapsed_seconds": 92.21,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288064,
+      "cpu_percent": 43.1,
+      "system_memory_free_percent": 67
+    },
+    {
+      "elapsed_seconds": 94.27,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288064,
+      "cpu_percent": 47.4
+    },
+    {
+      "elapsed_seconds": 96.34,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288096,
+      "cpu_percent": 6.3
+    },
+    {
+      "elapsed_seconds": 98.37,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288128,
+      "cpu_percent": 22.1
+    },
+    {
+      "elapsed_seconds": 100.41,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 9952,
+      "sampled_total_rss_kib": 298080,
+      "cpu_percent": 33.3
+    },
+    {
+      "elapsed_seconds": 102.47,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 1552,
+      "sampled_total_rss_kib": 289680,
+      "cpu_percent": 33.9
+    },
+    {
+      "elapsed_seconds": 104.55,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288096,
+      "cpu_percent": 37.8
+    },
+    {
+      "elapsed_seconds": 106.62,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288096,
+      "cpu_percent": 29.2
+    },
+    {
+      "elapsed_seconds": 108.67,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 11232,
+      "sampled_total_rss_kib": 299376,
+      "cpu_percent": 29.6
+    },
+    {
+      "elapsed_seconds": 110.71,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 10912,
+      "sampled_total_rss_kib": 299056,
+      "cpu_percent": 29.3
+    },
+    {
+      "elapsed_seconds": 112.75,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288112,
+      "cpu_percent": 45.9
+    },
+    {
+      "elapsed_seconds": 114.79,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 46.0
+    },
+    {
+      "elapsed_seconds": 116.87,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 7.3
+    },
+    {
+      "elapsed_seconds": 118.91,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 11328,
+      "sampled_total_rss_kib": 299440,
+      "cpu_percent": 32.8
+    },
+    {
+      "elapsed_seconds": 120.95,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 32,
+      "sampled_total_rss_kib": 288112,
+      "cpu_percent": 29.1
+    },
+    {
+      "elapsed_seconds": 123.02,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 9712,
+      "sampled_total_rss_kib": 297824,
+      "cpu_percent": 35.0,
+      "system_memory_free_percent": 67
+    },
+    {
+      "elapsed_seconds": 125.07,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 43.8
+    },
+    {
+      "elapsed_seconds": 127.12,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288112,
+      "cpu_percent": 43.5
+    },
+    {
+      "elapsed_seconds": 129.18,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288112,
+      "cpu_percent": 9.2
+    },
+    {
+      "elapsed_seconds": 131.21,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 11280,
+      "sampled_total_rss_kib": 299408,
+      "cpu_percent": 37.9
+    },
+    {
+      "elapsed_seconds": 133.25,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288128,
+      "cpu_percent": 37.9
+    },
+    {
+      "elapsed_seconds": 135.33,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288112,
+      "cpu_percent": 40.4
+    },
+    {
+      "elapsed_seconds": 137.4,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 43.5
+    },
+    {
+      "elapsed_seconds": 139.44,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 7.4
+    },
+    {
+      "elapsed_seconds": 141.48,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 43.7
+    },
+    {
+      "elapsed_seconds": 143.57,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288080,
+      "cpu_percent": 8.3
+    },
+    {
+      "elapsed_seconds": 145.61,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 11232,
+      "sampled_total_rss_kib": 299344,
+      "cpu_percent": 34.9
+    },
+    {
+      "elapsed_seconds": 147.65,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288096,
+      "cpu_percent": 33.9
+    },
+    {
+      "elapsed_seconds": 149.7,
+      "native_rss_kib": 112672,
+      "webkit_rss_kib": 175392,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288064,
+      "cpu_percent": 30.1
+    },
+    {
+      "elapsed_seconds": 151.79,
+      "native_rss_kib": 112720,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 11248,
+      "sampled_total_rss_kib": 299376,
+      "cpu_percent": 17.6
+    },
+    {
+      "elapsed_seconds": 153.84,
+      "native_rss_kib": 112720,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 8176,
+      "sampled_total_rss_kib": 296336,
+      "cpu_percent": 33.7,
+      "system_memory_free_percent": 67
+    },
+    {
+      "elapsed_seconds": 155.92,
+      "native_rss_kib": 112688,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288128,
+      "cpu_percent": 42.5
+    },
+    {
+      "elapsed_seconds": 157.99,
+      "native_rss_kib": 112688,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288128,
+      "cpu_percent": 44.7
+    },
+    {
+      "elapsed_seconds": 160.05,
+      "native_rss_kib": 112720,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 11040,
+      "sampled_total_rss_kib": 299200,
+      "cpu_percent": 10.0
+    },
+    {
+      "elapsed_seconds": 162.1,
+      "native_rss_kib": 112736,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 10560,
+      "sampled_total_rss_kib": 298720,
+      "cpu_percent": 29.0
+    },
+    {
+      "elapsed_seconds": 164.16,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288144,
+      "cpu_percent": 42.3
+    },
+    {
+      "elapsed_seconds": 166.23,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288144,
+      "cpu_percent": 10.3
+    },
+    {
+      "elapsed_seconds": 168.28,
+      "native_rss_kib": 112736,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 10992,
+      "sampled_total_rss_kib": 299168,
+      "cpu_percent": 21.6
+    },
+    {
+      "elapsed_seconds": 170.32,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175456,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288160,
+      "cpu_percent": 39.5
+    },
+    {
+      "elapsed_seconds": 172.4,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175424,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288128,
+      "cpu_percent": 37.5
+    },
+    {
+      "elapsed_seconds": 174.45,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288112,
+      "cpu_percent": 8.0
+    },
+    {
+      "elapsed_seconds": 176.49,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175408,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288112,
+      "cpu_percent": 11.2
+    },
+    {
+      "elapsed_seconds": 178.53,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175440,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288144,
+      "cpu_percent": 34.2
+    },
+    {
+      "elapsed_seconds": 180.58,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175472,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288176,
+      "cpu_percent": 23.1
+    },
+    {
+      "elapsed_seconds": 182.63,
+      "native_rss_kib": 112704,
+      "webkit_rss_kib": 175472,
+      "sampled_git_rss_kib": 0,
+      "sampled_total_rss_kib": 288176,
+      "cpu_percent": 0.1
+    }
+  ],
+  "ui_events": [
+    {
+      "auto_fetch_seconds": 0,
+      "kind": "ready",
+      "locations": 10
+    },
+    {
+      "cycle": 0,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 1,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 2,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 108,
+      "elapsed_ms": 1489,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          462
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 1,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 2,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 2,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2025,
+      "elapsed_ms": 2102,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          508
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 2,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 3,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 2563,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          355
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 3,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 4,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 3023,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          355
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 4,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 5,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 3485,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          357
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 5,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 6,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 3947,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          356
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 6,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 7,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 4416,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          363.9999999999991
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 7,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 8,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 4878,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          357
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 8,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 9,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 5354,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          370.9999999999991
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 9,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 10,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 5811,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          351.9999999999991
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 10,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 11,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 6289.000000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          373.0000000000009
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 11,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 12,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 6746,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          352
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 12,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 13,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 7217.000000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          367
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 13,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 14,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 7692,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          369
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 14,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 15,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 8156,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          358.9999999999991
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 15,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 16,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 8619,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          358
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 16,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 17,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 9076,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          351.9999999999982
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 17,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 18,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 9546,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          365
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 18,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 19,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 10002,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          351
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 19,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 20,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 10459,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          352
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 20,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 21,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 10914,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          349.9999999999982
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 21,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 22,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 11380,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          360.9999999999982
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 22,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 23,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 11843,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          358
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 23,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 24,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 12308,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          360
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 24,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 25,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 12772.000000000002,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          359
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 25,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 26,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 13229,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          352
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 26,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 27,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 13688,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          354.9999999999982
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 27,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 28,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 14160.000000000002,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          367.0000000000018
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 28,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 29,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 14609,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          345
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 29,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 30,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 15068,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          348
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 30,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 31,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 15492,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          320
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 31,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 32,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 15896,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          299
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 32,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 33,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 16327,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          327
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 33,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 34,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 16740,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          308
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 34,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 35,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 17157,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          313
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 35,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 36,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 17561,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          299
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 36,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 37,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 17991,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          326
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 37,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 38,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 18414,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          319
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 38,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 39,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 18861,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          343
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 39,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 40,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 19278,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          312
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 40,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 41,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 19700.000000000004,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          318.00000000000364
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 41,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 42,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 20141,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          336
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 42,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 43,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 20597,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          352
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 43,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 44,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 21060,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          358
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 44,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 45,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 21483,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          318
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 45,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 46,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 21899,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          311
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 46,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 47,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 22304,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          301
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 47,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 48,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 22765,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          355
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 48,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 49,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 23230,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          360
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 49,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 50,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 23713,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          378
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 50,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 51,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 24175,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          357
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 51,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 52,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 24638,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          357
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 52,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 53,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 25102,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          359
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 53,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 54,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 25569,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          362
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 54,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 55,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 26027,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          354
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 55,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 56,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 26486,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          355
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 56,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 57,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 26944,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          354
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 57,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 58,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 27405,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          355.99999999999636
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 58,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 59,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 27868,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          358
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 59,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 60,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 28332,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          360
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 60,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 61,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 28794,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          357
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 61,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 62,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 29253,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          353
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 62,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 63,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 29721,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          363.9999999999963
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 63,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 64,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 30344,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          518
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 64,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 65,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 31248,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          779
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 65,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 66,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 32007.000000000004,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          633.0000000000036
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 66,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 67,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 32756,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          629.9999999999964
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 67,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 68,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 33421,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          547
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 68,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 69,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 34243,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          697
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 69,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 70,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 35008,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          641
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 70,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 71,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 35716,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          583.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 71,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 72,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 36466,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          625
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 72,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 73,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 37248.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          656.0000000000073
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 73,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 74,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 37989,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          618
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 74,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 75,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 38629.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          508.0000000000073
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 75,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 76,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 39421,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          666
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 76,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 77,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 40124,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          576
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 77,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 78,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 40803,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          537
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 78,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 79,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 41487,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          540.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 79,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 80,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 42195,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          582
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 80,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 81,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 42887,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          571.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 81,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 82,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 43748.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          737.0000000000073
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 82,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 83,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 44462,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          588.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 83,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 84,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 45155,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          573
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 84,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 85,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 45971,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          693
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 85,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 86,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 46680,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          585
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 86,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 87,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 47496,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          695
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 87,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 88,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 48297,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          679
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 88,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 89,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 48945,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          526
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 89,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 90,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 49680,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          611.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 90,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 91,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 50455.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          650.0000000000073
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 91,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 92,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 51143,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          567
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 92,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 93,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 51907,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          640.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 93,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 94,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 52679,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          649
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 94,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 95,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 53378,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          584
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 95,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 96,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 54115,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          613.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 96,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 97,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 54912,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          676
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 97,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 98,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 55547,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          504
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 98,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 99,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 56287,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          618
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 99,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 100,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 56981,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          575
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 100,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 101,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 57657,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          554
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 101,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 102,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 58458.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          674.0000000000073
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 102,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 103,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 59124,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          499
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 103,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 104,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 59818.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          574.0000000000073
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 104,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 105,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 60589,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          647
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 105,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 106,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 61236,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          522
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 106,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 107,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 61953,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          592
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 107,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 108,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 62737,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          662
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 108,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 109,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 63441,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          583
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 109,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 110,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 64123.99999999999,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          552.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 110,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 111,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 64887,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          646.9999999999927
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 111,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 112,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 65616,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          611.0000000000073
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 112,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 113,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 66305,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          567
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 113,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 114,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 66974,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          556
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 114,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 115,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 67704,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          609
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 115,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 116,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 68433,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          573
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 116,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 117,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 69187,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          621
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 117,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 118,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 70038,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          731
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 118,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 119,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 70731.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          569.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 119,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 120,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 71470,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          612
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 120,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 121,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 72246.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          652
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 121,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 122,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 72929,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          566
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 122,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 123,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 73601,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          552
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 123,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 124,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 74367,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          638
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 124,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 125,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 75046,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          560
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 125,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 126,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 75711,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          544
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 126,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 127,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 76457,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          625
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 127,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 128,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 77138,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          557
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 128,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 129,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 77821,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          562
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 129,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 130,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 78646,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          651
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 130,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 131,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 79303,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          546
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 131,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 132,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 80026,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          607
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 132,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 133,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 80789,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          646
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 133,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 134,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 81501,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          592
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 134,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 135,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 82324,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          698
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 135,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 136,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 83174,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          727
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 136,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 137,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 83850.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          552
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 137,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 138,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 84622,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          652
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 138,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 139,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 85508.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          763.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 139,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 140,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 86166,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          540
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 140,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 141,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 86859.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          558.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 141,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 142,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 87676,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          691.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 142,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 143,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 88399,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          587
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 143,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 144,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 89189,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          663
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 144,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 145,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 89874.00000000001,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          561.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 145,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 146,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 90596,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          590
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 146,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 147,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 91402,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          676
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 147,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 148,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 92049,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          526
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 148,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 149,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 92745,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          572
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 149,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 150,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 93547,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          672.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 150,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 151,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 94223,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          556
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 151,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 152,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 94940,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          593
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 152,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 153,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 95743.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          680.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 153,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 154,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 96477,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          614.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 154,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 155,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 97163,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          558
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 155,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 156,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 97865.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          576.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 156,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 157,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 98652,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          649.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 157,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 158,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 99390,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          617
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 158,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 159,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 100170,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          652
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 159,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 160,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 100871.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          576.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 160,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 161,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 101554,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          562
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 161,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 162,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 102287,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          611
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 162,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 163,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 103078,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          667
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 163,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 164,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 103776,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          574
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 164,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 165,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 104454,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          561
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 165,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 166,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 105269,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          688
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 166,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 167,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 105947,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          544
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 167,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 168,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 106694,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          630
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 168,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 169,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 107631,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          813
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 169,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 170,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 108338,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          581
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 170,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 171,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 108999.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          540.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 171,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 172,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 109746.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          622
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 172,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 173,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 110434,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          559
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 173,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 174,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 111170,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          609
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 174,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 175,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 111996.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          698.0000000000146
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 175,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 176,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 112647,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          534.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 176,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 177,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 113365.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          595
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 177,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 178,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 114064,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          576
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 178,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 179,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 114741,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          557
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 179,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 180,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 115479,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          607.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 180,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 181,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 116336,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          731
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 181,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 182,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 117044,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          586
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 182,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 183,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 117802,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          638
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 183,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 184,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 118571,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          642
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 184,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 185,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 119256,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          560
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 185,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 186,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 120035,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          660
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 186,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 187,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 120753,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          592
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 187,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 188,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 121457,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          582.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 188,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 189,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 122138,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          564
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 189,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 190,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 122781,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          533
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 190,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 191,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 123497,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          589
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 191,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 192,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 124322,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          694
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 192,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 193,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 124968,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          524
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 193,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 194,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 125655,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          563
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 194,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 195,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 126409,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          635.9999999999854
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 195,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 196,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 127113,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          580
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 196,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 197,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 127813,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          577
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 197,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 198,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 128653.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          721.9999999999709
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 198,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 199,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 129421.0,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          643
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 199,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 200,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 130142,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          601
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 200,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 201,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 130905,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          636
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 201,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 202,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 131708,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          673
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 202,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 203,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 132423,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          589
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 203,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 204,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 133104,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          558.9999999999709
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 204,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 205,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 133825.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          591.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 205,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 206,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 134540,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          594.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 206,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 207,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 135197,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          531
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 207,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 208,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 135943,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          620
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 208,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 209,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 136660,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          599
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 209,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 210,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 137322,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          547
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 210,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 211,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 138066,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          615.9999999999709
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 211,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 212,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 138745,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          559
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 212,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 213,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 139402,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          545
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 213,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 214,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 140008,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          490
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 214,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 215,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 140723,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          601
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 215,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 216,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 141402,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          556
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 216,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 217,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 142176.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          649.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 217,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 218,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 142959,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          556
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 218,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 219,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 143834,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          757
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 219,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 220,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 144646,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          682
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 220,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 221,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 145321,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          531.9999999999709
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 221,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 222,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 146024,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          577
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 222,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 223,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 146823,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          672
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 223,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 224,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 147467,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          526
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 224,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 225,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 149084,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          1480
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 225,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 226,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 149752,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          551
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 226,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 227,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 150513,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          642
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 227,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 228,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 151313.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          673.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 228,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 229,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 152026,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          591
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 229,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 230,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 152876,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          725
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 230,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 231,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 153636,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          634
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 231,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 232,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 154336,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          576
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 232,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 233,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 155117,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          653
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 233,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 234,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 155807.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          558.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 234,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 235,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 156516,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          581
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 235,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 236,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 157295.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          653.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 236,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 237,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 157930,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          519
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 237,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 238,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 158650,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          600
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 238,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 239,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 159590,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          814
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 239,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 240,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 160316,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          589
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 240,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 241,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 161030,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          587
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 241,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 242,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 161882,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          723
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 242,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 243,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 162660,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          660
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 243,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 244,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 163355.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          570.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 244,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 245,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 164036,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          543
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 245,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 246,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 164909,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          754
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 246,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 247,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 165613,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          579
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 247,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 248,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 166382,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          650
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 248,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 249,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 167124,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          619
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 249,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 250,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 167834,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          581
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 250,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 251,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 168721,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          758
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 251,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 252,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 169597,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          752
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 252,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 253,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 170224.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          506
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 253,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 254,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 170918,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          573
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 254,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 255,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 171741,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          699
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 255,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 256,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 172410,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          554
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 256,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 257,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 173089,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          555
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 257,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 258,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 173857,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          644
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 258,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 259,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 174511,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          536
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 259,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 260,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 175231,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          597
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 260,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 261,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 175839,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          492
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 261,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 262,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 176484,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          529
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 262,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 263,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 177096,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          496.9999999999709
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 263,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 264,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 177888,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          657.9999999999709
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 264,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 265,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 178527,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          509
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 265,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 266,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 179105.00000000003,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          467.0000000000291
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 266,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 267,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 179755,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          533
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 267,
+      "kind": "phase",
+      "name": "detail_ipc_only",
+      "visibility": "hidden"
+    },
+    {
+      "cycle": 268,
+      "diagnostics": {
+        "canvas_contexts_created": 0,
+        "js_heap_bytes": null,
+        "tauri_callbacks": 0,
+        "text_measure_calls": 0
+      },
+      "dom_nodes": 2049,
+      "elapsed_ms": 180360,
+      "kind": "cycle",
+      "metrics": {
+        "detail_ipc_only": [
+          486
+        ]
+      },
+      "visibility": "hidden",
+      "workload": "ipc"
+    },
+    {
+      "cycle": 268,
+      "elapsed_ms": 180467,
+      "kind": "complete",
+      "workload": "ipc"
+    }
+  ]
+}
