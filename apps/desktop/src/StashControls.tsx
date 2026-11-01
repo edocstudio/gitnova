@@ -1,3 +1,4 @@
+import {useRecoveredLockError} from './useRecoveredLockError';
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import { t, useLocale } from './i18n';
@@ -15,6 +16,7 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
   const [list, setList] = useState<StashList | null>(null); const [preview, setPreview] = useState<StashPreview | null>(null);
   const [message, setMessage] = useState(''); const [includeUntracked, setIncludeUntracked] = useState(true);
   const [loading, setLoading] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [result, setResult] = useState<OperationReceipt | null>(null); const [failedRequest, setFailedRequest] = useState<StashRequest | null>(null);
+  useRecoveredLockError(membershipId,setError);
   const [patch,setPatch]=useState<{key:string;diff:string;truncated:boolean}|null>(null);
   const [patchError,setPatchError]=useState<{key:string;message:string}|null>(null);
   const [file, setFile] = useState<NativePath | null>(null); const [indexView, setIndexView] = useState(false);

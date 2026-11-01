@@ -11,7 +11,15 @@ import type { HostingSelection, HostingContext, HostingRequest, HostingPreview, 
 export const desktop = isTauri();
 function call<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!desktop) return Promise.reject({ code: 'desktop_required', message: 'Open GitNova with npm run tauri dev to read local repositories. The browser preview has no filesystem access.' });
-  return invoke<T>(command, args);
+  return invoke<T>(command, args).catch((error: unknown) => {
+    // Route the owning membership, never a path parsed from an error message.
+    if (command !== 'auto_fetch' && args && typeof args.membershipId === 'string'
+      && error && typeof error === 'object' && 'code' in error && error.code === 'locked'
+      && errorMessage(error).includes('gitnova-operation.lock already exists')) {
+      window.dispatchEvent(new CustomEvent('gitnova-lock-blocked', {detail: args.membershipId}));
+    }
+    throw error;
+  });
 }
 function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?: (event:WorkProgress)=>void):Promise<T>{
   if(!desktop || !onProgress)return call<T>(command,args);

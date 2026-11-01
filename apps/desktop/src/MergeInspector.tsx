@@ -1,3 +1,4 @@
+import {useRecoveredLockError} from './useRecoveredLockError';
 import {VirtualFileRows} from './VirtualFileRows';
 import {RecordedActivityView} from './RecordedActivity';
 import {CommitIdentityNotice} from './CommitIdentity';
@@ -24,6 +25,7 @@ export function MergeInspector({ discardedResult = false, membershipId, state, c
   const [review, setReview] = useState<MergeActionPreview | null>(null); const [reviewedChanges, setReviewedChanges] = useState(''); const [reviewedState, setReviewedState] = useState('');
   const [editing, setEditing] = useState(false); const [text, setText] = useState('');
   const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(false); const [error, setError] = useState('');
+  useRecoveredLockError(membershipId,setError);
   const drafts=useRef(new Map<string,{text:string;original:string|null;token:string}>());
   const editText=(value:string)=>{setEditing(true);setText(value);if(path&&file)drafts.current.set(path.hex,{text:value,original:file.workingText,token:file.token});};
   const savedDraft=file?drafts.current.get(file.path.hex):undefined;

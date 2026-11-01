@@ -2178,5 +2178,9 @@
   "Could not remove the account from the system credential store.": "Could not remove the account from the system credential store.",
   "Could not open secure account entry. Install Zenity on Linux.": "Could not open secure account entry. Install Zenity on Linux.",
   "Stale lock recovery currently requires Unix process verification.": "Stale lock recovery currently requires Unix process verification.",
-  "Repository folder changed. Reopen it before continuing.": "Repository folder changed. Reopen it before continuing."
+  "Repository folder changed. Reopen it before continuing.": "Repository folder changed. Reopen it before continuing.",
+  "Repository is locked": "Repository is locked",
+  "Review the lock below. Recovery refreshes this repository automatically and does not retry the interrupted action.": "Review the lock below. Recovery refreshes this repository automatically and does not retry the interrupted action.",
+  "Check lock again": "Check lock again",
+  "Recover and refresh": "Recover and refresh"
 }

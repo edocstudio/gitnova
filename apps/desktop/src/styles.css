@@ -848,3 +848,7 @@ main { display: flex; flex: 1; min-height: 0; }
 .dock-file-scroll {height:100%;padding:10px 9px}
 .dock-file-scroll.virtual-change-list {padding:0 9px}
 .dock-file-scroll.virtual-change-list button {height:40px;min-height:0;padding-block:8px}
+
+.lock-recovery-dialog { padding: 24px; }
+.lock-recovery-dialog h2 { margin-top: 0; }
+.lock-recovery-dialog .recovery-ref { overflow-wrap: anywhere; }
