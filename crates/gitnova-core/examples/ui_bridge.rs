@@ -334,6 +334,16 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
         }
         "repository_snapshot" => json!(app.snapshot(&s("membershipId")?)?),
         "working_changes" => json!(app.working_changes(&s("membershipId")?)?),
+        "working_file_text" | "save_working_file_text" => {
+            let path: NativePath = serde_json::from_value(args["path"].clone())
+                .map_err(|e| AppError::new("test", e.to_string()))?;
+            if command == "working_file_text" {
+                json!(app.working_file_text(&s("membershipId")?, &path)?)
+            } else {
+                app.save_working_file_text(&s("membershipId")?, &path, &s("text")?, &s("token")?)?;
+                json!(null)
+            }
+        }
         "file_preview" | "change_index" => {
             let path: NativePath = serde_json::from_value(args["path"].clone())
                 .map_err(|e| AppError::new("test", e.to_string()))?;

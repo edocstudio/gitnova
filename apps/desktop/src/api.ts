@@ -27,6 +27,8 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  workingFileText:(membershipId:string,path:NativePath)=>call<import('./contracts').WorkingFileText>('working_file_text',{membershipId,path}),
+  saveWorkingFileText:(membershipId:string,path:NativePath,text:string,token:string)=>call<void>('save_working_file_text',{membershipId,path,text,token}),
   previewSubmoduleLifecycle:(membershipId:string,request:import('./contracts').SubmoduleLifecycleRequest)=>call<import('./contracts').SubmoduleLifecyclePreview>('preview_submodule_lifecycle',{membershipId,request}),
   changeSubmoduleLifecycle:(membershipId:string,request:import('./contracts').SubmoduleLifecycleRequest,token:string)=>call<OperationReceipt>('change_submodule_lifecycle',{membershipId,request,token}),
   terminalOpen:(membershipId:string,cols:number,rows:number)=>call<{id:string;path:string;shell:string}>('terminal_open',{membershipId,cols,rows}),

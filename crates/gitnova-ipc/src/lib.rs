@@ -88,3 +88,5 @@ pub use gitnova_domain::StaleLockPreview;
 pub use gitnova_domain::RebaseEdit;
 
 pub use gitnova_domain::RepositoryIdentitySettings;
+
+pub use gitnova_domain::WorkingFileText;

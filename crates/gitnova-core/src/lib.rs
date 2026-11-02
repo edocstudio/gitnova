@@ -1881,3 +1881,19 @@ fn register_identity(
 }
 
 mod stale_lock;
+
+impl Application {
+    pub fn working_file_text(&self, id: &str, path: &NativePath) -> Result<WorkingFileText> {
+        self.git.working_file_text(&self.path(id)?, path)
+    }
+    pub fn save_working_file_text(
+        &self,
+        id: &str,
+        path: &NativePath,
+        text: &str,
+        token: &str,
+    ) -> Result<()> {
+        self.git
+            .save_working_file_text(&self.path(id)?, path, text, token)
+    }
+}
