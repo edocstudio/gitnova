@@ -244,3 +244,13 @@ A lock failure interrupts the current graph action. The activity disclosure hide
 ### Repository commit identity
 
 The footer exposes the effective name and email for the current repository; the existing commit notice is only visible during composition. Clicking the footer opens the existing Settings → General surface at a repository-scoped identity form, without adding a separate dialog or tab. Saving updates local Git user.name/user.email atomically and enables an explicit GitNova repository override before connection identities. Linked worktrees share this setting; global configuration, authentication, and existing commits stay unchanged. The footer and compose notices refresh after saving and on focus.
+
+### Submodule pointer confirmation
+
+The inline pointer review was below the selected file and could require scrolling before confirmation. Stage/Unstage pointer now opens the existing preview in a focused contextual dialog directly from the file action, context menu, or submodule controls. No extra navigation or permanent panel is added. Show submodule path, parent branch, current parent index and target commit; explain that dirty child files are excluded. Cancel never writes. Confirm retains the native version/token checks, updates only the parent index, and refreshes the parent automatically.
+
+### Edit a file while investigating a commit
+
+The existing diff dock owns this workflow: no extra screen or navigation is needed. Edit file reads the current tracked UTF-8 working file, not the selected historical revision. The dock shows a read-only baseline beside the draft. Save changes only working bytes; staging and commits remain explicit existing actions. Missing files, binaries, symlinks, nested repositories, submodules and unresolved operations require their own workflows.
+
+Up to four 512 KiB editor drafts remain in memory when navigating between commits/repositories; resume from the same file. Back to diff keeps changed drafts; Discard editor draft removes only the draft. Closing the application loses these drafts, with an unload warning. Save validates the checkout, staging and working bytes again; external changes require reviewing the updated baseline before retrying. Original raw bytes are retained privately under the checkout Git directory in `gitnova-file-edits`; these backups are not committed.

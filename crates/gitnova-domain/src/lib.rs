@@ -1563,3 +1563,12 @@ pub struct RepositoryIdentitySettings {
     pub email: String,
     pub token: String,
 }
+
+/// Current working text, never historical content. Token binds HEAD, index and file bytes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkingFileText {
+    pub path: NativePath,
+    pub text: String,
+    pub token: String,
+}

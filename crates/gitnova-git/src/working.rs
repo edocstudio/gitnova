@@ -2,6 +2,7 @@
 mod amend;
 mod batch;
 mod discard;
+mod edit;
 mod gitlink;
 mod hunk;
 mod registration;

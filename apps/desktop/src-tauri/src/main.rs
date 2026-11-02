@@ -532,6 +532,27 @@ async fn working_changes(
     run(state, move |a| a.working_changes(&membership_id)).await
 }
 #[tauri::command]
+async fn working_file_text(
+    state: State<'_>,
+    membership_id: String,
+    path: NativePath,
+) -> Result<WorkingFileText, AppError> {
+    run(state, move |a| a.working_file_text(&membership_id, &path)).await
+}
+#[tauri::command]
+async fn save_working_file_text(
+    state: State<'_>,
+    membership_id: String,
+    path: NativePath,
+    text: String,
+    token: String,
+) -> Result<(), AppError> {
+    run(state, move |a| {
+        a.save_working_file_text(&membership_id, &path, &text, &token)
+    })
+    .await
+}
+#[tauri::command]
 async fn file_preview(
     state: State<'_>,
     membership_id: String,
@@ -1366,6 +1387,8 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         switch_branch,
         repository_snapshot,
         working_changes,
+        working_file_text,
+        save_working_file_text,
         file_preview,
         amend_original,
         preview_amend,

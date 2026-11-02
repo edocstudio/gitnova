@@ -160,3 +160,5 @@ export interface SubmoduleLifecyclePreview { manifestBefore?:string|null; manife
 export interface StaleLockPreview {path:NativePath;ownerPid:number|null;exists:boolean;token:string;blockedReason:string|null}
 
 export interface RepositoryIdentitySettings {name:string;email:string;token:string}
+
+export type WorkingFileText = {path:NativePath;text:string;token:string};
