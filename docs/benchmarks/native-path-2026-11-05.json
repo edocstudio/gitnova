@@ -1,0 +1,61 @@
+{
+  "kind": "gitnova-native-path-microbenchmark",
+  "schemaVersion": 1,
+  "iterationsPerSample": 5000,
+  "rounds": 5,
+  "scenarios": [
+    {
+      "pathCharacters": 64,
+      "beforeMilliseconds": [
+        26.44475,
+        19.760125,
+        16.808583,
+        15.2105,
+        14.439583
+      ],
+      "afterMilliseconds": [
+        1.286458,
+        1.288167,
+        0.875625,
+        0.876375,
+        0.835792
+      ],
+      "beforeMedianMilliseconds": 16.808583,
+      "afterMedianMilliseconds": 0.876375,
+      "medianSpeedup": 19.179669661959775
+    },
+    {
+      "pathCharacters": 1024,
+      "beforeMilliseconds": [
+        221.29999999999998,
+        212.15116700000002,
+        210.963125,
+        213.23695800000002,
+        216.735333
+      ],
+      "afterMilliseconds": [
+        6.67625,
+        6.809082999999999,
+        6.711875,
+        6.762333,
+        6.727541
+      ],
+      "beforeMedianMilliseconds": 213.23695800000002,
+      "afterMedianMilliseconds": 6.727541,
+      "medianSpeedup": 31.696121658716017
+    }
+  ],
+  "reviewDate": "2026-11-05",
+  "baseCommit": "70fb8cbbd247260e7312c51516e34256daf65c41",
+  "environment": {
+    "os": "Darwin",
+    "architecture": "arm64",
+    "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18) (Homebrew)"
+  },
+  "method": "Release build; synthetic ASCII paths; 100-iteration warmup per implementation; alternate order across five rounds; black_box output; baseline reproduces original NativePath::new.",
+  "limitations": [
+    "Microbenchmark only: not end-to-end Git/UI latency, allocation instrumentation or RSS.",
+    "Shared machine; no isolation from other desktop applications.",
+    "No comparison with other products."
+  ]
+}

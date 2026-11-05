@@ -19,3 +19,11 @@ GitHub private reporting is separate from adding SECURITY.md. This file does not
 Provide the GitNova version/commit, OS and Git version, affected operation, expected versus observed behavior, and a minimal reproduction using disposable repositories and synthetic data. Describe potential impact and relevant pending-operation/recovery state. Redact tokens, proprietary source, personal data and private URLs; a recovery archive may contain original files and should not be attached wholesale.
 
 Local Git does not require a provider account. Optional macOS provider/Jenkins credentials are stored in Keychain; local catalog metadata and recovery evidence have different storage and sensitivity properties. See the [architecture](docs/architecture/overview.md#product-boundary) for the implemented boundaries. Do not use real credentials, workplace repositories or another person's data to reproduce a suspected issue.
+
+## Dated dependency review
+
+The [2026-11-05 review](docs/audits/2026-11-05-security-and-performance.md)
+records dependency evidence, targeted hardening and unresolved risks, including a
+Linux GTK/glib unsoundness advisory. It is not an all-clear or security certification.
+Use current OS, WebView and Git security updates in addition to application updates;
+these external components are not covered by Cargo/npm dependency scans.
