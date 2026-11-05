@@ -89,17 +89,44 @@ impl Application {
         gitnova_hosting::commit_url(&context, &selection.oid)
     }
 
-    pub fn pipeline_context(
+    // Resolve and validate the Git scope once, before consulting the credential store.
+    fn pipeline_scope(
         &self,
         membership_id: &str,
         selection: &HostingSelection,
+        require_matching_host: bool,
     ) -> Result<HostingContext> {
         let url = self.git.pipeline_remote(
             &self.path(membership_id)?,
             &selection.remote,
             &selection.oid,
         )?;
-        let mut context = gitnova_hosting::resolve(selection, &url)?;
+        if require_matching_host {
+            let profile = HostProfile {
+                provider: selection
+                    .provider
+                    .clone()
+                    .ok_or_else(|| AppError::new("hosting", "Choose GitHub or GitLab."))?,
+                origin: selection
+                    .origin
+                    .clone()
+                    .ok_or_else(|| AppError::new("hosting", "Invalid host."))?,
+            };
+            if !gitnova_hosting::matches_host(&profile, &url)? {
+                return Err(AppError::new(
+                    "hosting",
+                    "The Git remote no longer matches this host connection.",
+                ));
+            }
+        }
+        gitnova_hosting::resolve(selection, &url)
+    }
+    pub fn pipeline_context(
+        &self,
+        membership_id: &str,
+        selection: &HostingSelection,
+    ) -> Result<HostingContext> {
+        let mut context = self.pipeline_scope(membership_id, selection, false)?;
         context.account = gitnova_hosting::credential(&context).ok().map(|c| c.login);
         Ok(context)
     }
@@ -109,7 +136,7 @@ impl Application {
         selection: &HostingSelection,
         prompt: &CredentialPrompt,
     ) -> Result<HostingContext> {
-        let mut context = self.pipeline_context(membership_id, selection)?;
+        let mut context = self.pipeline_scope(membership_id, selection, false)?;
         context.account = Some(gitnova_hosting::connect(&context, prompt)?);
         Ok(context)
     }
@@ -135,30 +162,7 @@ impl Application {
         refresh: bool,
         summary: bool,
     ) -> Result<PipelineSnapshot> {
-        if summary {
-            let remote = self.git.pipeline_remote(
-                &self.path(membership_id)?,
-                &selection.remote,
-                &selection.oid,
-            )?;
-            let profile = HostProfile {
-                provider: selection
-                    .provider
-                    .clone()
-                    .ok_or_else(|| AppError::new("hosting", "Choose GitHub or GitLab."))?,
-                origin: selection
-                    .origin
-                    .clone()
-                    .ok_or_else(|| AppError::new("hosting", "Invalid host."))?,
-            };
-            if !gitnova_hosting::matches_host(&profile, &remote)? {
-                return Err(AppError::new(
-                    "hosting",
-                    "The Git remote no longer matches this host connection.",
-                ));
-            }
-        }
-        let context = self.pipeline_context(membership_id, selection)?;
+        let context = self.pipeline_scope(membership_id, selection, summary)?;
         let credential = gitnova_hosting::credential(&context)?;
         let key = serde_json::to_string(&(
             summary,
@@ -442,5 +446,91 @@ impl Application {
         }
         cache.push_back((key, std::time::Instant::now(), value.clone()));
         Ok(value)
+    }
+}
+
+#[cfg(test)]
+mod pipeline_scope_tests {
+    use crate::Application;
+    use gitnova_domain::HostingSelection;
+    use gitnova_git::measure_git;
+    use std::{fs, path::Path, process::Command};
+
+    fn git(root: &Path, args: &[&str]) -> String {
+        let out = Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(args)
+            .env("GIT_CONFIG_GLOBAL", root.join("unused-config"))
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap().trim().into()
+    }
+
+    #[test]
+    fn ci_scope_reads_remote_once_and_revalidates_host_without_credentials() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("repo");
+        fs::create_dir(&root).unwrap();
+        git(&root, &["init", "-b", "main"]);
+        git(&root, &["config", "user.name", "Fixture"]);
+        git(&root, &["config", "user.email", "fixture@example.invalid"]);
+        git(
+            &root,
+            &[
+                "-c",
+                "commit.gpgsign=false",
+                "commit",
+                "--allow-empty",
+                "-m",
+                "base",
+            ],
+        );
+        git(
+            &root,
+            &[
+                "remote",
+                "add",
+                "origin",
+                "https://github.com/fixture/repo.git",
+            ],
+        );
+        let oid = git(&root, &["rev-parse", "HEAD"]);
+        let app = Application::new(dir.path().join("state.json")).unwrap();
+        let id = app.add_repository(&root).unwrap().workspaces[0]
+            .selected_id
+            .clone()
+            .unwrap();
+        let selection = HostingSelection {
+            remote: "origin".into(),
+            branch: "main".into(),
+            remote_branch: None,
+            oid: oid.clone(),
+            provider: Some("github".into()),
+            origin: Some("https://github.com".into()),
+        };
+        let (context, metrics) = measure_git(|| app.pipeline_scope(&id, &selection, true).unwrap());
+        assert_eq!(context.project, "fixture/repo");
+        assert!(context.account.is_none());
+        assert_eq!(metrics.commands.get("cat-file"), Some(&1));
+        git(
+            &root,
+            &[
+                "remote",
+                "set-url",
+                "origin",
+                "https://github.com.evil.invalid/fixture/repo.git",
+            ],
+        );
+        let error = app.pipeline_scope(&id, &selection, true).unwrap_err();
+        assert!(error.message.contains("no longer matches"));
+        assert_eq!(git(&root, &["rev-parse", "HEAD"]), oid);
+        assert!(git(&root, &["status", "--porcelain"]).is_empty());
     }
 }

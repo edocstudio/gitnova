@@ -178,3 +178,16 @@ foreground runs are retained as failed attempts. The completed background run
 still exhibits growth. Do not display these results as a completed foreground
 acceptance, a whole-app memory-leak fix, or a cross-product speed comparison.
 Historical baseline reports remain unchanged.
+
+## Native path encoding microbenchmark (2026-11-05)
+
+`native-path-2026-11-05.json` contains alternating release-mode samples of the
+original and optimized `NativePath::new` encoder on synthetic paths. Reproduce:
+
+```sh
+cargo run --locked --release -j 1 -p gitnova-domain --example path_encoding_bench
+```
+
+This supplemental schema is a microbenchmark, not the portable whole-app report
+contract above. It does not replace `latest.json`, establish RAM stability or imply
+an end-to-end speedup. The website importer must not treat it as that report.

@@ -44,7 +44,7 @@ impl NativePath {
         #[cfg(unix)]
         let (encoding, bytes) = {
             use std::os::unix::ffi::OsStrExt;
-            ("unix", path.as_os_str().as_bytes().to_vec())
+            ("unix", path.as_os_str().as_bytes())
         };
         #[cfg(windows)]
         let (encoding, bytes) = {
@@ -57,23 +57,40 @@ impl NativePath {
                     .collect::<Vec<_>>(),
             )
         };
+        let mut hex = String::with_capacity(bytes.len() * 2);
+        const DIGITS: &[u8; 16] = b"0123456789abcdef";
+        for byte in bytes {
+            hex.push(DIGITS[usize::from(byte >> 4)] as char);
+            hex.push(DIGITS[usize::from(byte & 15)] as char);
+        }
         Self {
             display: path.to_string_lossy().into(),
             encoding: encoding.into(),
-            hex: bytes.iter().map(|b| format!("{b:02x}")).collect(),
+            hex,
         }
     }
     pub fn to_path(&self) -> Result<PathBuf> {
-        if !self.hex.len().is_multiple_of(2) || !self.hex.is_ascii() {
-            return Err(AppError::new("path", "Invalid native path"));
+        // Larger than native OS path limits, but bounded before decoding untrusted DTOs.
+        const MAX_HEX_BYTES: usize = 256 * 1024;
+        if self.hex.len() > MAX_HEX_BYTES || !self.hex.len().is_multiple_of(2) {
+            return Err(AppError::new("path", "Invalid native path length"));
         }
-        let bytes: Vec<u8> = (0..self.hex.len())
-            .step_by(2)
-            .map(|i| {
-                u8::from_str_radix(&self.hex[i..i + 2], 16)
-                    .map_err(|_| AppError::new("path", "Invalid path encoding"))
-            })
-            .collect::<Result<_>>()?;
+        fn nibble(byte: u8) -> Result<u8> {
+            match byte {
+                b'0'..=b'9' => Ok(byte - b'0'),
+                b'a'..=b'f' => Ok(byte - b'a' + 10),
+                b'A'..=b'F' => Ok(byte - b'A' + 10),
+                _ => Err(AppError::new("path", "Invalid path encoding")),
+            }
+        }
+        let bytes = self
+            .hex
+            .as_bytes()
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|pair| Ok((nibble(pair[0])? << 4) | nibble(pair[1])?))
+            .collect::<Result<Vec<u8>>>()?;
         #[cfg(unix)]
         {
             use std::{ffi::OsString, os::unix::ffi::OsStringExt};
@@ -82,6 +99,9 @@ impl NativePath {
                     "path",
                     "Path belongs to a different operating system",
                 ));
+            }
+            if bytes.contains(&0) {
+                return Err(AppError::new("path", "Native paths cannot contain NUL"));
             }
             Ok(PathBuf::from(OsString::from_vec(bytes)))
         }
@@ -97,6 +117,9 @@ impl NativePath {
                 .iter()
                 .map(|b| u16::from_le_bytes([b[0], b[1]]))
                 .collect();
+            if wide.contains(&0) {
+                return Err(AppError::new("path", "Native paths cannot contain NUL"));
+            }
             Ok(PathBuf::from(OsString::from_wide(&wide)))
         }
     }

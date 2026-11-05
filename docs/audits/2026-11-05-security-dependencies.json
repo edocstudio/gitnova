@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-11-05",
+  "baseCommit": "70fb8cbbd247260e7312c51516e34256daf65c41",
+  "scope": "Locked registry dependencies plus targeted source review; not a penetration test or platform certification.",
+  "lockHashes": {
+    "Cargo.lock": "dd0beb98cebf28067e7359b04d6afd90a1ab0a90e7e359a166b7c4b86ce73c4e",
+    "apps/desktop/package-lock.json": "d6b229dcfc2e52ff64646b863bab7664de880570bad3f4f2fb1aa6f0d8ec7c05"
+  },
+  "npm": {
+    "command": "npm audit --json",
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "dependencies": {
+        "prod": 7,
+        "dev": 89,
+        "optional": 38,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 95
+      }
+    }
+  },
+  "cargo": {
+    "source": "https://api.osv.dev/v1/querybatch",
+    "registryPackageVersionsQueried": 536,
+    "method": "Unauthenticated OSV querybatch, batches of at most 100, no response pagination tokens. Only public registry names and versions sent.",
+    "uniqueRustsecAdvisories": 5,
+    "affectedLockedPackageVersions": [
+      {
+        "name": "glib",
+        "version": "0.18.5",
+        "advisories": [
+          {
+            "id": "GHSA-wrw7-89jp-8q8g",
+            "modified": "2025-10-28T06:29:26.473225Z"
+          },
+          {
+            "id": "RUSTSEC-2024-0429",
+            "modified": "2025-10-28T06:29:26.473225Z"
+          }
+        ]
+      },
+      {
+        "name": "proc-macro-error",
+        "version": "1.0.4",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2024-0370",
+            "modified": "2026-06-07T20:00:03.923932Z"
+          }
+        ]
+      },
+      {
+        "name": "zbus_names",
+        "version": "3.0.0",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2026-0371",
+            "modified": "2026-10-17T15:30:02.407875Z"
+          }
+        ]
+      },
+      {
+        "name": "zbus_names",
+        "version": "4.3.5",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2026-0371",
+            "modified": "2026-10-17T15:30:02.407875Z"
+          }
+        ]
+      },
+      {
+        "name": "zvariant",
+        "version": "4.2.0",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2026-0370",
+            "modified": "2026-10-17T15:30:02.390032Z"
+          }
+        ]
+      },
+      {
+        "name": "zvariant",
+        "version": "5.15.1",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2026-0370",
+            "modified": "2026-10-17T15:30:02.390032Z"
+          }
+        ]
+      },
+      {
+        "name": "zvariant_derive",
+        "version": "4.2.0",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2026-0372",
+            "modified": "2026-10-17T15:30:02.394812Z"
+          }
+        ]
+      },
+      {
+        "name": "zvariant_derive",
+        "version": "5.15.1",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2026-0372",
+            "modified": "2026-10-17T15:30:02.394812Z"
+          }
+        ]
+      }
+    ],
+    "classification": {
+      "RUSTSEC-2024-0429": "unsound",
+      "RUSTSEC-2024-0370": "unmaintained",
+      "RUSTSEC-2026-0370": "unmaintained",
+      "RUSTSEC-2026-0371": "unmaintained",
+      "RUSTSEC-2026-0372": "unmaintained"
+    },
+    "glibStatus": "Unresolved: GTK3/Tauri Linux dependency requires glib 0.18; upstream fixed line is 0.20+. No advisory suppression or dependency changes applied."
+  },
+  "externalGit": {
+    "observedVersion": "2.39.2 (Apple Git-143)",
+    "status": "Requires vendor security-update review; version alone does not establish Apple backport status. Not upgraded by this task."
+  },
+  "limitations": [
+    "Registry advisory presence does not prove application exploitability.",
+    "Does not audit OS libraries or bundled WebView implementations.",
+    "No real tokens, provider writes, network Git writes or work-repository mutations used.",
+    "No new long-duration whole-app RAM or Windows/Linux native run in this review."
+  ]
+}
