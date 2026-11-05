@@ -1,4 +1,5 @@
 //! Bounded GitHub/GitLab API adapters. No Tauri or Git checkout mutations.
+mod branch_requests;
 mod credential_store;
 pub mod git_credentials;
 pub mod jenkins;
@@ -1203,6 +1204,54 @@ mod tests {
         (address, bodies, task)
     }
     #[test]
+    fn repository_browser_pages_are_bounded_and_clone_sources_stay_on_selected_host() {
+        for provider in ["github", "gitlab"] {
+            let context = host_context(&HostProfile {
+                provider: provider.into(),
+                origin: "https://host.example/base".into(),
+            })
+            .unwrap();
+            let cred = Credential {
+                token: "mock-secret".into(),
+                login: "fixture".into(),
+            };
+            let github = provider == "github";
+            let row = if github {
+                json!({"full_name":"team/library","clone_url":"https://wrong.example/repo.git","private":true})
+            } else {
+                json!({"path_with_namespace":"team/nested/library","http_url_to_repo":"https://wrong.example/repo.git","visibility":"public"})
+            };
+            let (base, bodies, task) = server(vec![(
+                "GET",
+                if github {
+                    "/user/repos?per_page=100&page=2"
+                } else {
+                    "/projects?per_page=100&page=2"
+                },
+                200,
+                json!([row]),
+            )]);
+            let mut client = HostingClient::new(&context, &cred).unwrap();
+            client.base = base;
+            assert!(client.repositories(0).is_err());
+            assert!(client.repositories(101).is_err());
+            let page = client.repositories(2).unwrap();
+            assert_eq!(page.repositories.len(), 1);
+            assert!(!page.has_more);
+            assert_eq!(
+                page.repositories[0].clone_url,
+                format!(
+                    "https://host.example/base/{}.git",
+                    page.repositories[0].project
+                )
+            );
+            assert_eq!(page.repositories[0].private, github);
+            task.join().unwrap();
+            assert!(bodies.lock().unwrap().is_empty());
+        }
+    }
+
+    #[test]
     fn commit_links_keep_full_revision_and_explicit_provider_paths() {
         let oid = "a".repeat(40);
         let github = resolve(&selection("github"), "git@github.com:team/project.git").unwrap();
@@ -2246,5 +2295,136 @@ mod tests {
         );
         task.join().unwrap();
         assert_eq!(bodies.lock().unwrap().len(), 1);
+    }
+    #[test]
+    fn open_branch_requests_validate_provider_project_and_preserve_fork_identity() {
+        for provider in ["github", "gitlab"] {
+            let context = resolve(
+                &selection(provider),
+                if provider == "github" {
+                    "git@github.com:team/project.git"
+                } else {
+                    "git@gitlab.com:team/project.git"
+                },
+            )
+            .unwrap();
+            let cred = Credential {
+                token: "mock-secret".into(),
+                login: "alice".into(),
+            };
+            let github = provider == "github";
+            let row = if github {
+                json!({"id":100,"number":12,"title":"Fix","state":"open","draft":true,"merged_at":null,"html_url":"https://github.com/team/project/pull/12","head":{"ref":"feature","sha":"a".repeat(40),"repo":{"id":2}},"base":{"ref":"main","repo":{"id":1}}})
+            } else {
+                json!({"id":100,"iid":12,"title":"Draft: Fix","state":"opened","merged_at":null,"web_url":"https://gitlab.com/team/project/-/merge_requests/12","source_branch":"feature","target_branch":"main","source_project_id":2,"target_project_id":1,"sha":"a".repeat(40)})
+            };
+            let (base, bodies, task) = server(vec![
+                (
+                    "GET",
+                    if github {
+                        "/repos/team/project"
+                    } else {
+                        "/projects/team%2Fproject"
+                    },
+                    200,
+                    if github {
+                        json!({"id":1,"full_name":"team/project"})
+                    } else {
+                        json!({"id":1,"path_with_namespace":"team/project"})
+                    },
+                ),
+                (
+                    "GET",
+                    if github {
+                        "/repos/team/project/pulls?"
+                    } else {
+                        "/projects/1/merge_requests?"
+                    },
+                    200,
+                    json!([row]),
+                ),
+            ]);
+            let mut client = HostingClient::new(&context, &cred).unwrap();
+            client.base = base;
+            let value = client.open_branch_requests().unwrap();
+            assert_eq!(value.requests.len(), 1);
+            assert_eq!(value.requests[0].source_project_id.as_deref(), Some("2"));
+            assert_eq!(value.project_id, "1");
+            assert!(value.requests[0].draft);
+            assert!(!value.partial);
+            assert_eq!(value.requests[0].target_branch, "main");
+            task.join().unwrap();
+            assert!(bodies.lock().unwrap().is_empty());
+        }
+    }
+    #[test]
+    fn open_branch_requests_reject_wrong_target_project_and_request_link() {
+        let context = resolve(&selection("gitlab"), "git@gitlab.com:team/project.git").unwrap();
+        let cred = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        for (target, url) in [
+            (2, "https://gitlab.com/team/project/-/merge_requests/12"),
+            (1, "https://gitlab.com/other/project/-/merge_requests/12"),
+        ] {
+            let row = json!({"id":100,"iid":12,"title":"Fix","state":"opened","merged_at":null,"web_url":url,"source_branch":"feature","target_branch":"main","source_project_id":1,"target_project_id":target});
+            let (base, _, task) = server(vec![
+                (
+                    "GET",
+                    "/projects/team%2Fproject",
+                    200,
+                    json!({"id":1,"path_with_namespace":"team/project"}),
+                ),
+                ("GET", "/projects/1/merge_requests?", 200, json!([row])),
+            ]);
+            let mut client = HostingClient::new(&context, &cred).unwrap();
+            client.base = base;
+            assert!(client.open_branch_requests().is_err());
+            task.join().unwrap();
+        }
+    }
+    #[test]
+    fn open_branch_requests_page_bound_is_honest_and_reads_no_extra_page() {
+        let context = resolve(&selection("gitlab"), "git@gitlab.com:team/project.git").unwrap();
+        let cred = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        let page = |start: u64| {
+            json!((start..start+100).map(|n|json!({"id":n,"iid":n,"title":"Fix","state":"opened","merged_at":null,"web_url":format!("https://gitlab.com/team/project/-/merge_requests/{n}"),"source_branch":"feature","target_branch":"main","source_project_id":1,"target_project_id":1})).collect::<Vec<_>>())
+        };
+        let (base, _, task) = server(vec![
+            (
+                "GET",
+                "/projects/team%2Fproject",
+                200,
+                json!({"id":1,"path_with_namespace":"team/project"}),
+            ),
+            (
+                "GET",
+                "/projects/1/merge_requests?state=opened&per_page=100&page=1",
+                200,
+                page(1),
+            ),
+            (
+                "GET",
+                "/projects/1/merge_requests?state=opened&per_page=100&page=2",
+                200,
+                page(101),
+            ),
+            (
+                "GET",
+                "/projects/1/merge_requests?state=opened&per_page=100&page=3",
+                200,
+                page(201),
+            ),
+        ]);
+        let mut client = HostingClient::new(&context, &cred).unwrap();
+        client.base = base;
+        let value = client.open_branch_requests().unwrap();
+        assert_eq!(value.requests.len(), 300);
+        assert!(value.partial);
+        task.join().unwrap();
     }
 }

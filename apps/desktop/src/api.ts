@@ -27,6 +27,7 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  branchRequests:(membershipId:string,selection:HostingSelection)=>call<import('./contracts').BranchRequests>('branch_requests',{membershipId,selection}),
   workingFileText:(membershipId:string,path:NativePath)=>call<import('./contracts').WorkingFileText>('working_file_text',{membershipId,path}),
   saveWorkingFileText:(membershipId:string,path:NativePath,text:string,token:string)=>call<void>('save_working_file_text',{membershipId,path,text,token}),
   previewSubmoduleLifecycle:(membershipId:string,request:import('./contracts').SubmoduleLifecycleRequest)=>call<import('./contracts').SubmoduleLifecyclePreview>('preview_submodule_lifecycle',{membershipId,request}),
@@ -91,6 +92,7 @@ export const api = {
   openCiUrl: (url:string)=>call<void>('open_ci_url',{url}),
   connectJenkins: (membershipId:string,selection:JenkinsSelection)=>call<string>('connect_jenkins',{membershipId,selection,prompt:{message:t('Enter a Jenkins API token. It stays in macOS Keychain, separate from GitLab.'),confirm:t('Connect'),cancel:t('Cancel')}}),
   jenkinsBuilds: (membershipId:string,selection:JenkinsSelection,refresh=false)=>call<JenkinsSnapshot>('jenkins_builds',{membershipId,selection,refresh}),
+  hostedRepositories:(profile:HostProfile,page:number)=>call<import('./contracts').HostedRepositories>('hosted_repositories',{profile,page}),
   repositoryCreateOptions:(profile:HostProfile)=>call<RepositoryCreateOptions>('repository_create_options',{profile}),
   previewRepositoryCreate:(membershipId:string,request:RepositoryCreateRequest)=>call<RepositoryCreatePreview>('preview_repository_create',{membershipId,request}),
   createRepository:(membershipId:string,request:RepositoryCreateRequest,token:string)=>call<RepositoryCreateOutcome>('create_repository',{membershipId,request,token}),

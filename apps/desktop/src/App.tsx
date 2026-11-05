@@ -1,3 +1,4 @@
+import {clearRepositoryBrowserCache} from './RepositoryBrowser';
 import type {FileDrafts} from './WorkingFileEditor';
 import {RepositoryIdentityFooter} from './RepositoryIdentity';
 import {LockRecoveryDialog} from './LockRecoveryDialog';
@@ -37,6 +38,7 @@ const RepositoryTerminal=lazy(()=>import('./RepositoryTerminal').then(module=>({
 export function App() {
   useLocale();
   const fileDrafts=useRef<FileDrafts>(new Map());
+  useEffect(()=>{window.addEventListener('gitnova-ci-config',clearRepositoryBrowserCache);return()=>window.removeEventListener('gitnova-ci-config',clearRepositoryBrowserCache);},[]);
   useEffect(()=>{const warn=(event:BeforeUnloadEvent)=>{if([...fileDrafts.current.values()].some(draft=>draft.value!==draft.preview.text)){event.preventDefault();event.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[]);
   const [repositoryViews,setRepositoryViews]=useState<Record<string,{query:string;page:number}>>({});
   const [terminalEntries,setTerminalEntries]=useState<TerminalEntry[]>([]);
@@ -61,7 +63,7 @@ export function App() {
   const [cloneDrafts, setCloneDrafts] = useState<Record<string, CloneDraft>>({});
   const [menu, setMenu] = useState(false); const [path, setPath] = useState(''); const [workspaceName, setWorkspaceName] = useState('');
   const [operationFeedback, setOperationFeedback] = useState<Record<string, { status: string; summary: string; kind?: string; planned?: PlannedOperation | null; recovery: string | null; branchCleanup?: OperationReceipt['branchCleanup'] }>>({});
-  const reportOperation = useCallback((receipt: OperationReceipt) => {window.dispatchEvent(new Event('gitnova-write-completed'));setOperationFeedback(old => retainRecent(old, receipt.membershipId, receipt));}, []);
+  const reportOperation = useCallback((receipt: OperationReceipt) => {window.dispatchEvent(new Event('gitnova-write-completed'));if(['create_change_request','add_remote'].includes(receipt.kind))window.dispatchEvent(new Event('gitnova-requests-changed'));setOperationFeedback(old => retainRecent(old, receipt.membershipId, receipt));}, []);
   const reportOperationError = useCallback((id: string, message: string) => setOperationFeedback(old => retainRecent(old, id, { status: 'unknown', summary: message, recovery: 'Inspect the repository before retrying.' })), []);
   const [lockRecovery,setLockRecovery]=useState<string|null>(null);
   const [recoveryRevision,setRecoveryRevision]=useState(0);

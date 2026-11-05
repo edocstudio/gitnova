@@ -285,6 +285,11 @@ impl Application {
             if Some(credential.login.as_str())!=current.context.account.as_deref(){return Err(AppError::new("stale_preview","The provider account changed. Review the request again."));}
             change_request=Some(gitnova_hosting::HostingClient::new(&current.context,&credential)?.create(&current)?);created=true;Ok(())
         })?;
+        if change_request.is_some() {
+            if let Ok(mut cache) = self.branch_requests_cache.try_lock() {
+                cache.clear();
+            }
+        }
         if let Some(value) = &change_request {
             if let Some(PlannedOperation::Hosting(p)) = &mut receipt.planned {
                 p.existing = Some(value.clone());
@@ -304,6 +309,15 @@ impl Application {
 }
 
 impl Application {
+    pub fn hosted_repositories(
+        &self,
+        profile: &HostProfile,
+        page: u32,
+    ) -> Result<HostedRepositories> {
+        let context = gitnova_hosting::host_context(profile)?;
+        let credential = gitnova_hosting::credential(&context)?;
+        gitnova_hosting::HostingClient::new(&context, &credential)?.repositories(page)
+    }
     pub fn repository_create_options(
         &self,
         profile: &HostProfile,
@@ -373,5 +387,60 @@ impl Application {
             receipt,
             repository,
         })
+    }
+}
+
+impl Application {
+    pub fn branch_requests(
+        &self,
+        id: &str,
+        selection: &HostingSelection,
+    ) -> Result<BranchRequests> {
+        let remote =
+            self.git
+                .pipeline_remote(&self.path(id)?, &selection.remote, &selection.oid)?;
+        let profile = HostProfile {
+            provider: selection
+                .provider
+                .clone()
+                .ok_or_else(|| AppError::new("hosting", "Choose GitHub or GitLab."))?,
+            origin: selection
+                .origin
+                .clone()
+                .ok_or_else(|| AppError::new("hosting", "Invalid host."))?,
+        };
+        if !gitnova_hosting::matches_host(&profile, &remote)? {
+            return Err(AppError::new(
+                "hosting",
+                "The Git remote no longer matches this host connection.",
+            ));
+        }
+        let context = gitnova_hosting::resolve(selection, &remote)?;
+        let credential = gitnova_hosting::credential(&context)?;
+        let key = serde_json::to_string(&(
+            &context.provider,
+            &context.origin,
+            &context.project,
+            &selection.remote,
+            &credential.login,
+        ))
+        .map_err(|_| AppError::new("hosting", "Could not identify request scope."))?;
+        let mut cache = self
+            .branch_requests_cache
+            .try_lock()
+            .map_err(|_| AppError::new("hosting", "Open request lookup is busy."))?;
+        if let Some((_, when, value)) = cache.iter().find(|(k, _, _)| k == &key) {
+            if when.elapsed().as_secs() < 60 {
+                return Ok(value.clone());
+            }
+        }
+        let value =
+            gitnova_hosting::HostingClient::new(&context, &credential)?.open_branch_requests()?;
+        cache.retain(|(k, _, _)| k != &key);
+        while cache.len() >= 16 {
+            cache.pop_front();
+        }
+        cache.push_back((key, std::time::Instant::now(), value.clone()));
+        Ok(value)
     }
 }

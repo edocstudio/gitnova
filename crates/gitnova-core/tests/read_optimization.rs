@@ -84,3 +84,19 @@ fn display_tracking_cache_never_hides_working_changes_refs_or_config_changes() {
     assert_eq!(changed.tracking[0].state, "gone");
     assert_eq!(metrics.commands.get("for-each-ref"), Some(&1));
 }
+
+#[test]
+fn submodule_discovery_without_gitlinks_skips_status_and_head_tree_scans() {
+    let (_dir, app, id, root) = fixture();
+    fs::write(root.join("file"), "dirty\n").unwrap();
+    let index = fs::read(root.join(".git/index")).unwrap();
+    let (rows, metrics) = measure_git(|| app.submodules(&id).unwrap());
+    assert!(rows.is_empty());
+    assert!(!metrics.commands.contains_key("status"));
+    assert!(!metrics.commands.contains_key("ls-tree"));
+    assert_eq!(fs::read(root.join(".git/index")).unwrap(), index);
+    eprintln!(
+        "Submodule discovery without gitlinks: {:?}",
+        metrics.commands
+    );
+}

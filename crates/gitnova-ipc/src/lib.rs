@@ -90,3 +90,7 @@ pub use gitnova_domain::RebaseEdit;
 pub use gitnova_domain::RepositoryIdentitySettings;
 
 pub use gitnova_domain::WorkingFileText;
+
+pub use gitnova_domain::{BranchRequests, OpenBranchRequest};
+
+pub use gitnova_domain::{HostedRepositories, HostedRepository};

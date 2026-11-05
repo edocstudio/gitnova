@@ -117,6 +117,14 @@ pub fn inspect(git: &GitCli, root: &Path) -> Result<Vec<DiscoveredSubmodule>> {
                 4 * 1024 * 1024,
             )?
             .bytes;
+        // Repositories without indexed gitlinks need no recursive status or HEAD tree walk.
+        // This also applies to leaf submodules, which are visited during discovery.
+        if !bytes
+            .split(|byte| *byte == 0)
+            .any(|entry| entry.starts_with(b"160000 "))
+        {
+            continue;
+        }
         let parent_status = git.status(&parent)?;
         let mut head_links = HashMap::new();
         if parent_status.head.is_some() {

@@ -6,11 +6,12 @@ use crate::{
 use gitnova_domain::*;
 use std::{ffi::OsString, path::Path};
 pub trait SubmoduleWriter {
-    fn initialize_recorded(&self, parent: &Path, relative: &Path) -> Result<()>;
+    fn initialize_recorded(&self, parent: &Path, relative: &Path, source: &str) -> Result<()>;
     fn restore_recorded(&self, child: &Path, oid: &str) -> Result<()>;
 }
 impl SubmoduleWriter for GitCli {
-    fn initialize_recorded(&self, parent: &Path, relative: &Path) -> Result<()> {
+    fn initialize_recorded(&self, parent: &Path, relative: &Path, source: &str) -> Result<()> {
+        self.validate_submodule_source(source)?;
         let mut args: Vec<OsString> = [
             "-c",
             "submodule.recurse=false",
@@ -28,6 +29,13 @@ impl SubmoduleWriter for GitCli {
         .map(OsString::from)
         .collect();
         args.push(relative.as_os_str().into());
+        args.splice(
+            0..0,
+            [
+                OsString::from("-c"),
+                OsString::from(format!("gitnova.credentialTarget={source}")),
+            ],
+        );
         run_fetch(parent, &args)
     }
     fn restore_recorded(&self, child: &Path, oid: &str) -> Result<()> {
@@ -78,6 +86,8 @@ impl GitCli {
                 "fetch.recurseSubmodules=false".into(),
                 "-c".into(),
                 "init.templateDir=".into(),
+                "-c".into(),
+                format!("gitnova.credentialTarget={source}").into(),
                 "submodule".into(),
                 "add".into(),
                 "--".into(),

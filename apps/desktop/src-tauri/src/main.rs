@@ -962,6 +962,14 @@ async fn jenkins_builds(
     .await
 }
 #[tauri::command]
+async fn hosted_repositories(
+    state: State<'_>,
+    profile: HostProfile,
+    page: u32,
+) -> Result<HostedRepositories, AppError> {
+    run(state, move |a| a.hosted_repositories(&profile, page)).await
+}
+#[tauri::command]
 async fn repository_create_options(
     state: State<'_>,
     profile: HostProfile,
@@ -1053,6 +1061,17 @@ async fn connect_host(
 #[tauri::command]
 async fn disconnect_host(state: State<'_>, profile: HostProfile) -> Result<(), AppError> {
     run(state, move |a| a.disconnect_host(&profile)).await
+}
+#[tauri::command]
+async fn branch_requests(
+    state: State<'_>,
+    membership_id: String,
+    selection: HostingSelection,
+) -> Result<BranchRequests, AppError> {
+    run(state, move |a| {
+        a.branch_requests(&membership_id, &selection)
+    })
+    .await
 }
 #[tauri::command]
 async fn ci_connection(
@@ -1340,6 +1359,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         open_ci_url,
         connect_jenkins,
         jenkins_builds,
+        hosted_repositories,
         repository_create_options,
         preview_repository_create,
         create_repository,
@@ -1351,6 +1371,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         host_account,
         connect_host,
         disconnect_host,
+        branch_requests,
         ci_connection,
         jenkins_account,
         connect_jenkins_account,

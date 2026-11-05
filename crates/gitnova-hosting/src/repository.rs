@@ -22,6 +22,73 @@ fn token(
     Ok(format!("{:x}", Sha256::digest(bytes)))
 }
 impl HostingClient<'_> {
+    pub fn repositories(&self, page: u32) -> Result<HostedRepositories> {
+        if !(1..=100).contains(&page) {
+            return Err(err("Invalid repository page."));
+        }
+        let github = self.context.provider == "github";
+        let mut query = vec![("per_page", "100".into()), ("page", page.to_string())];
+        if github {
+            query.extend([
+                ("sort", "full_name".into()),
+                ("direction", "asc".into()),
+                (
+                    "affiliation",
+                    "owner,collaborator,organization_member".into(),
+                ),
+            ]);
+        } else {
+            query.extend([
+                ("membership", "true".into()),
+                ("order_by", "id".into()),
+                ("sort", "asc".into()),
+                ("simple", "true".into()),
+            ]);
+        }
+        let response = self
+            .call(
+                Method::GET,
+                if github { "/user/repos" } else { "/projects" },
+                &query,
+                None,
+            )?
+            .ok_or_else(|| err("Repository list unavailable."))?;
+        let rows = response
+            .as_array()
+            .ok_or_else(|| err("Invalid repository list."))?;
+        if rows.len() > 100 {
+            return Err(err("Repository page exceeds its limit."));
+        }
+        let mut repositories = Vec::with_capacity(rows.len());
+        for row in rows {
+            let project = row
+                .get(if github {
+                    "full_name"
+                } else {
+                    "path_with_namespace"
+                })
+                .and_then(Value::as_str)
+                .filter(|v| namespace(v))
+                .ok_or_else(|| err("Invalid repository path."))?;
+            // Construct the source from the validated account host and exact project path.
+            // Never trust a clone URL supplied by a different host in a provider response.
+            let clone_url = format!("{}/{}.git", self.context.origin, project);
+            let private = if github {
+                row.get("private").and_then(Value::as_bool).unwrap_or(true)
+            } else {
+                row.get("visibility").and_then(Value::as_str) != Some("public")
+            };
+            repositories.push(HostedRepository {
+                project: project.into(),
+                clone_url,
+                private,
+            });
+        }
+        Ok(HostedRepositories {
+            repositories,
+            has_more: rows.len() == 100,
+        })
+    }
     pub fn repository_options(&self) -> Result<RepositoryCreateOptions> {
         let account = self.login()?;
         if account != self.credential.login {

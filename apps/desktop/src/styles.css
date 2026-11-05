@@ -879,3 +879,20 @@ main { display: flex; flex: 1; min-height: 0; }
 .working-editor-columns strong { font-size:12px; padding:6px 12px; }
 .working-editor-columns pre,.working-editor-columns textarea { flex:1; min-height:0; margin:0; padding:10px 12px; overflow:auto; white-space:pre; font:13px/24px var(--mono,monospace); tab-size:4; border:1px solid var(--line); border-radius:0; resize:none; }
 .working-editor-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px; padding:8px 12px; }
+
+.branch-request-badge { display:inline-flex; align-items:center; gap:3px; padding:1px 3px; border-radius:3px; color:var(--green); background:var(--surface-111b24,#111b24); font-size:9px; flex-shrink:0; max-width:110px; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.branch-request-badge.stale { color:var(--muted); }
+.branch-request-badge:hover { outline:1px solid currentColor; }
+.graph-ref > .branch-request-badge { min-width:0; }
+.graph-menu-label { color:var(--muted); font-size:11px; padding:7px 12px; }
+
+.repository-browser { margin: 12px 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.repository-browser label,.submodule-add-fields label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.repository-browser-search { display:flex; gap:12px; align-items:end; flex-wrap:wrap; }
+.repository-browser-search label { flex:1; min-width:160px; margin-bottom:0; }
+.repository-browser-row { display:flex; gap:10px; width:100%; margin:4px 0; text-align:left; }
+.repository-browser-row span { flex:1; overflow:hidden; text-overflow:ellipsis; }
+.repository-browser-pages { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; }
+.submodule-add-fields { display:grid; gap:8px; margin-top:16px; max-width:680px; }
+.submodule-add-fields label { margin:8px 0 0; }
+.submodule-add-fields small { color:var(--muted); font-size:12px; line-height:1.5; }

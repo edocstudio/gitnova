@@ -1,7 +1,7 @@
 //! Test-only transport for browser E2E against the real Rust core. Not shipped in the app.
 use gitnova_core::Application;
 use gitnova_domain::{
-    AppError, GraphCursor, NativePath, Result, SubmoduleLifecycleRequest,
+    AppError, GraphCursor, HostingSelection, NativePath, Result, SubmoduleLifecycleRequest,
     WorktreeMaintenanceRequest,
 };
 use serde_json::{json, Value};
@@ -166,6 +166,14 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 "Credential prompts are disabled in the test transport.",
             ))
         }
+        "hosted_repositories" => json!(app.hosted_repositories(
+            &serde_json::from_value(args["profile"].clone())
+                .map_err(|e| AppError::new("json", e.to_string()))?,
+            args["page"]
+                .as_u64()
+                .and_then(|v| u32::try_from(v).ok())
+                .ok_or_else(|| AppError::new("json", "Invalid page"))?
+        )?),
         "repository_create_options" => json!(app.repository_create_options(
             &serde_json::from_value(args["profile"].clone())
                 .map_err(|e| AppError::new("json", e.to_string()))?
@@ -205,6 +213,11 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             &serde_json::from_value(args["profile"].clone())
                 .map_err(|e| AppError::new("hosting", e.to_string()))?
         )?),
+        "branch_requests" => {
+            let selection: HostingSelection = serde_json::from_value(args["selection"].clone())
+                .map_err(|e| AppError::new("test", e.to_string()))?;
+            json!(app.branch_requests(&s("membershipId")?, &selection)?)
+        }
         "ci_connection" => json!(app.ci_connection(
             &s("membershipId")?,
             &s("oid")?,

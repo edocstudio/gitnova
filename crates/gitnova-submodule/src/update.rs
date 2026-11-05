@@ -581,7 +581,16 @@ pub fn apply(git: &GitCli, root: &Path, sub: &Submodule, mode: &str, token: &str
     let root_snapshot = git.head_index_snapshot(root)?;
     let parent_snapshot = git.head_index_snapshot(&parent)?;
     if mode == "initialize" {
-        git.initialize_recorded(&parent, &sub.relative_path.to_path()?)?;
+        let source = configured_url(
+            git,
+            &parent,
+            sub.config_name
+                .as_deref()
+                .ok_or_else(|| AppError::new("submodule", "Missing submodule name."))?,
+        )?
+        .ok_or_else(|| AppError::new("submodule", "Missing source URL."))?;
+        let source = crate::sync::resolved_url(git, &parent, &source)?;
+        git.initialize_recorded(&parent, &sub.relative_path.to_path()?, &source)?;
     } else {
         git.restore_recorded(&child, &confirmed.target_oid)?;
     }
