@@ -11,13 +11,14 @@ it('shows independent ahead and behind commit counts with fetched-ref scope', ()
 it('does not turn absent, gone, shallow or mismatched metadata into zero counts', () => {
   for (const state of ['noUpstream','gone','shallow'] as const) {
     const html=renderToStaticMarkup(<BranchTrackingBadge value={{...tracked,state,ahead:null,behind:null}} oid="commit"/>);
-    expect(html).not.toContain('↑');expect(html).not.toContain('✓');
+    expect(html).not.toContain('↑');expect(html).not.toContain('class="in-sync">=</span>');
   }
   expect(renderToStaticMarkup(<BranchTrackingBadge value={tracked} oid="other"/>)).toContain('unavailable');
-  expect(renderToStaticMarkup(<BranchTrackingBadge value={{...tracked,ahead:null}} oid="commit"/>)).not.toContain('✓');
+  expect(renderToStaticMarkup(<BranchTrackingBadge value={{...tracked,ahead:null}} oid="commit"/>)).not.toContain('class="in-sync">=</span>');
 });
 it('represents known synchronization and translates the comparison without changing ref data', () => {
-  expect(renderToStaticMarkup(<BranchTrackingBadge value={{...tracked,ahead:0,behind:0}} oid="commit"/>)).toContain('✓');
+  expect(renderToStaticMarkup(<BranchTrackingBadge value={{...tracked,ahead:0,behind:0}} oid="commit"/>)).toContain('class="in-sync">=</span>');
+  expect(renderToStaticMarkup(<BranchTrackingBadge value={{...tracked,ahead:0,behind:0}} oid="commit"/>)).toContain('Same commit as');
   setLocale('th');try { const html=renderToStaticMarkup(<BranchTrackingBadge value={tracked} oid="commit"/>);expect(html).toContain('3↑');expect(html).toContain('ตาม 2');expect(html).toContain(tracked.upstream!); } finally {setLocale('en');}
 });
 

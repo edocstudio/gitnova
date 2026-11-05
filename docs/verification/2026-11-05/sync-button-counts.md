@@ -94,3 +94,20 @@ Follow-up verification:
 - Follow-up local build passed; installed over the closed Desktop GitNova.app.
   Signature, embedded bundle check and executable hash match passed. Current
   executable SHA-256: `d870e6d3c862abe2d96f4fa897285f49243805fa9e3848fc61e37fbda6bede1f`. No workspace was opened by verification.
+
+## Label clarity — 2026-11-06
+
+- Graph branch labels use HEAD only for the checked-out branch, with a localized
+  tooltip and aria-current. The former leading check icon is now the branch icon.
+- Fetched-ref equality uses `=` and a named-ref tooltip, distinct from checkout
+  identity. Nonzero numbered arrows and Pull/Push counts remain unchanged.
+- Same-tip branch labels stay on their actual shared commit. No layout/navigation
+  surface, backend mutation, dependency or network read was added.
+- TypeScript and all 67 frontend tests passed; the updated tracking test was also
+  rerun (6 passed). Two targeted browser regressions passed in 48.8 seconds.
+- A real-core browser fixture fast-forwards an untracked branch, verifies the
+  checkout name/upstream, then aligns another local ref to the same tip and proves
+  only the checked-out label has HEAD. Screenshot inspected for the stacked labels.
+- Earlier staged changes were preserved; this label refinement remains unstaged.
+- Label-refinement local build and installed signature/bundle checks passed.
+  Replaced the closed Desktop GitNova.app; executable SHA-256: `6f344631508602c81e8b5cc3a714980489ee453a7467902b932416e51fda2ab9`.

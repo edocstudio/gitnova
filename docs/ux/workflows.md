@@ -291,3 +291,37 @@ collisions, renames, hidden index entries, unsupported changes, occupied branche
 and stale previews remain protected. Native Git switch retains its overwrite and
 ignored-file protections. No automatic stash, discard or forced checkout is used.
 Remote integration keeps its existing dirty-work protection.
+
+### Checkout identity and equal tips
+
+Use an explicit HEAD marker only on the checked-out branch label in the existing
+graph. Other branches at the same commit remain stacked there: shared commit
+position is not a checkout change. Local/fetched comparison equality uses `=`
+with a named-ref tooltip, while nonzero divergence retains its numbered arrows.
+This is a label change in existing surfaces, with no new screen, preference,
+network read or Git mutation.
+
+### Working-change prerequisites and return to the original action
+
+Use the existing graph action/picker review for required preparation. Parent-work
+blockers in checkout/create branch, local/remote branch opening, Pull,
+Merge/Cherry-pick/Revert/Rebase, and Apply/Pop open the existing stash preview in
+that context. Show the selected file scope and lazy per-file patch. No new screen,
+permanent panel, settings or global navigation is needed. Cancel leaves the
+original action blocked and offers review again. Stash requires explicit review
+and confirmation; it does not run just because the action was selected.
+
+After verified Stash success and refresh, regenerate the original action preview
+with its entered name, target and method intact. Never replay the original write
+or automatically Apply/Pop the saved work. Apply/Pop return to the originally
+selected stash object, resolving its new index after another entry is pushed.
+Untracked-file exclusions may leave work to prepare; do not pretend the tree is
+clean. Stash errors or refresh failures do not advance the journey.
+
+Creating a branch at the exact current tip can instead explicitly carry the
+working files and staging; native Git validates that preview. Other-tip creation
+and overlapping checkout changes require preparation. Fetch, Push, tags and
+independent worktree creation do not need a clean source checkout, so do not add a
+stash gate. Child-submodule dirtiness and dirty target worktrees are separate
+repository scopes; parent stash cannot resolve them. Locks, unresolved conflicts
+and active operations retain their own recovery/finish flows.

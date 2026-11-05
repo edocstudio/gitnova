@@ -1,3 +1,4 @@
+import {WorkPreparation, needsWorkPreparation} from './WorkPreparation';
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import { t } from './i18n';
@@ -95,6 +96,7 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
       {review.switch.submodules.length > 0 && <p className="notice">{t('Submodule checkouts stay in place')}. {t('Restore its recorded version separately when needed.')}</p>}
       {review.switch.blockedReason ? <p className="notice" role="status">{diverged ? t('Branches have diverged. Review a merge to keep both histories; a fast-forward cannot combine them.') : t(review.switch.blockedReason)}</p> : <p className="hint">{t('Configured Git hooks and filters can run. Submodules are not initialized or updated.')}</p>}
     </div>}
+    {review && !diverged && needsWorkPreparation(review.switch.blockedReason) && <WorkPreparation key={`${review.remote}:${review.remoteBranch}:${review.switch.branch}`} membershipId={membershipId} disabled={blocked || writing} onBusyChange={value => { inFlight.current = value; setWriting(value); onBusyChange(value); }} onDone={onDone} onFailure={onFailure} onReady={() => void fetch(review.remote, {remote: review.remote, remoteBranch: review.remoteBranch})}/>}
     {error && <p className="inline-error" role="alert">{t(error)}</p>}
     <div className="graph-action-footer"><button disabled={writing} onClick={onClose}>{t('Close')}</button>{kind === 'fetch' ? <button className="primary" disabled={locked || !remote} onClick={() => void fetch(remote)}>{t('Fetch')}</button> : review && (diverged ? <button className="primary" disabled={locked || !review.localOid} onClick={() => { if (!review.remoteOid) { setError('Restart GitNova to load the fetched revision before reviewing a merge.'); return; } setMerging(true); }}>{t('Review merge…')}</button> : <button className="primary" disabled={locked || Boolean(review.switch.blockedReason)} onClick={() => void apply()}>{t('Pull into {0}', [review.switch.branch])}</button>)}</div>
   </div>;

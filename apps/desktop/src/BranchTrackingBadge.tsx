@@ -22,9 +22,9 @@ function comparisonTitle(current?: BranchTracking) {
 export function BranchTrackingBadge({ value, oid }: { value?: BranchTracking; oid?: string | null }) {
   const current = matchingTracking(value, oid);
   const comparison = comparisonFor(current);
-  const title = comparisonTitle(current);
+  const title = comparison && comparison.ahead === 0 && comparison.behind === 0 ? `${t('Same commit as {0}', [comparison.reference])}. ${comparisonTitle(current)}` : comparisonTitle(current);
   return <span className={`branch-tracking ${current?.state ?? 'unknown'}`} role="img" aria-label={title} title={title}>
-    {comparison ? <>{comparison.ahead > 0 && <span className="ahead">{comparison.ahead}↑</span>}{comparison.behind > 0 && <span className="behind">{comparison.behind}↓</span>}{comparison.ahead === 0 && comparison.behind === 0 && <span>✓</span>}</> : current?.state === 'noUpstream' ? '—' : '?' }
+    {comparison ? <>{comparison.ahead > 0 && <span className="ahead">{comparison.ahead}↑</span>}{comparison.behind > 0 && <span className="behind">{comparison.behind}↓</span>}{comparison.ahead === 0 && comparison.behind === 0 && <span className="in-sync">=</span>}</> : current?.state === 'noUpstream' ? '—' : '?' }
   </span>;
 }
 

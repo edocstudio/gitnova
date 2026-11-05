@@ -2252,5 +2252,13 @@
   "Invalid repository path.": "Invalid repository path.",
   "{0} commits ahead · {1} behind {2}. Display comparison only; no upstream is configured. Pull and Push still use their reviewed destinations.": "{0} commits ahead · {1} behind {2}. Display comparison only; no upstream is configured. Pull and Push still use their reviewed destinations.",
   "Pull from the comparison branch without setting an upstream. Review the incoming changes before applying.": "Pull from the comparison branch without setting an upstream. Review the incoming changes before applying.",
-  "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.": "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded."
+  "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.": "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.",
+  "Same commit as {0}": "Same commit as {0}",
+  "Checked out branch: {0}": "Checked out branch: {0}",
+  "Prepare working changes": "Prepare working changes",
+  "Save work before continuing": "Save work before continuing",
+  "1. Review and stash your changes. 2. Return to a fresh review of your original action.": "1. Review and stash your changes. 2. Return to a fresh review of your original action.",
+  "Nothing runs automatically. Saved changes stay in the stash until you choose Apply or Pop.": "Nothing runs automatically. Saved changes stay in the stash until you choose Apply or Pop.",
+  "Carry changes into the new branch": "Carry changes into the new branch",
+  "Review stash first…": "Review stash first…"
 }

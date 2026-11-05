@@ -1,3 +1,4 @@
+import {WorkPreparation, needsWorkPreparation} from './WorkPreparation';
 import {useRecoveredLockError} from './useRecoveredLockError';
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
@@ -43,7 +44,7 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
     return () => { cancelled = true; mounted.current = false; sequence.current++; };
   }, [membershipId, initialEntry?.oid, initialEntry?.index, initialKind]);
   useEffect(() => {
-    if (!preview || loading || busy || disabled || previewContext === context) return;
+    if (!preview || loading || busy || disabled || previewContext === context || needsWorkPreparation(preview.blockedReason)) return;
     // Read-only revalidation. Never replay Apply/Pop/Drop after a context change.
     void inspect(preview.request.kind === 'push'
       ? request('push', null, message, includeUntracked)
@@ -96,6 +97,7 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
     {preview && <div className="stash-preview">
       <div className="stash-destination"><small>{push ? t('Save current changes from') : drop ? t('Remove saved work') : t('Restore saved changes onto')}</small><strong>{drop ? `stash@{${preview.request.index}}` : branch}</strong>{selectedEntry && <p title={selectedEntry.message}><code>{`stash@{${selectedEntry.index}}`}</code> · {stashTitle(selectedEntry.message)}</p>}<small>{t('{0} files', [preview.files.length])}</small></div>
       <p>{push ? t('Save these changes so you can switch branches. New files are included unless you turn them off below.') : drop ? t('Remove this saved entry without changing working files. Its commit is retained by the recovery ref.') : preview.request.kind === 'apply' ? t('Restore onto this branch and keep the saved stash.') : t('Restore onto this branch, then remove the stash if successful.')}</p>
+      {preview.request.kind !== 'push' && needsWorkPreparation(preview.blockedReason) && <WorkPreparation key={preview.request.oid} membershipId={membershipId} disabled={disabled || busy} onBusyChange={value => { inFlight.current = value; setBusy(value); onBusyChange(value); }} onDone={async receipt => { onOperation(receipt); await onRefresh(); }} onFailure={onFailure} onReady={() => { const original = preview.request; void reload().then(value => { const entry = value.entries.find(item => item.oid === original.oid); if (!entry) throw new Error('This saved entry changed. Select it again from the graph or stash list.'); return inspect({...original, index: entry.index, id: ''}); }).catch(e => setError(errorMessage(e))); }}/>}
       {preview.blockedReason && <div className="notice" role="status">{ownedOperationBlocked ? t('{0} is still active on {1}, even with zero changed files. Finish or abort it before restoring saved work.', [operationLabel, branch]) : t(preview.blockedReason)}<div className="stash-secondary">{preview.request.kind === 'pop' && popRemovalBlocked(preview.blockedReason) ? <button disabled={busy || disabled || loading} onClick={() => updateKind('apply')}>{t('Restore and keep stash')}</button> : <button disabled={busy || disabled} onClick={onClose}>{ownedOperationBlocked ? t('Review pending {0}', [operationLabel]) : t('Review working changes')}</button>}</div></div>}
       {(preview.truncated||preview.indexTruncated)&&<p className="hint">{t('The complete file list is included. Code loads per file; large files may have a partial preview. No files are excluded because of the code preview limit.')}</p>}
       <div className="stash-review-files" aria-label={t('Stash files')}>{preview.files.map(path => <button key={path.hex} aria-pressed={file?.hex === path.hex} onClick={() => setFile(path)}><Icon name="file" size={14}/><span>{path.display}</span></button>)}</div>

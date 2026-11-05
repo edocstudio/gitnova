@@ -909,3 +909,11 @@ main { display: flex; flex: 1; min-height: 0; }
 
 @media (max-width:850px) { .repo-actions { flex-wrap:wrap;max-width:100%; } }
 .sync-count.unknown { font-size:10px; }
+
+/* Checkout identity is distinct from equality with the fetched comparison ref. */
+.graph-ref .current-branch-marker { flex:0 0 auto; font-size:8px; line-height:12px; padding:0 3px; border-radius:2px; background:var(--surface-14212b, #14212b); color:var(--ink-bed2e5, #bed2e5); letter-spacing:.03em; }
+.branch-tracking .in-sync { color:var(--muted); font-weight:600; }
+
+.work-preparation { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; min-width:0; }
+.work-preparation .preparation-diff { max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:4px; }
+.work-preparation .stash-review-files { max-height:100px; }

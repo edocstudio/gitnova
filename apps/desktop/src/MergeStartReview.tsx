@@ -1,3 +1,4 @@
+import {WorkPreparation, needsWorkPreparation} from './WorkPreparation';
 import {CommitIdentityNotice} from './CommitIdentity';
 import { t } from './i18n';
 import { useEffect, useState } from 'react';
@@ -18,6 +19,7 @@ export function MergeStartReview({ initialMethod = 'mergeCommit', expectedDestin
   const [acknowledgeRewrite,setAcknowledgeRewrite]=useState(false);
   const [editSubjects,setEditSubjects]=useState<Record<string,string>>({});
   const [steps,setSteps]=useState<RebaseEdit[]|null>(null);const [predicting,setPredicting]=useState(false);
+  const [preparationRevision, setPreparationRevision] = useState(0);
   const [method, setMethod] = useState<MergeMethod>(initialMethod);
   useEffect(()=>{setAcknowledgeRewrite(false);setMainline(null);setSteps(null);},[membershipId,oid,sourceRef,operation]);
   const label = operation === 'rebase' ? t("Rebase") : operation === 'cherryPick' ? t("Cherry-pick") : operation === 'revert' ? t("Revert") : t("Merge");
@@ -34,7 +36,7 @@ export function MergeStartReview({ initialMethod = 'mergeCommit', expectedDestin
       if (Boolean(value.request.deleteSourceBranch) !== deleteSourceBranch) throw new Error('Restart GitNova to load the native backend for this operation. Nothing has been applied.');
       if (!cancelled) { setPreview(value); setParents(value.parents ?? []); }
     }).catch(e => { if (!cancelled){setPreview(null);setError(errorMessage(e));} }).finally(()=>{if(!cancelled)setPredicting(false);}); return () => { cancelled = true; };
-  }, [membershipId, oid, sourceRef, operation, mainline, method, deleteSourceBranch, acknowledgeRewrite, steps, expectedDestination?.branch, expectedDestination?.oid]);
+  }, [preparationRevision, membershipId, oid, sourceRef, operation, mainline, method, deleteSourceBranch, acknowledgeRewrite, steps, expectedDestination?.branch, expectedDestination?.oid]);
   const staleSelection = Boolean(preview && (Boolean(preview.request.deleteSourceBranch) !== deleteSourceBranch || preview.request.sourceOid !== oid || (preview.request.operation ?? 'merge') !== operation || (operation === 'rebase' && (Boolean(preview.request.acknowledgeRewrite) !== acknowledgeRewrite || !sameReplay(preview.request.rebaseSteps,steps))) || (operation === 'merge' ? preview.request.method !== method : (preview.request.mainline ?? null) !== selectedMainline)));
   const needsMainline = isPatchOperation && parents.length > 1 && mainline === null;
   const apply = async () => {
@@ -58,6 +60,7 @@ export function MergeStartReview({ initialMethod = 'mergeCommit', expectedDestin
     </div>}
     {operation === 'merge' && <><label htmlFor="merge-method">{t('Merge method')}</label><select id="merge-method" value={method} disabled={busy || blocked} onChange={event => { setPreview(null); setMethod(event.target.value as MergeMethod); }}><option value="mergeCommit">{t('Create merge commit')}</option><option value="fastForwardOnly">{t('Fast-forward only')}</option></select>{preview?.mode !== 'up_to_date' && <p className="hint">{method === 'mergeCommit' ? t('Create a commit with both branch tips as parents. The graph will retain the merge junction.') : t('Move the current branch to the source tip without creating a commit. The graph stays linear; diverged branches are refused.')}</p>}</>}
     {operation === 'merge' && localSource && localSource !== preview?.branch && <><label className="checkbox-label"><input type="checkbox" checked={deleteSourceBranch} disabled={busy || blocked} onChange={event => { setPreview(null); setCleanupSelection(event.target.checked ? cleanupKey : null); }}/>{t('Delete local source branch after merge: {0}', [localSource])}</label><p className="hint">{t('Delete only after a successful merge. The source tip is kept for recovery. Remote branches stay unchanged.')}</p></>}
+    {needsWorkPreparation(reason) && <WorkPreparation key={`${operation}:${oid}:${mainline}:${method}`} membershipId={membershipId} disabled={blocked || busy} onBusyChange={value => { setBusy(value); onBusyChange(value); }} onDone={onDone} onFailure={onFailure} onReady={() => { setPreview(null); setPreparationRevision(value => value + 1); }}/>}
     {isPatchOperation && parents.length > 1 && <><label htmlFor="operation-mainline">{t("Mainline parent · change baseline")}</label><select id="operation-mainline" value={mainline ?? ''} disabled={busy || blocked} onChange={e => { setPreview(null); setMainline(e.target.value ? Number(e.target.value) : null); }}><option value="">{t("Choose a parent…")}</option>{parents.map((parent, i) => <option key={`${i}:${parent}`} value={i + 1}>{t("Parent")} {i + 1} · {parent.slice(0, 12)}</option>)}</select><p className="hint">{t('The selected parent is the baseline. Review its changes to this merge commit before starting.')}</p>{mainline !== null && <p><code>{parents[mainline - 1]?.slice(0, 12)} → {oid.slice(0, 12)}</code></p>}{operation === 'revert' && <p className="notice">{t("Reverting a merge also affects what later merges will reintroduce. The selected parent defines which changes are reversed.")}</p>}</>}
     {!preview && !error && <p role="status">{t("Predicting")} {lower} {t("in an isolated object store…")}</p>}{preview && <>
     {operation !== 'rebase' && <p><code>{operation === 'merge' ? sourceRef?.replace(/^refs\/(heads|remotes|tags)\//, '') ?? oid.slice(0, 8) : `${oid.slice(0, 8)}${sourceRef ? ' · ' + sourceRef.replace(/^refs\/(heads|remotes|tags)\//, '') : ''}`}</code> → <b>{preview.branch}</b></p>}

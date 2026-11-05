@@ -86,7 +86,13 @@ impl GitCli {
         allow_current: bool,
         preserves_detached: bool,
     ) -> Result<BranchSwitchPreview> {
-        self.branch_target_preview_internal(path, target, allow_current, preserves_detached, false)
+        self.branch_target_preview_internal(
+            path,
+            target,
+            allow_current,
+            preserves_detached,
+            preserves_detached,
+        )
     }
     fn branch_target_preview_internal(
         &self,

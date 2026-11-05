@@ -310,3 +310,47 @@ fn detached_ancestor_retained_by_a_local_branch_can_be_left_without_losing_commi
     assert_eq!(receipt.status, "succeeded");
     assert_eq!(git(&repo, &["show", "feature:file.txt"]), "descendant");
 }
+
+#[test]
+fn create_branch_at_current_tip_can_carry_work_but_other_tips_remain_blocked() {
+    let (_temp, app, repo, id) = setup();
+    let head = git(&repo, &["rev-parse", "HEAD"]);
+    fs::write(repo.join("file.txt"), "staged work\n").unwrap();
+    git(&repo, &["add", "file.txt"]);
+    fs::write(repo.join("file.txt"), "staged plus working\n").unwrap();
+    fs::write(repo.join("new.txt"), "new work\n").unwrap();
+    let before = git(&repo, &["status", "--porcelain"]);
+    let request = action(GraphActionKind::CreateBranch, &head, "carry/work");
+    let preview = app.preview_graph_action(&id, &request).unwrap();
+    assert!(
+        preview.blocked_reason.is_none(),
+        "{:?}",
+        preview.blocked_reason
+    );
+    let other = action(
+        GraphActionKind::CreateBranch,
+        &git(&repo, &["rev-parse", "feature"]),
+        "other/tip",
+    );
+    assert!(app
+        .preview_graph_action(&id, &other)
+        .unwrap()
+        .blocked_reason
+        .is_some());
+    let receipt = app
+        .apply_graph_action(&id, &request, &preview.token)
+        .unwrap();
+    assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);
+    assert_eq!(git(&repo, &["branch", "--show-current"]), "carry/work");
+    assert_eq!(git(&repo, &["status", "--porcelain"]), before);
+    assert_eq!(git(&repo, &["show", ":file.txt"]), "staged work");
+    assert_eq!(
+        fs::read_to_string(repo.join("file.txt")).unwrap(),
+        "staged plus working\n"
+    );
+    assert_eq!(
+        fs::read_to_string(repo.join("new.txt")).unwrap(),
+        "new work\n"
+    );
+    assert_eq!(git(&repo, &["stash", "list"]), "");
+}

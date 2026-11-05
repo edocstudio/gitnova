@@ -1,3 +1,4 @@
+import {WorkPreparation, needsWorkPreparation} from './WorkPreparation';
 import {Icon} from './Icons';
 import { t } from './i18n';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -19,6 +20,8 @@ export function GraphActions({ onConfigureRemote, pendingOperation = false, trac
   const root = useRef<HTMLDivElement>(null); const inFlight = useRef(false); const sequence = useRef(0);
   const [position, setPosition] = useState({ left: intent.x, top: intent.y });
   const [mode, setMode] = useState<'fetch' | 'pull' | 'menu' | 'createBranch' | 'createTag' | 'pushTag' | 'hosting' | 'worktree' | 'manage' | 'deleteLocal' | 'deleteRemote' | 'push' | 'merge' | 'cherryPick' | 'revert' | 'rebase' | 'review'>('menu');
+  const [createNeedsChoice, setCreateNeedsChoice] = useState(false);
+  const [carryReviewed, setCarryReviewed] = useState(false);
   const [managedRef, setManagedRef] = useState<GitRef | null>(null);
   const [name, setName] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(false); const [writing, setWriting] = useState(false); const [phase, setPhase] = useState('');
   const [branchPreview, setBranchPreview] = useState<BranchSwitchPreview | null>(null);
@@ -29,11 +32,12 @@ export function GraphActions({ onConfigureRemote, pendingOperation = false, trac
   const tags = targetRefs.filter(ref => ref.name.startsWith('refs/tags/'));
   const remotes = targetRefs.filter(ref => ref.name.startsWith('refs/remotes/'));
   const locked = blocked || loading || writing;
-  const clear = () => { sequence.current++; setLoading(false); setBranchPreview(null); setRemotePreview(null); setGraphPreview(null); setError(''); };
+  const clear = () => { sequence.current++; setLoading(false); setBranchPreview(null); setRemotePreview(null); setGraphPreview(null); setError(''); setCarryReviewed(false); setCreateNeedsChoice(false); };
   const inspectAction = async (action: GraphAction) => {
     if (blocked || inFlight.current) return; const request = ++sequence.current;
+    setCreateNeedsChoice(false); setCarryReviewed(false);
     setLoading(true); setError(''); setMode('review'); setBranchPreview(null); setRemotePreview(null); setGraphPreview(null);
-    try { const value = await api.previewGraphAction(membershipId, action); if (request === sequence.current) setGraphPreview(value); }
+    try { const [value, changes] = await Promise.all([api.previewGraphAction(membershipId, action), action.kind === 'createBranch' ? api.changes(membershipId) : Promise.resolve(null)]); if (request === sequence.current) { setGraphPreview(value); setCreateNeedsChoice(Boolean(changes?.status.dirty)); } }
     catch (e) { if (request === sequence.current) setError(errorMessage(e)); }
     finally { if (request === sequence.current) setLoading(false); }
   };
@@ -117,6 +121,7 @@ export function GraphActions({ onConfigureRemote, pendingOperation = false, trac
   };
   const preview = graphPreview?.switch ?? branchPreview;
   const reason = graphPreview?.blockedReason ?? preview?.blockedReason;
+  const optionalPreparation = Boolean(graphPreview?.action.kind === 'createBranch' && !reason && createNeedsChoice && !carryReviewed);
   const label = graphPreview ? graphPreview.action.kind === 'checkoutCommit' ? t("Checkout commit (detached)") : graphPreview.action.kind === 'createBranch' ? t("Create & open {0}", [graphPreview.action.name]) : t("Create tag {0}", [graphPreview.action.name]) : remotePreview ? t(remotePreview.create ? 'Create & open {0}' : 'Open & pull {0}', [preview?.branch]) : t("Switch to {0}", [preview?.branch]);
   return <div ref={root} className="graph-actions" style={position} role={mode === 'menu' ? 'menu' : 'region'} aria-label={mode === 'menu' ? t("Commit actions") : t("Review graph action")}>
     <div className="graph-actions-heading"><strong>{mode === 'fetch' ? t('Fetch') : mode === 'pull' ? t('Pull') : <>{t("Commit")} {intent.oid.slice(0, 8)}</>}</strong><small>{status.branch ? mode === 'hosting' ? t('Checked out: {0}', [status.branch]) : t("On {0}", [status.branch]) : t("Detached HEAD")}</small></div>
@@ -156,7 +161,8 @@ export function GraphActions({ onConfigureRemote, pendingOperation = false, trac
       {remotePreview && <p>{remotePreview.create ? t("Creates a local tracking branch at the fetched revision.") : t("{0} commits ahead · {1} to pull. Fast-forward only.", [remotePreview.ahead, remotePreview.behind])}</p>}
       {graphPreview?.action.kind === 'checkoutCommit' && <p className="notice">{t("Detached HEAD: you are opening a commit directly. Create a branch before making commits you want to keep.")}</p>}
       {graphPreview?.action.kind === 'createTag' && <p>{t("Create lightweight tag")} <strong>{graphPreview.action.name}</strong> {t("at")} <code>{graphPreview.action.oid.slice(0, 12)}</code>{t(". Checkout and files stay in place.")}</p>}
-      {(graphPreview || branchPreview) && <>{reason ? <p className="notice" role="status">{t(reason)}</p> : <p className="hint">{t("Configured Git hooks and checkout filters can run. No force, reset or automatic stash.")}</p>}<div className="graph-action-footer"><button disabled={writing} onClick={() => { clear(); setMode('menu'); }}>{t("Back")}</button><button className="primary" disabled={locked || Boolean(reason)} onClick={() => void apply()}>{writing ? t("Applying…") : label}</button></div></>}
+      {(needsWorkPreparation(reason) || optionalPreparation) && <WorkPreparation key={graphPreview ? `${graphPreview.action.kind}:${graphPreview.action.name}:${graphPreview.action.oid}` : preview?.branch} membershipId={membershipId} disabled={blocked || writing} onBusyChange={value => { inFlight.current = value; setWriting(value); onBusyChange(value); }} onDone={onDone} onFailure={onFailure} onCarry={optionalPreparation ? () => setCarryReviewed(true) : undefined} onReady={() => { if (graphPreview) void inspectAction(graphPreview.action); else if (remotePreview) void openRef(`refs/remotes/${remotePreview.remote}/${remotePreview.remoteBranch}`); else if (preview) void openRef(`refs/heads/${preview.branch}`); }}/>}
+      {(graphPreview || branchPreview) && <>{reason ? <p className="notice" role="status">{t(reason)}</p> : <p className="hint">{t("Configured Git hooks and checkout filters can run. No force, reset or automatic stash.")}</p>}<div className="graph-action-footer"><button disabled={writing} onClick={() => { clear(); setMode('menu'); }}>{t("Back")}</button><button className="primary" disabled={locked || Boolean(reason) || optionalPreparation} onClick={() => void apply()}>{writing ? t("Applying…") : label}</button></div></>}
       {!loading && !writing && !graphPreview && !branchPreview && <button onClick={() => { clear(); setMode('menu'); }}>{t("Back to actions")}</button>}
     </>}
     {error && <div className="inline-error" role="alert">{t(error)}</div>}
