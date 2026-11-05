@@ -11,6 +11,9 @@ fn weight(key: &str, rows: &Vec<BranchTracking>) -> u32 {
             r.branch.capacity()
                 + r.oid.capacity()
                 + r.state.capacity()
+                + r.comparison
+                    .as_ref()
+                    .map_or(0, |c| c.reference.capacity() + c.oid.capacity())
                 + [
                     &r.upstream,
                     &r.remote,
@@ -49,7 +52,7 @@ impl Application {
         let rows = self
             .tracking_cache
             .0
-            .try_get_with(key, || self.git.branch_tracking(path).map(Arc::new))
+            .try_get_with(key, || self.git.branch_display_tracking(path).map(Arc::new))
             .map_err(|e| (*e).clone())?;
         self.tracking_cache.0.run_pending_tasks();
         Ok((*rows).clone())
@@ -70,6 +73,7 @@ mod tests {
             remote_branch: None,
             push_remote: None,
             push_branch: None,
+            comparison: None,
             ahead: None,
             behind: None,
         };

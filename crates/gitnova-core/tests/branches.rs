@@ -338,3 +338,49 @@ fn parent_switch_reviews_gitlink_changes_and_preserves_child_checkout_and_unpush
         "dirty child\n"
     );
 }
+
+#[test]
+fn disjoint_work_is_carried_across_local_switch_without_stash() {
+    let (_directory, app, repo, id) = setup();
+    fs::write(repo.join("staged.txt"), "staged draft\n").unwrap();
+    git(&repo, &["add", "staged.txt"]);
+    fs::write(repo.join("staged.txt"), "staged plus working edit\n").unwrap();
+    fs::write(repo.join("untracked.txt"), "keep untracked\n").unwrap();
+    let before = git(&repo, &["status", "--porcelain"]);
+    let staged = git(&repo, &["show", ":staged.txt"]);
+    let preview = app.preview_branch_switch(&id, "feature").unwrap();
+    assert!(
+        preview.blocked_reason.is_none(),
+        "{:?}",
+        preview.blocked_reason
+    );
+    let receipt = app.switch_branch(&id, "feature", &preview.token).unwrap();
+    assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);
+    assert_eq!(git(&repo, &["status", "--porcelain"]), before);
+    assert_eq!(git(&repo, &["show", ":staged.txt"]), staged);
+    assert_eq!(
+        fs::read_to_string(repo.join("staged.txt")).unwrap(),
+        "staged plus working edit\n"
+    );
+    assert_eq!(
+        fs::read_to_string(repo.join("untracked.txt")).unwrap(),
+        "keep untracked\n"
+    );
+    assert!(!repo.join(".git/refs/stash").exists());
+    let back = app.preview_branch_switch(&id, "main").unwrap();
+    fs::write(repo.join("file.txt"), "overlapping edit\n").unwrap();
+    assert_eq!(
+        app.switch_branch(&id, "main", &back.token).unwrap().status,
+        "failed"
+    );
+    assert!(app
+        .preview_branch_switch(&id, "main")
+        .unwrap()
+        .blocked_reason
+        .is_some());
+    assert_eq!(git(&repo, &["branch", "--show-current"]), "feature");
+    assert_eq!(
+        fs::read_to_string(repo.join("file.txt")).unwrap(),
+        "overlapping edit\n"
+    );
+}

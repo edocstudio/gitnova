@@ -2249,5 +2249,8 @@
   "Repository page exceeds its limit.": "Repository page exceeds its limit.",
   "Invalid repository list.": "Invalid repository list.",
   "Invalid repository page.": "Invalid repository page.",
-  "Invalid repository path.": "Invalid repository path."
+  "Invalid repository path.": "Invalid repository path.",
+  "{0} commits ahead · {1} behind {2}. Display comparison only; no upstream is configured. Pull and Push still use their reviewed destinations.": "{0} commits ahead · {1} behind {2}. Display comparison only; no upstream is configured. Pull and Push still use their reviewed destinations.",
+  "Pull from the comparison branch without setting an upstream. Review the incoming changes before applying.": "Pull from the comparison branch without setting an upstream. Review the incoming changes before applying.",
+  "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.": "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded."
 }

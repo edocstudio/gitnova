@@ -14,6 +14,7 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
   const [phase, setPhase] = useState(''); const [error, setError] = useState('');
   const [review, setReview] = useState<RemoteSwitchPreview | null>(null);
   const [merging, setMerging] = useState(false);
+  const [fallback, setFallback] = useState<{oid: string; localOid: string; branch: string} | null>(null);
   const inFlight = useRef(false);
   const fetch = async (selected: string, upstream?: { remote: string; remoteBranch: string }) => {
     if (inFlight.current) return;
@@ -36,6 +37,23 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
     void (async () => {
       try {
         if (kind === 'pull') {
+          if (tracking?.state === 'noUpstream' && tracking.comparison?.reference === 'refs/remotes/origin/main' && branch) {
+            setReading(false); setWriting(true); onBusyChange(true); inFlight.current = true;
+            setPhase(t('Fetching {0}{1}…', ['origin', '/main']));
+            try {
+              const receipt = await api.fetchRemote(membershipId, 'origin', 'main');
+              await onDone(receipt);
+              if (cancelled) return;
+              if (receipt.status !== 'succeeded') throw new Error(receipt.summary);
+              const [listing, locals] = await Promise.all([api.remoteBranches(membershipId), api.branches(membershipId)]);
+              if (cancelled) return;
+              const source = listing.branches.find(item => item.remote === 'origin' && item.name === 'main');
+              const local = locals.find(item => item.current && item.name === branch);
+              if (!source || !local) throw new Error('Branch or upstream changed. Close this review and try again.');
+              setFallback({oid: source.oid, localOid: local.oid, branch});
+            } finally { inFlight.current = false; setWriting(false); setPhase(''); onBusyChange(false); }
+            return;
+          }
           const initial = await api.pullUpstream(membershipId);
           if (cancelled) return;
           if (initial.branch !== branch || !initial.remote || !initial.remoteBranch) throw new Error('Branch or upstream changed. Close this review and try again.');
@@ -65,6 +83,7 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
   };
   const locked = blocked || reading || writing;
   const diverged = Boolean(review && review.ahead > 0 && review.behind > 0);
+  if (fallback) return <div className="sync-review"><p><b>origin/main → {fallback.branch}</b></p><p className="hint">{t('Pull from the comparison branch without setting an upstream. Review the incoming changes before applying.')}</p><MergeStartReview initialMethod="fastForwardOnly" membershipId={membershipId} oid={fallback.oid} sourceRef="refs/remotes/origin/main" expectedDestination={{branch: fallback.branch, oid: fallback.localOid}} blocked={blocked} onBusyChange={onBusyChange} onDone={onDone} onClose={onClose} onFailure={onFailure} onReviewWork={onReviewWork} onBack={onClose}/></div>;
   if (merging && review && review.localOid) return <div className="sync-review"><MergeStartReview membershipId={membershipId} oid={review.remoteOid} sourceRef={`refs/remotes/${review.remote}/${review.remoteBranch}`} expectedDestination={{branch: review.switch.branch, oid: review.localOid}} blocked={blocked} onBusyChange={onBusyChange} onDone={onDone} onClose={onClose} onFailure={onFailure} onReviewWork={onReviewWork} onBack={() => setMerging(false)}/></div>;
   return <div className="sync-review" aria-busy={reading || writing}>
     <strong>{kind === 'pull' ? t('Pull into {0}', [branch]) : t('Fetch remote branches')}</strong>

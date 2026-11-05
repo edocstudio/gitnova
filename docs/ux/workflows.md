@@ -271,3 +271,23 @@ Add submodule keeps the existing graph form. Its ordered fields explain the sour
 Discovery skips recursive parent status/HEAD tree reads for indexes with no gitlinks; it retains index parsing and branch/index consistency checks. This avoids unnecessary scans without caching dirty child state across write previews.
 
 The read adapters use [GitHub’s authenticated repository list](https://docs.github.com/en/rest/repos/repos#list-repositories-for-the-authenticated-user) and [GitLab’s member project list](https://docs.gitlab.com/api/projects/#list-all-projects). Results depend on the connected token’s access. No token or credentials appear in selected clone URLs.
+
+### Pull counts without a configured upstream
+
+When the current branch has no upstream and its displayed comparison is
+`origin/main`, Pull uses that same source in the existing review. Fetch the exact
+remote branch, show `origin/main → current branch`, then reuse the existing
+integration preview pinned to both tips. Default to fast-forward only; divergence
+requires the explicit merge-commit choice. No upstream configuration is written.
+Configured upstream Pull and separately reviewed Push destinations remain intact.
+The existing review is sufficient; no new setup screen or settings are added.
+
+### Carrying work across a local branch switch
+
+The existing branch preview allows staged, unstaged and untracked work when every
+changed path is disjoint from the source-to-target tree changes. Explain that the
+work and staging follow the checkout. Overlapping paths and parent/child path
+collisions, renames, hidden index entries, unsupported changes, occupied branches
+and stale previews remain protected. Native Git switch retains its overwrite and
+ignored-file protections. No automatic stash, discard or forced checkout is used.
+Remote integration keeps its existing dirty-work protection.
