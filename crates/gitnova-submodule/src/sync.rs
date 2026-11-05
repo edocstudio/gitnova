@@ -70,7 +70,7 @@ fn child_remote(git: &GitCli, child: &Path) -> Result<String> {
 }
 // Resolve only ordinary absolute sources. Native sync remains the writer; its
 // postconditions must compare raw values, never redacted presentation strings.
-fn resolved_url(git: &GitCli, parent: &Path, configured: &str) -> Result<String> {
+pub(crate) fn resolved_url(git: &GitCli, parent: &Path, configured: &str) -> Result<String> {
     if !configured.starts_with("../") && !configured.starts_with("./") {
         git.validate_submodule_source(configured)?;
         return Ok(configured.into());

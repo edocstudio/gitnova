@@ -27,6 +27,8 @@ mod search;
 pub struct Application {
     commit_identities: Mutex<Vec<ConnectionCommitIdentity>>,
     tracking_cache: display_cache::TrackingCache,
+    branch_requests_cache:
+        Mutex<std::collections::VecDeque<(String, std::time::Instant, BranchRequests)>>,
     pipeline_cache:
         Mutex<std::collections::VecDeque<(String, std::time::Instant, PipelineSnapshot)>>,
     jenkins_cache: Mutex<std::collections::VecDeque<(String, std::time::Instant, JenkinsSnapshot)>>,
@@ -54,6 +56,7 @@ impl Application {
         Ok(Self {
             commit_identities: Mutex::new(identities),
             tracking_cache: display_cache::TrackingCache::default(),
+            branch_requests_cache: Mutex::new(std::collections::VecDeque::new()),
             pipeline_cache: Mutex::new(std::collections::VecDeque::new()),
             jenkins_cache: Mutex::new(std::collections::VecDeque::new()),
             search_index: gitnova_search::SearchIndex::default(),
@@ -355,7 +358,7 @@ impl Application {
     }
     pub fn submodules(&self, membership_id: &str) -> Result<Vec<Submodule>> {
         let path = self.path(membership_id)?;
-        if self.git.status(&path)?.bare {
+        if self.git.discover(&path)?.root.is_none() {
             return Ok(vec![]);
         }
         let discovered = gitnova_submodule::inspect(&self.git, &path)?;

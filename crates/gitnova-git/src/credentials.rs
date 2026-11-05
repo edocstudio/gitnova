@@ -33,6 +33,20 @@ fn transport_target(args: &[std::ffi::OsString]) -> Option<&std::ffi::OsStr> {
     while args.get(position).is_some_and(|v| v == "-c") {
         position += 2;
     }
+    // Only an explicit URL in our own argv can authorize a submodule child
+    // transport. Never infer authorization from a path or all parent remotes.
+    if args.get(position).is_some_and(|v| v == "submodule")
+        && args
+            .get(position + 1)
+            .is_some_and(|v| v == "add" || v == "update")
+    {
+        return args[..position].as_chunks::<2>().0.iter().find_map(|pair| {
+            pair[1]
+                .to_str()?
+                .strip_prefix("gitnova.credentialTarget=")
+                .map(std::ffi::OsStr::new)
+        });
+    }
     if !args
         .get(position)
         .and_then(|v| v.to_str())
@@ -173,6 +187,48 @@ mod tests {
             Some(std::ffi::OsStr::new("https://one.example/repo.git"))
         );
         let args = ["submodule", "update", "--", "origin"].map(std::ffi::OsString::from);
+        assert!(transport_target(&args).is_none());
+    }
+
+    #[test]
+    fn submodule_transport_requires_explicit_child_source_not_parent_or_folder() {
+        for action in ["update", "add"] {
+            let args = [
+                "-c",
+                "submodule.recurse=false",
+                "-c",
+                "gitnova.credentialTarget=https://child.example/team/lib.git",
+                "submodule",
+                action,
+                "--",
+                "packages/lib",
+            ]
+            .map(std::ffi::OsString::from);
+            assert_eq!(
+                transport_target(&args),
+                Some(std::ffi::OsStr::new("https://child.example/team/lib.git"))
+            );
+        }
+        for action in ["sync", "status", "deinit"] {
+            let args = [
+                "-c",
+                "gitnova.credentialTarget=https://child.example/team/lib.git",
+                "submodule",
+                action,
+                "--",
+                "packages/lib",
+            ]
+            .map(std::ffi::OsString::from);
+            assert!(transport_target(&args).is_none());
+        }
+        let args = [
+            "submodule",
+            "add",
+            "--",
+            "https://child.example/team/lib.git",
+            "packages/lib",
+        ]
+        .map(std::ffi::OsString::from);
         assert!(transport_target(&args).is_none());
     }
 

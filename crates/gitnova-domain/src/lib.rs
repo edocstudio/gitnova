@@ -1572,3 +1572,43 @@ pub struct WorkingFileText {
     pub text: String,
     pub token: String,
 }
+
+/// Read-only open PR/MR evidence for one validated target repository.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenBranchRequest {
+    pub number: u64,
+    pub title: String,
+    pub draft: bool,
+    pub url: String,
+    pub source_branch: String,
+    pub target_branch: String,
+    pub source_project_id: Option<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BranchRequests {
+    pub provider: String,
+    pub origin: String,
+    pub project: String,
+    pub project_id: String,
+    pub remote: String,
+    pub requests: Vec<OpenBranchRequest>,
+    pub partial: bool,
+    pub checked_at: u64,
+}
+
+/// One bounded page of repositories visible to a connected provider account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HostedRepository {
+    pub project: String,
+    pub clone_url: String,
+    pub private: bool,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HostedRepositories {
+    pub repositories: Vec<HostedRepository>,
+    pub has_more: bool,
+}

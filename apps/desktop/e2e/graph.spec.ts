@@ -1946,3 +1946,55 @@ test('edit file from historical commit saves current working text and preserves 
   expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('my draft\n');expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);
   await page.getByRole('button',{name:'Edit file',exact:true}).click();await expect(text).toHaveValue('my draft\n');await text.fill('cancelled draft\n');await editor.getByRole('button',{name:'Discard editor draft',exact:true}).click();expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('my draft\n');
 });
+
+test('graph shows outgoing and incoming MR badges with explicit direction and refreshes closed requests',async({page},testInfo)=>{
+  const repo=join(folder,'branch-requests');mkdirSync(repo);git(repo,['init','-b','release']);writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','Release base']);const base=git(repo,['rev-parse','HEAD']);
+  git(repo,['switch','-c','feature/ready']);writeFileSync(join(repo,'file.txt'),'feature\n');git(repo,['commit','-am','Feature ready']);const feature=git(repo,['rev-parse','HEAD']);git(repo,['switch','release']);
+  git(repo,['remote','add','origin','https://git.example/team/project.git']);git(repo,['update-ref','refs/remotes/origin/release',base]);git(repo,['update-ref','refs/remotes/origin/feature/ready',feature]);git(repo,['config','branch.release.remote','origin']);git(repo,['config','branch.release.merge','refs/heads/release']);
+  const before=git(repo,['status','--porcelain']);let requestsOpen=true,reads=0;const opened:string[]=[];
+  await connectRealCore(page,join(folder,'branch-requests.json'));
+  await page.exposeBinding('openRequestsFixture',async(_source,command:string,args:any)=>{
+    if(command==='open_ci_url'){opened.push(args.url);return null;}
+    if(command==='ci_connection')return {remote:'origin',branch:'',oid:args.oid,provider:'gitlab',origin:'https://git.example'};
+    if(command==='ci_summary')return {oid:args.selection.oid,project:'team/project',origin:'https://git.example',runs:[],partial:false,checkedAt:Date.now()/1000};
+    reads++;
+    const row={number:12,title:'Prepare release',draft:false,url:'https://git.example/team/project/-/merge_requests/12',sourceBranch:'feature/ready',targetBranch:'release',sourceProjectId:'1'};
+    return {provider:'gitlab',origin:'https://git.example',project:'team/project',projectId:'1',remote:'origin',requests:[...(requestsOpen?[row]:[]),{...row,number:13,draft:true,url:'https://git.example/team/project/-/merge_requests/13',sourceProjectId:'2',title:'Fork request'}],partial:false,checkedAt:Date.now()/1000};
+  });
+  await page.addInitScript(()=>{
+    localStorage.setItem('gitnova.connections.v1',JSON.stringify([{id:'requests',label:'Test host',provider:'gitlab',origin:'https://git.example',enabled:true}]));
+    const w=window as unknown as {openRequestsFixture:(c:string,a:unknown)=>Promise<unknown>;__TAURI_INTERNALS__:{invoke:(c:string,a:unknown)=>Promise<unknown>}};
+    const invoke=w.__TAURI_INTERNALS__.invoke;w.__TAURI_INTERNALS__.invoke=(c,a)=>['branch_requests','ci_connection','ci_summary','open_ci_url'].includes(c)?w.openRequestsFixture(c,a):invoke(c,a);
+  });
+  await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+  const outgoing=page.locator('.branch-request-badge[data-request-direction=outgoing]');await expect(outgoing).toHaveCount(1);await expect(outgoing).toHaveAttribute('title',/feature\/ready → release/);
+  const incoming=page.locator('.branch-request-badge[data-request-direction=incoming][data-request-numbers="12,13"]');await expect(incoming).toHaveCount(1);
+  await page.screenshot({path:testInfo.outputPath('branch-mr-badges.png')});
+  await outgoing.click();await expect(page.getByRole('menuitem',{name:'MR #12 · feature/ready → release',exact:true})).toBeVisible();await page.getByRole('menuitem',{name:'MR #12 · feature/ready → release',exact:true}).click();await expect(page.locator('.graph-actions')).toHaveCount(0);expect(opened).toEqual(['https://git.example/team/project/-/merge_requests/12']);
+  const release=page.locator('.commit-row').filter({has:page.locator('[data-ref-name="refs/heads/release"]')});await release.focus();await page.keyboard.press('Shift+F10');await expect(page.getByRole('menuitem',{name:/MR #13.*From another repository.*feature\/ready → release/})).toBeVisible();await page.keyboard.press('Escape');
+  expect(reads).toBe(1);await page.clock.install();await page.evaluate(()=>window.dispatchEvent(new Event('gitnova-write-completed')));await page.clock.fastForward(2000);expect(reads).toBe(1);requestsOpen=false;await page.evaluate(()=>window.dispatchEvent(new Event('gitnova-requests-changed')));await page.clock.fastForward(1000);await expect(outgoing).toHaveCount(0);await expect(page.locator('.branch-request-badge[data-request-direction=incoming][data-request-numbers="13"]')).toHaveCount(1);
+  expect(git(repo,['rev-parse','HEAD'])).toBe(base);expect(git(repo,['status','--porcelain'])).toBe(before);expect(reads).toBe(2);
+});
+
+test('clone browses connected repositories with five rows, search and source selection without cloning',async({page},testInfo)=>{
+  let reads=0;
+  await connectRealCore(page,join(folder,'repository-browser.json'));
+  await page.exposeBinding('repositoriesFixture',async(_source,args:{profile:{origin:string};page:number})=>{
+    reads++;expect(args.profile.origin).toBe('https://git.example');expect([1,2]).toContain(args.page);
+    return {repositories:Array.from({length:args.page===1?100:7},(_,index)=>{const i=(args.page-1)*100+index;return {project:`team/library-${i}`,cloneUrl:`https://git.example/team/library-${i}.git`,private:i%2===0};}),hasMore:args.page===1};
+  });
+  await page.addInitScript(()=>{
+    localStorage.setItem('gitnova.connections.v1',JSON.stringify([{id:'browse',label:'Fixture host',provider:'gitlab',origin:'https://git.example',enabled:true}]));
+    const w=window as unknown as {repositoriesFixture:(a:unknown)=>Promise<unknown>;__TAURI_INTERNALS__:{invoke:(c:string,a:unknown)=>Promise<unknown>}};
+    const invoke=w.__TAURI_INTERNALS__.invoke;w.__TAURI_INTERNALS__.invoke=(c,a)=>c==='hosted_repositories'?w.repositoriesFixture(a):invoke(c,a);
+  });
+  await page.goto('/');expect(reads).toBe(0);await page.locator('.clone-controls > summary').click();
+  const controls=page.locator('.clone-controls'),browser=controls.locator('.repository-browser');
+  await browser.getByLabel('Connection / account',{exact:true}).selectOption('browse');await expect(browser.locator('.repository-browser-row')).toHaveCount(5);expect(reads).toBe(1);
+  await browser.getByRole('button',{name:'Next',exact:true}).click();await expect(browser.locator('.repository-browser-row')).toHaveCount(5);await browser.getByRole('button',{name:'Load more repositories',exact:true}).click();await expect(browser).toContainText('107');
+  await controls.getByLabel('New clone folder',{exact:true}).fill(join(folder,'not-cloned'));
+  await browser.getByLabel('Search loaded repositories',{exact:true}).fill('library-106');await expect(browser.locator('.repository-browser-row')).toHaveCount(1);await browser.locator('.repository-browser-row').click();
+  await expect(controls.getByLabel('Repository URL or local source',{exact:true})).toHaveValue('https://git.example/team/library-106.git');await expect(controls.getByLabel('New clone folder',{exact:true})).toHaveValue(join(folder,'not-cloned'));expect(existsSync(join(folder,'not-cloned'))).toBe(false);
+  await controls.screenshot({path:testInfo.outputPath('repository-browser.png')});
+  await page.locator('.clone-controls > summary').click();await page.locator('.clone-controls > summary').click();await browser.getByLabel('Connection / account',{exact:true}).selectOption('browse');await expect(browser.locator('.repository-browser-row')).toHaveCount(5);expect(reads).toBe(2);
+});

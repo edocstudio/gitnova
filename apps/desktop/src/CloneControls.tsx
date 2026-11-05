@@ -3,6 +3,7 @@ import { api, errorMessage } from './api';
 import type { Catalog, CloneOutcome, ClonePreview, WorkProgress } from './contracts';
 import { t } from './i18n';
 import { Icon } from './Icons';
+import {RepositoryBrowser} from './RepositoryBrowser';
 export type CloneDraft = { source: string; destination: string };
 export function CloneControls({ workspaceId, workspaceName, draft, onDraft, disabled, onBusyChange, onCloned }: {
   workspaceId: string; workspaceName: string; draft: CloneDraft; onDraft: (draft: CloneDraft) => void; disabled: boolean;
@@ -11,6 +12,7 @@ export function CloneControls({ workspaceId, workspaceName, draft, onDraft, disa
   const [preview, setPreview] = useState<ClonePreview | null>(null); const [outcome, setOutcome] = useState<CloneOutcome | null>(null);
   const [reading, setReading] = useState(false); const [writing, setWriting] = useState(false); const [error, setError] = useState('');
   const [recent, setRecent] = useState<CloneOutcome[]>([]); const [progress, setProgress] = useState<WorkProgress | null>(null);
+  const [opened,setOpened]=useState(false);
   const inFlight = useRef(false); const sequence = useRef(0);
   useEffect(() => () => { sequence.current++; }, []);
   const loadRecent = async () => { try { setRecent(await api.recentClones(workspaceId)); } catch (e) { setError(errorMessage(e)); } };
@@ -34,9 +36,10 @@ export function CloneControls({ workspaceId, workspaceName, draft, onDraft, disa
   };
   const change = (next: CloneDraft) => { sequence.current++; setReading(false); setPreview(null); setOutcome(null); setError(''); onDraft(next); };
   const locked = disabled || reading || writing;
-  return <details className="clone-controls" onToggle={event => { if (event.currentTarget.open && !inFlight.current) void loadRecent(); }}>
-    <summary onClick={event => { if (writing) event.preventDefault(); }}>{t('Clone repository…')}</summary>
+  return <details className="clone-controls" open={opened}>
+    <summary onClick={event => { event.preventDefault(); if (writing) return; setOpened(value=>!value); if (!opened && !inFlight.current) void loadRecent(); }}>{t('Clone repository…')}</summary>
     <p className="hint">{t('Clone into {0}, then open its Git graph.', [workspaceName])}</p>
+    {opened&&<RepositoryBrowser disabled={locked} onSelect={source=>change({...draft,source})}/>}
     <form onSubmit={event => { event.preventDefault(); void review(); }}>
       <label htmlFor="clone-source">{t('Repository URL or local source')}</label><input id="clone-source" value={draft.source} maxLength={8192} placeholder="git@host:team/project.git" disabled={locked} autoComplete="off" spellCheck={false} onChange={event => change({...draft,source:event.target.value})} required/>
       <label htmlFor="clone-destination">{t('New clone folder')}</label><input id="clone-destination" value={draft.destination} maxLength={8192} placeholder={t('/absolute/path/to/new-folder')} disabled={locked} autoComplete="off" spellCheck={false} onChange={event => change({...draft,destination:event.target.value})} required/>
