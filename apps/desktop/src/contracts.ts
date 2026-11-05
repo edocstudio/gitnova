@@ -8,7 +8,8 @@ export interface Workspace { id: string; name: string; memberships: Membership[]
 export interface Catalog { version: number; repositories: Repository[]; worktrees: Worktree[]; workspaces: Workspace[]; activeWorkspaceId: string }
 export interface RepoStatus { branch: string | null; head: string | null; dirty: boolean; changedEntries: number; bare: boolean }
 export interface GitRef { name: string; oid: string }
-export interface BranchTracking { branch: string; oid: string; upstream: string | null; remote: string | null; remoteBranch: string | null; pushRemote: string | null; pushBranch: string | null; ahead: number | null; behind: number | null; state: 'tracked' | 'noUpstream' | 'gone' | 'shallow' }
+export interface BranchComparison { reference: string; oid: string; ahead: number; behind: number }
+export interface BranchTracking { comparison?: BranchComparison | null; branch: string; oid: string; upstream: string | null; remote: string | null; remoteBranch: string | null; pushRemote: string | null; pushBranch: string | null; ahead: number | null; behind: number | null; state: 'tracked' | 'noUpstream' | 'gone' | 'shallow' }
 export interface Commit { oid: string; parents: string[]; author: string; email: string; timestamp: number; subject: string }
 export interface Edge { from: number; to: number; color: number }
 export interface LaneStroke { lane: number; color: number }

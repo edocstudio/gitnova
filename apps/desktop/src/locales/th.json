@@ -2249,5 +2249,8 @@
   "Repository page exceeds its limit.": "รายการ repository เกินขีดจำกัดต่อหน้า",
   "Invalid repository list.": "รายการ repository ไม่ถูกต้อง",
   "Invalid repository page.": "หน้ารายการ repository ไม่ถูกต้อง",
-  "Invalid repository path.": "เส้นทาง repository ไม่ถูกต้อง"
+  "Invalid repository path.": "เส้นทาง repository ไม่ถูกต้อง",
+  "{0} commits ahead · {1} behind {2}. Display comparison only; no upstream is configured. Pull and Push still use their reviewed destinations.": "นำ {0} commit · ตาม {1} commit เมื่อเทียบกับ {2} เพื่อแสดงผลเท่านั้น ยังไม่ได้ตั้ง upstream และ Pull/Push ยังคงใช้ปลายทางที่ตรวจสอบก่อนยืนยัน",
+  "Pull from the comparison branch without setting an upstream. Review the incoming changes before applying.": "ดึงจาก branch ที่ใช้เปรียบเทียบโดยไม่ตั้ง upstream ตรวจการเปลี่ยนแปลงก่อนยืนยัน",
+  "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.": "ไฟล์ที่ยังไม่ commit และสถานะ staging จะตามไปยัง branch นี้ โดยไม่ stash หรือทิ้งงาน"
 }

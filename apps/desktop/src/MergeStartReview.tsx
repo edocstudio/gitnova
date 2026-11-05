@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { RebaseEdit, ChangeOperation, MergeMethod, MergeStartPreview, OperationReceipt } from './contracts';
 function sameReplay(a:RebaseEdit[]|undefined,b:RebaseEdit[]|null){return (a??[]).length===(b??[]).length&&(a??[]).every((step,i)=>step.oid===b?.[i].oid&&step.action===b?.[i].action);}
-export function MergeStartReview({ expectedDestination, membershipId, oid, sourceRef, operation = 'merge', blocked, onBack, onBusyChange, onDone, onClose, onFailure, onReviewWork }: {
+export function MergeStartReview({ initialMethod = 'mergeCommit', expectedDestination, membershipId, oid, sourceRef, operation = 'merge', blocked, onBack, onBusyChange, onDone, onClose, onFailure, onReviewWork }: {
+  initialMethod?: MergeMethod;
   expectedDestination?: {branch: string; oid: string};
   membershipId: string; oid: string; sourceRef: string | null; operation?: ChangeOperation; blocked: boolean; onBack: () => void; onBusyChange: (value: boolean) => void; onDone: (receipt: OperationReceipt) => Promise<void>; onClose: () => void; onFailure: (id: string, message: string) => void; onReviewWork: () => void;
 }) {
@@ -17,7 +18,7 @@ export function MergeStartReview({ expectedDestination, membershipId, oid, sourc
   const [acknowledgeRewrite,setAcknowledgeRewrite]=useState(false);
   const [editSubjects,setEditSubjects]=useState<Record<string,string>>({});
   const [steps,setSteps]=useState<RebaseEdit[]|null>(null);const [predicting,setPredicting]=useState(false);
-  const [method, setMethod] = useState<MergeMethod>('mergeCommit');
+  const [method, setMethod] = useState<MergeMethod>(initialMethod);
   useEffect(()=>{setAcknowledgeRewrite(false);setMainline(null);setSteps(null);},[membershipId,oid,sourceRef,operation]);
   const label = operation === 'rebase' ? t("Rebase") : operation === 'cherryPick' ? t("Cherry-pick") : operation === 'revert' ? t("Revert") : t("Merge");
   const lower = label.toLowerCase();

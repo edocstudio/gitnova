@@ -20,6 +20,68 @@ impl GitCli {
         hash.update(self.config_snapshot(path)?);
         Ok(format!("{:x}", hash.finalize()))
     }
+    /// Display-only fallback for the current untracked branch, as requested by
+    /// the product. Keep branch_tracking unchanged for all write previews.
+    pub fn branch_display_tracking(&self, path: &std::path::Path) -> Result<Vec<BranchTracking>> {
+        let mut rows = self.branch_tracking(path)?;
+        if !rows.iter().any(|row| row.state == "noUpstream") {
+            return Ok(rows);
+        }
+        let current = self.optional_text(path, &["symbolic-ref", "--quiet", "--short", "HEAD"])?;
+        if let Some(row) = rows.iter_mut().find(|row| {
+            row.state == "noUpstream"
+                && current.as_deref().map(str::trim) == Some(row.branch.as_str())
+        }) {
+            if self
+                .text(path, &["rev-parse", "--is-shallow-repository"])?
+                .trim()
+                != "true"
+            {
+                const REFERENCE: &str = "refs/remotes/origin/main";
+                let refs = self.text(
+                    path,
+                    &[
+                        "for-each-ref",
+                        "--format=%(refname)%00%(objectname)",
+                        REFERENCE,
+                    ],
+                )?;
+                if let Some(oid) = refs
+                    .lines()
+                    .filter_map(|line| line.split_once('\0'))
+                    .find_map(|(name, oid)| (name == REFERENCE).then_some(oid))
+                {
+                    crate::validate_oid(oid)?;
+                    let raw = self.text(
+                        path,
+                        &[
+                            "rev-list",
+                            "--left-right",
+                            "--count",
+                            &format!("{}...{}", row.oid, oid),
+                            "--",
+                        ],
+                    )?;
+                    let counts = raw
+                        .split_whitespace()
+                        .map(str::parse::<usize>)
+                        .collect::<std::result::Result<Vec<_>, _>>()
+                        .map_err(|_| AppError::new("tracking", "Invalid comparison count."))?;
+                    if let [ahead, behind] = counts.as_slice() {
+                        row.comparison = Some(BranchComparison {
+                            reference: REFERENCE.into(),
+                            oid: oid.into(),
+                            ahead: *ahead,
+                            behind: *behind,
+                        });
+                    } else {
+                        return Err(AppError::new("tracking", "Missing comparison counts."));
+                    }
+                }
+            }
+        }
+        Ok(rows)
+    }
     /// Batched display metadata only. Never used to authorize a push or pull.
     pub fn branch_tracking(&self, path: &std::path::Path) -> Result<Vec<BranchTracking>> {
         let shallow = self
@@ -133,6 +195,7 @@ impl GitCli {
                     remote_branch: f[5].strip_prefix("refs/heads/").map(str::to_owned),
                     push_remote: optional(f[6]),
                     push_branch,
+                    comparison: None,
                     ahead,
                     behind,
                     state: state.into(),

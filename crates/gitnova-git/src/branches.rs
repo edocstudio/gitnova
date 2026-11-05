@@ -67,7 +67,7 @@ impl BranchReader for GitCli {
     fn preview_branch_switch(&self, path: &Path, branch: &str) -> Result<BranchSwitchPreview> {
         let branches = self.local_branches(path)?;
         let target=branches.iter().find(|b|b.name==branch).ok_or_else(||AppError::new("branch","Choose an existing local branch; remote guessing and revision expressions are not supported"))?;
-        self.branch_target_preview(path, target, false)
+        self.branch_target_preview_internal(path, target, false, false, true)
     }
 }
 impl GitCli {
@@ -85,6 +85,16 @@ impl GitCli {
         target: &LocalBranch,
         allow_current: bool,
         preserves_detached: bool,
+    ) -> Result<BranchSwitchPreview> {
+        self.branch_target_preview_internal(path, target, allow_current, preserves_detached, false)
+    }
+    fn branch_target_preview_internal(
+        &self,
+        path: &Path,
+        target: &LocalBranch,
+        allow_current: bool,
+        preserves_detached: bool,
+        allow_disjoint_work: bool,
     ) -> Result<BranchSwitchPreview> {
         let branch = &target.name;
         let branches = self.local_branches(path)?;
@@ -110,9 +120,7 @@ impl GitCli {
         } else {
             true
         };
-        let mut blocked_reason = if status.dirty && !self.only_clean_gitlink_mismatches(path)? {
-            Some("Commit or preserve your uncommitted changes with Git before switching. Nothing will be discarded or stashed automatically.".into())
-        } else if target.current && !allow_current {
+        let mut blocked_reason = if target.current && !allow_current {
             Some("This branch is already checked out.".into())
         } else if let Some(worktree) = &target.checked_out_at {
             Some(format!(
@@ -213,6 +221,30 @@ impl GitCli {
                     path: NativePath::new(&path_from_bytes(name.to_vec())?),
                     status: parts[4].into(),
                 });
+            }
+        }
+        if blocked_reason.is_none() && status.dirty && !self.only_clean_gitlink_mismatches(path)? {
+            let changes = self.working_changes(path)?;
+            let mut disjoint = allow_disjoint_work;
+            for changed in &changes.files {
+                let dirty = changed.path.to_path()?;
+                // Renames and unsupported entries need a separate review; never
+                // infer safety from an incomplete source-path representation.
+                if changed.blocked_reason.is_some()
+                    || matches!(changed.index_status.as_str(), "R" | "C" | "U")
+                    || matches!(changed.worktree_status.as_str(), "R" | "C" | "U")
+                {
+                    disjoint = false;
+                }
+                for file in &files {
+                    let target_path = file.path.to_path()?;
+                    if dirty.starts_with(&target_path) || target_path.starts_with(&dirty) {
+                        disjoint = false;
+                    }
+                }
+            }
+            if !disjoint {
+                blocked_reason = Some("Commit or preserve your uncommitted changes with Git before switching. Nothing will be discarded or stashed automatically.".into());
             }
         }
         let mut hash = Sha256::new();

@@ -379,6 +379,14 @@ pub struct RepositorySnapshot {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct BranchComparison {
+    pub reference: String,
+    pub oid: String,
+    pub ahead: usize,
+    pub behind: usize,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BranchTracking {
     pub branch: String,
     pub oid: String,
@@ -387,6 +395,9 @@ pub struct BranchTracking {
     pub remote_branch: Option<String>,
     pub push_remote: Option<String>,
     pub push_branch: Option<String>,
+    /// Optional display-only comparison. Never configures or authorizes upstream operations.
+    #[serde(default)]
+    pub comparison: Option<BranchComparison>,
     pub ahead: Option<usize>,
     pub behind: Option<usize>,
     pub state: String,

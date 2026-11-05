@@ -896,3 +896,16 @@ main { display: flex; flex: 1; min-height: 0; }
 .submodule-add-fields { display:grid; gap:8px; margin-top:16px; max-width:680px; }
 .submodule-add-fields label { margin:8px 0 0; }
 .submodule-add-fields small { color:var(--muted); font-size:12px; line-height:1.5; }
+
+/* Keep synchronization indicators visible; only the branch name may ellipsize. */
+.branch-switcher .branch-current > span:first-of-type { min-width:0;flex:1 1 auto; }
+.branch-switcher .branch-current > .branch-tracking,.graph-ref > .branch-tracking { overflow:visible;max-width:none;flex:0 0 auto; }
+.branch-current > svg { flex-shrink:0; }
+.sync-pull { display:inline-flex;align-items:center;gap:6px; }
+.sync-count { flex:0 0 auto;min-width:1ch;font-variant-numeric:tabular-nums; }
+.sync-count.push { color:var(--ink-7ddbb0, #7ddbb0); }
+.sync-count.pull { color:var(--ink-f0c375, #f0c375); }
+.sync-count.unknown { color:var(--muted); }
+
+@media (max-width:850px) { .repo-actions { flex-wrap:wrap;max-width:100%; } }
+.sync-count.unknown { font-size:10px; }

@@ -155,3 +155,105 @@ fn shallow_tracking_does_not_claim_complete_counts() {
     assert_eq!(branch.ahead, None);
     assert_eq!(branch.behind, None);
 }
+
+#[test]
+fn untracked_current_branch_compares_origin_main_for_display_without_configuring_it() {
+    let (temp, local, remote) = setup();
+    git(&local, &["push", "origin", "main:main"]);
+    git(&local, &["switch", "-c", "fix/display-only"]);
+    git(&local, &["commit", "--allow-empty", "-m", "Local one"]);
+    let head = git(&local, &["rev-parse", "HEAD"]);
+    std::fs::write(local.join("dirty.txt"), "keep working files").unwrap();
+    let writer = temp.path().join("writer");
+    git(
+        temp.path(),
+        &[
+            "clone",
+            "--branch",
+            "main",
+            remote.to_str().unwrap(),
+            writer.to_str().unwrap(),
+        ],
+    );
+    for message in ["Remote one", "Remote two"] {
+        git(&writer, &["commit", "--allow-empty", "-m", message]);
+    }
+    git(&writer, &["push", "origin", "main"]);
+    git(&local, &["fetch", "origin"]);
+    let app = Application::new(temp.path().join("display-state.json")).unwrap();
+    let catalog = app.add_repository(&local).unwrap();
+    let id = catalog.workspaces[0].selected_id.as_ref().unwrap();
+    let snapshot = app.snapshot(id).unwrap();
+    let current = snapshot
+        .tracking
+        .iter()
+        .find(|row| row.branch == "fix/display-only")
+        .unwrap();
+    assert_eq!(current.state, "noUpstream");
+    assert!(current.upstream.is_none());
+    assert!(current.ahead.is_none());
+    let comparison = current.comparison.as_ref().unwrap();
+    assert_eq!(comparison.reference, "refs/remotes/origin/main");
+    assert_eq!((comparison.ahead, comparison.behind), (1, 2));
+    assert!(
+        GitCli
+            .branch_tracking(&local)
+            .unwrap()
+            .iter()
+            .all(|row| row.comparison.is_none()),
+        "Write metadata must never use the fallback"
+    );
+    let (_, metrics) = gitnova_git::measure_git(|| app.snapshot(id).unwrap());
+    assert!(
+        !metrics.commands.contains_key("rev-list"),
+        "Repeated display reads should use the bounded cache"
+    );
+    git(&writer, &["commit", "--allow-empty", "-m", "Remote three"]);
+    git(&writer, &["push", "origin", "main"]);
+    git(&local, &["fetch", "origin"]);
+    let snapshot = app.snapshot(id).unwrap();
+    assert_eq!(
+        snapshot
+            .tracking
+            .iter()
+            .find(|row| row.branch == "fix/display-only")
+            .unwrap()
+            .comparison
+            .as_ref()
+            .unwrap()
+            .behind,
+        3
+    );
+    git(&local, &["update-ref", "-d", "refs/remotes/origin/main"]);
+    git(
+        &local,
+        &["update-ref", "refs/remotes/origin/main/child", &head],
+    );
+    assert!(
+        app.snapshot(id)
+            .unwrap()
+            .tracking
+            .iter()
+            .find(|row| row.branch == "fix/display-only")
+            .unwrap()
+            .comparison
+            .is_none(),
+        "A prefix match is not origin/main"
+    );
+    assert_eq!(git(&local, &["rev-parse", "HEAD"]), head);
+    assert_eq!(
+        git(
+            &local,
+            &[
+                "for-each-ref",
+                "--format=%(upstream)",
+                "refs/heads/fix/display-only"
+            ]
+        ),
+        ""
+    );
+    assert_eq!(
+        std::fs::read_to_string(local.join("dirty.txt")).unwrap(),
+        "keep working files"
+    );
+}
