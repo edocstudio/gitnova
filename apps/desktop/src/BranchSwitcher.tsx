@@ -1,3 +1,4 @@
+import {WorkPreparation, needsWorkPreparation} from './WorkPreparation';
 import { t } from './i18n';
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
@@ -75,6 +76,7 @@ export function BranchSwitcher({ tracking = [], membershipId, status, blocked = 
         {!preview.blockedReason && <><p>{preview.files.length} {preview.files.length === 1 ? t("path changes") : t("paths change")} {t("· target")} <code>{preview.targetOid.slice(0, 8)}</code></p><div className="branch-preview-files">{preview.files.map(file => <div key={file.path.hex}><span className={`file-status status-${file.status}`}>{file.status}</span><code>{file.path.display}</code></div>)}</div></>}
         {preview.submodules.length > 0 && <div className="branch-submodules"><strong>{t("Submodule checkouts stay in place")}</strong>{preview.submodules.map(sub => <div key={sub.path.hex}><code>{sub.path.display}</code><span>{t("Recorded")} {sub.sourceOid.slice(0, 8)} → {sub.targetOid.slice(0, 8)}</span><span>{sub.checkedOutOid ? t("Checkout {0}{1}", [sub.checkedOutOid.slice(0, 8), sub.dirty ? t(" · uncommitted work") : t(" · preserved")]) : t("Not initialized · stays uninitialized")}</span></div>)}<p>{t("The parent may show a submodule pointer difference afterward. Restore its recorded version separately when needed.")}</p></div>}
         {!preview.blockedReason && status?.dirty && <p className="notice">{t('Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.')}</p>}
+        {needsWorkPreparation(preview.blockedReason) && <WorkPreparation key={preview.branch} membershipId={membershipId} disabled={blocked || writing} onBusyChange={value => { inFlight.current = value; setWriting(value); onBusyChange(value); }} onDone={onSwitched} onFailure={(_id, message) => setError(message)} onReady={() => { if (remotePreview) void fetchLatest(remotePreview.remote, remotePreview.remoteBranch); else void choose(preview.branch); }}/>}
         {preview.blockedReason ? <div className="notice" role="status">{t(preview.blockedReason)}</div> : <p className="hint">{t("Configured Git hooks and filters can run. Submodules are not initialized or updated.")}</p>}
         <button className="primary" disabled={Boolean(preview.blockedReason) || writing || blocked} onClick={() => void apply()}>{writing ? phase : action}<Icon name="arrow" size={14} /></button>
       </div>}

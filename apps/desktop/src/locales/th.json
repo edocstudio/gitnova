@@ -2252,5 +2252,13 @@
   "Invalid repository path.": "เส้นทาง repository ไม่ถูกต้อง",
   "{0} commits ahead · {1} behind {2}. Display comparison only; no upstream is configured. Pull and Push still use their reviewed destinations.": "นำ {0} commit · ตาม {1} commit เมื่อเทียบกับ {2} เพื่อแสดงผลเท่านั้น ยังไม่ได้ตั้ง upstream และ Pull/Push ยังคงใช้ปลายทางที่ตรวจสอบก่อนยืนยัน",
   "Pull from the comparison branch without setting an upstream. Review the incoming changes before applying.": "ดึงจาก branch ที่ใช้เปรียบเทียบโดยไม่ตั้ง upstream ตรวจการเปลี่ยนแปลงก่อนยืนยัน",
-  "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.": "ไฟล์ที่ยังไม่ commit และสถานะ staging จะตามไปยัง branch นี้ โดยไม่ stash หรือทิ้งงาน"
+  "Your uncommitted files and staging will move with you to this branch. Nothing is stashed or discarded.": "ไฟล์ที่ยังไม่ commit และสถานะ staging จะตามไปยัง branch นี้ โดยไม่ stash หรือทิ้งงาน",
+  "Same commit as {0}": "ชี้ commit เดียวกับ {0}",
+  "Checked out branch: {0}": "กำลังใช้งาน branch: {0}",
+  "Prepare working changes": "เตรียมงานที่แก้ไว้",
+  "Save work before continuing": "เก็บงานก่อนทำขั้นตอนต่อไป",
+  "1. Review and stash your changes. 2. Return to a fresh review of your original action.": "1. ตรวจและ Stash งานที่แก้ไว้ 2. กลับมาตรวจ action เดิมใหม่ก่อนยืนยัน",
+  "Nothing runs automatically. Saved changes stay in the stash until you choose Apply or Pop.": "ไม่มี action ทำงานอัตโนมัติ งานที่เก็บไว้จะอยู่ใน Stash จนกว่าจะเลือก Apply หรือ Pop",
+  "Carry changes into the new branch": "นำงานที่แก้ไว้ไปยัง branch ใหม่",
+  "Review stash first…": "ตรวจ Stash ก่อน…"
 }
