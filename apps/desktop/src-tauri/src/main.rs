@@ -1214,6 +1214,17 @@ async fn create_hosting(
     .await
 }
 #[tauri::command]
+async fn tag_refs(
+    state: State<'_>,
+    membership_id: String,
+    remote: Option<String>,
+) -> Result<Vec<GitRef>, AppError> {
+    run(state, move |a| {
+        a.tag_refs(&membership_id, remote.as_deref())
+    })
+    .await
+}
+#[tauri::command]
 async fn preview_tag(
     state: State<'_>,
     membership_id: String,
@@ -1385,6 +1396,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         disconnect_hosting,
         preview_hosting,
         create_hosting,
+        tag_refs,
         preview_tag,
         change_tag,
         preview_push,

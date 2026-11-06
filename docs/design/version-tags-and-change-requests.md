@@ -20,6 +20,14 @@ Tags, Releases or Pull Requests dashboard/sidebar is required for this slice.
 
 ## Version tag flow
 
+Current inventory update (2026-11-06): Create tag reads fresh local refs and the
+selected remote's actual push endpoint, including names not fetched locally.
+The same five-row list searches the entire returned inventory, labels local and
+remote presence, and blocks known duplicate names. Remote inspection is read-only
+and bounded to 4 MiB; an error or oversized response is not shown as a complete
+empty list. Local-only mode remains available offline. The remote is rechecked
+on Review; the final single-tag push still refuses a conflicting remote object.
+
 1. Right click the chosen commit → **Create tag…**. Replace the existing
    lightweight-only menu item rather than adding another neighboring item.
 2. Show repository, selected commit SHA/subject, tag name (example `v1.2.0`),

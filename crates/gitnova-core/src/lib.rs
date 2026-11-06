@@ -1580,6 +1580,11 @@ impl Application {
             |git, path| git.apply_ref_operation(path, action, token),
         )
     }
+    pub fn tag_refs(&self, membership_id: &str, remote: Option<&str>) -> Result<Vec<GitRef>> {
+        self.with_repo_identity(membership_id, || {
+            self.git.tag_refs(&self.path(membership_id)?, remote)
+        })
+    }
     pub fn preview_tag(&self, membership_id: &str, request: &TagRequest) -> Result<TagPreview> {
         self.with_repo_identity(membership_id, || {
             self.git.preview_tag(&self.path(membership_id)?, request)

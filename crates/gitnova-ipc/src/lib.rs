@@ -43,7 +43,7 @@ pub use gitnova_domain::{CloneOutcome, ClonePreview, CloneRequest};
 pub use gitnova_domain::SubmodulePointerPreview;
 pub use gitnova_domain::SubmoduleSnapshot;
 
-pub use gitnova_domain::{TagPreview, TagRequest};
+pub use gitnova_domain::{GitRef, TagPreview, TagRequest};
 
 pub use gitnova_domain::{
     HostingContext, HostingOutcome, HostingPreview, HostingRequest, HostingSelection,

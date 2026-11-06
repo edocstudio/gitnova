@@ -112,6 +112,7 @@ export const api = {
   connectHosting: (membershipId:string,selection:HostingSelection)=>call<HostingContext>('connect_hosting',{membershipId,selection,prompt:{message:t('Enter a provider access token. The verified token will be stored in macOS Keychain.'),confirm:t('Connect'),cancel:t('Cancel')}}),
   previewHosting: (membershipId:string,request:HostingRequest)=>call<HostingPreview>('preview_hosting',{membershipId,request}),
   createHosting: (membershipId:string,request:HostingRequest,token:string)=>call<HostingOutcome>('create_hosting',{membershipId,request,token}),
+  tagRefs: (membershipId:string,remote:string|null)=>call<import("./contracts").GitRef[]>("tag_refs",{membershipId,remote}),
   previewTag: (membershipId:string,request:TagRequest)=>call<TagPreview>('preview_tag',{membershipId,request}),
   changeTag: (membershipId:string,request:TagRequest,token:string)=>call<OperationReceipt>('change_tag',{membershipId,request,token}),
   previewPush: (membershipId: string, request: PushRequest) => call<PushPreview>('preview_push', { membershipId, request }),

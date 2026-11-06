@@ -1,7 +1,7 @@
 //! Explicit local tags and single-tag publication; no checkout or implicit branch push.
 use crate::{
     working::{run_fetch, run_offline_write},
-    GitCli, RepositoryReader,
+    GitCli, RefReader, RepositoryReader,
 };
 use gitnova_domain::*;
 use sha2::{Digest, Sha256};
@@ -10,6 +10,47 @@ use std::{
     path::Path,
 };
 impl GitCli {
+    /// Read fresh tags independently of the graph. Remote reads do not fetch refs.
+    pub fn tag_refs(&self, path: &Path, remote: Option<&str>) -> Result<Vec<GitRef>> {
+        let Some(remote) = remote else {
+            return Ok(self
+                .refs(path)?
+                .into_iter()
+                .filter(|reference| reference.name.starts_with("refs/tags/"))
+                .collect());
+        };
+        let url = self.push_destination(path, remote)?;
+        let args = ["ls-remote", "--refs", "--tags", "--", &url];
+        // Reject oversized responses rather than presenting a partial inventory.
+        let output = self.execute_transport(
+            path,
+            &args.iter().map(OsStr::new).collect::<Vec<_>>(),
+            4 * 1024 * 1024,
+            false,
+            "file:http:https:ssh:git",
+        )?;
+        let text = String::from_utf8(output.bytes)
+            .map_err(|_| AppError::new("tag_inspection", "Invalid remote tag response."))?;
+        let mut seen = std::collections::HashSet::new();
+        text.lines()
+            .map(|line| {
+                let (oid, name) = line.split_once('\t').ok_or_else(|| {
+                    AppError::new("tag_inspection", "Invalid remote tag response.")
+                })?;
+                crate::validate_oid(oid)?;
+                if !name.starts_with("refs/tags/") || !seen.insert(name.to_owned()) {
+                    return Err(AppError::new(
+                        "tag_inspection",
+                        "Invalid remote tag response.",
+                    ));
+                }
+                Ok(GitRef {
+                    name: name.into(),
+                    oid: oid.into(),
+                })
+            })
+            .collect()
+    }
     fn tag_object(&self, path: &Path, name: &str) -> Result<Option<String>> {
         let full = format!("refs/tags/{name}");
         if self
