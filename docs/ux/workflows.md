@@ -336,6 +336,18 @@ remotes require selection. Refresh remains a local reread. Fetch preserves local
 branches, index, working files and selection. Share existing write-busy gates with
 Auto fetch, disable repeated clicks and animate the icon while either fetch runs.
 
+### Published branch comparison without an upstream
+
+For the current branch without an explicit upstream, prefer the exact fetched
+`origin/<local branch>` when present; only fall back to `origin/main` when the
+same-name branch is absent. Equality shows `=` and zero pending commits, rather
+than presenting already-published feature commits as still awaiting push. New local
+commits and fetched incoming commits update that same comparison. Preserve explicit
+upstream priority and do not silently create branch configuration. Pull resolves
+the displayed comparison through the fetched remote listing, then uses the existing
+review with its exact source and destination guards. Push retains its own reviewed
+destination. Display metadata never authorizes writes.
+
 ### Direct CI build links
 
 The existing graph CI badge is the natural navigation target for its exact build;

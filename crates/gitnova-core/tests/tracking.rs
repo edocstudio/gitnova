@@ -302,7 +302,6 @@ fn published_branch_without_upstream_compares_its_own_remote_and_invalidates_dis
     assert_eq!(comparison().ahead, 1);
     git(&local, &["push", "origin", "feature/published"]);
     assert_eq!(comparison().ahead, 0);
-    // An explicit upstream always takes priority, even if another ref has the same tip.
     git(&local, &["branch", "--set-upstream-to=origin/main"]);
     let snapshot = app.snapshot(id).unwrap();
     let tracked = snapshot

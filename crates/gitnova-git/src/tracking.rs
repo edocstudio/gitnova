@@ -37,20 +37,24 @@ impl GitCli {
                 .trim()
                 != "true"
             {
-                const REFERENCE: &str = "refs/remotes/origin/main";
+                // A published same-name branch is a better comparison than main,
+                // even when the user deliberately did not configure an upstream.
+                let published = format!("refs/remotes/origin/{}", row.branch);
+                let references = [published.as_str(), "refs/remotes/origin/main"];
                 let refs = self.text(
                     path,
                     &[
                         "for-each-ref",
                         "--format=%(refname)%00%(objectname)",
-                        REFERENCE,
+                        references[0],
+                        references[1],
                     ],
                 )?;
-                if let Some(oid) = refs
-                    .lines()
-                    .filter_map(|line| line.split_once('\0'))
-                    .find_map(|(name, oid)| (name == REFERENCE).then_some(oid))
-                {
+                if let Some((reference, oid)) = references.iter().find_map(|reference| {
+                    refs.lines()
+                        .filter_map(|line| line.split_once('\0'))
+                        .find_map(|(name, oid)| (name == *reference).then_some((*reference, oid)))
+                }) {
                     crate::validate_oid(oid)?;
                     let raw = self.text(
                         path,
@@ -69,7 +73,7 @@ impl GitCli {
                         .map_err(|_| AppError::new("tracking", "Invalid comparison count."))?;
                     if let [ahead, behind] = counts.as_slice() {
                         row.comparison = Some(BranchComparison {
-                            reference: REFERENCE.into(),
+                            reference: reference.into(),
                             oid: oid.into(),
                             ahead: *ahead,
                             behind: *behind,
