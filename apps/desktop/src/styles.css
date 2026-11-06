@@ -917,3 +917,7 @@ main { display: flex; flex: 1; min-height: 0; }
 .work-preparation { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; min-width:0; }
 .work-preparation .preparation-diff { max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:4px; }
 .work-preparation .stash-review-files { max-height:100px; }
+
+.commit-ci a.ci-badge { text-decoration: none; cursor: pointer; }
+.commit-ci a.ci-badge:hover { text-decoration: underline; }
+.commit-ci a.ci-badge:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
