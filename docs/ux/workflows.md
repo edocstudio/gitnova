@@ -335,3 +335,12 @@ than adding a screen. A single/preferred remote fetches immediately; ambiguous
 remotes require selection. Refresh remains a local reread. Fetch preserves local
 branches, index, working files and selection. Share existing write-busy gates with
 Auto fetch, disable repeated clicks and animate the icon while either fetch runs.
+
+### Direct CI build links
+
+The existing graph CI badge is the natural navigation target for its exact build;
+make a known pipeline or single-workflow badge a keyboard-accessible link rather
+than adding another button or panel. Use the provider URL already associated with
+the commit, through the validated native browser opener. Clicking does not select
+or check out a different commit. Unknown/empty statuses have no invented link;
+multiple workflow results retain the existing named context-menu choices.
