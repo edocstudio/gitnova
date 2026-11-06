@@ -256,7 +256,7 @@ impl WorkingTreeReader for GitCli {
             let y = record[1] as char;
             let mut blocked_reason =
                 if x == 'U' || y == 'U' || (x == 'A' && y == 'A') || (x == 'D' && y == 'D') {
-                    Some("Conflicted files require conflict-resolution support".into())
+                    Some("Resolve this file in the conflict editor before staging.".into())
                 } else {
                     None
                 };

@@ -356,3 +356,28 @@ than adding another button or panel. Use the provider URL already associated wit
 the commit, through the validated native browser opener. Clicking does not select
 or check out a different commit. Unknown/empty statuses have no invented link;
 multiple workflow results retain the existing named context-menu choices.
+
+### Standalone index conflicts (including Stash/Pop)
+
+Unmerged index entries without a native merge/rebase session open the existing
+conflict inspector and diff dock. They are listed under Conflicts only, separate
+from ordinary staged/unstaged files. No new screen or navigation is needed.
+Select a file, choose Current, Incoming or both per block, or edit the Result.
+Review edited result previews the selected file; Apply resolution saves and
+stages only that file after checking the live index, HEAD, configuration and
+working bytes again. Current/Incoming come from actual index stages 2/3;
+standalone incoming content is labelled as saved changes or an applied patch,
+without inferring a stash origin that Git does not record.
+
+Each resolution retains a private recovery copy of the original working file,
+index and conflict stage blobs. Stashes are kept after a conflicted Pop and are
+never automatically dropped when the final file is resolved. Once no unmerged
+entries remain, return to normal Working changes to inspect staging and commit.
+There is no synthetic merge commit, automatic retry, reset or abort of a stash.
+Binary/deleted files use explicit whole-file choices; submodule conflicts require
+separate inspection. Native operations started outside GitNova retain their
+existing ownership restrictions.
+A conflicted Apply/Pop opens that existing inspector automatically after the
+snapshot refresh; resolving a file selects the next remaining conflict. The
+working-row/status text reports the unresolved count rather than suggesting an
+unknown merge session.

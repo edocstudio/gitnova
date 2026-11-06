@@ -651,7 +651,6 @@
   "The stash list changed. Select the entry again.": "รายการ stash เปลี่ยนไป เลือกรายการอีกครั้ง",
   "Stashes that change submodule pointers require separate review with Git.": "Stash ที่เปลี่ยน pointer ของ submodule ต้องตรวจแยกด้วย Git",
   "Pop/Drop require a complete stash list of at most 200 entries.": "Pop/Drop ต้องตรวจรายการ stash ครบและมีไม่เกิน 200 รายการ",
-  "Saved work is retained for recovery. Resolve stash conflicts with Git before retrying.": "เก็บงานไว้สำหรับกู้คืนแล้ว แก้ conflict ของ stash ด้วย Git ก่อนลองใหม่",
   "Inspect local files, saved entries and recovery metadata before retrying this operation.": "ตรวจไฟล์ในเครื่อง รายการ stash และข้อมูลกู้คืนก่อนลองทำงานนี้อีกครั้ง",
   "Symbolic stash refs require inspection with Git before stash writes.": "ตรวจ symbolic ref ของ stash ด้วย Git ก่อนดำเนินการ",
   "Another Git operation holds an index or HEAD lock. Wait and review again.": "มีงาน Git อื่นถือ index หรือ HEAD lock อยู่ รอแล้วตรวจใหม่",
@@ -2260,5 +2259,15 @@
   "1. Review and stash your changes. 2. Return to a fresh review of your original action.": "1. ตรวจและ Stash งานที่แก้ไว้ 2. กลับมาตรวจ action เดิมใหม่ก่อนยืนยัน",
   "Nothing runs automatically. Saved changes stay in the stash until you choose Apply or Pop.": "ไม่มี action ทำงานอัตโนมัติ งานที่เก็บไว้จะอยู่ใน Stash จนกว่าจะเลือก Apply หรือ Pop",
   "Carry changes into the new branch": "นำงานที่แก้ไว้ไปยัง branch ใหม่",
-  "Review stash first…": "ตรวจ Stash ก่อน…"
+  "Review stash first…": "ตรวจ Stash ก่อน…",
+  "Conflict resolution": "แก้ไขข้อขัดแย้ง",
+  "Incoming saved changes or patch": "การเปลี่ยนแปลงจาก stash หรือแพตช์ที่นำมาใช้",
+  "Resolve each conflicted file below. Saved stashes are kept. After the last resolution, review staged files and commit normally.": "เลือกไฟล์ที่ขัดแย้งแล้วแก้ไขในตัวแก้ด้านล่าง Stash ยังคงอยู่ เมื่อแก้ครบแล้ว ให้ตรวจไฟล์ที่ stage และ commit ตามปกติ",
+  "Saved work is retained for recovery. Open Working changes to resolve conflicted files.": "เก็บงานที่บันทึกไว้สำหรับกู้คืนแล้ว เปิดการเปลี่ยนแปลงเพื่อแก้ไขไฟล์ที่ขัดแย้ง",
+  "Resolution staged; review remaining conflicts and staged files": "Stage ผลการแก้ไขแล้ว ตรวจข้อขัดแย้งที่เหลือและไฟล์ที่ stage ไว้",
+  "Only file resolution is available for standalone conflicts.": "ข้อขัดแย้งที่ไม่มี session รองรับการแก้ไขรายไฟล์เท่านั้น",
+  "Select an unresolved conflict path, then review again.": "เลือกไฟล์ที่ยังมีข้อขัดแย้ง แล้วตรวจสอบอีกครั้ง",
+  "Hidden entries or submodule conflicts need separate inspection.": "รายการที่ซ่อนหรือข้อขัดแย้งของ submodule ต้องตรวจสอบแยกต่างหาก",
+  "Resolve this file in the conflict editor before staging.": "แก้ข้อขัดแย้งของไฟล์นี้ในตัวแก้ conflict ก่อน stage",
+  "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.": "อาจมี stash หรือ ref กู้คืนและไฟล์หรือ index เปลี่ยนแล้ว ตรวจการเปลี่ยนแปลง รายการ stash และข้อมูลกู้คืนก่อนลองใหม่ Pop จะไม่ลบ stash หากนำกลับไม่สำเร็จหรือเกิด conflict ให้แก้ไขใน Working changes ไม่มีการ reset ย้อนกลับ หรือลองซ้ำอัตโนมัติ"
 }

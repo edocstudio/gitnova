@@ -232,13 +232,22 @@ pub(super) fn save(
     marker: &Marker,
     preview: &MergeActionPreview,
 ) -> Result<()> {
+    save_at(git, root, &marker.session_dir.to_path()?, preview)
+}
+
+/// Shared raw recovery snapshot for owned operations and standalone index conflicts.
+pub(super) fn save_at(
+    git: &GitCli,
+    root: &Path,
+    session: &Path,
+    preview: &MergeActionPreview,
+) -> Result<()> {
     let directory = preview
         .recovery_dir
         .as_ref()
         .ok_or_else(|| AppError::new("merge_recovery", "No reviewed recovery location"))?
         .to_path()?;
-    let session = marker.session_dir.to_path()?;
-    if directory.parent() != Some(session.as_path())
+    if directory.parent() != Some(session)
         || fs::symlink_metadata(&directory).is_ok_and(|m| m.file_type().is_symlink())
     {
         return Err(AppError::new("merge_recovery", "Invalid recovery location"));

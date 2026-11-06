@@ -1,4 +1,5 @@
 //! Owned, previewed merges; active worktrees are never used for merge prediction.
+mod index_conflicts;
 mod preserved;
 mod rebase;
 mod recovery;
@@ -329,6 +330,25 @@ impl GitCli {
             return Ok(state);
         }
         if head.is_empty() && pick.is_empty() && revert.is_empty() && marker.is_none() {
+            // Stash/apply conflicts have unmerged index stages but no MERGE_HEAD.
+            state.conflicts = conflicts(self, root)?;
+            if state.conflicts.is_empty() {
+                return Ok(state);
+            }
+            state.phase = "unmerged".into();
+            let status = self.status(root)?;
+            state.branch = status.branch;
+            state.original_oid = status.head;
+            state.token = digest(
+                &serde_json::to_vec(&(
+                    &state.conflicts,
+                    &state.branch,
+                    &state.original_oid,
+                    digest(&metadata(&d.git_dir.join("index"), 64 * 1024 * 1024)?),
+                    digest(&self.config_snapshot(root)?),
+                ))
+                .map_err(|e| AppError::new("snapshot", e.to_string()))?,
+            );
             return Ok(state);
         }
         let status = self.status(root)?;
@@ -1366,6 +1386,9 @@ impl GitCli {
             ));
         }
         let state = self.merge_state(root)?;
+        if state.phase == "unmerged" {
+            return index_conflicts::preview(self, root, action, state);
+        }
         if action.kind == "release" {
             return self.preview_merge_release(root, action, state);
         }
@@ -1574,6 +1597,9 @@ impl GitCli {
         if let Some(reason) = preview.blocked_reason.clone() {
             return Err(AppError::new("merge_blocked", reason));
         }
+        if preview.state.phase == "unmerged" {
+            return index_conflicts::apply(self, root, action, preview);
+        }
         let marker = load_marker(self, root)?
             .ok_or_else(|| AppError::new("merge_metadata", "Missing owned operation"))?;
         let d = self.discover(root)?;
@@ -1696,6 +1722,14 @@ impl GitCli {
             fs::remove_file(d.git_dir.join(MARKER))?;
             return Ok(());
         }
+        self.apply_conflict_resolution(root, action, false)
+    }
+    fn apply_conflict_resolution(
+        &self,
+        root: &Path,
+        action: &MergeAction,
+        standalone: bool,
+    ) -> Result<()> {
         let path = action
             .path
             .as_ref()
@@ -1783,7 +1817,12 @@ impl GitCli {
             )?;
         }
         let state = self.merge_state(root)?;
-        if state.phase != "pending" || state.conflicts.iter().any(|c| c.path == *path) {
+        if !(if standalone {
+            ["none", "unmerged"].contains(&state.phase.as_str())
+        } else {
+            state.phase == "pending"
+        }) || state.conflicts.iter().any(|c| c.path == *path)
+        {
             return Err(AppError::new("operation_unknown","Resolution did not produce the reviewed staged state. Inspect the active merge and recovery snapshot."));
         }
         Ok(())
