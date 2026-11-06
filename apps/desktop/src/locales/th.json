@@ -2269,5 +2269,11 @@
   "Select an unresolved conflict path, then review again.": "เลือกไฟล์ที่ยังมีข้อขัดแย้ง แล้วตรวจสอบอีกครั้ง",
   "Hidden entries or submodule conflicts need separate inspection.": "รายการที่ซ่อนหรือข้อขัดแย้งของ submodule ต้องตรวจสอบแยกต่างหาก",
   "Resolve this file in the conflict editor before staging.": "แก้ข้อขัดแย้งของไฟล์นี้ในตัวแก้ conflict ก่อน stage",
-  "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.": "อาจมี stash หรือ ref กู้คืนและไฟล์หรือ index เปลี่ยนแล้ว ตรวจการเปลี่ยนแปลง รายการ stash และข้อมูลกู้คืนก่อนลองใหม่ Pop จะไม่ลบ stash หากนำกลับไม่สำเร็จหรือเกิด conflict ให้แก้ไขใน Working changes ไม่มีการ reset ย้อนกลับ หรือลองซ้ำอัตโนมัติ"
+  "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.": "อาจมี stash หรือ ref กู้คืนและไฟล์หรือ index เปลี่ยนแล้ว ตรวจการเปลี่ยนแปลง รายการ stash และข้อมูลกู้คืนก่อนลองใหม่ Pop จะไม่ลบ stash หากนำกลับไม่สำเร็จหรือเกิด conflict ให้แก้ไขใน Working changes ไม่มีการ reset ย้อนกลับ หรือลองซ้ำอัตโนมัติ",
+  "Existing tags": "แท็กที่มีอยู่",
+  "Fresh local tags and tags at the selected push destination. No tags are fetched or changed.": "แท็กในเครื่องล่าสุดและแท็กที่ปลายทาง push ที่เลือก ไม่มีการ fetch หรือเปลี่ยนแท็ก",
+  "Check tags on remote": "ตรวจแท็กบนรีโมต",
+  "Local tags only (offline)": "เฉพาะแท็กในเครื่อง (ออฟไลน์)",
+  "Refresh tag list": "โหลดรายการแท็กใหม่",
+  "Tag list could not be verified. Retry or choose local-only mode.": "ตรวจสอบรายการแท็กไม่สำเร็จ ลองใหม่หรือเลือกเฉพาะแท็กในเครื่อง"
 }

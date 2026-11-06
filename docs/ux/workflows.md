@@ -381,3 +381,16 @@ A conflicted Apply/Pop opens that existing inspector automatically after the
 snapshot refresh; resolving a file selects the next remaining conflict. The
 working-row/status text reports the unresolved count rather than suggesting an
 unknown merge session.
+
+### Version tag inventory
+
+Use the existing Create tag list for fresh repository-wide local tags and tags
+on the selected publication remote. Graph history and automatic fetch do not
+guarantee that remote-only tags exist locally. The existing list keeps search
+and five-row pagination, labels each source, and blocks known duplicate names.
+A remote selector and list refresh belong inside this list because version
+availability depends on the publication destination; no separate tag screen is
+needed. Inspection uses read-only ls-remote against the actual push endpoint,
+never fetches or creates tags. Local-only mode remains available offline. A
+failed or oversized inspection is an error, never a complete empty tag list.
+Native create/push reviews still revalidate refs before writes.

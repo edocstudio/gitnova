@@ -147,3 +147,47 @@ fn tag_duplicates_moved_sources_and_remote_conflicts_do_not_overwrite() {
         .contains("different object"));
     assert_eq!(git(&f.remote, &["rev-parse", "v1"]), f.last);
 }
+
+#[test]
+fn tag_inventory_includes_packed_local_and_remote_only_tags_without_fetching() {
+    let f = fixture();
+    for index in 0..27 {
+        git(&f.root, &["tag", &format!("v1.0.{index}"), &f.first]);
+    }
+    git(&f.root, &["tag", "-a", "v2", "-m", "Version two", &f.first]);
+    git(&f.root, &["push", "origin", "refs/tags/v2"]);
+    let remote_object = git(&f.remote, &["rev-parse", "refs/tags/v2"]);
+    git(&f.root, &["tag", "-d", "v2"]);
+    git(&f.root, &["pack-refs", "--all"]);
+    let index = fs::read(f.root.join(".git/index")).unwrap();
+    let local = f.app.tag_refs(&f.id, None).unwrap();
+    assert_eq!(local.len(), 27);
+    assert!(local.iter().all(|tag| tag.oid == f.first));
+    let remote = f.app.tag_refs(&f.id, Some("origin")).unwrap();
+    assert_eq!(remote.len(), 1);
+    assert_eq!(remote[0].name, "refs/tags/v2");
+    assert_eq!(remote[0].oid, remote_object);
+    assert_eq!(git(&f.root, &["tag", "--list", "v2"]), "");
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.last);
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), index);
+    assert!(f.app.tag_refs(&f.id, Some("unknown")).is_err());
+    // Publication names must be checked at the push URL, not the fetch URL.
+    git(
+        &f.root,
+        &["remote", "set-url", "origin", "missing-fetch.git"],
+    );
+    git(
+        &f.root,
+        &[
+            "remote",
+            "set-url",
+            "--push",
+            "origin",
+            f.remote.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(
+        f.app.tag_refs(&f.id, Some("origin")).unwrap()[0].name,
+        "refs/tags/v2"
+    );
+}

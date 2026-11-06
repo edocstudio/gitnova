@@ -2269,5 +2269,11 @@
   "Select an unresolved conflict path, then review again.": "Select an unresolved conflict path, then review again.",
   "Hidden entries or submodule conflicts need separate inspection.": "Hidden entries or submodule conflicts need separate inspection.",
   "Resolve this file in the conflict editor before staging.": "Resolve this file in the conflict editor before staging.",
-  "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.": "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed."
+  "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.": "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.",
+  "Existing tags": "Existing tags",
+  "Fresh local tags and tags at the selected push destination. No tags are fetched or changed.": "Fresh local tags and tags at the selected push destination. No tags are fetched or changed.",
+  "Check tags on remote": "Check tags on remote",
+  "Local tags only (offline)": "Local tags only (offline)",
+  "Refresh tag list": "Refresh tag list",
+  "Tag list could not be verified. Retry or choose local-only mode.": "Tag list could not be verified. Retry or choose local-only mode."
 }

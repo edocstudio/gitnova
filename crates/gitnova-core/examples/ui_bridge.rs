@@ -321,6 +321,10 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.apply_merge_action(&s("membershipId")?, &action, &s("token")?)?)
             }
         }
+        "tag_refs" => json!(app.tag_refs(
+            &s("membershipId")?,
+            args.get("remote").and_then(|value| value.as_str())
+        )?),
         "remote_branches" => json!(app.remote_branches(&s("membershipId")?)?),
         "auto_fetch" => json!(app.auto_fetch(&s("membershipId")?)?),
         "fetch_remote" => {
