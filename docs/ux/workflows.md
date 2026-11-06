@@ -325,3 +325,13 @@ independent worktree creation do not need a clean source checkout, so do not add
 stash gate. Child-submodule dirtiness and dirty target worktrees are separate
 repository scopes; parent stash cannot resolve them. Locks, unresolved conflicts
 and active operations retain their own recovery/finish flows.
+
+### Manual Fetch beside Refresh
+
+Expose the existing graph Fetch action beside header Refresh so developers can
+request remote updates without waiting for Auto fetch or opening the branch
+picker. This shortcut reuses the existing remote-selection/error context rather
+than adding a screen. A single/preferred remote fetches immediately; ambiguous
+remotes require selection. Refresh remains a local reread. Fetch preserves local
+branches, index, working files and selection. Share existing write-busy gates with
+Auto fetch, disable repeated clicks and animate the icon while either fetch runs.
