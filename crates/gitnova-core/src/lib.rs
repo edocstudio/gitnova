@@ -808,7 +808,7 @@ impl Application {
                 receipt.summary = match kind {
                     "merge_begin" if matches!(&receipt.planned, Some(PlannedOperation::Merge(p)) if p.operation == "merge" && receipt.head_after.as_deref() == Some(p.source_oid.as_str()) && receipt.head_before != receipt.head_after) => "Branch fast-forwarded to the reviewed commit; no merge commit was created".into(),
                     "merge_begin" => "Merge prepared; inspect its resulting state".into(),
-                    "merge_resolve" => "Resolution staged; review the remaining merge result".into(),
+                    "merge_resolve" => "Resolution staged; review remaining conflicts and staged files".into(),
                     "merge_finish" => "Merge commit created from the reviewed staged result".into(),
                     "merge_release" => "Interrupted session closed; files, staging and recovery refs preserved".into(),
                     "merge_abort" => "Merge aborted; edited/staged work retained in its recovery snapshot".into(),
@@ -1092,7 +1092,7 @@ impl Application {
                 .as_secs(),
         );
         if kind.starts_with("stash_") && receipt.status != "succeeded" {
-            receipt.recovery=Some("The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts with Git; no automatic reset, rollback or retry is performed.".into());
+            receipt.recovery=Some("The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.".into());
         }
         self.save_receipt(&receipt).map_err(|e|AppError::new("receipt",format!("Git operation finished with status {} but receipt persistence failed: {}. Inspect HEAD {:?} before retrying.",receipt.status,e,receipt.head_after)))?;
         Ok(receipt)

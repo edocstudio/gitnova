@@ -651,7 +651,6 @@
   "The stash list changed. Select the entry again.": "The stash list changed. Select the entry again.",
   "Stashes that change submodule pointers require separate review with Git.": "Stashes that change submodule pointers require separate review with Git.",
   "Pop/Drop require a complete stash list of at most 200 entries.": "Pop/Drop require a complete stash list of at most 200 entries.",
-  "Saved work is retained for recovery. Resolve stash conflicts with Git before retrying.": "Saved work is retained for recovery. Resolve stash conflicts with Git before retrying.",
   "Inspect local files, saved entries and recovery metadata before retrying this operation.": "Inspect local files, saved entries and recovery metadata before retrying this operation.",
   "Symbolic stash refs require inspection with Git before stash writes.": "Symbolic stash refs require inspection with Git before stash writes.",
   "Another Git operation holds an index or HEAD lock. Wait and review again.": "Another Git operation holds an index or HEAD lock. Wait and review again.",
@@ -2260,5 +2259,15 @@
   "1. Review and stash your changes. 2. Return to a fresh review of your original action.": "1. Review and stash your changes. 2. Return to a fresh review of your original action.",
   "Nothing runs automatically. Saved changes stay in the stash until you choose Apply or Pop.": "Nothing runs automatically. Saved changes stay in the stash until you choose Apply or Pop.",
   "Carry changes into the new branch": "Carry changes into the new branch",
-  "Review stash first…": "Review stash first…"
+  "Review stash first…": "Review stash first…",
+  "Conflict resolution": "Conflict resolution",
+  "Incoming saved changes or patch": "Incoming saved changes or patch",
+  "Resolve each conflicted file below. Saved stashes are kept. After the last resolution, review staged files and commit normally.": "Resolve each conflicted file below. Saved stashes are kept. After the last resolution, review staged files and commit normally.",
+  "Saved work is retained for recovery. Open Working changes to resolve conflicted files.": "Saved work is retained for recovery. Open Working changes to resolve conflicted files.",
+  "Resolution staged; review remaining conflicts and staged files": "Resolution staged; review remaining conflicts and staged files",
+  "Only file resolution is available for standalone conflicts.": "Only file resolution is available for standalone conflicts.",
+  "Select an unresolved conflict path, then review again.": "Select an unresolved conflict path, then review again.",
+  "Hidden entries or submodule conflicts need separate inspection.": "Hidden entries or submodule conflicts need separate inspection.",
+  "Resolve this file in the conflict editor before staging.": "Resolve this file in the conflict editor before staging.",
+  "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed.": "The stash or recovery ref may already exist and files/index may have changed. Inspect Working changes, the stash list and recovery metadata before retrying. Pop never drops an entry after a failed/conflicted application. Resolve stash conflicts in Working changes; no automatic reset, rollback or retry is performed."
 }

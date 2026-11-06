@@ -211,7 +211,7 @@ fn conflicted_pop_retains_the_stash_and_recovery_without_force_reset() {
     assert!(result
         .recovery
         .unwrap()
-        .contains("Resolve stash conflicts with Git"));
+        .contains("Resolve stash conflicts in Working changes"));
 }
 #[test]
 fn metadata_native_locks_are_preserved_and_saved_entries_do_not_pollute_history() {
@@ -696,4 +696,124 @@ fn saved_index_only_gitlinks_remain_blocked_when_working_delta_has_no_gitlinks()
     assert_eq!(git(&root, &["rev-parse", "refs/stash"]), saved);
     assert_eq!(fs::read(root.join(".git/index")).unwrap(), index);
     assert!(!root.join("child").exists());
+}
+
+#[test]
+fn stash_conflicts_resolve_without_a_merge_session_and_preserve_other_work() {
+    let (_t, app, root, id) = setup();
+    fs::write(root.join("file.txt"), "saved\n").unwrap();
+    git(&root, &["stash", "push", "-m", "Saved work"]);
+    let stash = git(&root, &["rev-parse", "refs/stash"]);
+    fs::write(root.join("file.txt"), "current\n").unwrap();
+    git(&root, &["commit", "-am", "Destination"]);
+    let head = git(&root, &["rev-parse", "HEAD"]);
+    let mut r = selected(&app, &id, 0, StashKind::Pop);
+    r.restore_index = false;
+    let p = review(&app, &id, r);
+    assert_eq!(
+        app.apply_stash(&id, &p.request, &p.token).unwrap().status,
+        "conflicted"
+    );
+    fs::write(root.join("other.txt"), "staged unrelated\n").unwrap();
+    git(&root, &["add", "other.txt"]);
+    fs::write(root.join("other.txt"), "unstaged unrelated\n").unwrap();
+    let state = app.merge_state(&id).unwrap();
+    assert_eq!(state.phase, "unmerged");
+    assert!(state.session_id.is_none());
+    let path = NativePath::new(Path::new("file.txt"));
+    let file = app.merge_file(&id, &path).unwrap();
+    assert_eq!(file.ours_text.as_deref(), Some("current\n"));
+    assert_eq!(file.theirs_text.as_deref(), Some("saved\n"));
+    assert!(file.editable);
+    let action = MergeAction {
+        kind: "resolve".into(),
+        path: Some(path),
+        choice: Some("edited".into()),
+        content: Some("combined\n".into()),
+        message: String::new(),
+    };
+    let preview = app.preview_merge_action(&id, &action).unwrap();
+    assert!(preview.blocked_reason.is_none());
+    // A change outside the editor invalidates authority, preserving the draft.
+    fs::write(root.join("file.txt"), "external edit\n").unwrap();
+    assert!(app
+        .apply_merge_action(&id, &action, &preview.token)
+        .is_err());
+    assert_eq!(
+        fs::read_to_string(root.join("file.txt")).unwrap(),
+        "external edit\n"
+    );
+    let preview = app.preview_merge_action(&id, &action).unwrap();
+    let backup = preview.recovery_dir.as_ref().unwrap().to_path().unwrap();
+    let receipt = app
+        .apply_merge_action(&id, &action, &preview.token)
+        .unwrap();
+    assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);
+    assert!(backup.join("manifest.json").exists());
+    assert_eq!(git(&root, &["show", ":file.txt"]), "combined");
+    assert_eq!(git(&root, &["show", ":other.txt"]), "staged unrelated");
+    assert_eq!(
+        fs::read_to_string(root.join("other.txt")).unwrap(),
+        "unstaged unrelated\n"
+    );
+    assert_eq!(git(&root, &["rev-parse", "HEAD"]), head);
+    assert_eq!(git(&root, &["rev-parse", "refs/stash"]), stash);
+    assert_eq!(app.merge_state(&id).unwrap().phase, "none");
+    assert!(!root.join(".git/gitnova-merge.json").exists());
+}
+
+#[test]
+fn standalone_conflicts_reject_markers_and_only_resolve_the_selected_index_path() {
+    let (_t, app, root, id) = setup();
+    fs::write(root.join("two.txt"), "base\n").unwrap();
+    git(&root, &["add", "."]);
+    git(&root, &["commit", "-m", "Two paths"]);
+    fs::write(root.join("file.txt"), "saved\n").unwrap();
+    fs::write(root.join("two.txt"), "saved two\n").unwrap();
+    git(&root, &["stash", "push"]);
+    let stash = git(&root, &["rev-parse", "refs/stash"]);
+    fs::write(root.join("file.txt"), "current\n").unwrap();
+    git(&root, &["rm", "two.txt"]);
+    git(&root, &["commit", "-am", "Destination"]);
+    let mut r = selected(&app, &id, 0, StashKind::Apply);
+    r.restore_index = false;
+    let p = review(&app, &id, r);
+    assert_eq!(
+        app.apply_stash(&id, &p.request, &p.token).unwrap().status,
+        "conflicted"
+    );
+    assert_eq!(app.merge_state(&id).unwrap().conflicts.len(), 2);
+    let mut action = MergeAction {
+        kind: "resolve".into(),
+        path: Some(NativePath::new(Path::new("file.txt"))),
+        choice: Some("working".into()),
+        content: None,
+        message: String::new(),
+    };
+    assert!(
+        app.preview_merge_action(&id, &action).is_err(),
+        "Unedited markers must not be staged"
+    );
+    action.choice = Some("theirs".into());
+    let p = app.preview_merge_action(&id, &action).unwrap();
+    assert_eq!(
+        app.apply_merge_action(&id, &action, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert_eq!(app.merge_state(&id).unwrap().conflicts.len(), 1);
+    action.path = Some(NativePath::new(Path::new("two.txt")));
+    action.choice = Some("ours".into());
+    let p = app.preview_merge_action(&id, &action).unwrap();
+    assert_eq!(
+        app.apply_merge_action(&id, &action, &p.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    assert!(!root.join("two.txt").exists());
+    assert_eq!(git(&root, &["show", ":file.txt"]), "saved");
+    assert_eq!(git(&root, &["rev-parse", "refs/stash"]), stash);
+    assert_eq!(app.merge_state(&id).unwrap().phase, "none");
 }

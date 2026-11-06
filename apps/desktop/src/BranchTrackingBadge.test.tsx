@@ -50,3 +50,11 @@ it('shows display-only origin/main counts without turning them into a configured
   expect(renderToStaticMarkup(<BranchSyncCount value={value} oid="other" direction="pull"/>)).toContain('>?<');
   expect(value.upstream).toBeNull();
 });
+
+it('shows equality and zero pending commits for a published branch without upstream',()=>{
+ const value:BranchTracking={...tracked,state:'noUpstream',upstream:null,ahead:null,behind:null,comparison:{reference:'refs/remotes/origin/feature/published',oid:'commit',ahead:0,behind:0}};
+ const badge=renderToStaticMarkup(<BranchTrackingBadge value={value} oid="commit"/>);
+ expect(badge).toContain('class="in-sync">=</span>');expect(badge).not.toContain('↑');expect(badge).not.toContain('↓');
+ for(const direction of ['pull','push'] as const){const count=renderToStaticMarkup(<BranchSyncCount value={value} oid="commit" direction={direction}/>);expect(count).toContain('>0<');expect(count).toContain('refs/remotes/origin/feature/published');}
+ expect(value.upstream).toBeNull();
+});

@@ -257,3 +257,59 @@ fn untracked_current_branch_compares_origin_main_for_display_without_configuring
         "keep working files"
     );
 }
+
+#[test]
+fn published_branch_without_upstream_compares_its_own_remote_and_invalidates_display_cache() {
+    let (temp, local, _) = setup();
+    git(&local, &["push", "origin", "main:main"]);
+    git(&local, &["switch", "-c", "feature/published"]);
+    for message in ["Feature one", "Feature two"] {
+        git(&local, &["commit", "--allow-empty", "-m", message]);
+    }
+    let app = Application::new(temp.path().join("published-state.json")).unwrap();
+    let catalog = app.add_repository(&local).unwrap();
+    let id = catalog.workspaces[0].selected_id.as_ref().unwrap();
+    let comparison = || {
+        app.snapshot(id)
+            .unwrap()
+            .tracking
+            .into_iter()
+            .find(|row| row.branch == "feature/published")
+            .unwrap()
+            .comparison
+            .unwrap()
+    };
+    assert_eq!(comparison().ahead, 2);
+    git(&local, &["push", "origin", "feature/published"]);
+    let published = comparison();
+    assert_eq!(published.reference, "refs/remotes/origin/feature/published");
+    assert_eq!((published.ahead, published.behind), (0, 0));
+    assert_eq!(
+        git(
+            &local,
+            &[
+                "for-each-ref",
+                "--format=%(upstream)",
+                "refs/heads/feature/published"
+            ]
+        ),
+        ""
+    );
+    git(
+        &local,
+        &["commit", "--allow-empty", "-m", "New unpublished work"],
+    );
+    assert_eq!(comparison().ahead, 1);
+    git(&local, &["push", "origin", "feature/published"]);
+    assert_eq!(comparison().ahead, 0);
+    git(&local, &["branch", "--set-upstream-to=origin/main"]);
+    let snapshot = app.snapshot(id).unwrap();
+    let tracked = snapshot
+        .tracking
+        .iter()
+        .find(|row| row.branch == "feature/published")
+        .unwrap();
+    assert_eq!(tracked.state, "tracked");
+    assert_eq!(tracked.ahead, Some(3));
+    assert!(tracked.comparison.is_none());
+}

@@ -71,7 +71,7 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
     try {
       const receipt = await api.applyStash(membershipId, preview.request, preview.token); onOperation(receipt); setPreview(null); setFile(null);
       try { await onRefresh(); await reload(); } catch (refreshError) { setError(errorMessage(refreshError)); setResult(receipt); return; }
-      if (receipt.status === 'succeeded') onClose(); else setResult(receipt);
+      if (receipt.status === 'succeeded' || receipt.status === 'conflicted') onClose(); else setResult(receipt);
     } catch (e) { setError(errorMessage(e)); onFailure(membershipId, errorMessage(e)); setPreview(null); }
     finally { inFlight.current = false; if (mounted.current) setBusy(false); onBusyChange(false); }
   };
@@ -86,7 +86,7 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
   const updateIndex = (restoreIndex: boolean) => { if (preview) { const next = { ...preview.request, restoreIndex, id: '' }; setPreview({ ...preview, request: next }); void inspect(next); } };
   return <div ref={root} className="stash-controls">
     {error && <div className="inline-error" role="alert">{t(error)}{failedRequest?.kind === 'pop' && popRemovalBlocked(error) && <div className="stash-secondary"><button disabled={busy || loading || disabled} onClick={() => void inspect({ ...failedRequest, kind: 'apply', id: '' })}>{t('Restore and keep stash')}</button></div>}</div>}
-    {result && <div className="notice" role="status"><strong>{t(result.summary)}</strong><p>{result.status === 'conflicted' ? t('Saved work is retained for recovery. Resolve stash conflicts with Git before retrying.') : t('Inspect local files, saved entries and recovery metadata before retrying this operation.')}</p><button disabled={busy || disabled} onClick={onClose}>{t('Review working changes')}</button><details className="stash-options"><summary>{t('Recovery details')}</summary>{result.planned?.type === 'stash' && <code className="recovery-ref">{result.planned.preview.recoveryRef}</code>}</details></div>}
+    {result && <div className="notice" role="status"><strong>{t(result.summary)}</strong><p>{result.status === 'conflicted' ? t('Saved work is retained for recovery. Open Working changes to resolve conflicted files.') : t('Inspect local files, saved entries and recovery metadata before retrying this operation.')}</p><button disabled={busy || disabled} onClick={onClose}>{t('Review working changes')}</button><details className="stash-options"><summary>{t('Recovery details')}</summary>{result.planned?.type === 'stash' && <code className="recovery-ref">{result.planned.preview.recoveryRef}</code>}</details></div>}
     {loading && <p className="loading-status quiet-state" role="status">{t('Preparing saved work…')}</p>}
     {!preview && !loading && !result && <>
       <button className="primary" disabled={busy || disabled || !changes?.status.dirty} onClick={() => void inspect(request('push', null, message, includeUntracked))}>{t('Stash changes…')}</button>
