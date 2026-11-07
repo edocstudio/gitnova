@@ -1,7 +1,8 @@
 # Release candidates, Linux signing and download handoff
 
-This workflow prepares alpha packages; it does not certify redistribution,
-publish a GitHub Release, deploy the website or configure signing accounts.
+This workflow prepares alpha packages and can attach them to a draft GitHub
+prerelease; it does not publish a release, certify redistribution, deploy the
+website or configure signing accounts.
 macOS and Windows trusted publisher signing remain unavailable. Keep the
 [binary distribution checklist](binary-distribution.md) and unresolved
 target-specific dependency/asset terms visible.
@@ -10,7 +11,11 @@ target-specific dependency/asset terms visible.
 
 Commit the reviewed changes through the normal protected-branch PR flow. Run
 **Actions → release candidate → Run workflow** on that exact reviewed ref.
-Leave `sign_linux` false until the owner key is configured. The workflow reuses
+Leave `sign_linux` false until the owner key is configured. Linux can be
+distributed as unsigned alpha without GPG; a missing key is not itself a Linux
+installation blocker. Unsigned downloads must retain their publisher-authenticity
+warning. License review and native acceptance remain separate requirements.
+The workflow reuses
 the full three-platform checks without weakening any existing checks, then uses
 release-profile packaging on all targets. Ordinary CI retains its macOS debug
 candidate path. `npm run build:release` is the native-host candidate build command;
@@ -68,7 +73,7 @@ creates the `release-signing` environment and configures:
 The workflow imports into a disposable keyring outside artifact paths, passes
 the passphrase over stdin, signs Linux files plus `SHA256SUMS`, verifies the
 expected fingerprint, exports only the public key, then removes the keyring.
-It has no release write permission. Failed signing does not upload the final
+Only the separate optional draft job has release write permission. Failed signing does not upload the final
 release-candidate artifact. Publish the public fingerprint separately on the
 official website/repository so users can authenticate the supplied public key.
 
@@ -92,12 +97,28 @@ unsigned alpha if the owner explicitly accepts the documented limitations.
 
 ## 4. Owner publication and website handoff
 
-After review, the owner can create a **draft prerelease** in GitHub Releases,
-select a version-matching tag at the tested source commit, and attach the exact
+For a concrete installer handoff, create an alpha tag such as
+`v0.1.0-alpha.1` at the reviewed source commit, run **release candidate** on that
+tag, and enter the same tag in `draft_tag`. Leave `sign_linux` false for the
+unsigned alpha route. After all three-platform checks and release builds pass,
+the optional draft job validates the package hashes and resolves the existing
+tag (including annotated tags) to the tested commit before creating a draft.
+It never creates/moves tags, overwrites existing release assets or publishes.
+Signed Linux sidecars, when present, are independently verified in a temporary
+public-key-only keyring before draft upload. No owner private key is needed to
+upload unsigned alpha files.
+
+The draft includes the exact
 packages, `SHA256SUMS`, signatures/public key, candidate and acceptance/license
-evidence, and honest release notes. Verify every downloaded attachment against
-the manifest before making the prerelease public. This repository workflow never
-performs that publication automatically.
+evidence contained inside the packages, and honest release notes. Full native
+acceptance reports and target-specific inventory remain in the workflow artifact;
+review these and attach any required accompanying material before publication.
+The candidate manifest deliberately keeps `publicationGatePassed: false` and
+all unresolved license counts: creating a draft is not approval of those gaps.
+After review, verify every downloaded attachment against the manifest and make
+the prerelease public using GitHub's **Publish release** action. The workflow
+never performs that final publication automatically. Users download native
+installers from Releases; they do not need the developer toolchain.
 
 The separate `gitnova-web` repository has a validated `lib/downloads.json` feed.
 Keep it `unpublished` until the exact assets exist on the public prerelease.

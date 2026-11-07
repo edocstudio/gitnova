@@ -7,6 +7,7 @@ import {spawnSync, execFileSync} from 'node:child_process';
 import {prepareRelease} from './prepare-release.mjs';
 import {signLinuxRelease} from './sign-linux-release.mjs';
 import {hashFile} from './hash-file.mjs';
+import {reviewDraftFiles} from './create-release-draft.mjs';
 function fixture(){
  const root=mkdtempSync(join(tmpdir(),'gitnova-release-test-')),input=join(root,'input'),output=join(root,'output');mkdirSync(input);
  const reports=[];
@@ -28,8 +29,21 @@ test('release assembly refuses tampering, debug builds, mixed commits and missin
 test('signing rejects an output-contained keyring or abbreviated key identity before calling GPG',()=>{
  const f=fixture();try{prepareRelease(f.input,f.output);assert.throws(()=>signLinuxRelease(f.output,f.output,'a'.repeat(40)));assert.throws(()=>signLinuxRelease(f.output,f.root,'short-key'));}finally{f.clean();}
 });
-test('ephemeral GPG signs exact Linux bytes and checksum manifest', {skip:spawnSync('gpg',['--version']).status!==0},()=>{
- const f=fixture(),keyring=join(f.root,'test-keyring');mkdirSync(keyring,{mode:0o700});
+test('draft upload validates all platform bytes and accepts only matching alpha tags',()=>{
+ const f=fixture();try{
+  prepareRelease(f.input,f.output);
+  assert.equal(reviewDraftFiles(f.output,'v0.1.0-alpha.1').files.length,7);
+  for(const tag of ['v0.2.0-alpha.1','v0.1.0','--draft','v0.1.0-alpha.1/other'])assert.throws(()=>reviewDraftFiles(f.output,tag));
+  writeFileSync(join(f.output,'GitNova.exe'),'changed');assert.throws(()=>reviewDraftFiles(f.output,'v0.1.0-alpha.1'),/changed/);
+ }finally{f.clean();}
+});
+// Signing runs on the Linux release runner. Git for Windows ships an MSYS GPG
+// whose path conventions are incompatible with native Node Windows paths.
+// Keep byte/manifest validation on every OS and real GPG coverage on Unix.
+test('ephemeral GPG signs exact Linux bytes and checksum manifest', {skip:process.platform==='win32'?'Linux signing uses a Unix GPG runner':spawnSync('gpg',['--version']).status!==0},()=>{
+ // macOS TMPDIR paths can exceed the Unix-domain socket limit for gpg-agent.
+ // A separate short, private directory keeps the real signing test isolated.
+ const f=fixture(),keyring=mkdtempSync(join(process.platform==='darwin'?'/tmp':tmpdir(),'gn-'));
  try{
   prepareRelease(f.input,f.output);
   const args=['--homedir',keyring,'--batch','--pinentry-mode','loopback','--passphrase',''];
@@ -41,5 +55,5 @@ test('ephemeral GPG signs exact Linux bytes and checksum manifest', {skip:spawnS
   assert.equal(JSON.parse(readFileSync(join(f.output,'linux-signing.json'),'utf8')).files.length,3);
   writeFileSync(join(f.output,'GitNova.deb'),'tampered');
   assert.notEqual(spawnSync('gpg',[...args,'--verify',join(f.output,'GitNova.deb.asc'),join(f.output,'GitNova.deb')]).status,0);
- }finally{spawnSync('gpgconf',['--homedir',keyring,'--kill','all']);f.clean();}
+ }finally{spawnSync('gpgconf',['--homedir',keyring,'--kill','all']);rmSync(keyring,{recursive:true,force:true});f.clean();}
 });

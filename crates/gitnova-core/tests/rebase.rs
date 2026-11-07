@@ -257,11 +257,16 @@ fn originally_empty_commit_and_binary_rename_delete_keep_the_complete_sequence()
         &f.root,
         &["commit", "--allow-empty", "-m", "intentional empty"],
     );
-    git(&f.root, &["mv", "file", "renamed file\t.txt"]);
+    let renamed = if cfg!(windows) {
+        "renamed file งาน.txt"
+    } else {
+        "renamed file\t.txt"
+    };
+    git(&f.root, &["mv", "file", renamed]);
     fs::write(f.root.join("binary"), b"hello\0binary").unwrap();
     git(&f.root, &["add", "."]);
     git(&f.root, &["commit", "-m", "rename and binary"]);
-    git(&f.root, &["rm", "renamed file\t.txt"]);
+    git(&f.root, &["rm", renamed]);
     git(&f.root, &["commit", "-m", "delete renamed"]);
     let p = f.app.preview_merge(&f.id, &request(&f)).unwrap();
     assert!(p.blocked_reason.is_none(), "{:?}", p.blocked_reason);
@@ -278,7 +283,7 @@ fn originally_empty_commit_and_binary_rename_delete_keep_the_complete_sequence()
         count
     );
     assert_eq!(fs::read(f.root.join("binary")).unwrap(), b"hello\0binary");
-    assert!(!f.root.join("renamed file\t.txt").exists());
+    assert!(!f.root.join(renamed).exists());
 }
 #[test]
 fn stale_start_is_refused_and_two_parent_topology_is_reviewed_without_flattening() {

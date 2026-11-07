@@ -11,7 +11,7 @@ const report=verifyLicenseInventory();
 const probe=spawnSync('rustc',['-vV'],{encoding:'utf8',timeout:8000});
 const host=probe.stdout?.match(/^host: (.+)$/m)?.[1];
 if(probe.status!==0||!host||report.target!==host)throw new Error('Regenerate the license inventory for this native host before packaging; see docs/platforms.md.');
-const args=process.platform==='darwin'?[join(project,'scripts/build-local.mjs')]:[join(project,'scripts/tauri.mjs'),'build','--ci','--','--locked'];
+const args=process.platform==='darwin'?[join(project,'scripts/build-local.mjs')]:[join(project,'scripts/build-release.mjs')];
 const result=spawnSync(process.execPath,args,{cwd:project,stdio:'inherit',env:{...process.env,CARGO_BUILD_JOBS:process.env.CARGO_BUILD_JOBS??'2'}});
 if(result.error)throw result.error;
 process.exitCode=result.status??1;

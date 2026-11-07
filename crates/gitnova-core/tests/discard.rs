@@ -127,18 +127,20 @@ fn added_deleted_unicode_literal_paths_and_unborn_index_are_supported() {
         if unborn {
             git(&repo, &["checkout", "--orphan", "unborn"]);
         }
-        fs::write(repo.join(":(glob) งาน.txt"), "valuable\n").unwrap();
-        git(&repo, &["add", "--", ":(literal):(glob) งาน.txt"]);
+        // ':' is forbidden in Windows filenames; keep Unicode and literal
+        // pathspec coverage there, with magic-prefix coverage on Unix.
+        let filename = if cfg!(windows) {
+            "[glob] งาน.txt"
+        } else {
+            ":(glob) งาน.txt"
+        };
+        fs::write(repo.join(filename), "valuable\n").unwrap();
+        git(&repo, &["add", "--", &format!(":(literal){filename}")]);
         fs::remove_file(repo.join("file.txt")).unwrap();
-        let p = review(
-            &app,
-            &id,
-            &[":(glob) งาน.txt", "file.txt"],
-            DiscardScope::All,
-        );
+        let p = review(&app, &id, &[filename, "file.txt"], DiscardScope::All);
         let r = apply(&app, &id, &p);
         assert_eq!(r.status, "succeeded", "{}", r.summary);
-        assert!(!repo.join(":(glob) งาน.txt").exists());
+        assert!(!repo.join(filename).exists());
         assert_eq!(repo.join("file.txt").exists(), !unborn);
         assert!(git(&repo, &["status", "--porcelain"]).is_empty());
     }

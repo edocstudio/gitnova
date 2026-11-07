@@ -171,7 +171,11 @@ fn binary_and_mode_changes_are_refused_without_guessing() {
 }
 #[test]
 fn no_newline_and_quoted_paths_use_exact_patch_bytes() {
-    let name = "space and\ttab.txt";
+    let name = if cfg!(windows) {
+        "space and ภาษาไทย.txt"
+    } else {
+        "space and\ttab.txt"
+    };
     let f = fixture(name);
     let value = text("one", "two").trim_end().to_string();
     fs::write(f.root.join(name), &value).unwrap();
@@ -243,7 +247,11 @@ fn added_and_deleted_text_hunks_roundtrip_without_touching_working_bytes_or_othe
     let f = fixture("file");
     fs::write(f.root.join("other"), "keep staged\n").unwrap();
     git(&f.root, &["add", "other"]);
-    let name = "new tab\tand space.txt";
+    let name = if cfg!(windows) {
+        "new ภาษาไทย and space.txt"
+    } else {
+        "new tab\tand space.txt"
+    };
     let bytes = "new text without final newline";
     fs::write(f.root.join(name), bytes).unwrap();
     let p = f.app.preview_hunks(&f.id, &path(name), false).unwrap();

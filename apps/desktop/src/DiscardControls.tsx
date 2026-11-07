@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { WorkProgress, DiscardPreview, NativePath, OperationReceipt, WorkingChanges } from './contracts';
 import { t } from './i18n';
@@ -14,6 +14,9 @@ export function DiscardControls({ membershipId, changes, operationToken, initial
   const [scope, setScope] = useState(initialScope); const [selected, setSelected] = useState(() => initialPath ? [initialPath.hex] : [...new Set(changes.files.map(f => f.path.hex))]);
   const [reviewedContext, setReviewedContext] = useState(''); const [reviewedOperation, setReviewedOperation] = useState('');
   const [preview, setPreview] = useState<DiscardPreview | null>(null); const [loading, setLoading] = useState(false); const [writing, setWriting] = useState(false); const [error, setError] = useState(''); const inFlight = useRef(false); const previewQueue=useRef<Promise<void>>(Promise.resolve());
+  useLayoutEffect(() => {
+    if(writing) region.current?.querySelector('.discard-progress')?.scrollIntoView({block:'nearest',behavior:'instant'});
+  },[writing]);
   const files = useMemo(() => [...new Map(changes.files.filter(f => scope === 'all' || f.unstaged).map(f => [f.path.hex, f])).values()], [changes.token, scope]);
   const paths = useMemo(() => files.filter(f => selected.includes(f.path.hex)).map(f => f.path), [files, selected]);
   useEffect(() => {

@@ -6,6 +6,10 @@ on:
         description: Sign Linux packages with the owner-configured GPG key
         type: boolean
         default: false
+      draft_tag:
+        description: 'Optional existing version tag at this exact commit (for example v0.1.0-alpha.1); attach installers to a draft prerelease'
+        type: string
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -67,3 +71,25 @@ jobs:
         run: |
           echo 'Release candidates prepared. No GitHub Release was created; no website was deployed.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Review exact native artifacts, license/asset obligations and signing status before publication.' >> "$GITHUB_STEP_SUMMARY"
+  draft:
+    if: ${{ inputs.draft_tag != '' }}
+    needs: assemble
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: gitnova-release-candidate-${{ github.sha }}
+          path: draft-input
+      - name: Attach tested installers to draft prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.draft_tag }}
+        run: node apps/desktop/scripts/create-release-draft.mjs draft-input/release-output "$RELEASE_TAG"

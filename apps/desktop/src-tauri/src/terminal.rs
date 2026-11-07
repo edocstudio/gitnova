@@ -408,6 +408,8 @@ mod tests {
         std::fs::create_dir(&root).unwrap();
         let mut command = CommandBuilder::new("powershell.exe");
         command.args(["-NoLogo", "-NoProfile"]);
+        let cwd_report = temp.path().join("actual-cwd.txt");
+        command.env("GITNOVA_TEST_CWD_OUTPUT", &cwd_report);
         let opened = open_command("fixture".into(), &root, 300, 24, command).unwrap();
         assert_eq!(Path::new(&opened.path), root.canonicalize().unwrap());
         assert!(terminal_read("other".into(), opened.id.clone()).is_err());
@@ -418,7 +420,7 @@ mod tests {
             .lock()
             .unwrap()
             .write_all(
-                b"[Console]::WriteLine(('PTY_' + 'OK:') + (Get-Location).ProviderPath); exit\r",
+                b"[IO.File]::WriteAllText($env:GITNOVA_TEST_CWD_OUTPUT, (Get-Location).ProviderPath); [Console]::WriteLine('PTY_OK'); exit\r",
             )
             .unwrap();
         drop(handle);
@@ -449,15 +451,20 @@ mod tests {
             std::thread::sleep(std::time::Duration::from_millis(20));
         }
         terminal_close("fixture".into(), opened.id.clone()).unwrap();
-        let output = String::from_utf8_lossy(&output);
-        let reported = output
-            .lines()
-            .find_map(|line| line.strip_prefix("PTY_OK:"))
-            .expect("PowerShell must print the actual working directory");
+        // ConPTY output includes cursor positioning/line wrapping, so it is not
+        // a plain line protocol. Check the shell's actual cwd independently of
+        // its terminal rendering; still require PTY output and process exit.
+        assert!(
+            !output.is_empty(),
+            "PowerShell must produce terminal output"
+        );
+        let reported = std::fs::read_to_string(cwd_report)
+            .expect("PowerShell must report the actual working directory");
         assert_eq!(
-            Path::new(reported).canonicalize().unwrap(),
+            Path::new(&reported).canonicalize().unwrap(),
             root.canonicalize().unwrap(),
-            "{output}"
+            "{}",
+            String::from_utf8_lossy(&output)
         );
         assert!(session("fixture", &opened.id).is_err());
     }
