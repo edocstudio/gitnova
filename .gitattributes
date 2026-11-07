@@ -1,0 +1,2 @@
+# Pinned upstream license evidence must retain its original, hashed bytes.
+/docs/licenses/upstream/* -text

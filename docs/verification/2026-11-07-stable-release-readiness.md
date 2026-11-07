@@ -310,3 +310,14 @@ its first failure, within the unchanged 90-minute job limit and single worker.
 Distinct shard names identify failures in the Actions summary. Failed tests
 still fail their job and prevent assembly. No application runtime guard,
 performance target or global browser assertion timeout was changed.
+
+The Windows packaging shard at `f26033c` subsequently passed all 35 browser
+tests and reached license collection. Collection correctly refused supplemental
+texts whose exact hashes changed after Git's Windows CRLF checkout conversion.
+The upstream evidence directory now has `-text` attributes, preserving original
+bytes instead of normalizing them or relaxing digest checks. A disposable Git
+fixture with `core.autocrlf=true` reproduces the mismatch without the attributes
+and verifies every supplemental file against its pinned hash with the fix.
+Both evidence tests and local offline Windows-target collection passed; that
+collection still explicitly records 37 unresolved candidates and is not audit
+approval. A new hosted Windows installer build remains necessary.
