@@ -37,7 +37,10 @@ test('draft upload validates all platform bytes and accepts only matching alpha 
   writeFileSync(join(f.output,'GitNova.exe'),'changed');assert.throws(()=>reviewDraftFiles(f.output,'v0.1.0-alpha.1'),/changed/);
  }finally{f.clean();}
 });
-test('ephemeral GPG signs exact Linux bytes and checksum manifest', {skip:spawnSync('gpg',['--version']).status!==0},()=>{
+// Signing runs on the Linux release runner. Git for Windows ships an MSYS GPG
+// whose path conventions are incompatible with native Node Windows paths.
+// Keep byte/manifest validation on every OS and real GPG coverage on Unix.
+test('ephemeral GPG signs exact Linux bytes and checksum manifest', {skip:process.platform==='win32'?'Linux signing uses a Unix GPG runner':spawnSync('gpg',['--version']).status!==0},()=>{
  // macOS TMPDIR paths can exceed the Unix-domain socket limit for gpg-agent.
  // A separate short, private directory keeps the real signing test isolated.
  const f=fixture(),keyring=mkdtempSync(join(process.platform==='darwin'?'/tmp':tmpdir(),'gn-'));

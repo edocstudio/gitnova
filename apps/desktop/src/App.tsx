@@ -100,7 +100,15 @@ export function App() {
     const key = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key === ',') { event.preventDefault(); if (!writingRef.current) { setMenu(false);setSearchOpen(false);setSettingsOpen(true); } return; } if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'o') { event.preventDefault(); if (!writingRef.current) { setSearchOpen(false); setMenu(true); } } if (event.key === 'Escape' && menu && !writingRef.current) { setMenu(false); picker.current?.focus(); } };
     window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key);
   }, [menu]);
-  useEffect(() => { if (menu) requestAnimationFrame(() => menuRoot.current?.querySelector<HTMLButtonElement | HTMLInputElement>('.repo-filter input, .repo-option-main, #repo-path')?.focus()); }, [menu]);
+  useEffect(() => {
+    if (!menu) return;
+    const frame = requestAnimationFrame(() => {
+      // Do not steal focus if the user has already started typing in the picker.
+      if (menuRoot.current?.querySelector('#workspace-picker')?.contains(document.activeElement)) return;
+      menuRoot.current?.querySelector<HTMLButtonElement | HTMLInputElement>('.repo-filter input, .repo-option-main, #repo-path')?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [menu]);
   useEffect(() => { const click = (event: PointerEvent) => { if (!writingRef.current && menuRoot.current && !menuRoot.current.contains(event.target as Node)) setMenu(false); }; window.addEventListener('pointerdown', click); return () => window.removeEventListener('pointerdown', click); }, []);
   const load = useCallback(async (id: string, older = false, preserve = false) => {
     const request = ++sequence.current; setGraphBusy(true); if (!preserve) setError('');

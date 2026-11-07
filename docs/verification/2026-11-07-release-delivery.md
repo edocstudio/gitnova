@@ -38,3 +38,22 @@ Local validation on macOS ARM64:
 This is not a successful hosted installer build report or a license approval.
 The existing target-specific inventory gaps remain open. No GPG owner key,
 Developer ID, notarization or Windows certificate was created or implied.
+
+Hosted follow-up (`42351909662`, source `4ae55e3`): Linux and macOS core
+passed. Windows native IPC and ConPTY tests passed. Windows then exposed a
+historical-file fixture containing forbidden double quotes; the remaining
+rebase tab-name fixture was also adjusted to a valid Unicode/spaced filename
+on Windows, retaining the Unix special-character cases. The disposable real
+GPG test is Unix-only because signing is performed on Linux and Git for
+Windows supplies MSYS GPG with incompatible native path syntax. All platforms
+still run installer-byte and manifest validation. Local historical-file tests
+passed (2); packaging tests passed (4, with the local missing-GPG skip).
+
+Linux's 139 browser workflows and Debian installed acceptance passed in that
+run. AppImage startup failed before catalog IPC; its check now launches the
+extracted AppRun entrypoint, preserving the package runtime setup, and prints
+the bounded synthetic native log on failure. macOS passed 138/139 browser
+workflows; the repo-switch case timed out with Open disabled. Local repetition
+passed three times. Picker focus callbacks now cancel on close and respect
+focus already inside the picker; a further targeted run and TypeScript passed.
+These follow-up fixes still require hosted execution.

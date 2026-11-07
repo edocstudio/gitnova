@@ -215,8 +215,10 @@ jobs:
           test "${#texts[@]}" -eq 1
           resources=$(dirname "$(dirname "${texts[0]}")")
           node apps/desktop/scripts/verify-platform-resources.mjs "$resources"
-          executable=$(find "$RUNNER_TEMP/gitnova-appimage" -type f -name gitnova-desktop)
-          test -n "$executable"
+          # Use the distributed entrypoint: AppRun sets up the bundled runtime.
+          # Launching usr/bin directly bypasses its library/environment setup.
+          executable="$RUNNER_TEMP/gitnova-appimage/squashfs-root/AppRun"
+          test -x "$executable"
           dbus-run-session -- xvfb-run -a node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact "$image" --report target/alpha-evidence/appimage-acceptance.json
           node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact "$image" --acceptance target/alpha-evidence/appimage-acceptance.json --resources "$resources" --output target/alpha-evidence/appimage-artifact.json
       - name: Verify installed Windows attribution

@@ -49,7 +49,14 @@ fn large_patch_has_complete_file_counts_and_exact_late_file_reads() {
         .unwrap();
     }
     fs::write(root.join("z-binary.dat"), [0, 255, 1, 2]).unwrap();
-    fs::write(root.join("z spaced \"quoted\".txt"), "literal path\n").unwrap();
+    // Windows forbids double quotes in filenames; retain spaces and Unicode
+    // there while exercising Git's quoted-name parsing on Unix.
+    let quoted_name = if cfg!(windows) {
+        "z spaced quoted งาน.txt"
+    } else {
+        "z spaced \"quoted\".txt"
+    };
+    fs::write(root.join(quoted_name), "literal path\n").unwrap();
     git(&root, &["add", "."]);
     git(&root, &["commit", "-m", "Large root"]);
     let oid = git(&root, &["rev-parse", "HEAD"]);
