@@ -204,6 +204,12 @@ jobs:
       - name: Build isolated native acceptance bridge
         if: matrix.package
         run: cargo build -p gitnova-core --example ui_bridge --locked
+      - name: Clear stale native installer bundles
+        if: matrix.package
+        shell: bash
+        # Cargo cache can contain installers for an older app version. Keep the
+        # compiled cache/bridge, but only verify and upload this run's bundles.
+        run: rm -rf -- target/release/bundle
       - name: Build native installers
         if: matrix.package
         run: npm run build:desktop
