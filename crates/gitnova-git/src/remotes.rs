@@ -30,7 +30,7 @@ pub trait RemoteWriter {
     ) -> Result<()>;
 }
 impl GitCli {
-    /// Same explicit remote-tracking-only fetch, with a noninteractive budget.
+    /// Fetch remote branches and tags, with a noninteractive budget.
     pub fn fetch_remote_background(&self, path: &Path, remote: &str) -> Result<()> {
         self.fetch_remote_impl(path, remote, None, true)
     }
@@ -62,7 +62,10 @@ impl GitCli {
             "-c",
             "submodule.recurse=false",
             "fetch",
-            "--no-tags",
+            // Tags use Git's non-forcing update rules. Atomic ref updates keep a
+            // conflicting local tag from leaving a partially refreshed graph.
+            "--tags",
+            "--atomic",
             "--no-prune",
             "--no-prune-tags",
             "--no-recurse-submodules",

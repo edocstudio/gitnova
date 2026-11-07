@@ -63,7 +63,9 @@ export function graphRefLabels(page: Pick<GraphPage, 'refs' | 'status'>, oid: st
     result.push({ label: ref.name.replace(/^refs\/(heads|remotes|tags)\//, ''), kind, tracked: false, current: false, fullNames: [ref.name] });
   }
   if (page.status.head === oid && !page.status.branch) result.unshift({ label: 'HEAD', kind: 'local', tracked: false, current: true, fullNames: ['Detached HEAD'] });
-  return result.sort((a, b) => Number(b.current) - Number(a.current));
+  // The compact row has two badge slots: keep HEAD first and a version tag
+  // visible before additional co-located branches. All refs remain in the tooltip.
+  return result.sort((a, b) => Number(b.current) - Number(a.current) || Number(b.kind === 'tag') - Number(a.kind === 'tag') || (a.kind === 'tag' && b.kind === 'tag' ? b.label.localeCompare(a.label, 'en', { numeric: true }) : 0));
 }
 
 export type HistoryItem = { id: string; row: GraphRow | null; stash: import('./contracts').StashEntry | null; base: GraphRow | null };

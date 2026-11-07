@@ -24,3 +24,7 @@ This is an incomplete release checklist, not a declaration of license compliance
 - [ ] Describe the build accurately: debug versus release profile, tested platforms, signing identity and notarization status. Ad-hoc signing and successful local verification do not establish Developer ID signing, notarization or native acceptance on every OS.
 
 See [dependency choices](../architecture/dependencies.md), [contributor checks](../../CONTRIBUTING.md#run-relevant-checks) and [current platform status](../../README.md#project-status). This checklist does not add a CLA, DCO or contributor sign-off requirement.
+
+See [release-profile candidates and Linux signing](release-candidates.md) for the
+manual candidate pipeline, owner key setup and separate website handoff. This
+preparation does not close the existing native acceptance or license audit gaps.

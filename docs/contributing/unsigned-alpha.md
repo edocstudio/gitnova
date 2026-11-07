@@ -93,3 +93,7 @@ record. Use disposable repositories and test accounts chosen by the owner.
 
 Mark failures and untested items explicitly. Never fill this record with inferred
 passes from macOS tests or successful packaging on another platform.
+
+See [release-profile candidates and Linux signing](release-candidates.md) for the
+manual candidate pipeline, owner key setup and separate website handoff. This
+preparation does not close the existing native acceptance or license audit gaps.

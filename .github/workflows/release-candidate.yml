@@ -1,0 +1,69 @@
+name: release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      sign_linux:
+        description: Sign Linux packages with the owner-configured GPG key
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: release-candidate-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  native-checks:
+    uses: ./.github/workflows/ci.yml
+    with:
+      release_profile: true
+  assemble:
+    needs: native-checks
+    runs-on: ubuntu-24.04
+    environment: release-signing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: gitnova-alpha-*
+          path: candidates
+      - name: Assemble exact tested release candidates
+        run: node apps/desktop/scripts/prepare-release.mjs candidates release-output
+      - name: Import owner signing key into disposable keyring
+        if: ${{ inputs.sign_linux }}
+        env:
+          OWNER_KEY: ${{ secrets.LINUX_GPG_PRIVATE_KEY }}
+          OWNER_FINGERPRINT: ${{ vars.LINUX_GPG_FINGERPRINT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$OWNER_KEY" && test -n "$OWNER_FINGERPRINT"
+          install -d -m 700 "$RUNNER_TEMP/gitnova-release-gnupg"
+          printf '%s' "$OWNER_KEY" | gpg --homedir "$RUNNER_TEMP/gitnova-release-gnupg" --batch --import
+      - name: Sign and verify Linux detached signatures
+        if: ${{ inputs.sign_linux }}
+        env:
+          LINUX_GPG_PASSPHRASE: ${{ secrets.LINUX_GPG_PASSPHRASE }}
+          OWNER_FINGERPRINT: ${{ vars.LINUX_GPG_FINGERPRINT }}
+        run: node apps/desktop/scripts/sign-linux-release.mjs release-output "$RUNNER_TEMP/gitnova-release-gnupg" "$OWNER_FINGERPRINT"
+      - name: Remove disposable signing material
+        if: ${{ always() && inputs.sign_linux }}
+        shell: bash
+        run: |
+          gpgconf --homedir "$RUNNER_TEMP/gitnova-release-gnupg" --kill all || true
+          rm -rf "$RUNNER_TEMP/gitnova-release-gnupg"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gitnova-release-candidate-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            release-output/
+            candidates/**/alpha-evidence/*.json
+            candidates/**/dependency-inventory.json
+            candidates/**/third-party-license-evidence.txt
+      - name: Record handoff
+        run: |
+          echo 'Release candidates prepared. No GitHub Release was created; no website was deployed.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Review exact native artifacts, license/asset obligations and signing status before publication.' >> "$GITHUB_STEP_SUMMARY"

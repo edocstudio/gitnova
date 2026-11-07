@@ -900,7 +900,7 @@
   "Fetch…": "ดึงข้อมูล remote…",
   "Fetch remote branches": "ดึงข้อมูล branch จาก remote",
   "Fetch first, then review a fast-forward into the current branch. Local commits are preserved.": "ดึงข้อมูลก่อน แล้วตรวจการเลื่อน branch ปัจจุบันไปข้างหน้า โดยเก็บ commit ในเครื่องไว้",
-  "Updates remote-tracking refs. Local branches and working files stay in place.": "อัปเดตข้อมูลอ้างอิง remote โดยคง branch และไฟล์งานในเครื่องไว้",
+  "Updates remote-tracking refs and tags. Existing tags are never overwritten. Local branches and working files stay in place.": "อัปเดตข้อมูลอ้างอิง remote และแท็ก โดยไม่เขียนทับแท็กเดิม และคง branch กับไฟล์งานในเครื่องไว้",
   "Preparing pull preview…": "กำลังเตรียมตัวอย่างการดึงเข้า branch…",
   "Pulling current branch…": "กำลังดึงเข้า branch ปัจจุบัน…",
   "Branch or upstream changed. Close this review and try again.": "branch หรือ upstream เปลี่ยนไป กรุณาปิดการตรวจนี้แล้วลองใหม่",

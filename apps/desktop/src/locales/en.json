@@ -900,7 +900,7 @@
   "Fetch…": "Fetch…",
   "Fetch remote branches": "Fetch remote branches",
   "Fetch first, then review a fast-forward into the current branch. Local commits are preserved.": "Fetch first, then review a fast-forward into the current branch. Local commits are preserved.",
-  "Updates remote-tracking refs. Local branches and working files stay in place.": "Updates remote-tracking refs. Local branches and working files stay in place.",
+  "Updates remote-tracking refs and tags. Existing tags are never overwritten. Local branches and working files stay in place.": "Updates remote-tracking refs and tags. Existing tags are never overwritten. Local branches and working files stay in place.",
   "Preparing pull preview…": "Preparing pull preview…",
   "Pulling current branch…": "Pulling current branch…",
   "Branch or upstream changed. Close this review and try again.": "Branch or upstream changed. Close this review and try again.",

@@ -87,7 +87,7 @@ fn fetch(f: &Fixture, branch: Option<&str>) {
     assert_eq!(r.status, "succeeded", "{}", r.summary);
 }
 #[test]
-fn fetch_discovers_heads_only_without_writing_local_branches_or_fetch_head() {
+fn fetch_discovers_heads_and_tags_without_writing_local_branches_or_fetch_head() {
     let f = fixture();
     git(&f.writer, &["switch", "-c", "feature/api"]);
     let oid = commit(&f.writer, "api.txt", "new API\n");
@@ -122,14 +122,10 @@ fn fetch_discovers_heads_only_without_writing_local_branches_or_fetch_head() {
     );
     assert!(git(
         &f.repo,
-        &[
-            "for-each-ref",
-            "--format=%(refname)",
-            "refs/heads/unsafe",
-            "refs/tags"
-        ]
+        &["for-each-ref", "--format=%(refname)", "refs/heads/unsafe"]
     )
     .is_empty());
+    assert_eq!(git(&f.repo, &["rev-parse", "refs/tags/not-requested"]), oid);
 }
 #[test]
 fn remote_only_branch_creates_a_local_tracking_branch_at_reviewed_revision() {
@@ -499,7 +495,7 @@ fn direct_pull_revalidates_dirty_state_and_blocks_divergence_and_missing_upstrea
 }
 
 #[test]
-fn auto_fetch_refreshes_tracking_without_touching_work_index_tags_or_receipt_history() {
+fn auto_fetch_refreshes_tracking_and_tags_without_touching_work_index_or_receipt_history() {
     let f = fixture();
     fs::write(f.repo.join("file.txt"), "staged local\n").unwrap();
     git(&f.repo, &["add", "file.txt"]);
@@ -535,7 +531,8 @@ fn auto_fetch_refreshes_tracking_without_touching_work_index_tags_or_receipt_his
         fs::read_to_string(f.repo.join(".git/FETCH_HEAD")).unwrap(),
         "keep fetch head\n"
     );
-    assert!(git(&f.repo, &["tag"]).is_empty());
+    assert_eq!(git(&f.repo, &["tag"]), "remote-only-tag");
+    assert_eq!(git(&f.repo, &["rev-parse", "remote-only-tag"]), incoming);
     assert!(!f.repo.join("hook-must-not-run").exists());
     assert!(!f._dir.path().join("app/operations").exists());
 }
