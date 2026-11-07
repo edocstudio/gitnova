@@ -137,3 +137,50 @@ an established deadlock. Core jobs now have a 90-minute bound. Platform browser
 jobs stop at the first failure so failure traces upload before the job deadline;
 a green run still executes every browser test. This does not turn a failed test
 into success, remove coverage from a successful run or raise per-test timeouts.
+
+## Native path and rebase diagnostics
+
+The completed Windows log for main run
+[42359101210](https://github.com/edocstudio/gitnova/actions/runs/42359101210)
+identified worktree failures caused by ordinary Git paths being compared with
+Rust verbatim paths, and verbatim destinations being passed back to Git.
+Git absolute path decoding now normalizes Windows prefix syntax without a
+filesystem lookup; worktree writes use the existing validated Git path encoder.
+Missing registrations retain their original location. Relative submodule URL
+sync uses Git's native top-level spelling when no parent remote is configured.
+The same-repository push fixture now forms a valid Windows file URL.
+
+The four affected Rust integration suites passed locally (62 tests), and
+targeted Clippy passed. Windows-only prefix tests cover disk, UNC, missing,
+already-verbatim, relative and invalid UTF-8 inputs. Hosted Windows results
+remain necessary; local macOS results cannot establish Windows acceptance.
+
+Candidate run
+[42364459684](https://github.com/edocstudio/gitnova/actions/runs/42364459684)
+exposed a Linux browser test reading `HEAD^2` while rebase was replaying a
+temporarily linear commit. The test now polls the existing HEAD parent list
+until the recreated two-parent merge is checked out on the expected branch.
+All topology, other-branch and working-tree assertions remain. Three local
+repetitions passed, as did TypeScript checking.
+
+## Targeted distribution evidence
+
+Offline collection for `x86_64-pc-windows-msvc` now preserves the original MIT
+texts for the three WebView2 Rust bindings, pinned to the published crate VCS
+revisions. The collection has 397 components, 249 unique texts and 37 unresolved
+entries; none of those unresolved entries is a Rust crate. The remaining entries
+are npm packages absent from this macOS cache, including optional platform build
+tools. This cross-target collection is not native Windows installer validation.
+
+A local Vite production build inspected in memory found code contributions from
+six npm packages: `@tauri-apps/api` 2.12.4, `@xterm/addon-fit` 0.11.0,
+`@xterm/xterm` 6.0.0, `react` 19.3.1, `react-dom` 19.3.1 and `scheduler`
+0.28.0. Collected license texts exist for all six. This narrows frontend review;
+it does not turn the entire development dependency inventory into a shipped
+component list, classify bundled native libraries or approve SDK terms.
+
+The source uses system font stacks rather than distributing font files. The
+brand vector master and generated icon family are recorded by
+`apps/desktop/scripts/generate-brand.mjs`. Documentation screenshots in the broad
+asset inventory are not automatically included in installers. Final artifact
+contents still need to be matched to the corresponding source and obligations.

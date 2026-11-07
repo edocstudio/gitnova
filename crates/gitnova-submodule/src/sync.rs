@@ -81,12 +81,16 @@ pub(crate) fn resolved_url(git: &GitCli, parent: &Path, configured: &str) -> Res
         ));
     }
     let remote = child_remote(git, parent)?;
-    let base = git
-        .optional_text(
-            parent,
-            &["config", "--get", &format!("remote.{remote}.url")],
-        )?
-        .unwrap_or_else(|| parent.to_string_lossy().into_owned());
+    let base = match git.optional_text(
+        parent,
+        &["config", "--get", &format!("remote.{remote}.url")],
+    )? {
+        Some(url) => url,
+        None => git
+            .text(parent, &["rev-parse", "--show-toplevel"])?
+            .trim_end_matches('\n')
+            .into(),
+    };
     git.validate_submodule_source(&base)?;
     let (prefix, path) = if let Some((scheme, rest)) = base.split_once("://") {
         let (authority, path) = rest
@@ -112,7 +116,9 @@ pub(crate) fn resolved_url(git: &GitCli, parent: &Path, configured: &str) -> Res
         let value = destination
             .to_str()
             .ok_or_else(|| err("The source path is not UTF-8."))?;
-        git.validate_submodule_source(value)?;
+        #[cfg(windows)]
+        let value = value.replace('\\', "/");
+        git.validate_submodule_source(value.as_ref())?;
         return Ok(value.into());
     } else if let Some((host, path)) = base.split_once(':') {
         if host.contains('/') || path.starts_with('/') {

@@ -259,7 +259,7 @@ impl GitCli {
             WorktreeCreateMode::ExistingBranch => (),
         }
         args.push("--".into());
-        args.push(preview.destination.to_path()?.into_os_string());
+        args.push(crate::process::git_path(&preview.destination.to_path()?)?);
         args.push(if request.mode == WorktreeCreateMode::ExistingBranch {
             request.branch.clone().into()
         } else {
@@ -501,7 +501,7 @@ impl GitCli {
         // Git try reverse discovery and fail before repairing that locator.
         // All known checkout locations were reviewed above for repository repair.
         if request.kind != "repair" {
-            args.push(request.path.to_path()?.into_os_string());
+            args.push(crate::process::git_path(&request.path.to_path()?)?);
         }
         run_offline_write(root, &args)?;
         let now = self.linked_worktrees(root)?;

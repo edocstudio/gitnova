@@ -40,6 +40,30 @@
       "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
       "source": "https://www.mozilla.org/media/MPL/2.0/index.f75d2927d3c1.txt",
       "scope": "Canonical unmodified text from the license steward. The published crate lib.rs at https://github.com/servo/stylo/blob/572ecba2d1600e7c3d490586692a209faf703baa/selectors/lib.rs explicitly declares MPL 2.0. Source-form availability and artifact contribution still require review."
+    },
+    "cargo:webview2-com@0.39.1": {
+      "license": "MIT",
+      "revision": "edc2caf886175ccaebe86078c9cfe1ae2a187328",
+      "file": "upstream/webview2-rs-edc2caf-LICENSE.txt",
+      "sha256": "0dcf41516e608bbcb6cdc5229feb7b86fe4a643b85e7df251133c93408fdac73",
+      "source": "https://github.com/wravery/webview2-rs/blob/edc2caf886175ccaebe86078c9cfe1ae2a187328/LICENSE",
+      "scope": "Original repository-root MIT text at the published crate VCS revision. WebView2 runtime/SDK redistribution and actual artifact contribution remain separate review items."
+    },
+    "cargo:webview2-com-sys@0.39.1": {
+      "license": "MIT",
+      "revision": "edc2caf886175ccaebe86078c9cfe1ae2a187328",
+      "file": "upstream/webview2-rs-edc2caf-LICENSE.txt",
+      "sha256": "0dcf41516e608bbcb6cdc5229feb7b86fe4a643b85e7df251133c93408fdac73",
+      "source": "https://github.com/wravery/webview2-rs/blob/edc2caf886175ccaebe86078c9cfe1ae2a187328/LICENSE",
+      "scope": "Original repository-root MIT text at the published crate VCS revision. WebView2 runtime/SDK redistribution and actual artifact contribution remain separate review items."
+    },
+    "cargo:webview2-com-macros@0.8.1": {
+      "license": "MIT",
+      "revision": "dffa41a8a46d3f5565eefbff2de57d38d399f158",
+      "file": "upstream/webview2-rs-dffa41a-LICENSE.txt",
+      "sha256": "0dcf41516e608bbcb6cdc5229feb7b86fe4a643b85e7df251133c93408fdac73",
+      "source": "https://github.com/wravery/webview2-rs/blob/dffa41a8a46d3f5565eefbff2de57d38d399f158/LICENSE",
+      "scope": "Original repository-root MIT text at the published crate VCS revision. WebView2 runtime/SDK redistribution and actual artifact contribution remain separate review items."
     }
   }
 }

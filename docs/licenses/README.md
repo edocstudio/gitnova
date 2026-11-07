@@ -33,6 +33,10 @@ original source URL and text hash. Collection fails if those values disagree;
 it never downloads a replacement implicitly. The entries supply the repository-root BSD text for `alloc-stdlib` 0.3.0,
 the original MIT text for `dlopen2` 0.8.2 / `dlopen2_derive` 0.4.3 and the MIT
 option for `libappindicator-sys` 0.9.0 at their published VCS revisions.
+The Windows `webview2-com` 0.39.1, `webview2-com-sys` 0.39.1 and
+`webview2-com-macros` 0.8.1 entries preserve the original repository-root MIT
+texts at each crate's published revision. These are Rust binding texts, not
+approval of WebView2 runtime/SDK redistribution.
 `selectors` 0.38.0 explicitly declares MPL 2.0 in its pinned source header;
 its entry supplies the canonical text from Mozilla, the license steward.
 This does not resolve MPL source-form obligations or bundled native libraries.

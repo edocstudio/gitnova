@@ -231,7 +231,7 @@ impl GitCli {
                     "worktree".into(),
                     "repair".into(),
                     "--".into(),
-                    new.as_os_str().into(),
+                    crate::process::git_path(&new)?,
                 ],
             )?;
             let now = self.linked_worktrees(root)?;

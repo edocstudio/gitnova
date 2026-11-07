@@ -405,7 +405,7 @@ impl GitCli {
                 "worktree".into(),
                 "remove".into(),
                 "--".into(),
-                target.into_os_string(),
+                crate::process::git_path(&target)?,
             ],
         )?;
         if self
