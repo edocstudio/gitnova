@@ -342,3 +342,18 @@ file patch loads. Only these two readiness assertions now use the existing
 including cancellation, explicit carry, original saved-object selection,
 working-file contents and unchanged branch before confirmation. All 35 tests
 remain selected; no runtime write guard or global timeout was relaxed.
+
+The remaining Windows shards at `358ab9d` completed all their selections:
+134/140 browser workflows passed overall. Four further failures were readiness
+assertions while interrupted-merge setup, submodule-pointer preview, revert
+resolution and rebase start were still reading/applying. Their retained contexts
+show the busy state rather than a reported Git rejection. These four assertions
+also use the existing 45-second budget. Each full affected flow passed twice
+locally (eight passes), preserving external-edit refusal, session cleanup,
+parent/index checks and target-branch isolation. These local checks do not
+replace Windows validation or establish an operation performance improvement.
+
+The owner confirmed a team can test Windows 11 x64 and Ubuntu 24.04 x64.
+Manual results have not yet been supplied. Supply exact-source installers and
+SHA-256 values with the native acceptance checklist before requesting those
+tests; do not infer passes from the available machines alone.
