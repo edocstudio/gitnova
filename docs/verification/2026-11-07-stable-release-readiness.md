@@ -191,6 +191,15 @@ not execute in that failed run; they are not counted as passed.
 
 ## Targeted distribution evidence
 
+The full Windows desktop job at `dbb452c` passed native IPC/PTY and packaging
+evidence checks, then failed its native EN/TH date-output conformance test at
+the five-second unit-test deadline (16.3 seconds observed with one worker).
+Only that conformance test now permits 30 seconds. Its native-output assertions
+and the separate formatter-construction bound remain unchanged; no product
+performance result is inferred from this CI allowance. All four date tests
+passed locally after the adjustment. Hosted installer validation must run again
+with the correction.
+
 Offline collection for `x86_64-pc-windows-msvc` now preserves the original MIT
 texts for the three WebView2 Rust bindings, pinned to the published crate VCS
 revisions. The collection has 397 components, 249 unique texts and 37 unresolved
