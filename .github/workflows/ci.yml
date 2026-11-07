@@ -110,7 +110,7 @@ jobs:
           if-no-files-found: error
           path: target/alpha-evidence/
   desktop-platform:
-    name: desktop (${{ matrix.os }})
+    name: desktop (${{ matrix.os }}, shard ${{ matrix.shard }}/${{ matrix.shards }})
     strategy:
       fail-fast: false
       matrix:
@@ -179,7 +179,7 @@ jobs:
       # individual tests from graph.spec.ts; it does not add workers here.
       # Every shard must pass before the reusable workflow can approve assembly.
       - name: All graph workflows against real temporary Git repositories
-        run: npm run test:e2e -- --workers=1 --max-failures=1 ${{ matrix.shards > 1 && '--fully-parallel' || '' }} --shard=${{ matrix.shard }}/${{ matrix.shards }}
+        run: npm run test:e2e -- --workers=1 --max-failures=${{ matrix.shards > 1 && '0' || '1' }} ${{ matrix.shards > 1 && '--fully-parallel' || '' }} --shard=${{ matrix.shard }}/${{ matrix.shards }}
         working-directory: apps/desktop
       - uses: actions/upload-artifact@v4
         if: failure()

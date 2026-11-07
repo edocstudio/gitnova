@@ -890,7 +890,7 @@ test('large merge review finishes and blocked repeat start returns to the pendin
   git(repo, ['switch', 'main']); writeFileSync(join(repo, 'main.txt'), 'main\n'); git(repo, ['add', '.']); git(repo, ['commit', '-m', 'Independent main commit']); const original = git(repo, ['rev-parse', 'HEAD']);
   await connectRealCore(page, join(folder, 'large-merge-ui-state.json')); await page.goto('/'); await page.getByLabel('Add an existing repository').fill(repo); await page.getByRole('button', { name: 'Open', exact: true }).click();
   const row = page.locator(`button#commit-${incoming}`); await row.click({ button: 'right' }); await page.getByRole('menuitem', { name: 'Merge into main…', exact: true }).click(); await page.getByRole('button', { name: 'Start merge', exact: true }).click();
-  await expect(page.getByLabel('Merge working changes', { exact: true })).toBeVisible(); await expect(page.locator('.status-line')).toContainText('Operation pending · 2 changed paths');
+  await expect(page.getByLabel('Merge working changes', { exact: true })).toBeVisible({timeout:45000}); await expect(page.locator('.status-line')).toContainText('Operation pending · 2 changed paths');
   await row.click({ button: 'right' }); await page.getByRole('menuitem', { name: 'Merge into main…', exact: true }).click(); await page.getByRole('button', { name: 'Review current operation', exact: true }).click(); await expect(page.getByLabel('Merge working changes', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Review merge commit', exact: true }).click(); await expect(page.getByText('The full staged tree is selected. Code preview is partial; select files to inspect their patches.', { exact: true })).toBeVisible();
   await page.locator('.merge-detail .changed-file').filter({ hasText: 'large.txt' }).click();
@@ -1461,7 +1461,7 @@ function mergeSubmoduleFixture(name:string,incomingPointer=false){
 
 test('merge preview keeps the current submodule pointer and merges feature files without touching the child',async({page},testInfo)=>{
  test.setTimeout(150000);const f=mergeSubmoduleFixture('merge-keep-child');const indexPath=git(f.child,['rev-parse','--path-format=absolute','--git-path','index']);const index=readFileSync(indexPath);const childRefs=git(f.child,['show-ref']);await connectRealCore(page,join(folder,'merge-keep-child.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(f.repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator(`#commit-${f.source}`).click({button:'right'});await page.getByRole('menuitem',{name:'Merge into release…',exact:true}).click();const review=page.locator('.merge-start-review');await expect(review).toContainText('Keep current pointer');await expect(review.locator('.merge-submodule-evidence')).toContainText('_dags');await expect(review.locator('.merge-submodule-evidence')).toContainText(f.pointers[2].slice(0,12));await expect(review.locator('.merge-submodule-evidence')).toContainText(f.pointers[0].slice(0,12));await expect(review.getByRole('button',{name:'Start merge',exact:true})).toBeEnabled();await page.screenshot({path:testInfo.outputPath('merge-keeps-current-submodule.png')});expect(git(f.repo,['rev-parse','HEAD'])).toBe(f.original);expect(git(f.child,['rev-parse','HEAD'])).toBe(f.pointers[2]);
- await review.getByRole('button',{name:'Start merge',exact:true}).click();const inspector=page.getByLabel('Merge working changes',{exact:true});await expect(inspector).toContainText('Review merge result');await page.getByLabel('Merge message',{exact:true}).fill('Merge feature, keep current submodule');await inspector.getByRole('button',{name:'Review merge commit',exact:true}).click();await inspector.getByRole('button',{name:'Finish merge',exact:true}).click();await expect(page.locator('.working-row')).toContainText('Your working tree is clean',{timeout:45000});expect(git(f.repo,['show','-s','--format=%P','HEAD'])).toBe(`${f.original} ${f.source}`);expect(git(f.repo,['rev-parse','HEAD:_dags'])).toBe(f.pointers[2]);expect(git(f.child,['rev-parse','HEAD'])).toBe(f.pointers[2]);expect(readFileSync(indexPath)).toEqual(index);expect(git(f.child,['show-ref'])).toBe(childRefs);expect(readFileSync(join(f.repo,'feature.txt'),'utf8')).toBe('incoming feature\n');
+ await review.getByRole('button',{name:'Start merge',exact:true}).click();const inspector=page.getByLabel('Merge working changes',{exact:true});await expect(inspector).toContainText('Review merge result',{timeout:45000});await page.getByLabel('Merge message',{exact:true}).fill('Merge feature, keep current submodule');await inspector.getByRole('button',{name:'Review merge commit',exact:true}).click();await inspector.getByRole('button',{name:'Finish merge',exact:true}).click();await expect(page.locator('.working-row')).toContainText('Your working tree is clean',{timeout:45000});expect(git(f.repo,['show','-s','--format=%P','HEAD'])).toBe(`${f.original} ${f.source}`);expect(git(f.repo,['rev-parse','HEAD:_dags'])).toBe(f.pointers[2]);expect(git(f.child,['rev-parse','HEAD'])).toBe(f.pointers[2]);expect(readFileSync(indexPath)).toEqual(index);expect(git(f.child,['show-ref'])).toBe(childRefs);expect(readFileSync(join(f.repo,'feature.txt'),'utf8')).toBe('incoming feature\n');
 });
 
 test('merge preview names actual submodule changes and does not replace already-included history with a pointer warning',async({page},testInfo)=>{
@@ -1862,7 +1862,7 @@ test('graph Terminal action opens the selected repository dock without losing gr
 });
 
 test('submodule newer version review is separate from recorded restore and parent staging',async({page},testInfo)=>{
- test.setTimeout(120000);
+ test.setTimeout(180000);
  const source=join(folder,'newer-source'),repo=join(folder,'newer-parent');mkdirSync(source);mkdirSync(repo);
  git(source,['init','-b','main']);writeFileSync(join(source,'file.txt'),'first\n');git(source,['add','.']);git(source,['commit','-m','child first']);const first=git(source,['rev-parse','HEAD']);
  writeFileSync(join(source,'file.txt'),'newer\n');git(source,['commit','-am','child newer']);const newer=git(source,['rev-parse','HEAD']);
@@ -1877,7 +1877,9 @@ test('submodule newer version review is separate from recorded restore and paren
  expect(git(child,['rev-parse','HEAD'])).toBe(first);expect(readFileSync(join(repo,'.git/index'))).toEqual(index);
  await expect(review.getByRole('button',{name:'Update to reviewed commit',exact:true})).toBeEnabled();await expect(review.getByRole('button',{name:'Update to reviewed commit',exact:true})).toBeInViewport();await page.screenshot({path:testInfo.outputPath('submodule-newer-review.png')});
  await review.getByRole('button',{name:'Update to reviewed commit',exact:true}).click();
- await expect(page.getByRole('button',{name:'Manage submodule module',exact:true})).toBeEnabled();
+ // Wait for the real checkout and repository refresh, not merely the write click.
+ // Windows runners can still be applying the reviewed submodule at 15 seconds.
+ await expect(page.getByRole('button',{name:'Manage submodule module',exact:true})).toBeEnabled({timeout:45000});
  await expect(page.locator('.branch-submodule-state')).toContainText('Commit changed');
  expect(git(child,['rev-parse','HEAD'])).toBe(newer);expect(git(repo,['rev-parse',':module'])).toBe(first);expect(readFileSync(join(repo,'.git/index'))).toEqual(index);expect(git(repo,['show',':prepared.txt'])).toBe('keep staged');
 });

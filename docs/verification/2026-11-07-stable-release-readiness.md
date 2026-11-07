@@ -287,3 +287,26 @@ Only shard 1 builds the Windows installer, avoiding duplicate package artifacts.
 Every shard must succeed for the reusable workflow to permit release assembly.
 Rust suite thread limits remain unchanged. Hosted validation of this revision
 is required before claiming Windows or same-source release approval.
+
+## Sharded Windows follow-up
+
+Candidate [42376588849](https://github.com/edocstudio/gitnova/actions/runs/42376588849)
+at `f26033c` passed Linux desktop packaging, Ubuntu/macOS core checks and
+one Windows browser shard. The Windows packaging job has not completed.
+This does not approve the complete candidate: other Windows shards
+exposed 15-second readiness deadlines while real merge/submodule writes were
+still applying. The retained failure contexts show disabled Applying/Updating
+controls, rather than a completed operation or a reported rejection.
+
+Only the three observed completion assertions (large merge, merge retaining a
+child checkout, and reviewed submodule update) now use the existing 45-second
+write budget. The submodule fixture allows 180 seconds for setup, review and
+completion. Each affected workflow passed twice locally; all existing tree,
+parent, child-ref, index and content assertions remain. These are macOS
+regression results; hosted Windows execution is still required.
+
+Each Windows shard now reports all 35 selected tests rather than stopping at
+its first failure, within the unchanged 90-minute job limit and single worker.
+Distinct shard names identify failures in the Actions summary. Failed tests
+still fail their job and prevent assembly. No application runtime guard,
+performance target or global browser assertion timeout was changed.
