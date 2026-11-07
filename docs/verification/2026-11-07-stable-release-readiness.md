@@ -332,3 +332,13 @@ then two strengthened workspace-search repetitions verified that moving focus
 to Refresh and scrolling history preserves that focus. TypeScript passed.
 Hosted validation of this change remains required; this is not installer or
 manual team acceptance.
+
+All core jobs, including Windows, completed successfully on candidate
+`f26033c`. Windows PR shard 4 at `358ab9d` completed 33 browser cases and
+reported two stash-preparation readiness failures. Its trace still shows
+Reading changes with the reviewed Stash button disabled while the selected
+file patch loads. Only these two readiness assertions now use the existing
+45-second budget. Both complete preparation flows passed twice locally,
+including cancellation, explicit carry, original saved-object selection,
+working-file contents and unchanged branch before confirmation. All 35 tests
+remain selected; no runtime write guard or global timeout was relaxed.
