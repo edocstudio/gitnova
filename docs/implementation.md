@@ -8,7 +8,7 @@ A local-first, graph-first desktop Git workspace, built with Rust, Tauri 2, Reac
 
 ## Run
 
-Prerequisites: Rust stable 1.98+ with Cargo, Git, Node 20.x (20.19.0+) or 22.12.0+, and the platform dependencies listed in [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/). Follow the [source-build tool installation steps](../README.md#install-the-source-build-tools-first) before running npm: npm does not install Rust/Cargo. Local checks have used Apple Silicon macOS with Rust 1.98.0, Node 20.20.2 and Apple Git 2.39.2. Windows/Linux CI is configured; consult the exact hosted run rather than treating local checks as a hosted result.
+Prerequisites: Rust stable 1.99.1 with Cargo, Git, Node 26.13.0 LTS (26.x), and the platform dependencies listed in [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/). Follow the [source-build tool installation steps](../README.md#install-the-source-build-tools-first) before running npm: npm does not install Rust/Cargo. Historical checks used Rust 1.98.0 and Node 20.20.2; the current pinned toolchains are in rust-toolchain.toml, .nvmrc and .python-version. Earlier reports do not validate the new toolchains. Windows/Linux CI is configured; consult the exact hosted run rather than treating local checks as a hosted result.
 
 ```sh
 # From the repository root

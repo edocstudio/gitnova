@@ -1,2 +1,4 @@
 # Pinned upstream license evidence must retain its original, hashed bytes.
 /docs/licenses/upstream/* -text
+# Collected upstream notices include original CRLF and trailing spaces; retain bytes.
+/docs/licenses/third-party-license-evidence.txt -text whitespace=-blank-at-eol,cr-at-eol

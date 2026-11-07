@@ -6,7 +6,7 @@
     "gitnova-desktop/custom-protocol"
   ],
   "cargoLockSha256": "57bb575ada0dfd7e8024aa027b4b75499d070e3deba4bb2a80e17097ed549c71",
-  "npmLockSha256": "bb0b9ea12a4538ca31027893156881caabeb367838c8e440882eba161de3d6ea",
+  "npmLockSha256": "abbab40840027c0c965b19a44137273cf45fdbc997313b3ebffad73a5e779a55",
   "auditComplete": false,
   "components": [
     {
@@ -5792,6 +5792,22 @@
       ]
     },
     {
+      "id": "npm:@jridgewell/resolve-uri@3.1.2",
+      "ecosystem": "npm",
+      "name": "@jridgewell/resolve-uri",
+      "version": "3.1.2",
+      "declaredLicense": "MIT",
+      "sourcePresent": true,
+      "classification": "development/build candidate",
+      "licenseFiles": [
+        {
+          "path": "LICENSE",
+          "bytes": 1079,
+          "sha256": "b8778b155bfde5a28b023a558753c0fa058a52bb9de35c343c250be1bbcdedab"
+        }
+      ]
+    },
+    {
       "id": "npm:@jridgewell/sourcemap-codec@1.6.0",
       "ecosystem": "npm",
       "name": "@jridgewell/sourcemap-codec",
@@ -5808,10 +5824,26 @@
       ]
     },
     {
-      "id": "npm:@oxc-project/types@0.155.0",
+      "id": "npm:@jridgewell/trace-mapping@0.3.31",
+      "ecosystem": "npm",
+      "name": "@jridgewell/trace-mapping",
+      "version": "0.3.31",
+      "declaredLicense": "MIT",
+      "sourcePresent": true,
+      "classification": "development/build candidate",
+      "licenseFiles": [
+        {
+          "path": "LICENSE",
+          "bytes": 1080,
+          "sha256": "769d154fbde32a915af110b1123650bc79f4cbe675acc66e005265bf069c6c6c"
+        }
+      ]
+    },
+    {
+      "id": "npm:@oxc-project/types@0.156.0",
       "ecosystem": "npm",
       "name": "@oxc-project/types",
-      "version": "0.155.0",
+      "version": "0.156.0",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -5824,10 +5856,10 @@
       ]
     },
     {
-      "id": "npm:@playwright/test@1.64.1",
+      "id": "npm:@playwright/test@1.65.0",
       "ecosystem": "npm",
       "name": "@playwright/test",
-      "version": "1.64.1",
+      "version": "1.65.0",
       "declaredLicense": "Apache-2.0",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -5845,151 +5877,151 @@
       ]
     },
     {
-      "id": "npm:@rolldown/binding-android-arm-eabi@1.2.15",
+      "id": "npm:@rolldown/binding-android-arm-eabi@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-android-arm-eabi",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-android-arm64@1.2.15",
+      "id": "npm:@rolldown/binding-android-arm64@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-android-arm64",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-darwin-arm64@1.2.15",
+      "id": "npm:@rolldown/binding-darwin-arm64@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-darwin-arm64",
-      "version": "1.2.15",
+      "version": "1.2.16",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-darwin-x64@1.2.15",
+      "id": "npm:@rolldown/binding-darwin-x64@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-darwin-x64",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-freebsd-x64@1.2.15",
+      "id": "npm:@rolldown/binding-freebsd-x64@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-freebsd-x64",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-linux-arm-gnueabihf@1.2.15",
+      "id": "npm:@rolldown/binding-linux-arm-gnueabihf@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-linux-arm-gnueabihf",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-linux-arm64-gnu@1.2.15",
+      "id": "npm:@rolldown/binding-linux-arm64-gnu@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-linux-arm64-gnu",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-linux-arm64-musl@1.2.15",
+      "id": "npm:@rolldown/binding-linux-arm64-musl@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-linux-arm64-musl",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-linux-ppc64-gnu@1.2.15",
+      "id": "npm:@rolldown/binding-linux-ppc64-gnu@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-linux-ppc64-gnu",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-linux-s390x-gnu@1.2.15",
+      "id": "npm:@rolldown/binding-linux-s390x-gnu@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-linux-s390x-gnu",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-linux-x64-gnu@1.2.15",
+      "id": "npm:@rolldown/binding-linux-x64-gnu@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-linux-x64-gnu",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-linux-x64-musl@1.2.15",
+      "id": "npm:@rolldown/binding-linux-x64-musl@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-linux-x64-musl",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-openharmony-arm64@1.2.15",
+      "id": "npm:@rolldown/binding-openharmony-arm64@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-openharmony-arm64",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-win32-arm64-msvc@1.2.15",
+      "id": "npm:@rolldown/binding-win32-arm64-msvc@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-win32-arm64-msvc",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
     },
     {
-      "id": "npm:@rolldown/binding-win32-x64-msvc@1.2.15",
+      "id": "npm:@rolldown/binding-win32-x64-msvc@1.2.16",
       "ecosystem": "npm",
       "name": "@rolldown/binding-win32-x64-msvc",
-      "version": "1.2.15",
-      "declaredLicense": null,
+      "version": "1.2.16",
+      "declaredLicense": "MIT",
       "sourcePresent": false,
       "classification": "development/build candidate",
       "licenseFiles": []
@@ -6007,22 +6039,6 @@
           "path": "LICENSE",
           "bytes": 1106,
           "sha256": "e1919b3b98b8bf6c1b99fcc60a0ed46027c97ac947432e1278446c9606f50161"
-        }
-      ]
-    },
-    {
-      "id": "npm:@standard-schema/spec@1.1.0",
-      "ecosystem": "npm",
-      "name": "@standard-schema/spec",
-      "version": "1.1.0",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 1071,
-          "sha256": "653b779005a3a4d64a7288c940f7b9a0e8f0b1e0375f6aa6af9473caf131e564"
         }
       ]
     },
@@ -6216,10 +6232,10 @@
       ]
     },
     {
-      "id": "npm:@types/estree@1.0.9",
+      "id": "npm:@types/estree@1.0.10",
       "ecosystem": "npm",
       "name": "@types/estree",
-      "version": "1.0.9",
+      "version": "1.0.10",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6264,10 +6280,221 @@
       ]
     },
     {
-      "id": "npm:@vitejs/plugin-react@6.1.2",
+      "id": "npm:@typescript/typescript-aix-ppc64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-aix-ppc64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-darwin-arm64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-darwin-arm64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": true,
+      "classification": "development/build candidate",
+      "licenseFiles": [
+        {
+          "path": "LICENSE",
+          "bytes": 9197,
+          "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+        },
+        {
+          "path": "NOTICE.txt",
+          "bytes": 48860,
+          "sha256": "f5c708b59114507b8b27b48181b6883d106bbca0c1634bbee45b5e344237b66b"
+        }
+      ]
+    },
+    {
+      "id": "npm:@typescript/typescript-darwin-x64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-darwin-x64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-freebsd-arm64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-freebsd-arm64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-freebsd-x64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-freebsd-x64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-arm64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-arm64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-arm@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-arm",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-loong64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-loong64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-mips64el@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-mips64el",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-ppc64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-ppc64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-riscv64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-riscv64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-s390x@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-s390x",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-linux-x64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-linux-x64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-netbsd-arm64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-netbsd-arm64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-netbsd-x64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-netbsd-x64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-openbsd-arm64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-openbsd-arm64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-openbsd-x64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-openbsd-x64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-sunos-x64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-sunos-x64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-win32-arm64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-win32-arm64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@typescript/typescript-win32-x64@7.0.2",
+      "ecosystem": "npm",
+      "name": "@typescript/typescript-win32-x64",
+      "version": "7.0.2",
+      "declaredLicense": "Apache-2.0",
+      "sourcePresent": false,
+      "classification": "development/build candidate",
+      "licenseFiles": []
+    },
+    {
+      "id": "npm:@vitejs/plugin-react@6.2.1",
       "ecosystem": "npm",
       "name": "@vitejs/plugin-react",
-      "version": "6.1.2",
+      "version": "6.2.1",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6280,26 +6507,10 @@
       ]
     },
     {
-      "id": "npm:@vitest/expect@4.1.12",
-      "ecosystem": "npm",
-      "name": "@vitest/expect",
-      "version": "4.1.12",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 1102,
-          "sha256": "04575fc5bfae19a9b63100f8691f901a2e15a399011ac02db435a9ef27295551"
-        }
-      ]
-    },
-    {
-      "id": "npm:@vitest/mocker@4.1.12",
+      "id": "npm:@vitest/mocker@5.1.0",
       "ecosystem": "npm",
       "name": "@vitest/mocker",
-      "version": "4.1.12",
+      "version": "5.1.0",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6312,74 +6523,10 @@
       ]
     },
     {
-      "id": "npm:@vitest/pretty-format@4.1.12",
-      "ecosystem": "npm",
-      "name": "@vitest/pretty-format",
-      "version": "4.1.12",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 1102,
-          "sha256": "04575fc5bfae19a9b63100f8691f901a2e15a399011ac02db435a9ef27295551"
-        }
-      ]
-    },
-    {
-      "id": "npm:@vitest/runner@4.1.12",
-      "ecosystem": "npm",
-      "name": "@vitest/runner",
-      "version": "4.1.12",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 1102,
-          "sha256": "04575fc5bfae19a9b63100f8691f901a2e15a399011ac02db435a9ef27295551"
-        }
-      ]
-    },
-    {
-      "id": "npm:@vitest/snapshot@4.1.12",
-      "ecosystem": "npm",
-      "name": "@vitest/snapshot",
-      "version": "4.1.12",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 1102,
-          "sha256": "04575fc5bfae19a9b63100f8691f901a2e15a399011ac02db435a9ef27295551"
-        }
-      ]
-    },
-    {
-      "id": "npm:@vitest/spy@4.1.12",
+      "id": "npm:@vitest/spy@5.1.0",
       "ecosystem": "npm",
       "name": "@vitest/spy",
-      "version": "4.1.12",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 1102,
-          "sha256": "04575fc5bfae19a9b63100f8691f901a2e15a399011ac02db435a9ef27295551"
-        }
-      ]
-    },
-    {
-      "id": "npm:@vitest/utils@4.1.12",
-      "ecosystem": "npm",
-      "name": "@vitest/utils",
-      "version": "4.1.12",
+      "version": "5.1.0",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6452,22 +6599,6 @@
           "path": "LICENSE",
           "bytes": 1082,
           "sha256": "b181da80336ff9dd1043fc8be1a764d7382363433319aa872e4d2cb5ce2a3066"
-        }
-      ]
-    },
-    {
-      "id": "npm:convert-source-map@2.0.0",
-      "ecosystem": "npm",
-      "name": "convert-source-map",
-      "version": "2.0.0",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 1078,
-          "sha256": "1fa6ee8bb95a81ae3d73a5bd074a3ac380ffec13697051063ca1a601921b91db"
         }
       ]
     },
@@ -6716,10 +6847,10 @@
       ]
     },
     {
-      "id": "npm:magic-string@0.30.21",
+      "id": "npm:magic-string@1.4.5",
       "ecosystem": "npm",
       "name": "magic-string",
-      "version": "0.30.21",
+      "version": "1.4.5",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6748,10 +6879,10 @@
       ]
     },
     {
-      "id": "npm:obug@2.2.1",
+      "id": "npm:obug@3.0.0",
       "ecosystem": "npm",
       "name": "obug",
-      "version": "2.2.1",
+      "version": "3.0.0",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6760,22 +6891,6 @@
           "path": "LICENSE",
           "bytes": 1205,
           "sha256": "ee48679d379ca6b4493d5e231094d85f818dd9be40b1a4f234fb7ff657ee35d9"
-        }
-      ]
-    },
-    {
-      "id": "npm:pathe@2.0.3",
-      "ecosystem": "npm",
-      "name": "pathe",
-      "version": "2.0.3",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 3355,
-          "sha256": "52e92576851154bad7737e90cc72818936f43665cb0e3f7428ed8edc8cc5709b"
         }
       ]
     },
@@ -6812,10 +6927,10 @@
       ]
     },
     {
-      "id": "npm:playwright-core@1.64.1",
+      "id": "npm:playwright-core@1.65.0",
       "ecosystem": "npm",
       "name": "playwright-core",
-      "version": "1.64.1",
+      "version": "1.65.0",
       "declaredLicense": "Apache-2.0",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6833,10 +6948,10 @@
       ]
     },
     {
-      "id": "npm:playwright@1.64.1",
+      "id": "npm:playwright@1.65.0",
       "ecosystem": "npm",
       "name": "playwright",
-      "version": "1.64.1",
+      "version": "1.65.0",
       "declaredLicense": "Apache-2.0",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6854,10 +6969,10 @@
       ]
     },
     {
-      "id": "npm:postcss@8.5.31",
+      "id": "npm:postcss@8.5.32",
       "ecosystem": "npm",
       "name": "postcss",
-      "version": "8.5.31",
+      "version": "8.5.32",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6902,10 +7017,10 @@
       ]
     },
     {
-      "id": "npm:rolldown@1.2.15",
+      "id": "npm:rolldown@1.2.16",
       "ecosystem": "npm",
       "name": "rolldown",
-      "version": "1.2.15",
+      "version": "1.2.16",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -6934,22 +7049,6 @@
       ]
     },
     {
-      "id": "npm:siginfo@2.0.0",
-      "ecosystem": "npm",
-      "name": "siginfo",
-      "version": "2.0.0",
-      "declaredLicense": "ISC",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENSE",
-          "bytes": 744,
-          "sha256": "3bdddf0b9b08aaa2fe4365b803fc958ed32c0597ca0bd727be8d9fcb8b248d18"
-        }
-      ]
-    },
-    {
       "id": "npm:source-map-js@1.2.2",
       "ecosystem": "npm",
       "name": "source-map-js",
@@ -6964,16 +7063,6 @@
           "sha256": "6cb0631f71c7749763fd3dd1d5bee52dd1070ec17f2edc1710079ad070bd2fbd"
         }
       ]
-    },
-    {
-      "id": "npm:stackback@0.0.2",
-      "ecosystem": "npm",
-      "name": "stackback",
-      "version": "0.0.2",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": []
     },
     {
       "id": "npm:std-env@4.3.0",
@@ -6992,10 +7081,10 @@
       ]
     },
     {
-      "id": "npm:tinybench@2.9.0",
+      "id": "npm:tinybench@6.2.3",
       "ecosystem": "npm",
       "name": "tinybench",
-      "version": "2.9.0",
+      "version": "6.2.3",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -7040,42 +7129,31 @@
       ]
     },
     {
-      "id": "npm:tinyrainbow@3.2.0",
-      "ecosystem": "npm",
-      "name": "tinyrainbow",
-      "version": "3.2.0",
-      "declaredLicense": "MIT",
-      "sourcePresent": true,
-      "classification": "development/build candidate",
-      "licenseFiles": [
-        {
-          "path": "LICENCE",
-          "bytes": 1065,
-          "sha256": "cebc084d54e6dd99e53292ddb4bc1cdb63d9bfcd9ce438fe3aa6eb106d79e2ea"
-        }
-      ]
-    },
-    {
-      "id": "npm:typescript@5.9.3",
+      "id": "npm:typescript@7.0.2",
       "ecosystem": "npm",
       "name": "typescript",
-      "version": "5.9.3",
+      "version": "7.0.2",
       "declaredLicense": "Apache-2.0",
       "sourcePresent": true,
       "classification": "development/build candidate",
       "licenseFiles": [
         {
-          "path": "LICENSE.txt",
+          "path": "LICENSE",
           "bytes": 9197,
           "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+        },
+        {
+          "path": "NOTICE.txt",
+          "bytes": 48860,
+          "sha256": "f5c708b59114507b8b27b48181b6883d106bbca0c1634bbee45b5e344237b66b"
         }
       ]
     },
     {
-      "id": "npm:vite@8.3.5",
+      "id": "npm:vite@8.3.6",
       "ecosystem": "npm",
       "name": "vite",
-      "version": "8.3.5",
+      "version": "8.3.6",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -7088,26 +7166,26 @@
       ]
     },
     {
-      "id": "npm:vitest@4.1.12",
+      "id": "npm:vitest@5.1.0",
       "ecosystem": "npm",
       "name": "vitest",
-      "version": "4.1.12",
+      "version": "5.1.0",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
       "licenseFiles": [
         {
           "path": "LICENSE.md",
-          "bytes": 37726,
-          "sha256": "881d660c26831481b697e39724d4a35c9f86e07b67156d4aeb693a0b39910435"
+          "bytes": 45247,
+          "sha256": "7f3ddf93a2280ef07bddd352939f5a09d345e1ffe619c518c010021344f22312"
         }
       ]
     },
     {
-      "id": "npm:why-is-node-running@2.3.0",
+      "id": "npm:why-is-node-running@3.2.1",
       "ecosystem": "npm",
       "name": "why-is-node-running",
-      "version": "2.3.0",
+      "version": "3.2.1",
       "declaredLicense": "MIT",
       "sourcePresent": true,
       "classification": "development/build candidate",
@@ -7760,63 +7838,63 @@
       "reason": "Missing license declaration or collected license text; manual review required."
     },
     {
-      "component": "npm:@rolldown/binding-android-arm-eabi@1.2.15",
+      "component": "npm:@rolldown/binding-android-arm-eabi@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-android-arm64@1.2.15",
+      "component": "npm:@rolldown/binding-android-arm64@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-darwin-arm64@1.2.15",
+      "component": "npm:@rolldown/binding-darwin-arm64@1.2.16",
       "reason": "Missing license declaration or collected license text; manual review required."
     },
     {
-      "component": "npm:@rolldown/binding-darwin-x64@1.2.15",
+      "component": "npm:@rolldown/binding-darwin-x64@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-freebsd-x64@1.2.15",
+      "component": "npm:@rolldown/binding-freebsd-x64@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-linux-arm-gnueabihf@1.2.15",
+      "component": "npm:@rolldown/binding-linux-arm-gnueabihf@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-linux-arm64-gnu@1.2.15",
+      "component": "npm:@rolldown/binding-linux-arm64-gnu@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-linux-arm64-musl@1.2.15",
+      "component": "npm:@rolldown/binding-linux-arm64-musl@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-linux-ppc64-gnu@1.2.15",
+      "component": "npm:@rolldown/binding-linux-ppc64-gnu@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-linux-s390x-gnu@1.2.15",
+      "component": "npm:@rolldown/binding-linux-s390x-gnu@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-linux-x64-gnu@1.2.15",
+      "component": "npm:@rolldown/binding-linux-x64-gnu@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-linux-x64-musl@1.2.15",
+      "component": "npm:@rolldown/binding-linux-x64-musl@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-openharmony-arm64@1.2.15",
+      "component": "npm:@rolldown/binding-openharmony-arm64@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-win32-arm64-msvc@1.2.15",
+      "component": "npm:@rolldown/binding-win32-arm64-msvc@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
-      "component": "npm:@rolldown/binding-win32-x64-msvc@1.2.15",
+      "component": "npm:@rolldown/binding-win32-x64-msvc@1.2.16",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
@@ -7864,6 +7942,82 @@
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
     {
+      "component": "npm:@typescript/typescript-aix-ppc64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-darwin-x64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-freebsd-arm64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-freebsd-x64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-arm64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-arm@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-loong64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-mips64el@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-ppc64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-riscv64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-s390x@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-linux-x64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-netbsd-arm64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-netbsd-x64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-openbsd-arm64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-openbsd-x64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-sunos-x64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-win32-arm64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
+      "component": "npm:@typescript/typescript-win32-x64@7.0.2",
+      "reason": "Source not installed/cached for this target; license files not inspected."
+    },
+    {
       "component": "npm:lightningcss-android-arm64@1.33.0",
       "reason": "Source not installed/cached for this target; license files not inspected."
     },
@@ -7902,10 +8056,6 @@
     {
       "component": "npm:lightningcss-win32-x64-msvc@1.33.0",
       "reason": "Source not installed/cached for this target; license files not inspected."
-    },
-    {
-      "component": "npm:stackback@0.0.2",
-      "reason": "Missing license declaration or collected license text; manual review required."
     }
   ],
   "manualTermsReview": [

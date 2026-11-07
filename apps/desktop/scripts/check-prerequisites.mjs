@@ -5,7 +5,7 @@ import {resolve,dirname} from 'node:path';
 const here=dirname(fileURLToPath(import.meta.url));
 const manifest=readFileSync(resolve(here,'../../../Cargo.toml'),'utf8');
 const nodeRange=JSON.parse(readFileSync(resolve(here,'../package.json'),'utf8')).engines.node;
-const nodeBounds=nodeRange.match(/^\^(\d+\.\d+\.\d+) \|\| >=(\d+\.\d+\.\d+)$/);
+const nodeBounds=nodeRange.match(/^\^(\d+\.\d+\.\d+)$/);
 if(!nodeBounds)throw new Error('Unsupported Node engine range in package.json; update the prerequisite checker.');
 const minimumRust=manifest.match(/^rust-version\s*=\s*"([\d.]+)"/m)?.[1];
 if(!minimumRust)throw new Error('Cannot read workspace Rust requirement.');
@@ -16,7 +16,7 @@ const atLeast=(version,minimum)=>{
 };
 export function checkPrerequisites({nodeVersion=process.versions.node,platform=process.platform,probe=(command,args)=>spawnSync(command,args,{encoding:'utf8',timeout:8000,maxBuffer:64*1024,env:{...process.env,RUSTUP_AUTO_INSTALL:'0'}})}={}){
  const results=[];
- const nodeOK=(nodeVersion.split('.')[0]===nodeBounds[1].split('.')[0]&&atLeast(nodeVersion,nodeBounds[1]))||atLeast(nodeVersion,nodeBounds[2]);
+ const nodeOK=/^\d+\.\d+\.\d+$/.test(nodeVersion)&&nodeVersion.split('.')[0]===nodeBounds[1].split('.')[0]&&atLeast(nodeVersion,nodeBounds[1]);
  results.push({ok:nodeOK,label:`Node.js ${nodeVersion}`,help:`Requires Node ${nodeRange}. From the repo root, nvm install && nvm use (if using nvm).`});
  for(const command of ['rustc','cargo','git']){
   const result=probe(command,['--version']);
