@@ -129,3 +129,11 @@ macOS collection passed (392 components, 248 unique texts, 49 unresolved,
 27 component-specific reviews). Collection remains explicitly incomplete;
 source availability, generated SDK bindings, assets and bundled native libraries
 must not be represented as approved by these text additions.
+
+## Hosted diagnostic bounds
+
+The older Windows core log continued to pass tests; its long duration was not
+an established deadlock. Core jobs now have a 90-minute bound. Platform browser
+jobs stop at the first failure so failure traces upload before the job deadline;
+a green run still executes every browser test. This does not turn a failed test
+into success, remove coverage from a successful run or raise per-test timeouts.

@@ -11,6 +11,7 @@ permissions:
   contents: read
 jobs:
   core:
+    timeout-minutes: 90
     env:
       CARGO_BUILD_JOBS: 2
       RUST_TEST_THREADS: 1
@@ -167,8 +168,10 @@ jobs:
       - name: Install browser test runtime
         run: npx playwright install --with-deps chromium
         working-directory: apps/desktop
+      # Stop after the first failed workflow so traces upload before the job
+      # deadline. A passing run still executes the complete suite.
       - name: All graph workflows against real temporary Git repositories
-        run: npm run test:e2e
+        run: npm run test:e2e -- --max-failures=1
         working-directory: apps/desktop
       - uses: actions/upload-artifact@v4
         if: failure()
