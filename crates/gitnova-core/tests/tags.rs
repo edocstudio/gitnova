@@ -191,3 +191,54 @@ fn tag_inventory_includes_packed_local_and_remote_only_tags_without_fetching() {
         "refs/tags/v2"
     );
 }
+
+#[test]
+fn fetch_imports_remote_annotated_tag_into_warm_graph_without_checkout_changes() {
+    let f = fixture();
+    git(&f.root, &["push", "origin", "main"]);
+    git(&f.root, &["tag", "-a", "0.0.35", "-m", "Release", &f.last]);
+    git(&f.root, &["push", "origin", "refs/tags/0.0.35"]);
+    git(&f.root, &["tag", "-d", "0.0.35"]);
+    git(&f.root, &["config", "remote.origin.tagOpt", "--no-tags"]);
+    fs::write(f.root.join("file.txt"), "staged\n").unwrap();
+    git(&f.root, &["add", "file.txt"]);
+    fs::write(f.root.join("file.txt"), "draft\n").unwrap();
+    let index = fs::read(f.root.join(".git/index")).unwrap();
+    let before = f.app.graph(&f.id, None).unwrap();
+    assert!(!before.refs.iter().any(|r| r.name == "refs/tags/0.0.35"));
+    assert_eq!(f.app.tag_refs(&f.id, Some("origin")).unwrap().len(), 1);
+    assert_eq!(
+        f.app.fetch_remote(&f.id, "origin", None).unwrap().status,
+        "succeeded"
+    );
+    let after = f.app.graph(&f.id, None).unwrap();
+    assert_ne!(before.fingerprint, after.fingerprint);
+    assert!(after
+        .refs
+        .iter()
+        .any(|r| r.name == "refs/tags/0.0.35" && r.oid == f.last));
+    assert_eq!(after.status.head.as_deref(), Some(f.last.as_str()));
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), index);
+    assert_eq!(
+        fs::read_to_string(f.root.join("file.txt")).unwrap(),
+        "draft\n"
+    );
+    assert_eq!(git(&f.root, &["cat-file", "-t", "0.0.35"]), "tag");
+}
+
+#[test]
+fn conflicting_remote_tag_never_overwrites_local_tag_or_partially_updates_refs() {
+    let f = fixture();
+    git(&f.root, &["push", "origin", "main"]);
+    git(&f.root, &["tag", "0.0.35", &f.last]);
+    git(&f.root, &["push", "origin", "refs/tags/0.0.35"]);
+    git(&f.root, &["tag", "-f", "0.0.35", &f.first]);
+    git(&f.root, &["tag", "new-remote-tag", &f.last]);
+    git(&f.root, &["push", "origin", "refs/tags/new-remote-tag"]);
+    git(&f.root, &["tag", "-d", "new-remote-tag"]);
+    let before = git(&f.root, &["show-ref"]);
+    assert!(f.app.auto_fetch(&f.id).is_err());
+    assert_eq!(git(&f.root, &["show-ref"]), before);
+    assert_eq!(git(&f.root, &["rev-parse", "0.0.35"]), f.first);
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.last);
+}

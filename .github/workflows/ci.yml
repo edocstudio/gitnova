@@ -1,5 +1,12 @@
 name: checks
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_call:
+    inputs:
+      release_profile:
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -52,7 +59,7 @@ jobs:
       - name: CI home isolation checks
         run: python apps/desktop/scripts/test_prepare_ci_home.py
       - name: Packaging evidence checks
-        run: node --test scripts/alpha-artifact.test.mjs scripts/check-prerequisites.test.mjs
+        run: node --test scripts/alpha-artifact.test.mjs scripts/check-prerequisites.test.mjs scripts/prepare-release.test.mjs
         working-directory: apps/desktop
       - name: Pinned license evidence checks
         run: python apps/desktop/scripts/test_inventory_licenses.py
@@ -70,18 +77,24 @@ jobs:
           host=$(rustc -vV | sed -n 's/^host: //p')
           python3 apps/desktop/scripts/inventory-licenses.py --target "$host"
       - name: Build local macOS alpha app
+        if: ${{ !inputs.release_profile }}
         run: npm run build:local
+        working-directory: apps/desktop
+      - name: Build release-profile macOS alpha app
+        if: ${{ inputs.release_profile }}
+        run: npm run build:release
         working-directory: apps/desktop
       - name: Verify packaged macOS native startup
         shell: bash
         run: |
+          profile="${{ inputs.release_profile && 'release' || 'debug' }}"
           mkdir -p target/alpha-evidence
-          ditto -c -k --keepParent target/debug/bundle/macos/GitNova.app target/alpha-evidence/GitNova-alpha-macos.zip
+          ditto -c -k --keepParent "target/$profile/bundle/macos/GitNova.app" target/alpha-evidence/GitNova-alpha-macos.zip
           mkdir "$RUNNER_TEMP/gitnova-macos-candidate"
           ditto -x -k target/alpha-evidence/GitNova-alpha-macos.zip "$RUNNER_TEMP/gitnova-macos-candidate"
           executable="$RUNNER_TEMP/gitnova-macos-candidate/GitNova.app/Contents/MacOS/gitnova-desktop"
           node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact target/alpha-evidence/GitNova-alpha-macos.zip --report target/alpha-evidence/macos-acceptance.json
-          node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact target/alpha-evidence/GitNova-alpha-macos.zip --acceptance target/alpha-evidence/macos-acceptance.json --resources "$RUNNER_TEMP/gitnova-macos-candidate/GitNova.app/Contents/Resources" --output target/alpha-evidence/macos-artifact.json
+          node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact target/alpha-evidence/GitNova-alpha-macos.zip --acceptance target/alpha-evidence/macos-acceptance.json --resources "$RUNNER_TEMP/gitnova-macos-candidate/GitNova.app/Contents/Resources" --output target/alpha-evidence/macos-artifact.json --profile "$profile"
       - uses: actions/upload-artifact@v4
         with:
           name: gitnova-alpha-macos
@@ -113,7 +126,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev zenity xdg-utils xvfb gnome-keyring dbus-x11 fonts-noto-core
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev zenity xdg-utils xvfb gnome-keyring dbus-x11 fonts-noto-core gnupg
       - uses: actions/cache@v4
         with:
           path: |
@@ -138,7 +151,7 @@ jobs:
       - name: CI home isolation checks
         run: python apps/desktop/scripts/test_prepare_ci_home.py
       - name: Packaging evidence checks
-        run: node --test scripts/alpha-artifact.test.mjs scripts/check-prerequisites.test.mjs
+        run: node --test scripts/alpha-artifact.test.mjs scripts/check-prerequisites.test.mjs scripts/prepare-release.test.mjs
         working-directory: apps/desktop
       - name: Pinned license evidence checks
         run: python apps/desktop/scripts/test_inventory_licenses.py

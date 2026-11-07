@@ -3,6 +3,17 @@ import { appendPage, MAX_ROWS, graphRefLabels, graphLabelsByCommit, retainRecent
 import type { GraphRow } from './contracts';
 function row(index: number): GraphRow { return { commit: { oid: String(index), parents: [], author: 'Fixture', email: 'test@example.invalid', subject: 'Fixture', timestamp: 0 }, lane: 0, color: 0, incoming: [], edges: [], width: 1 }; }
 describe('bounded history state', () => {
+  it('keeps HEAD and the newest version tag visible before additional branch badges', () => {
+    const page = { status: { branch: 'release', head: 'a', dirty: false, changedEntries: 0, bare: false }, refs: [
+      { oid: 'a', name: 'refs/heads/release' }, { oid: 'a', name: 'refs/heads/main' },
+      { oid: 'a', name: 'refs/remotes/origin/release' }, { oid: 'a', name: 'refs/tags/0.0.9' },
+      { oid: 'a', name: 'refs/tags/0.0.35' },
+    ] };
+    const labels = graphRefLabels(page, 'a');
+    expect(labels.slice(0, 2).map(ref => ref.label)).toEqual(['release', '0.0.35']);
+    expect(labels).toHaveLength(4);
+    expect(labels[1].kind).toBe('tag');
+  });
   it('evicts heavy inactive graphs before reaching eight repositories without truncating commit data', () => {
     const make = (index: number) => { const item = row(index); item.commit.subject = 'x'.repeat(6 * 1024 * 1024); return { rows: [item], page: { rows: [item], refs: [], status: { head: null, branch: null, dirty: false, changedEntries: 0, bare: false }, next: null, fingerprint: String(index) } }; };
     const first = make(1); const second = make(2); const active = make(3);

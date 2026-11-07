@@ -224,3 +224,5 @@ The `Copyright [yyyy] [name of copyright owner]` line in LICENSE is the example 
 ### Learn Git with GitNova
 
 Read the [FAQ & guide](docs/guide/faq.en.md) ([ภาษาไทย](docs/guide/faq.th.md)), or open **Settings → FAQ** inside the app. Covers everyday workflows, submodules, cherry-pick, conflicts and recovery.
+
+Release maintainers: see [release candidates and Linux signing](docs/contributing/release-candidates.md). Candidate packaging does not publish a release or certify license compliance.

@@ -2132,3 +2132,18 @@ test('tag inventory discovers remote-only names, searches all pages and rejects 
  expect(git(repo,['tag','--list','v9.0.0'])).toBe('');expect(git(repo,['tag','--list','v10.0.0'])).toBe('');
  await list.getByLabel('Check tags on remote',{exact:true}).selectOption('');await list.getByLabel('Search existing tags',{exact:true}).fill('v9.0.0');await expect(list).toContainText('No matching tags.');await expect(panel.getByRole('button',{name:'Review tag',exact:true})).toBeEnabled();
 });
+
+test('Fetch brings a remote-only version tag into the visible graph beside HEAD',async({page})=>{
+ const repo=join(folder,'tag-graph'),bare=join(folder,'tag-graph.git');mkdirSync(repo);
+ git(repo,['init','-b','main']);git(repo,['commit','--allow-empty','-m','Version base']);const oid=git(repo,['rev-parse','HEAD']);
+ git(repo,['branch','release']);git(folder,['init','--bare',bare]);git(repo,['remote','add','origin',bare]);git(repo,['push','origin','main']);
+ git(repo,['tag','-a','0.0.35','-m','Release version']);git(repo,['push','origin','refs/tags/0.0.35']);git(repo,['tag','-d','0.0.35']);
+ await connectRealCore(page,join(folder,'tag-graph.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ const badge=page.locator(`[data-ref-name="refs/tags/0.0.35"]`);await expect(badge).toHaveCount(0);
+ await page.locator(`button#commit-${oid}`).click({button:'right'});await page.getByRole('menuitem',{name:'Create tag…',exact:true}).click();
+ const panel=page.getByLabel('Version tag review',{exact:true});await expect(panel.locator('.existing-tags')).toContainText('0.0.35');expect(git(repo,['tag','--list','0.0.35'])).toBe('');
+ await panel.getByRole('button',{name:'Back',exact:true}).click();await page.keyboard.press('Escape');
+ await page.locator('.topbar .fetch-current').click();await expect(page.locator('.topbar .fetch-current')).toBeEnabled({timeout:45000});
+ await expect(badge).toBeVisible();await expect(badge).toContainText('0.0.35');await expect(page.locator('.graph-ref.current')).toContainText('main');
+ expect(git(repo,['rev-parse','HEAD'])).toBe(oid);expect(git(repo,['status','--porcelain'])).toBe('');expect(git(repo,['cat-file','-t','0.0.35'])).toBe('tag');
+});

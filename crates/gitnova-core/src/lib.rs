@@ -1722,7 +1722,7 @@ impl Application {
         self.git.remote_branches(&self.path(membership_id)?)
     }
     /// Background refresh has no per-minute receipt/recovery archive. Only
-    /// remote-tracking refs/object data may change; the normal app write lock
+    /// remote-tracking refs, tags and object data may change; the normal app write lock
     /// and repository identity validation still apply.
     pub fn auto_fetch(&self, membership_id: &str) -> Result<Option<String>> {
         let path = self.path(membership_id)?;
