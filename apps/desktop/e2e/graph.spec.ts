@@ -1,6 +1,6 @@
 // The browser transport is emulated. Every Git result comes from the real Rust core
 // and temporary Git repositories; this does not certify the native webview transport.
-import type { Catalog } from '../src/contracts';
+import type { Catalog, WorkProgress } from '../src/contracts';
 import { test, expect, type Page } from '@playwright/test';
 import { execFileSync, execFile, spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync, chmodSync, existsSync, realpathSync } from 'node:fs';
@@ -68,14 +68,14 @@ test.afterAll(async () => {
   await Promise.allSettled([...pendingCore]);
   rmSync(folder, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
-async function connectRealCore(page: Page, state: string, observe?: (command: string, args: unknown) => void, autoFetchSeconds:number|null=0) {
+async function connectRealCore(page: Page, state: string, observe?: (command: string, args: unknown) => void, autoFetchSeconds:number|null=0, afterProgress?: (command:string,event:WorkProgress)=>Promise<void>) {
   await page.exposeBinding('gitnovaTestInvoke', async (_source, command: string, args: unknown) => runCoreSerially(async () => {
     observe?.(command, args);
     // Spawn with an argument array; the JSON request goes through stdin.
     const child = exec(bridge, [state], { maxBuffer: 16 * 1024 * 1024, env: { ...process.env, HOME:join(folder,'empty-home'), USERPROFILE:join(folder,'empty-home'), XDG_CONFIG_HOME:join(folder,'empty-home') } });
     const channel=(args as {onProgress?:string})?.onProgress;const id=channel?.startsWith('__CHANNEL__:') ? Number(channel.split(':')[1]) : null;
     let index=0,buffer='',delivery:Promise<unknown>=Promise.resolve(),lastPhase='',lastTime=0;
-    child.child.stderr?.on('data',chunk=>{buffer+=String(chunk);const lines=buffer.split('\n');buffer=lines.pop()!;for(const line of lines){if(!line.startsWith('GITNOVA_PROGRESS:') || id===null)continue;const event=JSON.parse(line.slice('GITNOVA_PROGRESS:'.length));const now=Date.now();if(event.phase===lastPhase && event.completed!==0 && event.completed!==event.total && now-lastTime<100)continue;lastPhase=event.phase;lastTime=now;const message={index:index++,message:event};delivery=delivery.then(()=>page.evaluate(({id,message})=>(window as unknown as {__TAURI_INTERNALS__:{receive:(id:number,data:unknown)=>void}}).__TAURI_INTERNALS__.receive(id,message),{id,message})).catch(()=>{});}});
+    child.child.stderr?.on('data',chunk=>{buffer+=String(chunk);const lines=buffer.split('\n');buffer=lines.pop()!;for(const line of lines){if(!line.startsWith('GITNOVA_PROGRESS:') || id===null)continue;const event=JSON.parse(line.slice('GITNOVA_PROGRESS:'.length));const now=Date.now();if(event.phase===lastPhase && event.completed!==0 && event.completed!==event.total && now-lastTime<100)continue;lastPhase=event.phase;lastTime=now;const message={index:index++,message:event};delivery=delivery.then(async()=>{await page.evaluate(({id,message})=>(window as unknown as {__TAURI_INTERNALS__:{receive:(id:number,data:unknown)=>void}}).__TAURI_INTERNALS__.receive(id,message),{id,message});await afterProgress?.(command,event);}).catch(()=>{});}});
     child.child.stdin!.end(JSON.stringify({ command, args }));
     const { stdout } = await child;await delivery;
     if(id!==null)await page.evaluate(({id,index})=>(window as unknown as {__TAURI_INTERNALS__:{receive:(id:number,data:unknown)=>void}}).__TAURI_INTERNALS__.receive(id,{index,end:true}),{id,index}).catch(()=>{});
@@ -1027,7 +1027,13 @@ test('pending merge discard all reviews and cancels, then removes unstaged files
   const files=['finetune-customer-guide-video-narration-delivery-notes.txt','finetune-customer-guide-neural-narration-subtitles-th.srt'];
   for(const name of files)writeFileSync(join(repo,directory,name),'incoming saved content\n');git(repo,['add','.']);git(repo,['commit','-m','Incoming discard work']);
   const incoming=git(repo,['rev-parse','HEAD']);writeFileSync(join(repo,'saved-note.txt'),'Saved across branches\n');git(repo,['stash','push','--include-untracked','-m','Saved before merge']);const saved=git(repo,['rev-parse','refs/stash']);git(repo,['switch','main']);writeFileSync(join(repo,'destination.txt'),'destination\n');git(repo,['add','.']);git(repo,['commit','-m','Destination']);const head=git(repo,['rev-parse','HEAD']);
-  await connectRealCore(page,join(folder,'merge-discard-ui.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+  // Hold delivery after a real Rust progress event while inspecting the busy UI.
+  // Fast runners can otherwise finish between separate Playwright assertions.
+  let releaseProgress!:()=>void;
+  const progressInspected=new Promise<void>(resolve=>{releaseProgress=resolve;});
+  await connectRealCore(page,join(folder,'merge-discard-ui.json'),undefined,0,async(command,event)=>{
+    if(command==='discard_operation_changes' && event.phase==='discarding' && event.total===2)await progressInspected;
+  });await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
   await page.getByRole('button',{name:/Incoming discard work/}).click({button:'right'});await page.getByRole('menuitem',{name:'Merge into main…',exact:true}).click();await page.getByRole('button',{name:'Start merge',exact:true}).click();
   const inspector=page.locator('.merge-detail');await expect(inspector.getByRole('button',{name:'Unstage all changes',exact:true})).toBeEnabled({timeout:45000});await inspector.getByRole('button',{name:'Unstage all changes',exact:true}).click();await inspector.getByRole('button',{name:'Unstage 2 files',exact:true}).click();
   await expect(inspector.getByRole('region',{name:'Unstaged files',exact:true}).locator('.changed-file')).toHaveCount(2,{timeout:45000});
@@ -1035,7 +1041,16 @@ test('pending merge discard all reviews and cancels, then removes unstaged files
   await review.getByRole('button',{name:'Cancel',exact:true}).click();for(const name of files)expect(existsSync(join(repo,directory,name))).toBe(true);
   await trash.click();await expect(review.getByRole('button',{name:'Discard 2 files',exact:true})).toBeEnabled();await page.screenshot({path:testInfo.outputPath('merge-discard-review.png')});
   await page.keyboard.press('Control+,');await page.getByLabel('Language',{exact:true}).selectOption('th');await page.keyboard.press('Escape');await expect(review).toContainText('Discard จะคงการดำเนินการนี้ไว้');await page.screenshot({path:testInfo.outputPath('merge-discard-review-thai.png')});
-  await review.getByRole('button',{name:'ทิ้งการเปลี่ยนแปลง 2 ไฟล์',exact:true}).click();await expect(review.getByRole('progressbar')).toBeVisible();await expect(review.getByRole('progressbar')).toHaveAttribute('max','2');await expect(review.locator('.discard-progress small')).toContainText('%');const progressBox=await review.getByRole('progressbar').boundingBox();const paneBox=await inspector.boundingBox();expect(progressBox!.y+progressBox!.height).toBeLessThanOrEqual(paneBox!.y+paneBox!.height);await page.screenshot({path:testInfo.outputPath('merge-discard-progress.png')});await expect(review).toHaveCount(0,{timeout:45000});await expect(inspector).toBeVisible();
+  try {
+    await review.getByRole('button',{name:'ทิ้งการเปลี่ยนแปลง 2 ไฟล์',exact:true}).click();
+    await expect(review.getByRole('progressbar')).toBeVisible();
+    await expect(review.getByRole('progressbar')).toHaveAttribute('max','2');
+    await expect(review.locator('.discard-progress small')).toContainText('%');
+    const progressBox=await review.getByRole('progressbar').boundingBox();const paneBox=await inspector.boundingBox();
+    expect(progressBox!.y+progressBox!.height).toBeLessThanOrEqual(paneBox!.y+paneBox!.height);
+    await page.screenshot({path:testInfo.outputPath('merge-discard-progress.png')});
+  } finally { releaseProgress(); }
+  await expect(review).toHaveCount(0,{timeout:45000});await expect(inspector).toBeVisible();
   for(const name of files)expect(existsSync(join(repo,directory,name))).toBe(false);expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(readFileSync(join(repo,'.git/MERGE_HEAD'),'utf8').trim()).toBe(incoming);
   const recovery=await page.locator('.copy-recovery').getAttribute('title');expect(recovery).toBeTruthy();expect(readFileSync(join(recovery!,'work-0'),'utf8')).toBe('incoming saved content\n');
   const events=await page.evaluate(()=>(window as unknown as {gitnovaProgressEvents: {phase:string;completed:number;total:number}[]}).gitnovaProgressEvents);for(const phase of ['checking','backing-up','discarding'])expect(events.some(e=>e.phase===phase)).toBe(true);expect(events.every(e=>e.completed<=e.total)).toBe(true);

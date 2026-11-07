@@ -252,3 +252,11 @@ brand vector master and generated icon family are recorded by
 `apps/desktop/scripts/generate-brand.mjs`. Documentation screenshots in the broad
 asset inventory are not automatically included in installers. Final artifact
 contents still need to be matched to the corresponding source and obligations.
+
+The Linux PR job at `509d2a1` exposed a progress-inspection race: discard
+completed between the separate visible/progress-maximum browser assertions.
+The affected fixture now holds transport delivery after a real Rust discarding
+event until its busy-UI assertions and screenshot finish, releasing the hold in
+`finally`. Git execution, recovery-file contents, pending-merge state and final
+UI assertions remain real and unchanged. Three local repetitions passed. This
+is test synchronization, not an artificial delay in application operations.
