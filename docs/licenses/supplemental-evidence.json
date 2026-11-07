@@ -8,6 +8,38 @@
       "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
       "source": "https://github.com/dropbox/rust-alloc-no-stdlib/blob/0a81fd6928ea3b33c8cd484aa4575d50ffb98012/LICENSE",
       "scope": "Repository-root license at the published crate vcs revision; crate declares BSD-3-Clause. Collected text evidence, not complete artifact compliance approval."
+    },
+    "cargo:dlopen2@0.8.2": {
+      "license": "MIT",
+      "revision": "cc80e4a0a90d499b677fdf7743699b4b3a43a989",
+      "file": "upstream/dlopen2-cc80e4a-LICENSE.txt",
+      "sha256": "39fa265207450e77c62e90c5594a06c085b655d8374c7ced4bf7894b6bd95dd2",
+      "source": "https://github.com/OpenByteDev/dlopen2/blob/cc80e4a0a90d499b677fdf7743699b4b3a43a989/LICENSE",
+      "scope": "Original repository-root MIT text at the published crate VCS revision. For the dual-licensed binding this collects the MIT option; native system-library licensing remains separate."
+    },
+    "cargo:dlopen2_derive@0.4.3": {
+      "license": "MIT",
+      "revision": "cc80e4a0a90d499b677fdf7743699b4b3a43a989",
+      "file": "upstream/dlopen2-cc80e4a-LICENSE.txt",
+      "sha256": "39fa265207450e77c62e90c5594a06c085b655d8374c7ced4bf7894b6bd95dd2",
+      "source": "https://github.com/OpenByteDev/dlopen2/blob/cc80e4a0a90d499b677fdf7743699b4b3a43a989/LICENSE",
+      "scope": "Original repository-root MIT text at the published crate VCS revision. For the dual-licensed binding this collects the MIT option; native system-library licensing remains separate."
+    },
+    "cargo:libappindicator-sys@0.9.0": {
+      "license": "Apache-2.0 OR MIT",
+      "revision": "eafd1e3682a1247f595410266091e9684021cb6f",
+      "file": "upstream/libappindicator-eafd1e3-LICENSE-MIT.txt",
+      "sha256": "eb227437252b2a7a9c1fc342c93ade1f3d7ce38cc6dd754f613db07d53ceff0b",
+      "source": "https://github.com/tauri-apps/libappindicator-rs/blob/eafd1e3682a1247f595410266091e9684021cb6f/LICENSE-MIT",
+      "scope": "Original repository-root MIT text at the published crate VCS revision. For the dual-licensed binding this collects the MIT option; native system-library licensing remains separate."
+    },
+    "cargo:selectors@0.38.0": {
+      "license": "MPL-2.0",
+      "revision": "572ecba2d1600e7c3d490586692a209faf703baa",
+      "file": "upstream/MPL-2.0.txt",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+      "source": "https://www.mozilla.org/media/MPL/2.0/index.f75d2927d3c1.txt",
+      "scope": "Canonical unmodified text from the license steward. The published crate lib.rs at https://github.com/servo/stylo/blob/572ecba2d1600e7c3d490586692a209faf703baa/selectors/lib.rs explicitly declares MPL 2.0. Source-form availability and artifact contribution still require review."
     }
   }
 }

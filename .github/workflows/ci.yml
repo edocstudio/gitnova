@@ -70,6 +70,12 @@ jobs:
         working-directory: apps/desktop
       - run: npm run test:e2e
         working-directory: apps/desktop
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: native-platform-test-results-macos
+          if-no-files-found: ignore
+          path: apps/desktop/test-results/
       - name: Collect macOS target license evidence
         shell: bash
         run: |

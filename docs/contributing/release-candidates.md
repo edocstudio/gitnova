@@ -91,7 +91,10 @@ required texts/materials and inspect their locations inside the packages.
 
 Complete native manual installation/upgrade/uninstall and workflow acceptance
 on clean machines using [the existing checklist](unsigned-alpha.md#native-manual-acceptance-record).
-CI starts extracted Linux packages; that is not an actual dpkg installation test.
+CI now installs, reinstalls and purges the Debian package on a disposable runner;
+AppImage startup uses its extracted AppRun entrypoint. Windows exercises NSIS
+installation, same-version reinstall and uninstallation. These automated checks
+do not replace clean-machine manual acceptance or previous-version migration.
 Trusted macOS/Windows signing remains a separate later task. Only publish an
 unsigned alpha if the owner explicitly accepts the documented limitations.
 

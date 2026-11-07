@@ -30,9 +30,14 @@ perform a separate inventory/review instead of reusing this target's evidence.
 `supplemental-evidence.json` records upstream texts omitted from a packaged
 crate. Each entry pins the published crate's VCS revision, declared license,
 original source URL and text hash. Collection fails if those values disagree;
-it never downloads a replacement implicitly. The current entry supplies the
-repository-root BSD text for `alloc-stdlib` 0.3.0. The current macOS inventory
-still has 50 unresolved entries and 27 component-specific terms to review.
+it never downloads a replacement implicitly. The entries supply the repository-root BSD text for `alloc-stdlib` 0.3.0,
+the original MIT text for `dlopen2` 0.8.2 / `dlopen2_derive` 0.4.3 and the MIT
+option for `libappindicator-sys` 0.9.0 at their published VCS revisions.
+`selectors` 0.38.0 explicitly declares MPL 2.0 in its pinned source header;
+its entry supplies the canonical text from Mozilla, the license steward.
+This does not resolve MPL source-form obligations or bundled native libraries.
+The current macOS inventory still has 49 unresolved entries and 27
+component-specific terms to review.
 For example, the [pinned objc2 upstream licensing document](https://github.com/madsmtm/objc2/blob/d7d2fa23ceaa5e6096c923b081040e5d81b3b9df/LICENSE.md) discusses generated
 Apple SDK bindings; collecting that document alone would not resolve their
 redistribution terms. Missing texts, SDK terms and actual shipped material

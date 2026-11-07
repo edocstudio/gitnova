@@ -3745,7 +3745,14 @@
       "declaredLicense": "MPL-2.0",
       "sourcePresent": true,
       "classification": "resolved graph including runtime/build/development; actual binary contribution not classified",
-      "licenseFiles": []
+      "licenseFiles": [
+        {
+          "path": "upstream/MPL-2.0.txt",
+          "bytes": 16726,
+          "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+          "source": "https://www.mozilla.org/media/MPL/2.0/index.f75d2927d3c1.txt"
+        }
+      ]
     },
     {
       "id": "cargo:semver@1.0.28",
@@ -7750,10 +7757,6 @@
     },
     {
       "component": "cargo:objc2@0.6.5",
-      "reason": "Missing license declaration or collected license text; manual review required."
-    },
-    {
-      "component": "cargo:selectors@0.38.0",
       "reason": "Missing license declaration or collected license text; manual review required."
     },
     {

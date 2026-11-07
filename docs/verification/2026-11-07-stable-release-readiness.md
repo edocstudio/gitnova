@@ -59,7 +59,7 @@ Read-only inspection of the verified Debian archive confirms package identity
 - Successful core, desktop and native installer checks for one exact source
   commit on all three platforms, followed by four-package assembly.
 - Review of actual shipped dependency/asset obligations. Current inventories
-  explicitly remain incomplete; the macOS inventory has 50 unresolved entries
+  explicitly remain incomplete; the refreshed macOS inventory has 49 unresolved entries
   and 27 component-specific review items. Inclusion of license files is not
   completion of that review. See [license evidence](../licenses/README.md).
 - Native manual acceptance and supported OS/architecture scope. Current
@@ -94,3 +94,38 @@ worktree creation/removal/repair/prune/move, unavailable repositories and guided
 branch/Pop/pull preparation. This is macOS verification of the affected flows;
 Windows execution remains necessary to confirm the platform fixes and investigate
 any remaining disabled-control failures.
+
+## Confirmed installer lifecycle and conflict retry
+
+PR #34 run [42361207973](https://github.com/edocstudio/gitnova/actions/runs/42361207973)
+passed Linux desktop checks, including all browser workflows, actual apt
+install/reinstall/purge and AppImage native startup. The tested PR merge source
+is `0c3808363101b68a013ece32dbcae606a721958a`, not a final release revision.
+Debian SHA-256:
+`aa0d096561749d6ccaf6fb686c9221b4cc3e2bfc37c98df860fa3d012ba176a6`.
+AppImage SHA-256:
+`6989b465ec00d786a1bbd92fbd559ce9a5be2436c1a4666c9f0e8da0f00f7dce`.
+Downloaded lifecycle evidence binds the Debian digest to successful installation,
+installed native acceptance, same-version reinstall and purge.
+
+The same run exposed a macOS conflict-preview race (138 browser tests passed,
+one failed). After an external edit was refused, the file observation refreshed
+but the parent working snapshot could remain old. A later polling tick then
+invalidated the retry preview. The refusal now refreshes the file and parent
+observations while retaining the draft and requiring explicit review again.
+No content is written by that refresh.
+
+Three affected conflict workflows passed three repetitions each locally (9
+passes). A strengthened regression pauses periodic observation, retries and
+resumes observation: it fails on the old implementation and passes three
+repetitions with the fix. TypeScript checking also passed. macOS CI now retains
+failure traces, as the other desktop runners already do. No suite was weakened
+or removed.
+
+Supplemental license evidence now includes pinned original texts for the
+`dlopen2` crates and the MIT option for the application-indicator binding, plus
+Mozilla's canonical MPL 2.0 text for `selectors`. Evidence validation and offline
+macOS collection passed (392 components, 248 unique texts, 49 unresolved,
+27 component-specific reviews). Collection remains explicitly incomplete;
+source availability, generated SDK bindings, assets and bundled native libraries
+must not be represented as approved by these text additions.

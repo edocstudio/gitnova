@@ -76,7 +76,15 @@ export function MergeInspector({ discardedResult = false, membershipId, state, c
     try {
       if(kind==='resolve'&&file&&path){
         const current=await api.mergeFile(membershipId,path,scope==='staged');
-        if(current.token!==file.token||current.workingText!==file.workingText||current.oursText!==file.oursText||current.theirsText!==file.theirsText)throw new Error('Conflict content changed outside this editor. Your draft is kept; return to the diff and inspect the file again.');
+        if(current.token!==file.token||current.workingText!==file.workingText||current.oursText!==file.oursText||current.theirsText!==file.theirsText){
+          // Refresh both observations together. Otherwise a retry can create a
+          // valid preview against the new file while the parent still holds
+          // the old working token, then polling immediately clears that preview.
+          // Keep the draft and require another explicit review; never apply here.
+          setFile(current);
+          await onRefresh();
+          throw new Error('Conflict content changed outside this editor. Your draft is kept; return to the diff and inspect the file again.');
+        }
       }
       const value = await api.previewMergeAction(membershipId, { kind, choice, path: kind === 'resolve' ? path : kind === 'unstage' ? target : null, content: choice === 'edited' ? text : null, message: kind === 'finish'&&!isRebase ? draft : '' });
       if(kind==='resolve'&&file&&value.state.token!==file.token)throw new Error('Conflict versions changed while reading. Select the file again.');
