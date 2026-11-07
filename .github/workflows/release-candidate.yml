@@ -59,7 +59,7 @@ jobs:
       - run: npx playwright install chromium
         working-directory: apps/desktop
       - name: Real-Git stash and worktree UI regressions
-        run: npx playwright test e2e/graph.spec.ts --grep "stash advanced options retain saved staging|graph worktree creation|graph rebase recreates two-parent merges" --workers=1 --max-failures=1
+        run: npx playwright test e2e/graph.spec.ts --grep "stash advanced options retain saved staging|graph creates a reviewed worktree|graph rebase recreates two-parent merges" --workers=1 --max-failures=1
         working-directory: apps/desktop
       - uses: actions/upload-artifact@v4
         if: failure()
