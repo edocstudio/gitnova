@@ -2113,6 +2113,29 @@ test('standalone stash conflicts reopen as visual blocks and preserve staged unr
 });
 
 
+test('tag form waits for inventory and recovers from a failed read without losing the tag name', async ({page}) => {
+ const repo=join(folder,'tag-load-order');mkdirSync(repo);git(repo,['init','-b','main']);git(repo,['commit','--allow-empty','-m','Tag load order']);const oid=git(repo,['rev-parse','HEAD']);
+ await connectRealCore(page,join(folder,'tag-load-order.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.evaluate(()=>{
+  const w=window as unknown as {__TAURI_INTERNALS__:{invoke:(command:string,args:unknown)=>Promise<unknown>};releaseTagRead?:()=>void};
+  const invoke=w.__TAURI_INTERNALS__.invoke;let first=true;
+  w.__TAURI_INTERNALS__.invoke=async(command,args)=>{
+   if(command==='tag_refs'&&first){first=false;await new Promise<void>(resolve=>{w.releaseTagRead=resolve;});throw new Error('Disposable tag inventory read failure');}
+   return invoke(command,args);
+  };
+ });
+ await page.locator(`button#commit-${oid}`).click({button:'right'});await page.getByRole('menuitem',{name:'Create tag…',exact:true}).click();
+ const panel=page.getByLabel('Version tag review',{exact:true}),name=panel.getByLabel('Tag name',{exact:true});
+ await expect(name).toBeDisabled();await expect(panel.getByRole('button',{name:'Review tag',exact:true})).toBeDisabled();
+ await expect.poll(()=>page.evaluate(()=>Boolean((window as unknown as {releaseTagRead?:()=>void}).releaseTagRead))).toBe(true);
+ await page.evaluate(()=>(window as unknown as {releaseTagRead:()=>void}).releaseTagRead());
+ await expect(panel.getByRole('alert')).toContainText('Tag list could not be verified');await expect(name).toBeDisabled();
+ await panel.getByRole('button',{name:'Refresh tag list',exact:true}).click();await name.fill('v1.2.3');await panel.getByLabel('Tag type',{exact:true}).selectOption('lightweight');
+ await panel.getByRole('button',{name:'Refresh tag list',exact:true}).click();await expect(name).toBeEnabled();await expect(name).toHaveValue('v1.2.3');
+ await panel.getByRole('button',{name:'Review tag',exact:true}).click();expect(git(repo,['tag','--list','v1.2.3'])).toBe('');
+ await panel.getByRole('button',{name:'Create reviewed tag',exact:true}).click();await expect(panel).toContainText('Tag created: v1.2.3');expect(git(repo,['rev-parse','v1.2.3'])).toBe(oid);
+});
+
 test('tag inventory discovers remote-only names, searches all pages and rejects new duplicates',async({page})=>{
  test.setTimeout(120000);
  const repo=join(folder,'tag-inventory'),bare=join(folder,'tag-inventory.git');mkdirSync(repo);

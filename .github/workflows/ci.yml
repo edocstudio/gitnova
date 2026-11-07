@@ -188,22 +188,11 @@ jobs:
       - name: Build native alpha installers
         run: npm run build:desktop
         working-directory: apps/desktop
-      - name: Verify packaged Linux attribution
+      - name: Verify Debian install, reinstall and removal
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          mkdir "$RUNNER_TEMP/gitnova-deb"
-          dpkg-deb -x target/release/bundle/deb/*.deb "$RUNNER_TEMP/gitnova-deb"
-          mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-deb" -path '*/licenses/LICENSE')
-          test "${#texts[@]}" -eq 1
-          resources=$(dirname "$(dirname "${texts[0]}")")
-          node apps/desktop/scripts/verify-platform-resources.mjs "$resources"
-          executable=$(find "$RUNNER_TEMP/gitnova-deb" -type f -name gitnova-desktop)
-          test -n "$executable"
-          mkdir -p target/alpha-evidence
-          artifact=$(realpath target/release/bundle/deb/*.deb)
-          dbus-run-session -- xvfb-run -a node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact "$artifact" --report target/alpha-evidence/deb-acceptance.json
-          node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact "$artifact" --acceptance target/alpha-evidence/deb-acceptance.json --resources "$resources" --output target/alpha-evidence/deb-artifact.json
+          bash apps/desktop/scripts/check-debian-install.sh target/release/bundle/deb/*.deb target/debug/examples/ui_bridge target/alpha-evidence
       - name: Verify packaged AppImage attribution
         if: runner.os == 'Linux'
         shell: bash
@@ -238,6 +227,29 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installed native acceptance failed' }
           node apps/desktop/scripts/alpha-artifact.mjs --executable $binary.FullName --artifact $installer.FullName --acceptance target/alpha-evidence/windows-acceptance.json --resources $destination --output target/alpha-evidence/windows-artifact.json
           if ($LASTEXITCODE -ne 0) { throw 'Candidate evidence verification failed' }
+          # Exercise the exact installer's repair path without running a second
+          # app instance. This does not test migration from a prior version.
+          $before = (Get-FileHash -Algorithm SHA256 $binary.FullName).Hash
+          $repair = Start-Process -FilePath $installer.FullName -ArgumentList '/S',"/D=$destination" -Wait -PassThru
+          if ($repair.ExitCode -ne 0) { throw 'Installer repair failed' }
+          if ((Get-FileHash -Algorithm SHA256 $binary.FullName).Hash -ne $before) { throw 'Repair changed the candidate executable' }
+          node apps/desktop/scripts/verify-platform-resources.mjs $destination
+          if ($LASTEXITCODE -ne 0) { throw 'Reinstalled attribution verification failed' }
+          $uninstaller = Join-Path $destination 'uninstall.exe'
+          if (-not (Test-Path -LiteralPath $uninstaller)) { throw 'Installed uninstaller missing' }
+          # NSIS _?= must be last; it keeps the uninstaller in place so -Wait
+          # observes completion instead of a temporary self-copy process.
+          $removed = Start-Process -FilePath $uninstaller -ArgumentList '/S',"_?=$destination" -Wait -PassThru
+          if ($removed.ExitCode -ne 0) { throw 'Uninstaller failed' }
+          if (Test-Path -LiteralPath $binary.FullName) { throw 'Uninstaller left the app executable' }
+          if (Test-Path -LiteralPath (Join-Path $destination 'licenses/LICENSE')) { throw 'Uninstaller left packaged license resources' }
+          $lifecycle = @{
+            schemaVersion = 1; kind = 'gitnova-installer-lifecycle'; passed = $true
+            artifact = $installer.Name; artifactSha256 = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+            checks = @('nsis-install', 'installed-native-acceptance', 'same-version-reinstall', 'nsis-uninstall')
+            limitations = @('Previous-version migration and manual GUI acceptance are not covered.')
+          }
+          $lifecycle | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 target/alpha-evidence/windows-lifecycle.json
       - name: Verify Linux embedded UI
         if: runner.os == 'Linux'
         run: xvfb-run -a target/release/gitnova-desktop --verify-bundle
