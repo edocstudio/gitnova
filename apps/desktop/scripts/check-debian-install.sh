@@ -14,7 +14,7 @@ bridge=$(realpath "$2")
 mkdir -p "$3"
 evidence=$(realpath "$3")
 package=$(dpkg-deb -f "$artifact" Package)
-case "$package" in gitnova|gitnova-desktop) ;; *) echo 'Unexpected Debian package identity.' >&2; exit 1 ;; esac
+case "$package" in git-nova) ;; *) echo 'Unexpected Debian package identity.' >&2; exit 1 ;; esac
 if dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed'; then
   echo 'Refusing to replace an already installed package.' >&2
   exit 1

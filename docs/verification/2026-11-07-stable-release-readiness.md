@@ -47,6 +47,9 @@ reinstall/uninstall checks on disposable hosted runners. Both preserve the exact
 installer digest in lifecycle evidence. The previous Debian check only extracted
 the package. Same-version reinstall does not establish previous-version upgrade
 or user-data migration compatibility. Hosted execution remains required.
+Read-only inspection of the verified Debian archive confirms package identity
+`git-nova`, executable `/usr/bin/gitnova-desktop` and attribution resources under
+`/usr/lib/GitNova/licenses`; the install guard uses that actual package identity.
 
 ## Remaining release gates
 
