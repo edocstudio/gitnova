@@ -1,6 +1,6 @@
-# Unsigned alpha candidate workflow
+# Unsigned release candidate workflow
 
-The owner has chosen unsigned alpha preparation while platform signing accounts
+The owner has selected version 1.0.0 for user testing, using unsigned candidate preparation while platform signing accounts
 are unavailable. This is not a public-release approval or a promise of native
 feature parity. Do not disable branch protection or omit failing tests to obtain
 an installer. The [distribution checklist](binary-distribution.md) still applies.
@@ -15,7 +15,7 @@ retain their absolute paths. This avoids runner-global line-ending policy
 changing fixture bytes; production Git settings are never overridden.
 
 After tests pass, each native job collects target-specific dependency evidence
-and creates its alpha candidate:
+and creates its release candidate:
 
 - macOS: ad-hoc-signed `.app` in a ZIP. Ordinary checks use the local debug
   profile; the manual release-candidate workflow requires the release profile.
@@ -49,7 +49,7 @@ Artifacts are uploaded as CI candidates only after that job passes. No workflow
 publishes a public GitHub Release. The optional release-candidate handoff can
 attach verified packages to a draft prerelease. `publicationGatePassed` remains false while manual
 native acceptance, dependency/asset review and trusted signing are outstanding.
-An alpha build can succeed with known inventory gaps; do not describe that as a
+A build can succeed with known inventory gaps; do not describe that as a
 completed license audit or a public-release gate pass.
 
 Linux additionally reinstalls the same Debian candidate, checks the executable

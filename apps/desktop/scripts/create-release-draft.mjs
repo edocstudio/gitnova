@@ -7,9 +7,10 @@ import {pathToFileURL} from 'node:url';
 import {hashFile} from './hash-file.mjs';
 const repository='edocstudio/gitnova';
 export function reviewDraftFiles(folder,tag){
-  if(!/^v\d+\.\d+\.\d+-alpha(?:\.\d+)?$/.test(tag))throw new Error('Use an explicit versioned alpha tag.');
+  const versionMatch=/^v(\d+\.\d+\.\d+)(?:-alpha(?:\.\d+)?)?$/.exec(tag);
+  if(!versionMatch)throw new Error('Use an explicit version tag, such as v1.0.0.');
   const manifest=JSON.parse(readFileSync(join(folder,'release-candidate.json'),'utf8'));
-  if(manifest.kind!=='gitnova-release-candidate'||manifest.status!=='candidate'||manifest.buildProfile!=='release'||manifest.publicationGatePassed!==false||!/^([a-f0-9]{40}|[a-f0-9]{64})$/.test(manifest.sourceCommit??'')||!tag.startsWith(`v${manifest.version}-alpha`)||manifest.assets?.length!==4)throw new Error('Expected exact release-profile candidate evidence.');
+  if(manifest.kind!=='gitnova-release-candidate'||manifest.status!=='candidate'||manifest.buildProfile!=='release'||manifest.publicationGatePassed!==false||!/^([a-f0-9]{40}|[a-f0-9]{64})$/.test(manifest.sourceCommit??'')||versionMatch[1]!==manifest.version||manifest.assets?.length!==4)throw new Error('Expected exact release-profile candidate evidence.');
   const checksums=new Map();
   for(const line of readFileSync(join(folder,'SHA256SUMS'),'utf8').trimEnd().split('\n')){
     const match=/^([a-f0-9]{64})  ([A-Za-z0-9._+-]+)$/.exec(line);
@@ -23,7 +24,7 @@ export function reviewDraftFiles(folder,tag){
   }
   for(const asset of manifest.assets)if(typeof asset.file!=='string'||!/^[A-Za-z0-9._+-]+$/.test(asset.file)||!/^[a-f0-9]{64}$/.test(asset.sha256??'')||!Number.isSafeInteger(asset.bytes)||asset.bytes<=0||checksums.get(asset.file)!==asset.sha256||lstatSync(join(folder,asset.file)).size!==asset.bytes)throw new Error('Artifact evidence mismatch.');
   const files=[...checksums.keys(),'SHA256SUMS','RELEASE-NOTES.md'];
-  // Absence is honest unsigned alpha. Signed candidates retain exact sidecars.
+  // Absence records an unsigned candidate. Signed candidates retain exact sidecars.
   if(readdirSync(folder).some(file=>file.endsWith('.asc')||file==='linux-signing.json')){
     const signing=JSON.parse(readFileSync(join(folder,'linux-signing.json'),'utf8'));
     const linux=manifest.assets.filter(a=>a.platform==='linux');
@@ -61,11 +62,11 @@ export function createReleaseDraft(folder,tag){
   for(let depth=0;object?.type==='tag'&&depth<4;depth++)object=JSON.parse(gh(['api',`repos/${repository}/git/tags/${object.sha}`])).object;
   if(object?.type!=='commit'||object.sha!==manifest.sourceCommit)throw new Error('Existing tag must resolve to the tested candidate commit; no tags are created or moved.');
   // gh refuses an existing release. No --clobber or public-release mutation.
-  const url=gh(['release','create',tag,'--repo',repository,'--verify-tag','--draft','--prerelease','--title',`GitNova ${tag} — alpha`,'--notes-file',join(folder,'RELEASE-NOTES.md'),...files.map(file=>join(folder,file))]);
+  const url=gh(['release','create',tag,'--repo',repository,'--verify-tag','--draft',...(tag.includes('-alpha')?['--prerelease']:[]),'--title',`GitNova ${tag}`,'--notes-file',join(folder,'RELEASE-NOTES.md'),...files.map(file=>join(folder,file))]);
   console.log(url.trim());
   console.log('Draft only. License/native acceptance review remains required before public distribution.');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
-  if(process.argv.length!==4)throw new Error('Usage: node create-release-draft.mjs RELEASE_DIRECTORY ALPHA_TAG');
+  if(process.argv.length!==4)throw new Error('Usage: node create-release-draft.mjs RELEASE_DIRECTORY VERSION_TAG');
   createReleaseDraft(...process.argv.slice(2));
 }

@@ -174,8 +174,8 @@ Retain their current callbacks, state guards and preview flows. Keep operation
 status to the right on wide windows and on a stable second row on narrow windows.
 No duplicated actions or new navigation are introduced. Increase only the header
 logo footprint to 44px (40px on narrow windows); keep the native icon artwork.
-Footer credit becomes GitNova · by edocstudio, with the alpha badge still marking
-the app's release stage in the header.
+Footer credit becomes GitNova · by edocstudio, with the app version displayed
+in the header (1.0.0 from the desktop package manifest).
 
 ### Reviewed Amend
 

@@ -13,7 +13,7 @@ function fixture(){
  const reports=[];
  for(const [platform,arch,file,target] of [['darwin','arm64','GitNova.zip','aarch64-apple-darwin'],['win32','x64','GitNova.exe','x86_64-pc-windows-msvc'],['linux','x64','GitNova.deb','x86_64-unknown-linux-gnu'],['linux','x64','GitNova.AppImage','x86_64-unknown-linux-gnu']]){
   writeFileSync(join(input,file),'fixture installer');const sha256=hashFile(join(input,file));
-  const report={schemaVersion:1,kind:'gitnova-alpha-artifact',sourceCommit:'a'.repeat(40),version:'0.1.0',buildProfile:'release',artifact:file,platform,arch,target,sha256,bytes:17,attribution:{resourcesChecked:5,unresolved:7},signing:'unsigned-alpha',installedAcceptance:{passed:true,version:'0.1.0',platform,arch,artifact:file,artifactSha256:sha256,checks:['embedded-ui','native-catalog-ipc','real-git-graph-ipc','single-instance','fixture-head-and-working-tree-preserved']}};
+  const report={schemaVersion:1,kind:'gitnova-alpha-artifact',sourceCommit:'a'.repeat(40),version:'1.0.0',buildProfile:'release',artifact:file,platform,arch,target,sha256,bytes:17,attribution:{resourcesChecked:5,unresolved:7},signing:'unsigned-alpha',installedAcceptance:{passed:true,version:'1.0.0',platform,arch,artifact:file,artifactSha256:sha256,checks:['embedded-ui','native-catalog-ipc','real-git-graph-ipc','single-instance','fixture-head-and-working-tree-preserved']}};
   const path=join(input,file+'-artifact.json');writeFileSync(path,JSON.stringify(report));reports.push({report,path});
  }
  return {root,input,output,reports,clean:()=>rmSync(root,{recursive:true,force:true})};
@@ -29,12 +29,13 @@ test('release assembly refuses tampering, debug builds, mixed commits and missin
 test('signing rejects an output-contained keyring or abbreviated key identity before calling GPG',()=>{
  const f=fixture();try{prepareRelease(f.input,f.output);assert.throws(()=>signLinuxRelease(f.output,f.output,'a'.repeat(40)));assert.throws(()=>signLinuxRelease(f.output,f.root,'short-key'));}finally{f.clean();}
 });
-test('draft upload validates all platform bytes and accepts only matching alpha tags',()=>{
+test('draft upload validates all platform bytes and accepts exact stable and alpha versions',()=>{
  const f=fixture();try{
   prepareRelease(f.input,f.output);
-  assert.equal(reviewDraftFiles(f.output,'v0.1.0-alpha.1').files.length,7);
-  for(const tag of ['v0.2.0-alpha.1','v0.1.0','--draft','v0.1.0-alpha.1/other'])assert.throws(()=>reviewDraftFiles(f.output,tag));
-  writeFileSync(join(f.output,'GitNova.exe'),'changed');assert.throws(()=>reviewDraftFiles(f.output,'v0.1.0-alpha.1'),/changed/);
+  assert.equal(reviewDraftFiles(f.output,'v1.0.0').files.length,7);
+  assert.equal(reviewDraftFiles(f.output,'v1.0.0-alpha.1').files.length,7);
+  for(const tag of ['v1.0.1','v1.0.1-alpha.1','v1.0.0-alphaevil','--draft','v1.0.0-alpha.1/other'])assert.throws(()=>reviewDraftFiles(f.output,tag));
+  writeFileSync(join(f.output,'GitNova.exe'),'changed');assert.throws(()=>reviewDraftFiles(f.output,'v1.0.0-alpha.1'),/changed/);
  }finally{f.clean();}
 });
 // Signing runs on the Linux release runner. Git for Windows ships an MSYS GPG
