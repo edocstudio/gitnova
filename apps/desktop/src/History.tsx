@@ -54,7 +54,7 @@ function GraphMark({ row, width, naturalWidth, head, labelled, savedLanes }: { r
     <circle className={row.commit.parents.length > 1 ? 'merge-node' : 'commit-node'} cx={x(row.lane)} cy={middle} r={row.commit.parents.length > 1 ? 5 : 4} fill={row.commit.parents.length > 1 ? 'var(--graph-node-bg, #101a23)' : color(row.color)} stroke={color(row.color)} />
   </svg>;
 }
-export function History({ membershipId, ciBadges, submodules, stashes, stashError, mergeState, session, onStash, onPop, stashBusy, onSelect, onScroll, onMore, busy, onAction }: { membershipId:string; ciBadges?:Record<string,string>; submodules?: ReactNode; onStash: () => void; onPop: () => void; stashBusy: boolean; stashes?: StashList; stashError?: string; mergeState?: MergeState; onAction: (intent: GraphIntent) => void; session: GraphSession; onSelect: (oid: string) => void; onScroll: (top: number, anchor: string, offset: number) => void; onMore: () => void; busy: boolean }) {
+export function History({ membershipId, focusOid, onFocused, ciBadges, submodules, stashes, stashError, mergeState, session, onStash, onPop, stashBusy, onSelect, onScroll, onMore, busy, onAction }: { membershipId:string; focusOid?:string; onFocused?:()=>void; ciBadges?:Record<string,string>; submodules?: ReactNode; onStash: () => void; onPop: () => void; stashBusy: boolean; stashes?: StashList; stashError?: string; mergeState?: MergeState; onAction: (intent: GraphIntent) => void; session: GraphSession; onSelect: (oid: string) => void; onScroll: (top: number, anchor: string, offset: number) => void; onMore: () => void; busy: boolean }) {
   // Relative dates still advance when equal poll observations skip rerenders.
   // Repaint only the visible rows once a minute; keep graph geometry memoized.
   const [,setMinute]=useState(0);
@@ -67,6 +67,16 @@ export function History({ membershipId, ciBadges, submodules, stashes, stashErro
   useLayoutEffect(() => { const at = session.anchor ? items.findIndex(item => item.id === session.anchor) : -1; const top = session.scroll > 0 && at >= 0 ? at * ROW_HEIGHT + (session.anchorOffset ?? 0) : session.scroll; if (viewport.current) viewport.current.scrollTop = top; setScroll(top); }, [session.base, session.revision, items]);
   useEffect(() => { const node = viewport.current; if (!node) return; const observer = new ResizeObserver(() => {setHeight(node.clientHeight);setViewportWidth(node.clientWidth);}); observer.observe(node); return () => observer.disconnect(); }, []);
   const range = windowRange(scroll, height, items.length);
+  useLayoutEffect(() => {
+    if (!focusOid) return;
+    // The target can mount only after the virtual viewport restores its scroll.
+    // Acknowledge once, so later polling does not steal keyboard focus back.
+    const target = document.getElementById(`commit-${focusOid}`);
+    if (target && viewport.current?.contains(target)) {
+      target.focus({preventScroll:true});
+      onFocused?.();
+    }
+  }, [focusOid, range.start, range.end, onFocused]);
   const visibleOids = items.slice(Math.floor(scroll / ROW_HEIGHT), Math.ceil((scroll + height) / ROW_HEIGHT)).flatMap(item => item.row ? [item.row.commit.oid] : []).join(',');
   const graphCi = useGraphCi(membershipId, visibleOids);
   const requestState=useBranchRequests(membershipId,session.page.status.head??session.rows[0]?.commit.oid??'');

@@ -520,7 +520,11 @@ fn push_to_the_same_repository_is_blocked_even_if_native_receive_allows_worktree
             "remote",
             "set-url",
             "origin",
-            &format!("file://{}", repo.display()),
+            &format!(
+                "file://{}{}",
+                if cfg!(windows) { "/" } else { "" },
+                repo.display().to_string().replace('\\', "/")
+            ),
         ],
     );
     let review = app.preview_push(&id, &request).unwrap();

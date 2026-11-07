@@ -17,11 +17,12 @@ changing fixture bytes; production Git settings are never overridden.
 After tests pass, each native job collects target-specific dependency evidence
 and creates its alpha candidate:
 
-- macOS: local ad-hoc-signed debug `.app` in a ZIP, matching the current local
-  alpha profile; not Developer ID signed or notarized.
+- macOS: ad-hoc-signed `.app` in a ZIP. Ordinary checks use the local debug
+  profile; the manual release-candidate workflow requires the release profile.
+  Neither profile is Developer ID signed or notarized.
 - Windows x64: unsigned per-user NSIS installer, release build.
-- Linux x64: release Debian package and AppImage extracted in a temporary folder.
-  Extracted Debian startup is not an OS package-manager installation test.
+- Linux x64: release Debian package installed with apt on a disposable runner,
+  plus AppImage extracted in a temporary folder and started through AppRun.
 
 Each candidate's actual installed/extracted executable is launched with an empty
 private home and private temporary real Git repository. Native WebView startup,
@@ -45,10 +46,20 @@ into RAM. Cleanup must stop both owned native processes before acceptance can
 remain successful. The macOS ZIP is extracted before native acceptance too.
 
 Artifacts are uploaded as CI candidates only after that job passes. No workflow
-publishes a GitHub Release. `publicationGatePassed` remains false while manual
+publishes a public GitHub Release. The optional release-candidate handoff can
+attach verified packages to a draft prerelease. `publicationGatePassed` remains false while manual
 native acceptance, dependency/asset review and trusted signing are outstanding.
 An alpha build can succeed with known inventory gaps; do not describe that as a
 completed license audit or a public-release gate pass.
+
+Linux additionally reinstalls the same Debian candidate, checks the executable
+hash and attribution resources, then purges it with dpkg and checks removal.
+Windows repeats the NSIS installation, checks the executable/resources, then
+uses the installed silent uninstaller and checks removal. Successful runs emit
+`*-lifecycle.json` tied to the installer SHA-256. These checks do not verify
+upgrades from older versions, migration of real user data or manual GUI flows.
+The Debian script refuses to run outside a disposable GitHub-hosted Linux runner
+or replace an already installed GitNova package. Do not run it on a work machine.
 
 ## Signing later
 

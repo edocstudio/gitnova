@@ -12,6 +12,11 @@
       "icons/128x128@2x.png"
     ],
     "linux": {
+      "appimage": {
+        "files": {
+          "/usr/share/common-licenses": "/usr/share/common-licenses"
+        }
+      },
       "deb": {
         "depends": [
           "git",

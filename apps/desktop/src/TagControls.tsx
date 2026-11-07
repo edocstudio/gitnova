@@ -29,7 +29,11 @@ export function TagControls({membershipId,oid,initialName='',initialPush=false,b
   const matchingTags=useMemo(()=>localTags.filter(tag=>tag.name.toLowerCase().includes(tagQuery.toLowerCase())),[localTags,tagQuery]);
   const pages=Math.max(1,Math.ceil(matchingTags.length/5)),currentPage=Math.min(tagPage,pages-1);
   const duplicate=!push&&localTags.some(tag=>tag.name===name);
-  const locked=blocked||loading||writing||tagsLoading||!remotesReady;
+  const busy=blocked||loading||writing||tagsLoading||!remotesReady;
+  // Remote discovery and tag inventory are separate async steps. Keep the form
+  // disabled between them so an input cannot briefly accept then lose a change.
+  // Retry stays available after an inventory error even though review is locked.
+  const locked=busy||!push&&!tagsReady;
   return <div className="tag-controls" aria-label={t('Version tag review')} aria-busy={loading||writing||tagsLoading}>
     <strong>{push?t('Push tag {0}',[name]):created?t('Tag created: {0}',[name]):t('Create tag at this commit')}</strong><p>{t('Commit')} <code>{oid.slice(0,12)}</code></p>
     {(loading||writing||tagsLoading)&&<p role="status" className="operation-wait"><span className="loading-spin" aria-hidden="true">↻</span>{writing?push?t('Publishing selected tag…'):t('Creating tag…'):t('Inspecting tag and destination…')}</p>}
@@ -44,7 +48,7 @@ export function TagControls({membershipId,oid,initialName='',initialPush=false,b
       {push?<><label htmlFor="tag-remote">{t('Remote')}</label><select id="tag-remote" value={remote} disabled={locked} onChange={e=>setRemote(e.target.value)}><option value="">{t('Choose remote…')}</option>{remotes.map(value=><option key={value}>{value}</option>)}</select>{!loading&&!remotes.length&&<p className="notice">{t('No configured remotes. Add one with Git before using this action.')}</p>}</>:<><label htmlFor="tag-name">{t('Tag name')}</label><input id="tag-name" value={name} disabled={locked} placeholder="v1.2.0" maxLength={256} onChange={e=>setName(e.target.value)}/>{duplicate&&<p className="notice" role="status">{t('This tag name already exists. Choose a new name.')}</p>}
       <section className="existing-tags" aria-label={t('Existing tags')}><strong>{t('Existing tags')} · {tagsReady?localTags.length:'…'}</strong><p className="hint">{t('Fresh local tags and tags at the selected push destination. No tags are fetched or changed.')}</p>
       <label htmlFor="tag-list-remote">{t('Check tags on remote')}</label><select id="tag-list-remote" value={remote} disabled={!remotesReady||writing||loading} onChange={e=>{setTagsReady(false);setRemote(e.target.value);setTagPage(0);}}><option value="">{t('Local tags only (offline)')}</option>{remotes.map(value=><option key={value}>{value}</option>)}</select>
-      <button type="button" disabled={locked} onClick={()=>{setTagsReady(false);setReload(value=>value+1);}}>{t('Refresh tag list')}</button>
+      <button type="button" disabled={busy} onClick={()=>{setTagsReady(false);setReload(value=>value+1);}}>{t('Refresh tag list')}</button>
       {tagsError&&<p className="notice" role="alert">{t('Tag list could not be verified. Retry or choose local-only mode.')} {t(tagsError)}</p>}
       <label htmlFor="tag-search">{t('Search existing tags')}</label><input id="tag-search" type="search" value={tagQuery} onChange={e=>{setTagQuery(e.target.value);setTagPage(0);}}/>
       <ul>{(tagsReady?matchingTags:[]).slice(currentPage*5,currentPage*5+5).map(tag=><li key={tag.name}><span title={tag.name}>{tag.name} <small>{tag.local?t("Local"):""}{tag.local&&tag.remote?" · ":""}{tag.remote?remote:""}</small></span><code title={tag.oid}>{tag.oid.slice(0,8)}</code></li>)}</ul>{tagsReady&&!matchingTags.length&&<p className="hint">{localTags.length?t('No matching tags.'):t('No local tags yet.')}</p>}

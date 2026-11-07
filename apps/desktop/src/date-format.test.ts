@@ -5,6 +5,9 @@ import { setLocale } from './i18n';
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); setLocale('en'); });
 
 describe('shared date formatters', () => {
+  // This is ICU output conformance, not a timing benchmark. Cold Windows CI
+  // needed 16 seconds for the native baselines even with one test worker.
+  // Keep the larger deadline local; formatter reuse is asserted separately.
   it('preserves native EN/TH date, time and calendar output', () => {
     const cache = new DateFormatterCache();
     for (const locale of ['en-US', 'th-TH'] as const) {
@@ -17,7 +20,7 @@ describe('shared date formatters', () => {
         expect(cache.format(seconds, 'commit', locale)).toBe(date.toLocaleString(locale, {dateStyle: 'medium', timeStyle: 'short'}));
       }
     }
-  });
+  }, 30_000);
 
   it('reuses formatters across different timestamps and language switches', () => {
     const cache = new DateFormatterCache();

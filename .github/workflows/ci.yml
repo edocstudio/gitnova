@@ -11,6 +11,7 @@ permissions:
   contents: read
 jobs:
   core:
+    timeout-minutes: 90
     env:
       CARGO_BUILD_JOBS: 2
       RUST_TEST_THREADS: 1
@@ -63,6 +64,8 @@ jobs:
         working-directory: apps/desktop
       - name: Pinned license evidence checks
         run: python apps/desktop/scripts/test_inventory_licenses.py
+      - name: AppImage native notice checks
+        run: python apps/desktop/scripts/test_verify_linux_notices.py
       - run: cargo clippy -p gitnova-desktop --locked -- -D warnings
       - run: cargo test -p gitnova-desktop --locked
       - run: cargo build -p gitnova-desktop --locked
@@ -70,6 +73,12 @@ jobs:
         working-directory: apps/desktop
       - run: npm run test:e2e
         working-directory: apps/desktop
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: native-platform-test-results-macos
+          if-no-files-found: ignore
+          path: apps/desktop/test-results/
       - name: Collect macOS target license evidence
         shell: bash
         run: |
@@ -101,11 +110,16 @@ jobs:
           if-no-files-found: error
           path: target/alpha-evidence/
   desktop-platform:
-    name: desktop (${{ matrix.os }})
+    name: desktop (${{ matrix.os }}, shard ${{ matrix.shard }}/${{ matrix.shards }})
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-latest]
+        include:
+          - { os: ubuntu-24.04, shard: 1, shards: 1, package: true }
+          - { os: windows-latest, shard: 1, shards: 4, package: true }
+          - { os: windows-latest, shard: 2, shards: 4, package: false }
+          - { os: windows-latest, shard: 3, shards: 4, package: false }
+          - { os: windows-latest, shard: 4, shards: 4, package: false }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     env:
@@ -161,49 +175,44 @@ jobs:
       - name: Install browser test runtime
         run: npx playwright install --with-deps chromium
         working-directory: apps/desktop
+      # One worker per runner. Fully-parallel registration lets Playwright shard
+      # individual tests from graph.spec.ts; it does not add workers here.
+      # Every shard must pass before the reusable workflow can approve assembly.
       - name: All graph workflows against real temporary Git repositories
-        run: npm run test:e2e
+        run: npm run test:e2e -- --workers=1 --max-failures=${{ matrix.shards > 1 && '0' || '1' }} ${{ matrix.shards > 1 && '--fully-parallel' || '' }} --shard=${{ matrix.shard }}/${{ matrix.shards }}
         working-directory: apps/desktop
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: native-platform-test-results-${{ matrix.os }}
+          name: native-platform-test-results-${{ matrix.os }}-${{ matrix.shard }}
           if-no-files-found: ignore
           path: apps/desktop/test-results/
       - name: Windows Credential Manager isolation test
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.package
         run: cargo test -p gitnova-hosting platform_store_round_trip --locked -- --ignored --test-threads=1
       - name: Linux Secret Service isolation test
         if: runner.os == 'Linux'
         run: |
           dbus-run-session -- bash -euc 'printf "fixture-keyring-password" | gnome-keyring-daemon --unlock --components=secrets; cargo test -p gitnova-hosting platform_store_round_trip --locked -- --ignored --test-threads=1'
       - name: Collect native target license evidence
+        if: matrix.package
         shell: bash
         run: |
           cargo fetch --locked
           host=$(rustc -vV | sed -n 's/^host: //p')
           python apps/desktop/scripts/inventory-licenses.py --target "$host"
       - name: Build isolated native acceptance bridge
+        if: matrix.package
         run: cargo build -p gitnova-core --example ui_bridge --locked
       - name: Build native alpha installers
+        if: matrix.package
         run: npm run build:desktop
         working-directory: apps/desktop
-      - name: Verify packaged Linux attribution
+      - name: Verify Debian install, reinstall and removal
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          mkdir "$RUNNER_TEMP/gitnova-deb"
-          dpkg-deb -x target/release/bundle/deb/*.deb "$RUNNER_TEMP/gitnova-deb"
-          mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-deb" -path '*/licenses/LICENSE')
-          test "${#texts[@]}" -eq 1
-          resources=$(dirname "$(dirname "${texts[0]}")")
-          node apps/desktop/scripts/verify-platform-resources.mjs "$resources"
-          executable=$(find "$RUNNER_TEMP/gitnova-deb" -type f -name gitnova-desktop)
-          test -n "$executable"
-          mkdir -p target/alpha-evidence
-          artifact=$(realpath target/release/bundle/deb/*.deb)
-          dbus-run-session -- xvfb-run -a node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact "$artifact" --report target/alpha-evidence/deb-acceptance.json
-          node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact "$artifact" --acceptance target/alpha-evidence/deb-acceptance.json --resources "$resources" --output target/alpha-evidence/deb-artifact.json
+          bash apps/desktop/scripts/check-debian-install.sh target/release/bundle/deb/*.deb target/debug/examples/ui_bridge target/alpha-evidence
       - name: Verify packaged AppImage attribution
         if: runner.os == 'Linux'
         shell: bash
@@ -211,6 +220,7 @@ jobs:
           image=$(realpath target/release/bundle/appimage/*.AppImage)
           mkdir "$RUNNER_TEMP/gitnova-appimage"
           (cd "$RUNNER_TEMP/gitnova-appimage" && "$image" --appimage-extract > /dev/null)
+          python apps/desktop/scripts/verify-linux-notices.py --root "$RUNNER_TEMP/gitnova-appimage/squashfs-root" --artifact "$image" --output target/alpha-evidence/appimage-native-notices.json
           mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-appimage" -path '*/licenses/LICENSE')
           test "${#texts[@]}" -eq 1
           resources=$(dirname "$(dirname "${texts[0]}")")
@@ -222,7 +232,7 @@ jobs:
           dbus-run-session -- xvfb-run -a node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact "$image" --report target/alpha-evidence/appimage-acceptance.json
           node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact "$image" --acceptance target/alpha-evidence/appimage-acceptance.json --resources "$resources" --output target/alpha-evidence/appimage-artifact.json
       - name: Verify installed Windows attribution
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.package
         shell: pwsh
         run: |
           $installer = Get-Item target/release/bundle/nsis/*.exe
@@ -238,16 +248,40 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installed native acceptance failed' }
           node apps/desktop/scripts/alpha-artifact.mjs --executable $binary.FullName --artifact $installer.FullName --acceptance target/alpha-evidence/windows-acceptance.json --resources $destination --output target/alpha-evidence/windows-artifact.json
           if ($LASTEXITCODE -ne 0) { throw 'Candidate evidence verification failed' }
+          # Exercise the exact installer's repair path without running a second
+          # app instance. This does not test migration from a prior version.
+          $before = (Get-FileHash -Algorithm SHA256 $binary.FullName).Hash
+          $repair = Start-Process -FilePath $installer.FullName -ArgumentList '/S',"/D=$destination" -Wait -PassThru
+          if ($repair.ExitCode -ne 0) { throw 'Installer repair failed' }
+          if ((Get-FileHash -Algorithm SHA256 $binary.FullName).Hash -ne $before) { throw 'Repair changed the candidate executable' }
+          node apps/desktop/scripts/verify-platform-resources.mjs $destination
+          if ($LASTEXITCODE -ne 0) { throw 'Reinstalled attribution verification failed' }
+          $uninstaller = Join-Path $destination 'uninstall.exe'
+          if (-not (Test-Path -LiteralPath $uninstaller)) { throw 'Installed uninstaller missing' }
+          # NSIS _?= must be last; it keeps the uninstaller in place so -Wait
+          # observes completion instead of a temporary self-copy process.
+          $removed = Start-Process -FilePath $uninstaller -ArgumentList '/S',"_?=$destination" -Wait -PassThru
+          if ($removed.ExitCode -ne 0) { throw 'Uninstaller failed' }
+          if (Test-Path -LiteralPath $binary.FullName) { throw 'Uninstaller left the app executable' }
+          if (Test-Path -LiteralPath (Join-Path $destination 'licenses/LICENSE')) { throw 'Uninstaller left packaged license resources' }
+          $lifecycle = @{
+            schemaVersion = 1; kind = 'gitnova-installer-lifecycle'; passed = $true
+            artifact = $installer.Name; artifactSha256 = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+            checks = @('nsis-install', 'installed-native-acceptance', 'same-version-reinstall', 'nsis-uninstall')
+            limitations = @('Previous-version migration and manual GUI acceptance are not covered.')
+          }
+          $lifecycle | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 target/alpha-evidence/windows-lifecycle.json
       - name: Verify Linux embedded UI
         if: runner.os == 'Linux'
         run: xvfb-run -a target/release/gitnova-desktop --verify-bundle
       - name: Verify Windows embedded UI
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.package
         shell: pwsh
         run: |
           $process = Start-Process -FilePath target/release/gitnova-desktop.exe -ArgumentList '--verify-bundle' -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw 'Embedded UI verification failed' }
       - uses: actions/upload-artifact@v4
+        if: matrix.package
         with:
           name: gitnova-alpha-${{ matrix.os }}
           if-no-files-found: error

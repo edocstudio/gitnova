@@ -246,8 +246,8 @@ impl GitCli {
                 "worktree".into(),
                 "move".into(),
                 "--".into(),
-                from.as_os_str().into(),
-                to.as_os_str().into(),
+                crate::process::git_path(&from)?,
+                crate::process::git_path(to)?,
             ],
         )
         .map_err(|e| {

@@ -392,12 +392,60 @@ pub fn path_from_bytes(bytes: Vec<u8>) -> Result<PathBuf> {
     }
     #[cfg(windows)]
     {
-        String::from_utf8(bytes).map(PathBuf::from).map_err(|_| {
+        let value = String::from_utf8(bytes).map_err(|_| {
             AppError::new(
                 "encoding",
                 "Git returned a path not representable as UTF-8 on Windows",
             )
-        })
+        })?;
+        // Git emits ordinary absolute paths; Rust canonicalize emits verbatim
+        // paths. Normalize syntax without following links or changing aliases:
+        // missing worktree registrations must keep their original location.
+        let path = PathBuf::from(&value);
+        if path.is_absolute() {
+            use std::path::{Component, Prefix};
+            if let Some(Component::Prefix(prefix)) = path.components().next() {
+                match prefix.kind() {
+                    Prefix::Disk(_) => {
+                        return Ok(PathBuf::from(format!(r"\\?\{}", value.replace('/', r"\"))));
+                    }
+                    Prefix::UNC(_, _) => {
+                        return Ok(PathBuf::from(format!(
+                            r"\\?\UNC\{}",
+                            value.replace('/', r"\").trim_start_matches(r"\")
+                        )));
+                    }
+                    _ => (),
+                }
+            }
+        }
+        Ok(path)
+    }
+}
+#[cfg(all(test, windows))]
+mod native_path_tests {
+    use super::path_from_bytes;
+    use std::path::PathBuf;
+
+    #[test]
+    fn absolute_git_locations_match_native_prefixes_without_filesystem_lookup() {
+        assert_eq!(
+            path_from_bytes(b"C:/missing checkout/linked/.git".to_vec()).unwrap(),
+            PathBuf::from(r"\\?\C:\missing checkout\linked\.git")
+        );
+        assert_eq!(
+            path_from_bytes(b"//server/share/missing/.git".to_vec()).unwrap(),
+            PathBuf::from(r"\\?\UNC\server\share\missing\.git")
+        );
+        assert_eq!(
+            path_from_bytes(br"\\?\C:\already\native".to_vec()).unwrap(),
+            PathBuf::from(r"\\?\C:\already\native")
+        );
+        assert_eq!(
+            path_from_bytes(b"packages/child".to_vec()).unwrap(),
+            PathBuf::from("packages/child")
+        );
+        assert!(path_from_bytes(vec![0xff]).is_err());
     }
 }
 pub fn validate_oid(oid: &str) -> Result<()> {
