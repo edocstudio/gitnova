@@ -36,12 +36,16 @@ jobs:
       RUST_TEST_THREADS: 1
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.99.1
           components: rustfmt, clippy
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: apps/desktop/package-lock.json
       - name: Isolate CI Git configuration
@@ -74,9 +78,12 @@ jobs:
     environment: release-signing
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
       - uses: actions/download-artifact@v4
         with:
           pattern: gitnova-native-*
@@ -129,9 +136,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
       - uses: actions/download-artifact@v4
         with:
           name: gitnova-release-candidate-${{ github.sha }}

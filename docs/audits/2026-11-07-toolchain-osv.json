@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-07",
+  "source": "OSV querybatch; not cargo audit",
+  "packagesChecked": 536,
+  "findings": [
+    {
+      "package": "glib",
+      "version": "0.18.5",
+      "advisories": [
+        "GHSA-wrw7-89jp-8q8g",
+        "RUSTSEC-2024-0429"
+      ]
+    },
+    {
+      "package": "proc-macro-error",
+      "version": "1.0.4",
+      "advisories": [
+        "RUSTSEC-2024-0370"
+      ]
+    },
+    {
+      "package": "zbus_names",
+      "version": "3.0.0",
+      "advisories": [
+        "RUSTSEC-2026-0371"
+      ]
+    },
+    {
+      "package": "zbus_names",
+      "version": "4.3.5",
+      "advisories": [
+        "RUSTSEC-2026-0371"
+      ]
+    },
+    {
+      "package": "zvariant",
+      "version": "4.2.0",
+      "advisories": [
+        "RUSTSEC-2026-0370"
+      ]
+    },
+    {
+      "package": "zvariant",
+      "version": "5.15.1",
+      "advisories": [
+        "RUSTSEC-2026-0370"
+      ]
+    },
+    {
+      "package": "zvariant_derive",
+      "version": "4.2.0",
+      "advisories": [
+        "RUSTSEC-2026-0372"
+      ]
+    },
+    {
+      "package": "zvariant_derive",
+      "version": "5.15.1",
+      "advisories": [
+        "RUSTSEC-2026-0372"
+      ]
+    }
+  ]
+}

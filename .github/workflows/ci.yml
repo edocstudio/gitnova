@@ -22,8 +22,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.99.1
           components: rustfmt, clippy
       - name: Linux core credential-store dependencies
         if: runner.os == 'Linux'
@@ -41,12 +45,16 @@ jobs:
       RUST_TEST_THREADS: 1
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.99.1
           components: clippy
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: apps/desktop/package-lock.json
       - run: npm ci
@@ -128,12 +136,16 @@ jobs:
       APPIMAGE_EXTRACT_AND_RUN: 1
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.99.1
           components: clippy
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: apps/desktop/package-lock.json
       - name: Linux desktop dependencies

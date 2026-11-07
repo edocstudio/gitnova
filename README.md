@@ -10,7 +10,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
   <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.0-4c9aff?style=flat-square" alt="Version: 1.0.0" /></a>
-  <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.98%2B-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.98 or newer" /></a>
+  <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
 
@@ -75,15 +75,17 @@ Captured from a temporary Git fixture using the real Rust core through the brows
 
 ### Requirements
 
-- **Rust stable 1.98+**, Cargo, and an installed **Git 2.38+** executable.
-- **Node.js 20.x (20.19.0+) or 22.12.0+** and npm. The repository pins 20.20.2 in [`.nvmrc`](.nvmrc); the accepted range is declared in [package.json](apps/desktop/package.json).
+- **Rust stable 1.99.1**, Cargo, and an installed **Git 2.38+** executable.
+- **Node.js 26.13.0 LTS (26.x)** and npm. The repository pins 26.13.0 in [`.nvmrc`](.nvmrc); the accepted range is declared in [package.json](apps/desktop/package.json).
 - The [Tauri system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS. The local macOS bundle targets macOS 13.0 or newer; see the platform validation limits below.
+
+Rust is pinned in [`rust-toolchain.toml`](rust-toolchain.toml), Node in [`.nvmrc`](.nvmrc), and Python QA/license tooling in [`.python-version`](.python-version) (3.15.2). Use the pinned toolchains for reproducible local and CI checks. TypeScript 7 is installed locally through `npm ci`; do not install it globally. Python is needed for QA/license scripts, not by the installed app. See the [toolchain verification report](docs/audits/2026-11-07-toolchain-upgrade.md) for completed checks and unresolved security/attribution findings.
 
 ### Install the source-build tools first
 
 The commands below build the native app from source. **`npm ci` installs JavaScript dependencies only; `nvm` manages Node.js only. Neither installs Rust or Cargo.** A built standalone GitNova app does not need Rust/Cargo/Node on the recipient’s machine; it still needs Git. Public installers are not available yet.
 
-1. Install stable **Rust 1.98+ and Cargo** using [rustup](https://rust-lang.org/tools/install/). Cargo is included with the Rust installation. Reopen Terminal afterward so the updated `PATH` takes effect. On macOS/Linux, an existing rustup installation can also be activated in the current shell with `source "$HOME/.cargo/env"`. On Windows, reopen the terminal and check that `%USERPROFILE%\.cargo\bin` is in `PATH`. If Rust is installed but no default toolchain is configured, run `rustup default stable`; update an older rustup toolchain with `rustup update stable`.
+1. Install stable **Rust 1.99.1 and Cargo** using [rustup](https://rust-lang.org/tools/install/). Cargo is included with the Rust installation. Reopen Terminal afterward so the updated `PATH` takes effect. On macOS/Linux, an existing rustup installation can also be activated in the current shell with `source "$HOME/.cargo/env"`. On Windows, reopen the terminal and check that `%USERPROFILE%\.cargo\bin` is in `PATH`. If Rust is installed but no default toolchain is configured, run `rustup default stable`; update an older rustup toolchain with `rustup update stable`.
 2. Install **Git 2.38+**, then the [Tauri prerequisites for your OS](https://v2.tauri.app/start/prerequisites/): macOS desktop development needs Xcode Command Line Tools (`xcode-select --install`, then finish the installer); Windows needs Microsoft C++ Build Tools and WebView2; Linux needs the distribution-specific WebKitGTK/build packages listed there.
 3. Install a supported Node.js version and npm. With nvm, run `nvm install` followed by `nvm use` from the repository root. The `.nvmrc` does not install or select Rust.
 
