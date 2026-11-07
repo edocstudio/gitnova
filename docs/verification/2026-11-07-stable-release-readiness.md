@@ -191,6 +191,16 @@ not execute in that failed run; they are not counted as passed.
 
 ## Targeted distribution evidence
 
+Windows diagnostic [42369297150](https://github.com/edocstudio/gitnova/actions/runs/42369297150)
+passed all 53 applicable Rust integration cases and the complete advanced stash
+round trip. Recreated-merge UI verification still encountered the 15-second read
+deadline while the trace showed the native operation applying, with no error.
+That topology poll now uses the existing 45-second write budget, with a
+120-second total fixture budget for setup, preview and application. The
+two-parent, source branch, target branch and clean-working-tree checks remain.
+The worktree UI case did not execute after this failure and is not counted as
+passed.
+
 The full Windows desktop job at `dbb452c` passed native IPC/PTY and packaging
 evidence checks, then failed its native EN/TH date-output conformance test at
 the five-second unit-test deadline (16.3 seconds observed with one worker).
