@@ -57,3 +57,14 @@ workflows; the repo-switch case timed out with Open disabled. Local repetition
 passed three times. Picker focus callbacks now cancel on close and respect
 focus already inside the picker; a further targeted run and TypeScript passed.
 These follow-up fixes still require hosted execution.
+
+Next hosted run (`42355615724`, source `408be28`): Linux desktop passed,
+including all browser workflows, real GPG fixture, release-profile deb and
+AppImage packaging, installed startup/IPC/single-instance checks, attribution
+inclusion and artifact upload. Linux/macOS core passed. Windows core exposed
+two more tab-containing hunk fixture names; Windows now uses spaced Unicode
+names while Unix retains tabs. All 9 hunk tests passed locally. Core CI uses
+Cargo's `--no-fail-fast` to report remaining test-target failures in one run
+instead of stopping at the first binary. Windows/macOS desktop completion and
+full release assembly still need verification; Linux alone does not establish
+cross-platform release readiness or license approval.
