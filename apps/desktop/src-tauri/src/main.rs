@@ -2050,7 +2050,16 @@ mod tests {
         )
         .is_err());
         assert!(invoke("create_worktree", tree_apply, "https://example.invalid").is_err());
-        let removal_args = json!({"membershipId":membership,"request":{"path":NativePath::new(&repo.canonicalize().unwrap()),"id":""}});
+        // Use the discovered DTO, just as the UI does. Git for Windows reports
+        // slash-separated paths; canonicalize returns a verbatim Windows path.
+        let trees = invoke(
+            "worktrees",
+            json!({"membershipId":membership}),
+            local_ipc_origin(),
+        )
+        .unwrap();
+        let removal_args =
+            json!({"membershipId":membership,"request":{"path":trees[0]["path"],"id":""}});
         let removal_review = invoke(
             "preview_remove_worktree",
             removal_args.clone(),
