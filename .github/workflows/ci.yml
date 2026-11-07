@@ -114,7 +114,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-latest]
+        include:
+          - { os: ubuntu-24.04, shard: 1, shards: 1, package: true }
+          - { os: windows-latest, shard: 1, shards: 4, package: true }
+          - { os: windows-latest, shard: 2, shards: 4, package: false }
+          - { os: windows-latest, shard: 3, shards: 4, package: false }
+          - { os: windows-latest, shard: 4, shards: 4, package: false }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     env:
@@ -170,33 +175,37 @@ jobs:
       - name: Install browser test runtime
         run: npx playwright install --with-deps chromium
         working-directory: apps/desktop
-      # Stop after the first failed workflow so traces upload before the job
-      # deadline. A passing run still executes the complete suite.
+      # One worker per runner. Fully-parallel registration lets Playwright shard
+      # individual tests from graph.spec.ts; it does not add workers here.
+      # Every shard must pass before the reusable workflow can approve assembly.
       - name: All graph workflows against real temporary Git repositories
-        run: npm run test:e2e -- --max-failures=1
+        run: npm run test:e2e -- --workers=1 --max-failures=1 ${{ matrix.shards > 1 && '--fully-parallel' || '' }} --shard=${{ matrix.shard }}/${{ matrix.shards }}
         working-directory: apps/desktop
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: native-platform-test-results-${{ matrix.os }}
+          name: native-platform-test-results-${{ matrix.os }}-${{ matrix.shard }}
           if-no-files-found: ignore
           path: apps/desktop/test-results/
       - name: Windows Credential Manager isolation test
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.package
         run: cargo test -p gitnova-hosting platform_store_round_trip --locked -- --ignored --test-threads=1
       - name: Linux Secret Service isolation test
         if: runner.os == 'Linux'
         run: |
           dbus-run-session -- bash -euc 'printf "fixture-keyring-password" | gnome-keyring-daemon --unlock --components=secrets; cargo test -p gitnova-hosting platform_store_round_trip --locked -- --ignored --test-threads=1'
       - name: Collect native target license evidence
+        if: matrix.package
         shell: bash
         run: |
           cargo fetch --locked
           host=$(rustc -vV | sed -n 's/^host: //p')
           python apps/desktop/scripts/inventory-licenses.py --target "$host"
       - name: Build isolated native acceptance bridge
+        if: matrix.package
         run: cargo build -p gitnova-core --example ui_bridge --locked
       - name: Build native alpha installers
+        if: matrix.package
         run: npm run build:desktop
         working-directory: apps/desktop
       - name: Verify Debian install, reinstall and removal
@@ -223,7 +232,7 @@ jobs:
           dbus-run-session -- xvfb-run -a node apps/desktop/scripts/smoke-local.mjs --executable "$executable" --bridge target/debug/examples/ui_bridge --artifact "$image" --report target/alpha-evidence/appimage-acceptance.json
           node apps/desktop/scripts/alpha-artifact.mjs --executable "$executable" --artifact "$image" --acceptance target/alpha-evidence/appimage-acceptance.json --resources "$resources" --output target/alpha-evidence/appimage-artifact.json
       - name: Verify installed Windows attribution
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.package
         shell: pwsh
         run: |
           $installer = Get-Item target/release/bundle/nsis/*.exe
@@ -266,12 +275,13 @@ jobs:
         if: runner.os == 'Linux'
         run: xvfb-run -a target/release/gitnova-desktop --verify-bundle
       - name: Verify Windows embedded UI
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.package
         shell: pwsh
         run: |
           $process = Start-Process -FilePath target/release/gitnova-desktop.exe -ArgumentList '--verify-bundle' -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw 'Embedded UI verification failed' }
       - uses: actions/upload-artifact@v4
+        if: matrix.package
         with:
           name: gitnova-alpha-${{ matrix.os }}
           if-no-files-found: error

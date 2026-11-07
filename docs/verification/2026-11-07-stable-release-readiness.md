@@ -260,3 +260,30 @@ event until its busy-UI assertions and screenshot finish, releasing the hold in
 `finally`. Git execution, recovery-file contents, pending-merge state and final
 UI assertions remain real and unchanged. Three local repetitions passed. This
 is test synchronization, not an artificial delay in application operations.
+
+Release candidate `509d2a1` passed Linux and macOS desktop checks. Downloaded
+release-profile packages were independently hashed: macOS ZIP
+`079c94ea73f24fc4cf8718b976ac76fe55d4f032b2c6e834bf3bccc9bd697050`,
+Debian `feb5defc686805809c85ad7d8456bd4a24a004dbaa63344686ced99a89d23f41`,
+AppImage `3b17c23e5ec329a1de8cd15afcca93d9c912398586dbfca45b2c213a02a8641c`.
+The macOS ZIP passes ad-hoc code-signature and five-resource attribution checks.
+Read-only SquashFS inspection matched all 111 native notices and 15 referenced
+common texts to the new AppImage report. Linux's 16 packaging/signing checks
+passed, including signing exact synthetic bytes with a disposable GPG key;
+no owner key was created. These packages are still unsigned alpha candidates.
+
+That Windows desktop run passed 32 browser workflows before the Thai stash Pop
+readiness assertion expired at 15 seconds. Its retained trace shows the button
+enabled after that deadline, without a blocked reason. This specific readiness
+assertion now uses the adjacent stash workflow's 45-second budget. The complete
+Thai conflict-resolution and discard workflows passed twice locally, retaining
+stash recovery, HEAD, resolved index and content assertions.
+
+Windows browser execution now uses four separate hosted shards, one worker on
+each runner. Listing the actual Playwright selections verifies 35 tests per
+shard, all 140 tests selected exactly once. Fully-parallel registration enables
+test-level sharding within the single graph spec; worker count stays one.
+Only shard 1 builds the Windows installer, avoiding duplicate package artifacts.
+Every shard must succeed for the reusable workflow to permit release assembly.
+Rust suite thread limits remain unchanged. Hosted validation of this revision
+is required before claiming Windows or same-source release approval.
