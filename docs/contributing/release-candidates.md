@@ -11,6 +11,12 @@ target-specific dependency/asset terms visible.
 
 Commit the reviewed changes through the normal protected-branch PR flow. Run
 **Actions → release candidate → Run workflow** on that exact reviewed ref.
+Keep `validation_scope` at `full` to prepare installers. The optional
+`windows-regressions` scope runs focused native path/worktree/submodule and
+stash UI diagnostics on Windows; it skips full validation, assembly and draft
+release creation. Passing diagnostics is not release approval. Run `full`
+again at the exact intended source revision after fixing any diagnostic failures.
+
 Leave `sign_linux` false until the owner key is configured. Linux can be
 distributed as unsigned alpha without GPG; a missing key is not itself a Linux
 installation blocker. Unsigned downloads must retain their publisher-authenticity

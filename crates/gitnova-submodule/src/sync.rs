@@ -118,8 +118,10 @@ pub(crate) fn resolved_url(git: &GitCli, parent: &Path, configured: &str) -> Res
             .ok_or_else(|| err("The source path is not UTF-8."))?;
         #[cfg(windows)]
         let value = value.replace('\\', "/");
-        git.validate_submodule_source(value.as_ref())?;
-        return Ok(value.into());
+        #[cfg(not(windows))]
+        let value = value.to_owned();
+        git.validate_submodule_source(&value)?;
+        return Ok(value);
     } else if let Some((host, path)) = base.split_once(':') {
         if host.contains('/') || path.starts_with('/') {
             return Err(err("This relative SSH URL needs manual inspection."));

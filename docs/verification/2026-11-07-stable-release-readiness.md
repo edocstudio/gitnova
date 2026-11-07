@@ -163,6 +163,21 @@ until the recreated two-parent merge is checked out on the expected branch.
 All topology, other-branch and working-tree assertions remain. Three local
 repetitions passed, as did TypeScript checking.
 
+Windows candidate `7d1636a` passed 31 browser workflows before its stash
+round-trip assertion expired. The retained trace shows inventory completed and
+the selected patch still loading, without a blocked operation or data error.
+That asynchronous readiness assertion now uses the same 45-second operation
+budget as the adjacent large-stash workflow, rather than the 15-second default.
+No global assertion timeout or product validation was weakened. Three complete
+local stash round trips passed with staging, untracked text, draft preservation,
+apply, drop, pop, recovery and HEAD assertions intact.
+
+Candidate `02cd576` also caught a Windows-only Clippy useless-conversion warning
+in the relative URL sync change. Both platform branches now return an owned
+string without that conversion. A focused Windows diagnostic mode is available
+to check these regressions before repeating full installer validation; it cannot
+assemble or publish release artifacts.
+
 ## Targeted distribution evidence
 
 Offline collection for `x86_64-pc-windows-msvc` now preserves the original MIT

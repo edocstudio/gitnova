@@ -2,6 +2,11 @@ name: release candidate
 on:
   workflow_dispatch:
     inputs:
+      validation_scope:
+        description: Full release validation, or focused Windows diagnostics without release assembly
+        type: choice
+        options: [full, windows-regressions]
+        default: full
       sign_linux:
         description: Sign Linux packages with the owner-configured GPG key
         type: boolean
@@ -17,10 +22,53 @@ concurrency:
   cancel-in-progress: false
 jobs:
   native-checks:
+    if: ${{ inputs.validation_scope != 'windows-regressions' }}
     uses: ./.github/workflows/ci.yml
     with:
       release_profile: true
+  windows-regressions:
+    if: ${{ inputs.validation_scope == 'windows-regressions' }}
+    name: Targeted Windows checks (not release approval)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      CARGO_BUILD_JOBS: 2
+      RUST_TEST_THREADS: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+      - name: Isolate CI Git configuration
+        run: python apps/desktop/scripts/prepare-ci-home.py
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy -p gitnova-git -p gitnova-submodule -p gitnova-core --all-targets --locked -- -D warnings
+      - name: Native Windows path decoding
+        run: cargo test -p gitnova-git --lib native_path_tests --locked
+      - name: Native worktree lifecycle and submodule sync regressions
+        run: cargo test -p gitnova-core --test worktree_creation --test worktree_removal --test related_maintenance --test ref_and_push --locked --no-fail-fast
+      - run: npm ci
+        working-directory: apps/desktop
+      - run: npx tsc --noEmit
+        working-directory: apps/desktop
+      - run: npx playwright install chromium
+        working-directory: apps/desktop
+      - name: Real-Git stash and worktree UI regressions
+        run: npx playwright test e2e/graph.spec.ts --grep "stash advanced options retain saved staging|graph worktree creation|graph rebase recreates two-parent merges" --workers=1 --max-failures=1
+        working-directory: apps/desktop
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: windows-regression-test-results
+          if-no-files-found: ignore
+          path: apps/desktop/test-results/
   assemble:
+    if: ${{ inputs.validation_scope != 'windows-regressions' }}
     needs: native-checks
     runs-on: ubuntu-24.04
     environment: release-signing
