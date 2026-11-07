@@ -725,6 +725,9 @@ test('workspace commit search scopes locate old history without checkout and pre
   await expect(search).toBeHidden({ timeout: 30000 }); await expect(page.locator('.repo-picker')).toContainText('search-web'); await expect(page.getByRole('heading', { name: 'Workspace search needle', exact: true })).toBeVisible(); await expect(page.locator(`button#commit-${target}`)).toBeFocused();
   await expect(page.getByLabel('Commit diff', { exact: true })).toContainText('value 10'); expect(git(web, ['rev-parse', 'HEAD'])).toBe(head); expect(git(web, ['symbolic-ref', '--short', 'HEAD'])).toBe('main'); expect(readFileSync(join(web, '.git/index'))).toEqual(index);
   await expect(page.locator('.history-wrap')).toContainText('Showing older history'); await page.screenshot({ path: testInfo.outputPath('workspace-search-focused-history.png') });
+  const refresh = page.locator('.refresh'); await refresh.focus();
+  await page.locator('.history-scroll').evaluate(node => { node.scrollTop += 120; }); await expect(refresh).toBeFocused();
+  await expect(page.locator(`button#commit-${target}`)).toHaveClass(/selected/);
   await page.locator('.repo-picker').click(); await page.locator('.repo-option-main').filter({ hasText: 'search-api' }).click(); await expect(page.locator('.commit-row.selected')).toContainText('Search fixture base');
 });
 

@@ -321,3 +321,14 @@ and verifies every supplemental file against its pinned hash with the fix.
 Both evidence tests and local offline Windows-target collection passed; that
 collection still explicitly records 37 unresolved candidates and is not audit
 approval. A new hosted Windows installer build remains necessary.
+
+The Linux PR check at `358ab9d` located and selected the correct old search
+result but missed keyboard focus. App-level animation-frame focusing could run
+before the virtual history mounted the target row after scroll restoration.
+History now acknowledges a bounded, repository/selection-scoped focus request
+when that row mounts. The request is consumed once; subsequent viewport changes
+do not reclaim focus. Six local search/failure-navigation repetitions passed,
+then two strengthened workspace-search repetitions verified that moving focus
+to Refresh and scrolling history preserves that focus. TypeScript passed.
+Hosted validation of this change remains required; this is not installer or
+manual team acceptance.
