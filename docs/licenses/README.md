@@ -1,4 +1,4 @@
-# License evidence for local alpha artifacts
+# License evidence for local artifacts
 
 GitNova's own source remains Apache-2.0; the standard LICENSE appendix is
 unchanged. NOTICE records project attribution, not a completed dependency audit.

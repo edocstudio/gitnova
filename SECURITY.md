@@ -1,8 +1,8 @@
 # Security policy
 
-## Alpha support scope
+## Support scope
 
-GitNova is currently an alpha, version 0.1.0. This policy describes the current development branch (`main`) and does not establish a supported stable/LTS series or a backport commitment for older alpha snapshots. Include the exact version/commit in a report. No response-time SLA, guaranteed fix timeline or production-support commitment is established. Native desktop validation and local debug packaging have focused on macOS Apple Silicon; Linux/Windows core CI configuration is not native desktop certification.
+GitNova is version 1.0.0. This policy covers the current development branch (`main`) and reports affecting 1.0.0; it does not establish an LTS series or a backport commitment for older versions. Include the exact version/commit in a report. No response-time SLA, guaranteed fix timeline or production-support commitment is established. Native desktop validation and local debug packaging have focused on macOS Apple Silicon; Linux/Windows core CI configuration is not native desktop certification.
 
 ## Reporting a suspected vulnerability
 

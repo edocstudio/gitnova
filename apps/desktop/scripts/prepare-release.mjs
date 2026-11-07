@@ -41,7 +41,7 @@ export function prepareRelease(input,output){
   writeFileSync(join(output,'release-candidate.json'),JSON.stringify(manifest,null,2)+'\n');
   const files=[...assets.map(asset=>asset.file),'release-candidate.json'].sort();
   writeFileSync(join(output,'SHA256SUMS'),files.map(file=>`${hashFile(join(output,file))}  ${file}\n`).join(''));
-  writeFileSync(join(output,'RELEASE-NOTES.md'),`GitNova ${first.version} alpha candidate\n\nSource: ${first.sourceCommit}\n\nRelease-profile native packages; this is not publication approval.\nmacOS is ad-hoc signed, not Developer ID signed or notarized.\nWindows is unsigned. Linux GPG sidecars, when present, are detached publisher signatures, not a trusted apt repository or embedded AppImage signature.\n\nRequires installed Git; Linux also needs compatible desktop libraries and Secret Service.\nRead the candidate manifest and target-specific acceptance/license evidence before publishing.\n`);
+  writeFileSync(join(output,'RELEASE-NOTES.md'),`GitNova ${first.version} release candidate\n\nSource: ${first.sourceCommit}\n\nRelease-profile native packages; this is not publication approval.\nmacOS is ad-hoc signed, not Developer ID signed or notarized.\nWindows is unsigned. Linux GPG sidecars, when present, are detached publisher signatures, not a trusted apt repository or embedded AppImage signature.\n\nRequires installed Git; Linux also needs compatible desktop libraries and Secret Service.\nRead the candidate manifest and target-specific acceptance/license evidence before publishing.\n`);
   return manifest;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){

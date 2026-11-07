@@ -4,7 +4,7 @@ GitNova third-party license evidence
 Collected from the offline locked dependency graph and installed npm packages.
 Includes build/development candidates, not a statement that all are shipped.
 This is not a completed license audit; see dependency-inventory.json for gaps.
-GitNova remains alpha; no public release compliance is certified here.
+Version labels do not certify public release compliance.
 
 
 

@@ -8,7 +8,7 @@ Open **Settings → FAQ** to read and search this guide inside GitNova.
 
 ### How do I turn a project folder into a repository?
 
-Open the workspace picker → Initialize repository…. Enter the full path to a new or existing folder and the initial branch (default `main`), review, then Initialize & open graph. The parent folder must exist. Existing files stay unchanged and unstaged; no first commit or remote is created automatically. Use Open for an existing Git repository. See the [setup guide](../../README.md#start-a-local-repository) for this alpha workflow.
+Open the workspace picker → Initialize repository…. Enter the full path to a new or existing folder and the initial branch (default `main`), review, then Initialize & open graph. The parent folder must exist. Existing files stay unchanged and unstaged; no first commit or remote is created automatically. Use Open for an existing Git repository. See the [setup guide](../../README.md#start-a-local-repository) for this workflow.
 
 ### How do I make my first commit?
 

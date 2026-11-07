@@ -1,6 +1,6 @@
-# Desktop platforms (alpha)
+# Desktop platforms
 
-The [unsigned alpha candidate workflow](contributing/unsigned-alpha.md) adds installed/extracted native WebView checks and artifact-bound evidence. Its Windows/Linux results must still be confirmed on the new hosted run; local macOS checks do not certify those platforms.
+The [unsigned release candidate workflow](contributing/unsigned-alpha.md) adds installed/extracted native WebView checks and artifact-bound evidence. Its Windows/Linux results must still be confirmed on the new hosted run; local macOS checks do not certify those platforms.
 
 Windows and Linux desktop support is being added alongside macOS. Native CI builds, IPC/PTY tests, synthetic credential-store checks and packaging checks are configured in `.github/workflows/ci.yml`. Configuration is not evidence of a passing hosted run: verify the checks for the exact commit before distributing its artifacts. The initial native CI run failed before completing acceptance; see the [findings and corrections](verification/2026-10-31/native-ci-corrections.md) and the [latest native CI follow-up](verification/2026-10-31/native-ci-followup.md). No passing Windows/Linux installed-app acceptance is claimed.
 
@@ -63,7 +63,7 @@ npm run build:desktop
 
 On systems where Python is named `python3`, use that command instead. `build:desktop` verifies inventory lockfile hashes and the native target. Windows/Linux invoke a release Tauri build; macOS delegates to the existing bounded local debug build and refuses to overwrite a running app. Output is under Cargo's target directory, normally `target/release/bundle/nsis`, `deb`, or `appimage`. This script creates artifacts without publishing or installing them.
 
-The installers are **alpha and unsigned**. Windows may display SmartScreen warnings. There is no signing/notarization or automatic update promise. The dependency inventory is evidence with unresolved items, not a completed license audit; follow the [binary distribution checklist](contributing/binary-distribution.md) before redistribution.
+The installers are **unsigned**. Windows may display SmartScreen warnings. There is no signing/notarization or automatic update promise. The dependency inventory is evidence with unresolved items, not a completed license audit; follow the [binary distribution checklist](contributing/binary-distribution.md) before redistribution.
 
 ## Current platform-specific limits
 

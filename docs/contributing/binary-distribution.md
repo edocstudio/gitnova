@@ -1,8 +1,8 @@
 # Before distributing a GitNova binary
 
-The current owner-approved preparation path is an [unsigned alpha candidate](unsigned-alpha.md), with installed startup evidence and a separate future signing procedure. This does not complete the checklist below.
+The current owner-approved preparation path is an [unsigned release candidate](unsigned-alpha.md), with installed startup evidence and a separate future signing procedure. This does not complete the checklist below.
 
-This is an incomplete release checklist, not a declaration of license compliance or release readiness. GitNova remains alpha 0.1.0. The current `npm run build:local` creates a local macOS ad-hoc-signed debug app; it does not create a notarized public release or complete this audit automatically. It checks locked-inventory freshness and inclusion/integrity of the five attribution evidence resources described in [license evidence](../licenses/README.md).
+This is an incomplete release checklist, not a declaration of license compliance or release readiness. GitNova is version 1.0.0 for owner-directed user testing; the version label does not complete the outstanding reviews. The current `npm run build:local` creates a local macOS ad-hoc-signed debug app; it does not create a notarized public release or complete this audit automatically. It checks locked-inventory freshness and inclusion/integrity of the five attribution evidence resources described in [license evidence](../licenses/README.md).
 
 [LICENSE](../../LICENSE) contains Apache-2.0, including its standard appendix. [NOTICE](../../NOTICE) contains GitNova project attribution. Dependency and asset notices may impose additional obligations; the current NOTICE is not a completed third-party inventory. Review the actual release contents and applicable licenses rather than inferring compliance from a crate's headline license field.
 

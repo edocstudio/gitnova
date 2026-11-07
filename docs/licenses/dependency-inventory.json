@@ -5,8 +5,8 @@
   "features": [
     "gitnova-desktop/custom-protocol"
   ],
-  "cargoLockSha256": "dd0beb98cebf28067e7359b04d6afd90a1ab0a90e7e359a166b7c4b86ce73c4e",
-  "npmLockSha256": "d6b229dcfc2e52ff64646b863bab7664de880570bad3f4f2fb1aa6f0d8ec7c05",
+  "cargoLockSha256": "57bb575ada0dfd7e8024aa027b4b75499d070e3deba4bb2a80e17097ed549c71",
+  "npmLockSha256": "bb0b9ea12a4538ca31027893156881caabeb367838c8e440882eba161de3d6ea",
   "auditComplete": false,
   "components": [
     {

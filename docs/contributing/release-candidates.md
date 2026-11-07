@@ -1,7 +1,7 @@
 # Release candidates, Linux signing and download handoff
 
-This workflow prepares alpha packages and can attach them to a draft GitHub
-prerelease; it does not publish a release, certify redistribution, deploy the
+This workflow prepares versioned packages and can attach them to a draft GitHub
+release; it does not publish a release, certify redistribution, deploy the
 website or configure signing accounts.
 macOS and Windows trusted publisher signing remain unavailable. Keep the
 [binary distribution checklist](binary-distribution.md) and unresolved
@@ -18,7 +18,7 @@ release creation. Passing diagnostics is not release approval. Run `full`
 again at the exact intended source revision after fixing any diagnostic failures.
 
 Leave `sign_linux` false until the owner key is configured. Linux can be
-distributed as unsigned alpha without GPG; a missing key is not itself a Linux
+distributed as unsigned build without GPG; a missing key is not itself a Linux
 installation blocker. Unsigned downloads must retain their publisher-authenticity
 warning. License review and native acceptance remain separate requirements.
 The workflow reuses
@@ -102,20 +102,20 @@ AppImage startup uses its extracted AppRun entrypoint. Windows exercises NSIS
 installation, same-version reinstall and uninstallation. These automated checks
 do not replace clean-machine manual acceptance or previous-version migration.
 Trusted macOS/Windows signing remains a separate later task. Only publish an
-unsigned alpha if the owner explicitly accepts the documented limitations.
+unsigned build if the owner explicitly accepts the documented limitations.
 
 ## 4. Owner publication and website handoff
 
-For a concrete installer handoff, create an alpha tag such as
-`v0.1.0-alpha.1` at the reviewed source commit, run **release candidate** on that
+For a concrete installer handoff, create a version tag such as
+`v1.0.0` at the reviewed source commit, run **release candidate** on that
 tag, and enter the same tag in `draft_tag`. Leave `sign_linux` false for the
-unsigned alpha route. After all three-platform checks and release builds pass,
+unsigned build route. After all three-platform checks and release builds pass,
 the optional draft job validates the package hashes and resolves the existing
 tag (including annotated tags) to the tested commit before creating a draft.
 It never creates/moves tags, overwrites existing release assets or publishes.
 Signed Linux sidecars, when present, are independently verified in a temporary
 public-key-only keyring before draft upload. No owner private key is needed to
-upload unsigned alpha files.
+upload unsigned build files.
 
 The draft includes the exact
 packages, `SHA256SUMS`, signatures/public key, candidate and acceptance/license
@@ -153,3 +153,10 @@ of the key you trust, not application safety or license compliance.
 References: [Tauri Linux signing](https://v2.tauri.app/distribute/sign/linux/),
 [Tauri distribution](https://v2.tauri.app/distribute/),
 [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
+
+Version 1.0.0 is selected for owner-directed user testing. Draft upload accepts
+`v1.0.0` for matching 1.0.0 artifacts; legacy alpha tags remain supported for
+matching version evidence. Stable tags produce a draft release, while alpha tags
+produce a draft prerelease. Neither path publishes automatically. The legacy
+`unsigned-alpha.md` filename and `gitnova-alpha-artifact` evidence kind are kept
+for compatibility; the embedded version determines the actual app version.

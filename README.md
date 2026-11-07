@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Status-Alpha-d8a858?style=flat-square" alt="Status: alpha" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.0-4c9aff?style=flat-square" alt="Version: 1.0.0" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.98%2B-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.98 or newer" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -41,7 +41,7 @@
 
 ## Features
 
-The following workflows are implemented in the current alpha. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.0.0. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -157,16 +157,16 @@ npm run build:local
 
 Open the `.app` path printed by the builder. The default output is `target/debug/bundle/macos/GitNova.app` relative to the repository root. Close GitNova before building; the builder updates this single app and refuses to overwrite a running instance. The bundle embeds the UI and runs without a development server.
 
-This produces a local, ad-hoc-signed **debug build** with CPU-heavy first-party Rust crates optimized at level 2; debug assertions and debug information remain enabled. Public installers, notarization and full release-profile validation are still planned.
+This produces a local, ad-hoc-signed **debug build** with CPU-heavy first-party Rust crates optimized at level 2; debug assertions and debug information remain enabled. For release-profile installer preparation, use the [release candidate workflow](docs/contributing/release-candidates.md). This local debug build is not the release installer.
 
 ## Project status
 
-**GitNova is an alpha, version 0.1.0.** Everyday workflows are implemented, and the broader multi-repository roadmap is still in progress.
+**GitNova 1.0.0** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |
 | **macOS · Apple Silicon** | Local development, debug packaging and targeted native smoke checks have been exercised. |
-| **Windows x64 / Linux x64** | Native desktop CI, OS credential stores and alpha installer builds are configured. Hosted-run and manual native acceptance remain to be verified; see [platform setup and limits](docs/platforms.md). |
+| **Windows x64 / Linux x64** | Native desktop CI, OS credential stores and release-profile installer builds are configured. Hosted-run and manual native acceptance remain to be verified; see [platform setup and limits](docs/platforms.md). |
 
 The [checks workflow](.github/workflows/ci.yml) defines the repository's CI jobs; it is not a claim that a hosted run has passed. GitNova does not yet ship public release installers.
 
