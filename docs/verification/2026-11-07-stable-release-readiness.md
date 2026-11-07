@@ -17,12 +17,15 @@ Source `408be280a66efca55ae7be548df5ffae993d2789`, candidate run
   `c590480319f54f14ff90718f8d669490bf05fdc01a3710bab9e7859b9894279b`.
   AppImage SHA-256:
   `7506154a5008dfcce0e6036cdec588a479a41a3367e934f63771adfbc64cd779`.
-- Windows native IPC/PTY tests passed; desktop browser tests were still running
-  at inspection. Windows core failed on invalid tab-containing fixture paths;
+- Windows native IPC/PTY tests passed. Desktop browser execution timed out
+  after 90 minutes (117 passed, 17 failed, one interrupted), so no Windows
+  installer was produced by that run. Windows core failed on invalid
+  tab-containing fixture paths;
   commit `233748e` fixes those paths while retaining Unix coverage.
 - The candidate run for `233748e`,
   [42358047112](https://github.com/edocstudio/gitnova/actions/runs/42358047112),
-  was pending. Results from different source commits cannot be combined into
+  was canceled after a newer tag-form defect was identified. Results from
+  different source commits cannot be combined into
   one approved release. The owner has merged that fix into main via PR #33.
 
 These are historical observations, not live CI status. Read each linked run's
@@ -68,3 +71,26 @@ Read-only inspection of the verified Debian archive confirms package identity
 Until these gates are resolved, keep 0.1.0 alpha and the website download feed
 unpublished. Do not rename older artifacts as version 1.0.0: changing version,
 signing or repackaging requires rebuilding and verifying the resulting bytes.
+
+## Windows fixture follow-up
+
+Inspection of the completed Windows desktop log identified path assertions using
+Node temporary-directory 8.3 aliases/backslashes against canonical paths returned
+by native Git. Fixture roots now resolve to their native canonical spelling;
+path-label assertions accept the Windows separator spelling without weakening
+checks of the target checkout. The unavailable-path assertion accepts Windows'
+actual OS error message as well as the Unix messages.
+
+Native Git intentionally removes `GIT_*` environment overrides. The disposable
+browser-test HOME now contains `core.autocrlf = false`, matching fixture creation
+and ensuring that child clones, submodules and worktrees use the same byte policy.
+This changes no application behavior, user configuration or runner-wide Git
+configuration. Content, dirty-work protection, recovery-ref and write-result
+assertions remain in place; no timeouts were increased and no tests were skipped.
+
+Local TypeScript checking and 16 targeted real-Git browser workflows passed
+(2.3 minutes), covering submodule initialization/update, clone, initialization,
+worktree creation/removal/repair/prune/move, unavailable repositories and guided
+branch/Pop/pull preparation. This is macOS verification of the affected flows;
+Windows execution remains necessary to confirm the platform fixes and investigate
+any remaining disabled-control failures.
