@@ -191,6 +191,29 @@ not execute in that failed run; they are not counted as passed.
 
 ## Targeted distribution evidence
 
+Focused Windows diagnostic [42371179624](https://github.com/edocstudio/gitnova/actions/runs/42371179624)
+at `755bc7d` passed all 53 Rust integration cases and all three intended browser
+regressions: advanced stash round trip, reviewed worktree creation/open and
+two-parent merge recreation during rebase. This is regression evidence, not
+installer or entire-suite approval. All 70 frontend unit tests also passed
+locally.
+
+Read-only inspection of the earlier Linux AppImage (SHA-256
+`6989b465ec00d786a1bbd92fbd559ce9a5be2436c1a4666c9f0e8da0f00f7dce`)
+found 418 file/link entries, 175 regular shared-library files and 111 native
+package copyright notices. Those notices referenced common license texts not
+present in the image. The Linux configuration now includes the build host's
+`/usr/share/common-licenses` directory, and candidate verification requires every
+referenced text to resolve inside the extracted AppImage. Synthetic checks cover
+missing texts, trailing sentence punctuation and an escaping symlink. A rebuilt
+native AppImage must pass this check; the earlier archive is not retroactively
+approved. License choices and source/relinking obligations remain separate.
+
+The corresponding Debian archive contains ten regular files: the application,
+desktop entry, three icons and five attribution resources; no `.so` files are
+bundled there. This does not establish the licenses of code statically linked
+into the executable.
+
 Windows diagnostic [42369297150](https://github.com/edocstudio/gitnova/actions/runs/42369297150)
 passed all 53 applicable Rust integration cases and the complete advanced stash
 round trip. Recreated-merge UI verification still encountered the 15-second read

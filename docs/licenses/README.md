@@ -63,5 +63,15 @@ remaining public distribution gates.
 
 Windows/Linux native packaging uses a separate inventory generated for the runner host and verifies all five attribution resources in the installed NSIS app, extracted Debian package and extracted AppImage. See [desktop platforms](../platforms.md). These inclusion checks do not resolve the inventory’s audit gaps or certify redistribution compliance.
 
+AppImage also contains native Linux libraries outside the Cargo/npm graph.
+Its upstream package copyright files can reference `/usr/share/common-licenses`.
+The Linux packaging configuration includes that build-host directory at the
+same path inside AppImage using [Tauri's custom file mapping](https://v2.tauri.app/distribute/appimage/#custom-files).
+The Ubuntu packaging host must provide it. Installed-artifact verification
+checks that each referenced common text exists inside the extracted image and
+records hashes in `appimage-native-notices.json`; missing or escaping files fail
+the candidate job. This checks text inclusion, not license selection,
+corresponding-source/relinking obligations or complete native-library compliance.
+
 See [unsigned alpha candidates](../contributing/unsigned-alpha.md) for installed
 startup checks, artifact hashes and the deferred signing procedure.

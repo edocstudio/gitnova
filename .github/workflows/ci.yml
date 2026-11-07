@@ -64,6 +64,8 @@ jobs:
         working-directory: apps/desktop
       - name: Pinned license evidence checks
         run: python apps/desktop/scripts/test_inventory_licenses.py
+      - name: AppImage native notice checks
+        run: python apps/desktop/scripts/test_verify_linux_notices.py
       - run: cargo clippy -p gitnova-desktop --locked -- -D warnings
       - run: cargo test -p gitnova-desktop --locked
       - run: cargo build -p gitnova-desktop --locked
@@ -209,6 +211,7 @@ jobs:
           image=$(realpath target/release/bundle/appimage/*.AppImage)
           mkdir "$RUNNER_TEMP/gitnova-appimage"
           (cd "$RUNNER_TEMP/gitnova-appimage" && "$image" --appimage-extract > /dev/null)
+          python apps/desktop/scripts/verify-linux-notices.py --root "$RUNNER_TEMP/gitnova-appimage/squashfs-root" --artifact "$image" --output target/alpha-evidence/appimage-native-notices.json
           mapfile -t texts < <(find "$RUNNER_TEMP/gitnova-appimage" -path '*/licenses/LICENSE')
           test "${#texts[@]}" -eq 1
           resources=$(dirname "$(dirname "${texts[0]}")")
