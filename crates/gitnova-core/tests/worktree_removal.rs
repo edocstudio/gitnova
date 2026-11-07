@@ -122,7 +122,12 @@ fn clean_removal_cleans_all_memberships_preserves_source_and_retires_identity() 
         .all(|m| m.worktree_id.as_deref() != Some(retired.as_str()))));
     git(
         &repo,
-        &["worktree", "add", target.to_str().unwrap(), "topic"],
+        &[
+            "worktree",
+            "add",
+            dir.path().join("linked งาน").to_str().unwrap(),
+            "topic",
+        ],
     );
     let catalog = app.add_repository(&target).unwrap();
     assert_ne!(

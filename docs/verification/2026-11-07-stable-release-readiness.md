@@ -178,6 +178,17 @@ string without that conversion. A focused Windows diagnostic mode is available
 to check these regressions before repeating full installer validation; it cannot
 assemble or publish release artifacts.
 
+Focused Windows run
+[42368048679](https://github.com/edocstudio/gitnova/actions/runs/42368048679)
+passed formatting, targeted Clippy, the Windows path unit test and 52 of 53
+applicable integration cases. The remaining case failed during fixture setup
+when re-adding a removed checkout using its Rust canonical verbatim path.
+The fixture now supplies the original ordinary path to native Git, retaining
+all membership, branch, recovery, staged/working content and retired-identity
+assertions. The corrected case passed locally. The diagnostic Rust suites use
+two test threads, matching local integration verification. UI diagnostics did
+not execute in that failed run; they are not counted as passed.
+
 ## Targeted distribution evidence
 
 Offline collection for `x86_64-pc-windows-msvc` now preserves the original MIT

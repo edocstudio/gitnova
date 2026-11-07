@@ -52,7 +52,7 @@ Push destination is still validated by the existing preview.
   without notarization. Vite reports the existing large-chunk warning. Bundled
   attribution evidence still reports an incomplete audit and 50 unresolved items;
   this change does not certify license compliance.
-- Replaced `/Users/if668061/Desktop/GitNova.app` while closed. Installed signature
+- Replaced the Desktop `GitNova.app` while closed. Installed signature
   and `--verify-bundle` passed without opening a workspace. Built and installed
   executable SHA-256 match:
   `8d174eac12788c27fe281cf9ca997f8987feca5651da6eacf0652fab975646fb`.

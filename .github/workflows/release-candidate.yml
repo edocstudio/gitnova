@@ -51,7 +51,7 @@ jobs:
       - name: Native Windows path decoding
         run: cargo test -p gitnova-git --lib native_path_tests --locked
       - name: Native worktree lifecycle and submodule sync regressions
-        run: cargo test -p gitnova-core --test worktree_creation --test worktree_removal --test related_maintenance --test ref_and_push --locked --no-fail-fast
+        run: cargo test -p gitnova-core --test worktree_creation --test worktree_removal --test related_maintenance --test ref_and_push --locked --no-fail-fast -- --test-threads=2
       - run: npm ci
         working-directory: apps/desktop
       - run: npx tsc --noEmit
