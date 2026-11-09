@@ -1872,6 +1872,24 @@ test('graph Terminal action opens the selected repository dock without losing gr
  await page.locator('.terminal-end-review').getByRole('button',{name:'End session',exact:true}).click();await expect(page.locator('.repository-terminal')).toHaveCount(0);
 });
 
+test('visible terminal follows repository selection and reuses each repository session',async({page})=>{
+ const second=join(folder,'terminal-second-repo');mkdirSync(second);git(second,['init','-b','main']);
+ await connectRealCore(page,join(folder,'terminal-follow.json'));await page.goto('/');
+ await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.evaluate(async paths=>{
+  const {api}=await import('/src/api.ts');const opened:string[]=[];(window as any).followOpens=opened;
+  api.terminalOpen=async id=>{opened.push(id);return{id:`follow-${opened.length}`,path:paths[opened.length-1],shell:'/bin/sh'};};
+  api.terminalRead=async()=>({data:[],dropped:false,exited:false});api.terminalWrite=async()=>{};api.terminalResize=async()=>{};api.terminalClose=async()=>{};
+ },[repository,second]);
+ await page.locator('.terminal-toggle').click();await expect(page.locator('.terminal-context:visible')).toContainText(repository);
+ await page.locator('.repo-picker').click();await page.getByLabel('Add an existing repository').fill(second);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await expect(page.locator('.repository-terminal')).toBeVisible();await expect(page.locator('.terminal-context:visible')).toContainText(second);
+ await expect(page.locator('.repository-terminal header')).toContainText('terminal-second-repo');
+ await page.locator('.repo-picker').click();await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await expect(page.locator('.terminal-context:visible')).toContainText(repository);
+ expect(await page.evaluate(()=>(window as any).followOpens.length)).toBe(2);
+});
+
 test('submodule newer version review is separate from recorded restore and parent staging',async({page},testInfo)=>{
  test.setTimeout(180000);
  const source=join(folder,'newer-source'),repo=join(folder,'newer-parent');mkdirSync(source);mkdirSync(repo);
