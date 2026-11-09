@@ -9,6 +9,7 @@ import { resolve, join } from 'node:path';
 import { promisify } from 'node:util';
 const exec = promisify(execFile);
 const root = resolve('../..');
+const appVersion=JSON.parse(readFileSync(join(root,'apps/desktop/package.json'),'utf8')).version as string;
 const bridge = join(root, 'target/debug/examples', process.platform === 'win32' ? 'ui_bridge.exe' : 'ui_bridge');
 let folder: string, repository: string, other: string;
 // Compare path identity without assuming Git uses Node's separator spelling.
@@ -1843,7 +1844,7 @@ test('connection commit identities separate hosts in Settings and real commits w
   }
 });
 
-test('graph Terminal action opens the selected repository dock without losing graph context',async({page})=>{
+test('graph Terminal action opens the selected repository dock without losing graph context',async({page},testInfo)=>{
  await connectRealCore(page,join(folder,'terminal-action.json'));await page.goto('/');
  await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();
  await expect(page.locator('.terminal-toggle')).toBeEnabled();
@@ -1852,13 +1853,20 @@ test('graph Terminal action opens the selected repository dock without losing gr
  await page.evaluate(async path=>{
   const {api}=await import('/src/api.ts');let opened=0;
   api.terminalOpen=async()=>{opened++;(window as any).terminalOpenCount=opened;return{id:'test-terminal',path,shell:'/bin/sh'};};
-  api.terminalRead=async()=>({data:[],dropped:false,exited:false});api.terminalWrite=async()=>{};api.terminalResize=async()=>{};api.terminalClose=async()=>{};
+  api.terminalRead=async()=>({data:[],dropped:false,exited:false});(window as any).terminalWrites=[];api.terminalWrite=async(_membership,_session,data)=>{(window as any).terminalWrites.push(data);};api.terminalResize=async()=>{};api.terminalClose=async()=>{};
  },repository);
  await page.locator('.terminal-toggle').click();await expect(page.getByRole('region',{name:'Repository terminal',exact:true})).toBeVisible();
  await expect(page.locator('.terminal-context')).toContainText(repository);
+ await expect(page.locator('.xterm-rows')).toContainText(`GitNova ${appVersion}`);
+ expect(await page.evaluate(()=>(window as any).terminalWrites)).toEqual([]);
  await page.getByRole('button',{name:'Hide terminal',exact:true}).click();await expect(page.locator('.repository-terminal')).toBeHidden();
  await page.locator('.terminal-toggle').click();await expect(page.locator('.repository-terminal')).toBeVisible();
  expect(await page.evaluate(()=>(window as any).terminalOpenCount)).toBe(1);
+ await expect(page.locator('.xterm-rows')).toContainText(`GitNova ${appVersion}`);
+ expect((await page.locator('.xterm-rows').innerText()).split(`GitNova ${appVersion}`).length-1).toBe(1);
+ await page.locator('.repository-terminal').screenshot({path:testInfo.outputPath('terminal-welcome.png')});
+ await page.locator('.xterm-helper-textarea').pressSequentially('echo test');await page.locator('.xterm-helper-textarea').press('Enter');
+ await expect.poll(()=>page.evaluate(()=>(window as any).terminalWrites.join(''))).toBe('echo test\r');
  expect(await page.locator('.commit-row.selected').getAttribute('id')).toBe(selected);
  await page.locator('.repository-terminal').getByRole('button',{name:'End session',exact:true}).click();
  await page.locator('.terminal-end-review').getByRole('button',{name:'End session',exact:true}).click();await expect(page.locator('.repository-terminal')).toHaveCount(0);
@@ -2001,7 +2009,7 @@ test('edit file from historical commit saves current working text and preserves 
   await page.locator('.commit-row').filter({hasText:'Current file'}).click();await page.locator('.commit-row').filter({hasText:'Historical file'}).click();await page.getByRole('button',{name:'Resume file edit',exact:true}).click();await expect(text).toHaveValue('my draft\n');
   writeFileSync(join(repo,'file.txt'),'external version\n');await editor.getByRole('button',{name:'Save working file',exact:true}).click();
   await expect(editor.getByRole('alert')).toContainText('changed');await expect(text).toHaveValue('my draft\n');expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('external version\n');
-  await editor.getByRole('button',{name:'Review updated file and keep my draft',exact:true}).click();await expect(editor.locator('pre')).toHaveText('external version\n');await expect(text).toHaveValue('my draft\n');
+  await editor.getByRole('button',{name:'Review updated file and keep my draft',exact:true}).click();await expect(editor.locator('.working-editor-columns > div:first-child pre')).toHaveText('external version\n');await expect(text).toHaveValue('my draft\n');
   await editor.getByRole('button',{name:'Save working file',exact:true}).click();await expect(editor).toHaveCount(0);
   expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('my draft\n');expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);
   await page.getByRole('button',{name:'Edit file',exact:true}).click();await expect(text).toHaveValue('my draft\n');await text.fill('cancelled draft\n');await editor.getByRole('button',{name:'Discard editor draft',exact:true}).click();expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('my draft\n');
@@ -2225,4 +2233,20 @@ test('edit file opens and saves UTF-8 working text larger than 512 KiB', async (
   await editor.getByRole('button',{name:'Next section',exact:true}).click();const second=await text.inputValue();await text.fill('# second edit\n'+second);await editor.getByRole('button',{name:'Previous section',exact:true}).click();await expect(text).toHaveValue('# edited\n'+first);const changed='# edited\n'+first+'# second edit\n'+original.slice(first.length);
   await editor.getByRole('button',{name:'Save working file',exact:true}).click();await expect(editor).toHaveCount(0);
   expect(readFileSync(join(repo,'settings.yaml'),'utf8')).toBe(changed);expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);
+});
+
+
+test('working editor colors YAML safely and keeps the mirror aligned while editing',async({page},testInfo)=>{
+ const repo=join(folder,'syntax-editor');mkdirSync(repo);git(repo,['init','-b','main']);
+ const content='# configuration\nname: "ภาษาไทย 😀 <script>window.injected=true</script>"\nenabled: true\n'+Array.from({length:80},(_,i)=>`entry_${i}: "${'wide text '.repeat(30)}"`).join('\n')+'\n';
+ writeFileSync(join(repo,'settings.yaml'),content);git(repo,['add','.']);git(repo,['commit','-m','Syntax fixture']);const head=git(repo,['rev-parse','HEAD']);const index=git(repo,['write-tree']);
+ await connectRealCore(page,join(folder,'syntax-editor.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.getByRole('button',{name:'Edit file',exact:true}).click();
+ const editor=page.getByRole('region',{name:'Edit current working file',exact:true});const text=editor.getByRole('textbox',{name:'Edit current file content',exact:true});const mirror=editor.locator('.syntax-mirror');
+ await expect(text).toHaveValue(content);await expect(mirror.locator('.syntax-string').first()).toBeVisible();await expect(mirror.locator('.syntax-comment').first()).toHaveText('# configuration');expect(await page.evaluate(()=>(window as any).injected)).toBeUndefined();
+ const changed=content+'tail: "edited ไทย"\n';await text.fill(changed);await expect(mirror).toHaveText(changed+'\n');
+ await text.evaluate(area=>{area.scrollTop=300;area.scrollLeft=80;area.dispatchEvent(new Event('scroll'));});
+ await expect.poll(()=>editor.locator('.syntax-editor').evaluate(root=>{const a=root.querySelector('textarea')!,b=root.querySelector('pre')!;return Math.abs(a.scrollTop-b.scrollTop)+Math.abs(a.scrollLeft-b.scrollLeft);})).toBeLessThan(2);
+ await page.locator('.commit-diff-dock').screenshot({path:testInfo.outputPath('syntax-editor-dark.png')});
+ await page.evaluate(async()=>{const {setTheme}=await import('/src/theme.ts');setTheme('light');});await page.locator('.commit-diff-dock').screenshot({path:testInfo.outputPath('syntax-editor-light.png')});await expect(text).toHaveValue(changed);
+ await editor.getByRole('button',{name:'Save working file',exact:true}).click();await expect(editor).toHaveCount(0);expect(readFileSync(join(repo,'settings.yaml'),'utf8')).toBe(changed);expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);
 });

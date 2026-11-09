@@ -2280,5 +2280,6 @@
   "Previous section": "ส่วนก่อนหน้า",
   "Next section": "ส่วนถัดไป",
   "Section {0} of {1}": "ส่วนที่ {0} จาก {1}",
-  "Save writes the complete file, including other sections.": "บันทึกจะเขียนไฟล์ครบทั้งหมด รวมถึงส่วนอื่น ๆ"
+  "Save writes the complete file, including other sections.": "บันทึกจะเขียนไฟล์ครบทั้งหมด รวมถึงส่วนอื่น ๆ",
+  "Git made simple. Every repository. Every change.": "จัดการ Git ให้ง่ายขึ้น ทุก repository ทุกการเปลี่ยนแปลง"
 }

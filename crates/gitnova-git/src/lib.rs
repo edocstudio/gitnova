@@ -16,6 +16,7 @@ mod tracking;
 pub use progress::with_progress;
 pub mod graph_actions;
 pub mod merge;
+pub mod promotion;
 pub mod push;
 pub mod ref_operations;
 mod safe_read;
