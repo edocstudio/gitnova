@@ -5,7 +5,7 @@ use gitnova_domain::{AppError, NativePath, Result, WorkingFileText};
 use std::{ffi::OsStr, fs, io::Write, path::Path};
 use tempfile::NamedTempFile;
 
-const LIMIT: usize = 512 * 1024;
+const LIMIT: usize = 4 * 1024 * 1024;
 fn blocked(message: &str) -> AppError {
     AppError::new("edit_blocked", message)
 }
@@ -39,7 +39,7 @@ impl GitCli {
         }
         if metadata.len() > LIMIT as u64 {
             return Err(blocked(
-                "Only UTF-8 text files up to 512 KiB can be edited here.",
+                "Only UTF-8 text files up to 4 MiB can be edited here.",
             ));
         }
         let entries = self
@@ -74,7 +74,7 @@ impl GitCli {
         let before = file_digest(&root, &path)?;
         let bytes = read_bounded(&absolute, LIMIT as u64)?;
         let text = String::from_utf8(bytes)
-            .map_err(|_| blocked("Only UTF-8 text files up to 512 KiB can be edited here."))?;
+            .map_err(|_| blocked("Only UTF-8 text files can be edited here."))?;
         if text.contains('\0')
             || text.replace("\r\n", "").contains('\r')
             || (text.contains("\r\n") && text.replace("\r\n", "").contains('\n'))
@@ -92,6 +92,7 @@ impl GitCli {
         }
         Ok(WorkingFileText {
             path: file.clone(),
+            max_bytes: LIMIT,
             text: text.replace("\r\n", "\n"),
             token: digest(
                 format!(
@@ -112,7 +113,7 @@ impl GitCli {
     ) -> Result<()> {
         if text.len() > LIMIT || text.contains('\0') || text.contains('\r') {
             return Err(blocked(
-                "Only UTF-8 text up to 512 KiB with normalized line endings can be saved.",
+                "Only UTF-8 text up to 4 MiB with normalized line endings can be saved.",
             ));
         }
         let _operation = self.acquire_operation(root)?;
@@ -133,7 +134,7 @@ impl GitCli {
             text.as_bytes().to_vec()
         };
         if replacement.len() > LIMIT {
-            return Err(blocked("The encoded file exceeds 512 KiB."));
+            return Err(blocked("The encoded file exceeds 4 MiB."));
         }
         let mut output = NamedTempFile::new_in(
             absolute

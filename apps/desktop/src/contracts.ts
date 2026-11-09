@@ -162,7 +162,7 @@ export interface StaleLockPreview {path:NativePath;ownerPid:number|null;exists:b
 
 export interface RepositoryIdentitySettings {name:string;email:string;token:string}
 
-export type WorkingFileText = {path:NativePath;text:string;token:string};
+export type WorkingFileText = {path:NativePath;text:string;token:string;maxBytes:number};
 
 export interface OpenBranchRequest {number:number;title:string;draft:boolean;url:string;sourceBranch:string;targetBranch:string;sourceProjectId:string|null}
 export interface BranchRequests {provider:string;origin:string;project:string;projectId:string;remote:string;requests:OpenBranchRequest[];partial:boolean;checkedAt:number}

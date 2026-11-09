@@ -108,13 +108,75 @@ fn rejects_missing_binary_oversize_unsafe_paths_and_pending_operations() {
             .working_file_text(root, &NativePath::new(Path::new(value)))
             .is_err());
     }
-    for bytes in [vec![0, 1], vec![b'x'; 524289], b"mixed\r\nline\n".to_vec()] {
+    for bytes in [
+        vec![0, 1],
+        vec![b'x'; 4 * 1024 * 1024 + 1],
+        vec![0xff],
+        b"mixed\r\nline\n".to_vec(),
+    ] {
         fs::write(root.join("file.txt"), bytes).unwrap();
         assert!(GitCli.working_file_text(root, &path()).is_err());
     }
     fs::write(root.join("file.txt"), "ok\n").unwrap();
     fs::write(root.join(".git/MERGE_HEAD"), "pending").unwrap();
     assert!(GitCli.working_file_text(root, &path()).is_err());
+}
+
+#[test]
+fn edits_large_utf8_files_preserving_crlf_staging_history_and_stale_protection() {
+    let folder = fixture();
+    let root = folder.path();
+    let original = "description: ภาษาไทย 😀\r\n".repeat(20000);
+    assert!(original.len() > 512 * 1024);
+    fs::write(root.join("file.txt"), &original).unwrap();
+    let head = git(root, &["rev-parse", "HEAD"]);
+    let index = git(root, &["write-tree"]);
+    let preview = GitCli.working_file_text(root, &path()).unwrap();
+    assert_eq!(preview.max_bytes, 4 * 1024 * 1024);
+    let edited = format!("{}edited: true\n", preview.text);
+    GitCli
+        .save_working_file_text(root, &path(), &edited, &preview.token)
+        .unwrap();
+    assert_eq!(
+        fs::read_to_string(root.join("file.txt")).unwrap(),
+        edited.replace('\n', "\r\n")
+    );
+    assert_eq!(git(root, &["rev-parse", "HEAD"]), head);
+    assert_eq!(git(root, &["write-tree"]), index);
+    let backup = fs::read_dir(root.join(".git/gitnova-file-edits"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap();
+    assert_eq!(fs::read_to_string(backup.path()).unwrap(), original);
+    assert_eq!(
+        GitCli
+            .save_working_file_text(root, &path(), "old draft\n", &preview.token)
+            .unwrap_err()
+            .code,
+        "stale_preview"
+    );
+}
+
+#[test]
+fn enforces_raw_and_saved_byte_limits_without_modifying_the_file() {
+    let folder = fixture();
+    let root = folder.path();
+    let original = "x".repeat(4 * 1024 * 1024);
+    fs::write(root.join("file.txt"), &original).unwrap();
+    let preview = GitCli.working_file_text(root, &path()).unwrap();
+    assert!(GitCli
+        .save_working_file_text(root, &path(), &format!("{original}x"), &preview.token)
+        .is_err());
+    assert_eq!(fs::read_to_string(root.join("file.txt")).unwrap(), original);
+    fs::write(root.join("file.txt"), "old\r\n").unwrap();
+    let preview = GitCli.working_file_text(root, &path()).unwrap();
+    // Normalized text fits; restoring CRLF would exceed the raw-file budget.
+    let expanded = "x\n".repeat(4 * 1024 * 1024 / 2);
+    assert!(GitCli
+        .save_working_file_text(root, &path(), &expanded, &preview.token)
+        .is_err());
+    assert_eq!(fs::read(root.join("file.txt")).unwrap(), b"old\r\n");
 }
 #[cfg(unix)]
 #[test]

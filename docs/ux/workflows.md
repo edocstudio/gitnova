@@ -253,7 +253,11 @@ The inline pointer review was below the selected file and could require scrollin
 
 The existing diff dock owns this workflow: no extra screen or navigation is needed. Edit file reads the current tracked UTF-8 working file, not the selected historical revision. The dock shows a read-only baseline beside the draft. Save changes only working bytes; staging and commits remain explicit existing actions. Missing files, binaries, symlinks, nested repositories, submodules and unresolved operations require their own workflows.
 
-Up to four 512 KiB editor drafts remain in memory when navigating between commits/repositories; resume from the same file. Back to diff keeps changed drafts; Discard editor draft removes only the draft. Closing the application loses these drafts, with an unload warning. Save validates the checkout, staging and working bytes again; external changes require reviewing the updated baseline before retrying. Original raw bytes are retained privately under the checkout Git directory in `gitnova-file-edits`; these backups are not committed.
+Large-file layout and full-document selection can stall the browser even below the native budget. Section navigation is therefore placed inside the existing editor (no new panel): only a bounded text section and its read-only baseline are rendered at a time, while Save writes the whole draft. Sections are editing chunks, not diff hunks; a line may span sections if unusually long. Oversized section paste is rejected without truncation.
+
+The editor reads its byte limit from the native response; both normalized UTF-8 text and the saved file (including restored CRLF) must fit 4 MiB. Binary/non-UTF-8 files remain blocked. UTF-8 validation avoids allocating an encoded copy on every keystroke.
+
+Up to four 4 MiB editor drafts remain in memory when navigating between commits/repositories; resume from the same file. Back to diff keeps changed drafts; Discard editor draft removes only the draft. Closing the application loses these drafts, with an unload warning. Save validates the checkout, staging and working bytes again; external changes require reviewing the updated baseline before retrying. Original raw bytes are retained privately under the checkout Git directory in `gitnova-file-edits`; these backups are not committed.
 
 ### Open branch requests in the graph
 
