@@ -2211,3 +2211,18 @@ test('Fetch brings a remote-only version tag into the visible graph beside HEAD'
  await expect(badge).toBeVisible();await expect(badge).toContainText('0.0.35');await expect(page.locator('.graph-ref.current')).toContainText('main');
  expect(git(repo,['rev-parse','HEAD'])).toBe(oid);expect(git(repo,['status','--porcelain'])).toBe('');expect(git(repo,['cat-file','-t','0.0.35'])).toBe('tag');
 });
+
+
+test('edit file opens and saves UTF-8 working text larger than 512 KiB', async ({page})=>{
+  const repo=join(folder,'large-file-editor');mkdirSync(repo);git(repo,['init','-b','main']);
+  writeFileSync(join(repo,'settings.yaml'),'setting: original\n');git(repo,['add','.']);git(repo,['commit','-m','Initial configuration']);
+  const original='setting: ภาษาไทย 😀\n'.repeat(20000);expect(Buffer.byteLength(original)).toBeGreaterThan(512*1024);
+  writeFileSync(join(repo,'settings.yaml'),original);const head=git(repo,['rev-parse','HEAD']);const index=git(repo,['write-tree']);
+  await connectRealCore(page,join(folder,'large-file-editor.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+  await page.locator('.commit-row').filter({hasText:'Initial configuration'}).click();await page.getByRole('button',{name:'Edit file',exact:true}).click();
+  const editor=page.getByRole('region',{name:'Edit current working file',exact:true});const text=editor.getByRole('textbox',{name:'Edit current file content',exact:true});
+  const first=await text.inputValue();expect(original.startsWith(first)).toBe(true);expect(first.length).toBeLessThanOrEqual(32768);await text.fill('# edited\n'+first);
+  await editor.getByRole('button',{name:'Next section',exact:true}).click();const second=await text.inputValue();await text.fill('# second edit\n'+second);await editor.getByRole('button',{name:'Previous section',exact:true}).click();await expect(text).toHaveValue('# edited\n'+first);const changed='# edited\n'+first+'# second edit\n'+original.slice(first.length);
+  await editor.getByRole('button',{name:'Save working file',exact:true}).click();await expect(editor).toHaveCount(0);
+  expect(readFileSync(join(repo,'settings.yaml'),'utf8')).toBe(changed);expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);
+});

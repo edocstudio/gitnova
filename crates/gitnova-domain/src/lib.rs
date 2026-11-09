@@ -1605,6 +1605,8 @@ pub struct WorkingFileText {
     pub path: NativePath,
     pub text: String,
     pub token: String,
+    /// Raw-file and normalized UTF-8 budget enforced on both read and save.
+    pub max_bytes: usize,
 }
 
 /// Read-only open PR/MR evidence for one validated target repository.
