@@ -175,7 +175,7 @@ status to the right on wide windows and on a stable second row on narrow windows
 No duplicated actions or new navigation are introduced. Increase only the header
 logo footprint to 44px (40px on narrow windows); keep the native icon artwork.
 Footer credit becomes GitNova · by edocstudio, with the app version displayed
-in the header (1.0.0 from the desktop package manifest).
+in the header (1.0.1 from the desktop package manifest).
 
 ### Reviewed Amend
 

@@ -1,6 +1,6 @@
 # Unsigned release candidate workflow
 
-The owner has selected version 1.0.0 for user testing, using unsigned candidate preparation while platform signing accounts
+The owner has selected version 1.0.1 for user testing, using unsigned candidate preparation while platform signing accounts
 are unavailable. This is not a public-release approval or a promise of native
 feature parity. Do not disable branch protection or omit failing tests to obtain
 an installer. The [distribution checklist](binary-distribution.md) still applies.

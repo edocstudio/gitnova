@@ -1,5 +1,10 @@
 # Portable performance evidence — schema 1
 
+The [2026-11-09 editor measurement](../verification/2026-11-09-editor-performance-1.0.1.md)
+adds `editor-layout-2026-11-09.json`, a separate synthetic Chromium layout/typing
+comparison. It does not measure Git operations or native whole-app RAM and does
+not replace the website's historical `latest.json` snapshot.
+
 The [native CI/foreground follow-up](../verification/2026-10-31/native-ci-followup.md)
 adds `native-foreground-2026-10-31.json` (kind `gitnova-native-soak`): a completed
 15-minute visible native run. It includes actual samples, latency distributions,

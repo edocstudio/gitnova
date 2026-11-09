@@ -107,7 +107,7 @@ unsigned build if the owner explicitly accepts the documented limitations.
 ## 4. Owner publication and website handoff
 
 For a concrete installer handoff, create a version tag such as
-`v1.0.0` at the reviewed source commit, run **release candidate** on that
+`v1.0.1` at the reviewed source commit, run **release candidate** on that
 tag, and enter the same tag in `draft_tag`. Leave `sign_linux` false for the
 unsigned build route. After all three-platform checks and release builds pass,
 the optional draft job validates the package hashes and resolves the existing
@@ -154,8 +154,8 @@ References: [Tauri Linux signing](https://v2.tauri.app/distribute/sign/linux/),
 [Tauri distribution](https://v2.tauri.app/distribute/),
 [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
 
-Version 1.0.0 is selected for owner-directed user testing. Draft upload accepts
-`v1.0.0` for matching 1.0.0 artifacts; legacy alpha tags remain supported for
+Version 1.0.1 is selected for owner-directed user testing. Draft upload accepts
+`v1.0.1` for matching 1.0.1 artifacts; legacy alpha tags remain supported for
 matching version evidence. Stable tags produce a draft release, while alpha tags
 produce a draft prerelease. Neither path publishes automatically. The legacy
 `unsigned-alpha.md` filename and `gitnova-alpha-artifact` evidence kind are kept

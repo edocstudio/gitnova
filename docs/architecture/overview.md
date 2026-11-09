@@ -1,6 +1,6 @@
 # GitNova architecture
 
-Status: 1.0.0, selected by the owner for distribution and user testing; versioning does not certify platform acceptance or signing. Multi-repository history, reviewed Git writes, scoped workspace commit search and optional host integrations are implemented with documented bounds. The broader MVP and native cross-platform acceptance remain in progress. The multi-repository addendum takes precedence over the original milestone numbering. See the [current limits](../implementation.md#current-limits-and-next-work) and [platform status](../../README.md#project-status); milestone-specific restrictions below describe their original delivery stage unless explicitly marked current.
+Status: 1.0.1, selected by the owner for distribution and user testing; versioning does not certify platform acceptance or signing. Multi-repository history, reviewed Git writes, scoped workspace commit search and optional host integrations are implemented with documented bounds. The broader MVP and native cross-platform acceptance remain in progress. The multi-repository addendum takes precedence over the original milestone numbering. See the [current limits](../implementation.md#current-limits-and-next-work) and [platform status](../../README.md#project-status); milestone-specific restrictions below describe their original delivery stage unless explicitly marked current.
 
 ## Product boundary
 
