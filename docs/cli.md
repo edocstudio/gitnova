@@ -5,6 +5,11 @@ the command without changing your shell startup files. For a standalone build,
 run `cargo build -p gitnova-core --bin nova`; use `target/debug/nova` (`nova.exe`
 on Windows).
 
+On zsh, session-owned startup wrappers load your existing startup files and then
+restore Nova's session command path, even if those files replace `PATH`. Your
+startup files are not edited. After updating GitNova, end an old Terminal session
+and open a new one to receive the current launcher.
+
 ## Source → review branch → destination
 
 Nova copies **whole file snapshots** from source onto the destination tree, creates

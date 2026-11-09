@@ -169,6 +169,38 @@ fn open_command(
     }
     command.env("PATH", std::env::join_paths(paths).map_err(err)?);
     command.env("GITNOVA_CLI_EXECUTABLE", std::env::current_exe()?);
+    #[cfg(unix)]
+    if Path::new(&shell)
+        .file_name()
+        .is_some_and(|name| name == "zsh")
+    {
+        // User startup files may replace PATH. Session-owned startup wrappers
+        // restore the launcher after those files without editing user settings.
+        let original = command
+            .get_env("ZDOTDIR")
+            .or_else(|| command.get_env("HOME"))
+            .map(std::ffi::OsStr::to_owned)
+            .ok_or_else(|| err("Shell home directory is unavailable."))?;
+        command.env("GITNOVA_ZSH_STARTUP_DIRECTORY", original);
+        command.env("GITNOVA_TERMINAL_BIN", cli_directory.path());
+        for file in [".zshenv", ".zprofile", ".zshrc", ".zlogin"] {
+            let mut startup = format!(
+                "if [[ -r \"$GITNOVA_ZSH_STARTUP_DIRECTORY/{file}\" ]]; then source \"$GITNOVA_ZSH_STARTUP_DIRECTORY/{file}\"; fi\n"
+            );
+            startup.push_str("export ZDOTDIR=\"$GITNOVA_TERMINAL_BIN\"\n");
+            if matches!(file, ".zshrc" | ".zlogin") {
+                startup.push_str("export PATH=\"$GITNOVA_TERMINAL_BIN:$PATH\"\n");
+            }
+            if file == ".zlogin" {
+                startup.push_str("export ZDOTDIR=\"$GITNOVA_ZSH_STARTUP_DIRECTORY\"\n");
+            } else if file == ".zshrc" {
+                startup.push_str("if [[ ! -o login ]]; then export ZDOTDIR=\"$GITNOVA_ZSH_STARTUP_DIRECTORY\"; fi\n");
+            }
+            std::fs::write(cli_directory.path().join(file), startup)?;
+        }
+        command.env("ZDOTDIR", cli_directory.path());
+    }
+
     // Do not leak app-internal Git routing or any one-shot authentication to a shell.
     let environment: Vec<_> = std::env::vars_os().map(|(key, _)| key).collect();
     for key in environment {
@@ -438,6 +470,46 @@ mod tests {
         );
         terminal_close("fixture".into(), opened.id.clone()).unwrap();
         assert!(session("fixture", &opened.id).is_err());
+    }
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn zsh_login_keeps_nova_after_startup_replaces_path() {
+        let _guard = TEST_LOCK.lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        let startup = temp.path().join("startup ' $ directory");
+        std::fs::create_dir(&startup).unwrap();
+        let rc = "export PATH=/usr/bin:/bin\nexport NOVA_FIXTURE_RC=loaded\n";
+        std::fs::write(startup.join(".zshrc"), rc).unwrap();
+        std::fs::write(startup.join(".zlogin"), "export PATH=/bin:/usr/bin\n").unwrap();
+        let mut command = CommandBuilder::new("/bin/zsh");
+        command.arg("-il");
+        command.env("ZDOTDIR", &startup);
+        let opened = open_command("fixture".into(), temp.path(), 100, 24, command).unwrap();
+        let handle = session("fixture", &opened.id).unwrap();
+        handle.writer.lock().unwrap().write_all(
+            b"printf '\nSTARTUP:%s\n' \"$NOVA_FIXTURE_RC\"; command -v nova; printf 'RESTORED:%s\n' \"$ZDOTDIR\"; exit\r"
+        ).unwrap();
+        drop(handle);
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+        let mut collected = Vec::new();
+        loop {
+            let batch = terminal_read("fixture".into(), opened.id.clone()).unwrap();
+            collected.extend(batch.data);
+            if batch.exited {
+                break;
+            }
+            assert!(std::time::Instant::now() < deadline, "zsh did not exit");
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+        terminal_close("fixture".into(), opened.id).unwrap();
+        let output = String::from_utf8_lossy(&collected);
+        assert!(output.contains("STARTUP:loaded"), "{output}");
+        assert!(output.contains("gitnova-terminal-bin-"), "{output}");
+        assert!(
+            output.contains(&format!("RESTORED:{}", startup.display())),
+            "{output}"
+        );
+        assert_eq!(std::fs::read_to_string(startup.join(".zshrc")).unwrap(), rc);
     }
     #[test]
     #[cfg(windows)]
