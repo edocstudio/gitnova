@@ -5,6 +5,7 @@ import '@xterm/xterm/css/xterm.css';
 import {api,errorMessage} from './api';
 import {t,useLocale} from './i18n';
 import {Icon} from './Icons';
+import {terminalWelcome} from './terminal-welcome';
 export type TerminalEntry={membershipId:string;name:string};
 
 function Shell({entry,visible,onReady}:{entry:TerminalEntry;visible:boolean;onReady:()=>void}){
@@ -46,7 +47,7 @@ function Shell({entry,visible,onReady}:{entry:TerminalEntry;visible:boolean;onRe
    const opened=await api.terminalOpen(entry.membershipId,80,24);
    sessionId=opened.id;
    if(disposed){void api.terminalClose(entry.membershipId,sessionId).catch(()=>{});return;}
-   setContext(opened);setStatus('Interactive shell');terminal.options.disableStdin=false;resize();terminal.focus();void poll();
+   setContext(opened);setStatus('Interactive shell');resize();terminal.write(terminalWelcome(terminal.cols,t('Git made simple. Every repository. Every change.')));terminal.options.disableStdin=false;terminal.focus();void poll();
   }).catch(fail);
   return()=>{disposed=true;clearTimeout(timer);observer.disconnect();input.dispose();control.current=null;if(sessionId)void api.terminalClose(entry.membershipId,sessionId).catch(()=>{});if(outputPending)requestAnimationFrame(()=>terminal.dispose());else terminal.dispose();};
  },[entry.membershipId]);

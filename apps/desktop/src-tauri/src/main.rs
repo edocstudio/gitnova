@@ -1495,6 +1495,32 @@ fn verify_embedded_ui(context: &tauri::Context<tauri::Wry>) -> Result<(), String
 }
 fn main() {
     let arguments = std::env::args_os().skip(1).collect::<Vec<_>>();
+    if arguments.first().is_some_and(|v| v == "--nova") {
+        let result = (|| -> Result<(), AppError> {
+            gitnova_core::git_credentials::install_transport_credential_helper(
+                &std::env::current_exe()?,
+            )?;
+            let args = arguments[1..]
+                .iter()
+                .map(|arg| {
+                    arg.to_str()
+                        .map(str::to_owned)
+                        .ok_or_else(|| AppError::new("nova_cli", "CLI arguments must be UTF-8."))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            gitnova_core::nova_cli::run(
+                &args,
+                &std::env::current_dir()?,
+                &mut std::io::stdin().lock(),
+                &mut std::io::stdout().lock(),
+            )
+        })();
+        if let Err(error) = result {
+            eprintln!("{}: {}", error.code, error.message);
+            std::process::exit(1);
+        }
+        return;
+    }
     if arguments
         .first()
         .is_some_and(|v| v == "--gitnova-credential-helper")

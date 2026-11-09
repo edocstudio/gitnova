@@ -22,6 +22,7 @@ mod hosting;
 mod init;
 mod jenkins;
 mod merge_cleanup;
+pub mod nova_cli;
 mod search;
 
 pub struct Application {
