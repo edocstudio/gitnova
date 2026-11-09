@@ -16,6 +16,12 @@ Run only one build/test runner at a time. Cargo compilation defaults to two jobs
 
 # Persistent settings
 
+User direction, 2026-11-09: each delivered app update must advance the patch
+version. Use apps/desktop/scripts/set-version.mjs to synchronize metadata,
+regenerate attribution inventory, and verify the installed bundle's version
+matches the source before reporting delivery. Do not reuse the previous version
+for a newly delivered fix.
+
 User direction, 2026-10-28: persistent application/workspace/repository settings belong in the header Settings dialog, with explicit scope. Do not add connection forms or preferences to commit details. Keep Git action inputs and reviewed write confirmations in their existing graph context.
 
 CI account scope: global host/company connections in Settings, independent of repository, branch and commit. GitLab/GitHub account identity is provider plus normalized HTTPS host/base path; Jenkins identity is controller plus username. Match repositories by validated fetch remote, never folder/project names or host substrings. Keep companies isolated, preserve Keychain credentials and explain global disconnect effects.
