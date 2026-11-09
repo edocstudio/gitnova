@@ -36,6 +36,7 @@ impl Output {
     }
 }
 struct Session {
+    _cli_directory: tempfile::TempDir,
     membership: String,
     master: Arc<Mutex<Option<Box<dyn MasterPty + Send>>>>,
     writer: Mutex<Box<dyn Write + Send>>,
@@ -93,7 +94,13 @@ fn session(membership: &str, id: &str) -> Result<Arc<Session>, AppError> {
         .cloned()
         .ok_or_else(|| err("Terminal session is no longer available."))
 }
-fn open(membership: String, root: &Path, cols: u16, rows: u16) -> Result<Opened, AppError> {
+fn open(
+    membership: String,
+    root: &Path,
+    cols: u16,
+    rows: u16,
+    identities: &Path,
+) -> Result<Opened, AppError> {
     // A shell executable only; never interpolate a repository path into shell code.
     #[cfg(unix)]
     let shell = std::env::var_os("SHELL")
@@ -101,7 +108,8 @@ fn open(membership: String, root: &Path, cols: u16, rows: u16) -> Result<Opened,
         .unwrap_or_else(|| "/bin/sh".into());
     #[cfg(windows)]
     let shell = std::ffi::OsString::from("powershell.exe");
-    let command = CommandBuilder::new(&shell);
+    let mut command = CommandBuilder::new(&shell);
+    command.env("GITNOVA_CLI_IDENTITIES_FILE", identities);
     #[cfg(unix)]
     let command = {
         let mut command = command;
@@ -135,6 +143,32 @@ fn open_command(
         .ok_or_else(|| err("Terminal shell is unavailable."))?;
     command.cwd(&root);
     command.env("TERM", "xterm-256color");
+    // Session-owned launchers avoid changing shell rc files or global commands.
+    // The native executable path is data, never interpolated into shell code.
+    let cli_directory = tempfile::Builder::new()
+        .prefix("gitnova-terminal-bin-")
+        .tempdir()?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let launcher = cli_directory.path().join("nova");
+        std::fs::write(
+            &launcher,
+            "#!/bin/sh\nexec \"$GITNOVA_CLI_EXECUTABLE\" --nova \"$@\"\n",
+        )?;
+        std::fs::set_permissions(&launcher, std::fs::Permissions::from_mode(0o700))?;
+    }
+    #[cfg(windows)]
+    std::fs::write(
+        cli_directory.path().join("nova.cmd"),
+        "@echo off\r\n\"%GITNOVA_CLI_EXECUTABLE%\" --nova %*\r\n",
+    )?;
+    let mut paths = vec![cli_directory.path().to_owned()];
+    if let Some(existing) = std::env::var_os("PATH") {
+        paths.extend(std::env::split_paths(&existing));
+    }
+    command.env("PATH", std::env::join_paths(paths).map_err(err)?);
+    command.env("GITNOVA_CLI_EXECUTABLE", std::env::current_exe()?);
     // Do not leak app-internal Git routing or any one-shot authentication to a shell.
     let environment: Vec<_> = std::env::vars_os().map(|(key, _)| key).collect();
     for key in environment {
@@ -151,6 +185,7 @@ fn open_command(
     let output = Arc::new(Mutex::new(Output::default()));
     let master = Arc::new(Mutex::new(Some(pair.master)));
     let session = Arc::new(Session {
+        _cli_directory: cli_directory,
         membership,
         master: master.clone(),
         writer: Mutex::new(writer),
@@ -232,6 +267,7 @@ pub async fn terminal_open(
             &app.path(&membership_id)?,
             cols,
             rows,
+            &app.cli_identity_settings_path(),
         )?;
         if epoch != EPOCH.load(Ordering::SeqCst) {
             terminal_close(membership_id, opened.id)?;
@@ -379,7 +415,7 @@ mod tests {
             .writer
             .lock()
             .unwrap()
-            .write_all(b"printf '\\nPTY_OK:'; pwd; exit\r")
+            .write_all(b"printf '\\nPTY_OK:'; pwd; command -v nova; exit\r")
             .unwrap();
         drop(handle);
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
@@ -396,6 +432,10 @@ mod tests {
         let output = String::from_utf8_lossy(&collected);
         assert!(output.contains("PTY_OK:"));
         assert!(output.contains(root.to_str().unwrap()), "{output}");
+        assert!(
+            output.contains("gitnova-terminal-bin-"),
+            "nova launcher was not in PATH: {output}"
+        );
         terminal_close("fixture".into(), opened.id.clone()).unwrap();
         assert!(session("fixture", &opened.id).is_err());
     }

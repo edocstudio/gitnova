@@ -1,5 +1,15 @@
 # Workflow clarity across GitNova
 
+## Selected-file CLI promotion
+
+Use the existing repository Terminal and `nova promote`, rather than adding a
+navigation item or another panel. This workflow is described in [Nova CLI](../cli.md).
+Show source and destination commits, selected file actions, identity and the new
+review branch before confirmation. Preserve the user's checkout/index by building
+the candidate in an isolated bare repository. Confirm publication separately from
+request creation and retain recovery evidence across partial failure. A successful
+request is a URL for review, not a completed merge.
+
 Product direction, 2026-10-25: make every GitNova workflow clear, ordered and consistent. Apply this rule to future workflows, using original interactions and visual assets.
 
 ## Interaction contract
@@ -256,6 +266,24 @@ The existing diff dock owns this workflow: no extra screen or navigation is need
 Large-file layout and full-document selection can stall the browser even below the native budget. Section navigation is therefore placed inside the existing editor (no new panel): only a bounded text section and its read-only baseline are rendered at a time, while Save writes the whole draft. Sections are editing chunks, not diff hunks; a line may span sections if unusually long. Oversized section paste is rejected without truncation.
 
 The editor reads its byte limit from the native response; both normalized UTF-8 text and the saved file (including restored CRLF) must fit 4 MiB. Binary/non-UTF-8 files remain blocked. UTF-8 validation avoids allocating an encoded copy on every keystroke.
+
+Syntax colors belong to the existing editor baseline and draft; no additional
+screen, toggle or preference is needed. Grammars load on demand by file extension
+for YAML, JSON, JavaScript/TypeScript (including JSX/TSX), Python, Rust, HTML and
+CSS. Unknown types stay plain text. Highlighting parses only the visible section
+(up to 65,536 UTF-16 code units), with at most 4,096 styled tokens; failures or
+excess token density fall back to exact plain text. A section can start inside a
+multiline construct, so its colors are a reading aid, not validation. React text
+nodes render source without interpreting HTML. The native textarea retains input,
+selection and clipboard behavior, and its colored mirror follows both scroll axes.
+Light/dark palettes follow the existing General theme setting.
+
+New terminal sessions print GitNova's own blue/cyan ASCII welcome and installed
+version in the existing terminal buffer. Narrow terminals use a compact heading.
+The greeting is display-only, never sent to the shell or added to command history;
+hiding/reopening a live session does not repeat it. There is no login gate or
+extra confirmation before typing commands. Repository context remains in the
+existing terminal header/context line.
 
 Up to four 4 MiB editor drafts remain in memory when navigating between commits/repositories; resume from the same file. Back to diff keeps changed drafts; Discard editor draft removes only the draft. Closing the application loses these drafts, with an unload warning. Save validates the checkout, staging and working bytes again; external changes require reviewing the updated baseline before retrying. Original raw bytes are retained privately under the checkout Git directory in `gitnova-file-edits`; these backups are not committed.
 

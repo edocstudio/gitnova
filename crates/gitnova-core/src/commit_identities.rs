@@ -54,6 +54,10 @@ pub(super) fn load(path: &Path) -> Result<Vec<ConnectionCommitIdentity>> {
     Ok(rows)
 }
 impl Application {
+    /// Read-only CLI settings location; contains identity defaults, never provider tokens.
+    pub fn cli_identity_settings_path(&self) -> PathBuf {
+        self.identities_path()
+    }
     fn identities_path(&self) -> PathBuf {
         self.receipt_dir
             .parent()

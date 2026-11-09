@@ -16,6 +16,7 @@ tauri = { version = "2", features = [] }
 gitnova-core = { path = "../../../crates/gitnova-core" }
 gitnova-ipc = { path = "../../../crates/gitnova-ipc" }
 portable-pty = "0.9.0"
+tempfile.workspace = true
 
 [dev-dependencies]
 tauri = { version = "2", features = ["test"] }

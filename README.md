@@ -204,6 +204,7 @@ All Git-writing test setup belongs in disposable repositories. Run build/test su
 | Start here | Details |
 | --- | --- |
 | [Usage & implementation reference](docs/implementation.md) | Workflows, commands, supported behavior and current limits. |
+| [Nova CLI](docs/cli.md) | Promote selected file snapshots from source to destination through a reviewed PR/MR. |
 | [Architecture](docs/architecture/overview.md) | Domain boundaries, stable identities and the roadmap. |
 | [Interaction principles](docs/ux/workflows.md) | Current context, selected scope, next action and resulting state. |
 | [Architecture decisions](docs/adr/) | Reviewed writes, recovery, search and bounded caches. |
