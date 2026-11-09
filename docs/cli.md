@@ -10,6 +10,12 @@ restore Nova's session command path, even if those files replace `PATH`. Your
 startup files are not edited. After updating GitNova, end an old Terminal session
 and open a new one to receive the current launcher.
 
+With the Terminal dock visible, selecting another repository opens its own shell
+at that repository's root (or shows its existing session). Existing sessions and
+running commands are preserved, up to four sessions. A reused session retains
+any directory you intentionally navigated to. New zsh sessions restore the
+repository root after startup files, even if those files change directories.
+
 ## Source → review branch → destination
 
 Nova copies **whole file snapshots** from source onto the destination tree, creates

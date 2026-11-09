@@ -183,6 +183,7 @@ fn open_command(
             .ok_or_else(|| err("Shell home directory is unavailable."))?;
         command.env("GITNOVA_ZSH_STARTUP_DIRECTORY", original);
         command.env("GITNOVA_TERMINAL_BIN", cli_directory.path());
+        command.env("GITNOVA_TERMINAL_ROOT", &root);
         for file in [".zshenv", ".zprofile", ".zshrc", ".zlogin"] {
             let mut startup = format!(
                 "if [[ -r \"$GITNOVA_ZSH_STARTUP_DIRECTORY/{file}\" ]]; then source \"$GITNOVA_ZSH_STARTUP_DIRECTORY/{file}\"; fi\n"
@@ -190,6 +191,7 @@ fn open_command(
             startup.push_str("export ZDOTDIR=\"$GITNOVA_TERMINAL_BIN\"\n");
             if matches!(file, ".zshrc" | ".zlogin") {
                 startup.push_str("export PATH=\"$GITNOVA_TERMINAL_BIN:$PATH\"\n");
+                startup.push_str("builtin cd -- \"$GITNOVA_TERMINAL_ROOT\"\n");
             }
             if file == ".zlogin" {
                 startup.push_str("export ZDOTDIR=\"$GITNOVA_ZSH_STARTUP_DIRECTORY\"\n");
@@ -478,7 +480,7 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         let startup = temp.path().join("startup ' $ directory");
         std::fs::create_dir(&startup).unwrap();
-        let rc = "export PATH=/usr/bin:/bin\nexport NOVA_FIXTURE_RC=loaded\n";
+        let rc = "export PATH=/usr/bin:/bin\nexport NOVA_FIXTURE_RC=loaded\nbuiltin cd /\n";
         std::fs::write(startup.join(".zshrc"), rc).unwrap();
         std::fs::write(startup.join(".zlogin"), "export PATH=/bin:/usr/bin\n").unwrap();
         let mut command = CommandBuilder::new("/bin/zsh");
@@ -487,7 +489,7 @@ mod tests {
         let opened = open_command("fixture".into(), temp.path(), 100, 24, command).unwrap();
         let handle = session("fixture", &opened.id).unwrap();
         handle.writer.lock().unwrap().write_all(
-            b"printf '\nSTARTUP:%s\n' \"$NOVA_FIXTURE_RC\"; command -v nova; printf 'RESTORED:%s\n' \"$ZDOTDIR\"; exit\r"
+            b"pwd; printf '\nSTARTUP:%s\n' \"$NOVA_FIXTURE_RC\"; command -v nova; printf 'RESTORED:%s\n' \"$ZDOTDIR\"; exit\r"
         ).unwrap();
         drop(handle);
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
@@ -504,6 +506,17 @@ mod tests {
         terminal_close("fixture".into(), opened.id).unwrap();
         let output = String::from_utf8_lossy(&collected);
         assert!(output.contains("STARTUP:loaded"), "{output}");
+        assert!(
+            output.contains(
+                &temp
+                    .path()
+                    .canonicalize()
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string()
+            ),
+            "{output}"
+        );
         assert!(output.contains("gitnova-terminal-bin-"), "{output}");
         assert!(
             output.contains(&format!("RESTORED:{}", startup.display())),

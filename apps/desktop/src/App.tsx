@@ -86,6 +86,15 @@ export function App() {
   const sequence = useRef(0); const detailSequence = useRef(0); const sessionRef = useRef(sessions); sessionRef.current = sessions;
   const workspace = catalog?.workspaces.find(w => w.id === catalog.activeWorkspaceId);
   const selected = workspace?.memberships.find(m => m.id === workspace.selectedId); const selectedId = selected?.id;
+  const terminalRepository=useRef<string|undefined>(undefined);
+  useEffect(()=>{
+    const changed=terminalRepository.current!==selectedId;
+    terminalRepository.current=selectedId;
+    if(!changed||!terminalVisible||!selectedId||terminalEntries.some(entry=>entry.membershipId===selectedId))return;
+    if(terminalEntries.length>=4){setError('End an existing terminal session before opening another (maximum 4).');return;}
+    setTerminalEntries(entries=>entries.some(entry=>entry.membershipId===selectedId)?entries:[...entries,{membershipId:selectedId,name:selected?.name??''}]);
+  },[selectedId,selected?.name,terminalVisible,terminalEntries]);
+
   const [graphIntent, setGraphIntent] = useState<GraphIntent | null>(null);
   const [foregroundWriteBusy, setWriteBusy] = useState(false);
   const [autoFetchBusy,setAutoFetchBusy]=useState(false);
