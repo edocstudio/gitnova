@@ -1,0 +1,339 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-editor-layout-comparison",
+  "measuredAt": "2026-11-09T09:53:48.821Z",
+  "sourceCommit": "f76bd38cc2ee30c265d880b4698b7a61e6f074bb",
+  "candidateWorkingTree": true,
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M1 Pro",
+    "node": "v26.13.0",
+    "browser": "158.0.8127.18"
+  },
+  "samples": [
+    {
+      "mode": "whole-document",
+      "run": 0,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 288.9000000357628,
+      "typeAndPaintMs": 65.93949999999995,
+      "jsHeapUsedBytes": 3125092,
+      "renderedCodeUnits": 390000
+    },
+    {
+      "mode": "sections",
+      "run": 0,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 32.90000003576279,
+      "typeAndPaintMs": 30.9096669999999,
+      "jsHeapUsedBytes": 2475172,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "sections",
+      "run": 1,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 39.5,
+      "typeAndPaintMs": 22.783166000000165,
+      "jsHeapUsedBytes": 2475172,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "whole-document",
+      "run": 1,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 269.2000000476837,
+      "typeAndPaintMs": 61.5261660000001,
+      "jsHeapUsedBytes": 3125080,
+      "renderedCodeUnits": 390000
+    },
+    {
+      "mode": "whole-document",
+      "run": 2,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 280.4000000357628,
+      "typeAndPaintMs": 60.14158300000008,
+      "jsHeapUsedBytes": 3125092,
+      "renderedCodeUnits": 390000
+    },
+    {
+      "mode": "sections",
+      "run": 2,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 64.79999995231628,
+      "typeAndPaintMs": 35.96016700000018,
+      "jsHeapUsedBytes": 2028016,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "sections",
+      "run": 3,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 39.80000001192093,
+      "typeAndPaintMs": 26.862958000000162,
+      "jsHeapUsedBytes": 1984228,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "whole-document",
+      "run": 3,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 274.5999999642372,
+      "typeAndPaintMs": 54.75004099999978,
+      "jsHeapUsedBytes": 3125092,
+      "renderedCodeUnits": 390000
+    },
+    {
+      "mode": "whole-document",
+      "run": 4,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 265.9000000357628,
+      "typeAndPaintMs": 56.065958999999566,
+      "jsHeapUsedBytes": 3125080,
+      "renderedCodeUnits": 390000
+    },
+    {
+      "mode": "sections",
+      "run": 4,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 31.30000001192093,
+      "typeAndPaintMs": 26.98491600000034,
+      "jsHeapUsedBytes": 2475184,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "sections",
+      "run": 5,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 38.39999997615814,
+      "typeAndPaintMs": 29.133333000000675,
+      "jsHeapUsedBytes": 2475184,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "whole-document",
+      "run": 5,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 289.89999997615814,
+      "typeAndPaintMs": 58.42820799999936,
+      "jsHeapUsedBytes": 3125092,
+      "renderedCodeUnits": 390000
+    },
+    {
+      "mode": "whole-document",
+      "run": 6,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 252.60000002384186,
+      "typeAndPaintMs": 42.48350000000028,
+      "jsHeapUsedBytes": 3125080,
+      "renderedCodeUnits": 390000
+    },
+    {
+      "mode": "sections",
+      "run": 6,
+      "utf8Bytes": 630000,
+      "sections": 12,
+      "renderMs": 40.59999996423721,
+      "typeAndPaintMs": 32.88379200000054,
+      "jsHeapUsedBytes": 1978728,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "whole-document",
+      "run": 0,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 646.3000000119209,
+      "typeAndPaintMs": 97.41791700000067,
+      "jsHeapUsedBytes": 4925080,
+      "renderedCodeUnits": 1040000
+    },
+    {
+      "mode": "sections",
+      "run": 0,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 36,
+      "typeAndPaintMs": 33.43654200000037,
+      "jsHeapUsedBytes": 1978728,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "sections",
+      "run": 1,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 62.59999996423721,
+      "typeAndPaintMs": 35.30525000000034,
+      "jsHeapUsedBytes": 2475184,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "whole-document",
+      "run": 1,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 656,
+      "typeAndPaintMs": 109.77991699999984,
+      "jsHeapUsedBytes": 4924932,
+      "renderedCodeUnits": 1040000
+    },
+    {
+      "mode": "whole-document",
+      "run": 2,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 647.8000000119209,
+      "typeAndPaintMs": 98.41437500000029,
+      "jsHeapUsedBytes": 4925092,
+      "renderedCodeUnits": 1040000
+    },
+    {
+      "mode": "sections",
+      "run": 2,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 36.90000003576279,
+      "typeAndPaintMs": 29.888875000000553,
+      "jsHeapUsedBytes": 2475184,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "sections",
+      "run": 3,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 45.30000001192093,
+      "typeAndPaintMs": 28.04083299999911,
+      "jsHeapUsedBytes": 1979136,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "whole-document",
+      "run": 3,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 670.2000000476837,
+      "typeAndPaintMs": 103.13112499999988,
+      "jsHeapUsedBytes": 4925092,
+      "renderedCodeUnits": 1040000
+    },
+    {
+      "mode": "whole-document",
+      "run": 4,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 650.6999999880791,
+      "typeAndPaintMs": 110.02429200000006,
+      "jsHeapUsedBytes": 4925080,
+      "renderedCodeUnits": 1040000
+    },
+    {
+      "mode": "sections",
+      "run": 4,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 39.89999997615814,
+      "typeAndPaintMs": 22.65679199999977,
+      "jsHeapUsedBytes": 2475184,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "sections",
+      "run": 5,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 43,
+      "typeAndPaintMs": 31.313083000000915,
+      "jsHeapUsedBytes": 1978728,
+      "renderedCodeUnits": 32760
+    },
+    {
+      "mode": "whole-document",
+      "run": 5,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 660.3000000119209,
+      "typeAndPaintMs": 115.18704199999956,
+      "jsHeapUsedBytes": 4925092,
+      "renderedCodeUnits": 1040000
+    },
+    {
+      "mode": "whole-document",
+      "run": 6,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 632.1000000238419,
+      "typeAndPaintMs": 98.03695900000093,
+      "jsHeapUsedBytes": 4925068,
+      "renderedCodeUnits": 1040000
+    },
+    {
+      "mode": "sections",
+      "run": 6,
+      "utf8Bytes": 1680000,
+      "sections": 32,
+      "renderMs": 33.80000001192093,
+      "typeAndPaintMs": 34.03554199999962,
+      "jsHeapUsedBytes": 2475184,
+      "renderedCodeUnits": 32760
+    }
+  ],
+  "limits": [
+    "Synthetic editor layout and typing only, not full application or Git-operation latency.",
+    "Chromium differs from native macOS WebKit; results do not certify native RAM stability.",
+    "JS heap excludes DOM, renderer native allocations and GPU memory. No long-session RAM test.",
+    "Baseline reconstructs the previous whole-document editor; candidate uses the current section splitter.",
+    "No real repository data, tokens, Git credentials or network services used."
+  ],
+  "comparison": [
+    {
+      "utf8Bytes": 630000,
+      "whole-document": {
+        "passed": 7,
+        "failed": 0,
+        "renderMedianMs": 274.5999999642372,
+        "typeAndPaintMedianMs": 58.42820799999936,
+        "jsHeapUsedMedianBytes": 3125092
+      },
+      "sections": {
+        "passed": 7,
+        "failed": 0,
+        "renderMedianMs": 39.5,
+        "typeAndPaintMedianMs": 29.133333000000675,
+        "jsHeapUsedMedianBytes": 2475172
+      }
+    },
+    {
+      "utf8Bytes": 1680000,
+      "whole-document": {
+        "passed": 7,
+        "failed": 0,
+        "renderMedianMs": 650.6999999880791,
+        "typeAndPaintMedianMs": 103.13112499999988,
+        "jsHeapUsedMedianBytes": 4925080
+      },
+      "sections": {
+        "passed": 7,
+        "failed": 0,
+        "renderMedianMs": 39.89999997615814,
+        "typeAndPaintMedianMs": 31.313083000000915,
+        "jsHeapUsedMedianBytes": 2475184
+      }
+    }
+  ]
+}

@@ -1418,7 +1418,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-core"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
  "gitnova-git",
@@ -1436,7 +1436,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-desktop"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-core",
  "gitnova-ipc",
@@ -1453,7 +1453,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-domain"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "serde",
  "uuid",
@@ -1461,7 +1461,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-git"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "command-group",
  "gitnova-domain",
@@ -1476,14 +1476,14 @@ dependencies = [
 
 [[package]]
 name = "gitnova-graph"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
 ]
 
 [[package]]
 name = "gitnova-hosting"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "dbus-secret-service",
  "gitnova-domain",
@@ -1498,14 +1498,14 @@ dependencies = [
 
 [[package]]
 name = "gitnova-ipc"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
 ]
 
 [[package]]
 name = "gitnova-search"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
  "gitnova-git",
@@ -1518,7 +1518,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-storage"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
  "serde_json",
@@ -1527,7 +1527,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-submodule"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
  "gitnova-git",
@@ -1537,7 +1537,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-workspace"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
  "uuid",
@@ -1545,7 +1545,7 @@ dependencies = [
 
 [[package]]
 name = "gitnova-worktree"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "gitnova-domain",
  "gitnova-git",
