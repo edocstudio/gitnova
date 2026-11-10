@@ -1,4 +1,4 @@
-// Synchronize first-party version metadata only; never resolve dependencies.
+// Synchronize first-party version metadata and current README status; never resolve dependencies.
 import {readFileSync,writeFileSync} from 'node:fs';
 import {dirname,resolve,join} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
@@ -17,6 +17,18 @@ export function versionUpdates(root,version){
     if(file.endsWith('package-lock.json'))data.packages[''].version=version;
     updates.set(file,JSON.stringify(data,null,2)+'\n');
   }
+  let readme=readFileSync(join(root,'README.md'),'utf8');
+  const currentVersionFields=[
+    /(https:\/\/img\.shields\.io\/badge\/Version-)\d+\.\d+\.\d+(?=-)/,
+    /(alt="Version: )\d+\.\d+\.\d+(?=")/,
+    /(The following workflows are implemented in version )\d+\.\d+\.\d+(?=\.)/,
+    /(\*\*GitNova )\d+\.\d+\.\d+(?=\*\* is the owner-selected version)/,
+  ];
+  for(const field of currentVersionFields){
+    if(!field.test(readme))throw new Error('Missing current README version field.');
+    readme=readme.replace(field,(_,prefix)=>`${prefix}${version}`);
+  }
+  updates.set('README.md',readme);
   return updates;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
