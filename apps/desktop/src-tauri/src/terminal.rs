@@ -35,8 +35,53 @@ impl Output {
             .extend(bytes.iter().rev().take(OUTPUT_LIMIT).rev().copied());
     }
 }
+struct IdleState {
+    last_activity: std::time::Instant,
+    ready: bool,
+    tail: Vec<u8>,
+    idle_marker: Vec<u8>,
+    busy_marker: Vec<u8>,
+}
+impl IdleState {
+    fn new(token: &str) -> Self {
+        Self {
+            last_activity: std::time::Instant::now(),
+            ready: false,
+            tail: Vec::new(),
+            idle_marker: format!("\x1b]777;gitnova;{token};idle\x07").into_bytes(),
+            busy_marker: format!("\x1b]777;gitnova;{token};busy\x07").into_bytes(),
+        }
+    }
+    fn activity(&mut self) {
+        self.last_activity = std::time::Instant::now();
+        self.ready = false;
+        self.tail.clear();
+    }
+    fn observe(&mut self, data: &[u8]) {
+        self.last_activity = std::time::Instant::now();
+        for byte in data {
+            self.tail.push(*byte);
+            if self.tail.ends_with(&self.idle_marker) {
+                self.ready = true;
+                self.tail.clear();
+            } else if self.tail.ends_with(&self.busy_marker) {
+                self.ready = false;
+                self.tail.clear();
+            }
+            if self.tail.len() > self.idle_marker.len().max(self.busy_marker.len()) {
+                self.tail.remove(0);
+            }
+        }
+    }
+    fn due(&self, seconds: u64) -> bool {
+        seconds > 0
+            && self.ready
+            && self.last_activity.elapsed() >= std::time::Duration::from_secs(seconds)
+    }
+}
 struct Session {
     _cli_directory: tempfile::TempDir,
+    idle: Arc<Mutex<IdleState>>,
     membership: String,
     master: Arc<Mutex<Option<Box<dyn MasterPty + Send>>>>,
     writer: Mutex<Box<dyn Write + Send>>,
@@ -169,6 +214,13 @@ fn open_command(
     }
     command.env("PATH", std::env::join_paths(paths).map_err(err)?);
     command.env("GITNOVA_CLI_EXECUTABLE", std::env::current_exe()?);
+    let idle_token = cli_directory
+        .path()
+        .file_name()
+        .unwrap()
+        .to_string_lossy()
+        .into_owned();
+    let idle = Arc::new(Mutex::new(IdleState::new(&idle_token)));
     #[cfg(unix)]
     if Path::new(&shell)
         .file_name()
@@ -198,6 +250,11 @@ fn open_command(
             } else if file == ".zshrc" {
                 startup.push_str("if [[ ! -o login ]]; then export ZDOTDIR=\"$GITNOVA_ZSH_STARTUP_DIRECTORY\"; fi\n");
             }
+            if file == ".zshrc" {
+                startup.push_str(&format!(
+                    "\nautoload -Uz add-zsh-hook\n_gitnova_busy() {{ builtin printf '\\033]777;gitnova;{idle_token};busy\\007'; }}\n_gitnova_idle() {{ if [[ -z \"$(jobs -p)\" ]]; then builtin printf '\\033]777;gitnova;{idle_token};idle\\007'; else _gitnova_busy; fi; }}\nadd-zsh-hook preexec _gitnova_busy\nadd-zsh-hook precmd _gitnova_idle\nautoload -Uz add-zle-hook-widget\n_gitnova_editing() {{ if [[ -n $BUFFER ]]; then _gitnova_busy; else _gitnova_idle; fi; }}\nadd-zle-hook-widget line-pre-redraw _gitnova_editing\n"
+                ));
+            }
             std::fs::write(cli_directory.path().join(file), startup)?;
         }
         command.env("ZDOTDIR", cli_directory.path());
@@ -220,6 +277,7 @@ fn open_command(
     let master = Arc::new(Mutex::new(Some(pair.master)));
     let session = Arc::new(Session {
         _cli_directory: cli_directory,
+        idle: idle.clone(),
         membership,
         master: master.clone(),
         writer: Mutex::new(writer),
@@ -227,6 +285,7 @@ fn open_command(
         output: output.clone(),
     });
     let read_output = output.clone();
+    let read_idle = idle.clone();
     if let Err(e) = std::thread::Builder::new()
         .name("terminal-output".into())
         .spawn(move || {
@@ -236,6 +295,9 @@ fn open_command(
                 match reader.read(&mut bytes) {
                     Ok(0) | Err(_) => break,
                     Ok(count) => {
+                        if let Ok(mut idle) = read_idle.lock() {
+                            idle.observe(&bytes[..count]);
+                        }
                         if let Ok(mut out) = read_output.lock() {
                             out.append(&bytes[..count]);
                         } else {
@@ -341,12 +403,33 @@ pub async fn terminal_write(
     tauri::async_runtime::spawn_blocking(move || {
         let _slot = slot;
         let mut writer = session.writer.lock().map_err(err)?;
+        session.idle.lock().map_err(err)?.activity();
         writer.write_all(data.as_bytes())?;
         writer.flush()?;
         Ok(())
     })
     .await
     .map_err(err)?
+}
+#[tauri::command]
+pub fn terminal_expire_idle(
+    membership_id: String,
+    id: String,
+    minutes: u32,
+) -> Result<bool, AppError> {
+    if ![0, 30, 60].contains(&minutes) {
+        return Err(err("Invalid terminal idle timeout."));
+    }
+    let current = session(&membership_id, &id)?;
+    // Serialize with input and output observation. Unknown/running shells never expire.
+    let _writer = current.writer.lock().map_err(err)?;
+    let idle = current.idle.lock().map_err(err)?;
+    if !idle.due(u64::from(minutes) * 60) {
+        return Ok(false);
+    }
+    // Recheck while holding the idle state so a concurrent input cannot race expiry.
+    current.stop();
+    Ok(true)
 }
 #[tauri::command]
 pub fn terminal_resize(
@@ -392,6 +475,96 @@ pub fn close_all() {
 mod tests {
     use super::*;
     static TEST_LOCK: Mutex<()> = Mutex::new(());
+    #[test]
+    fn idle_requires_verified_prompt_and_resets_for_input_and_busy_markers() {
+        let mut state = IdleState::new("fixture");
+        state.last_activity = std::time::Instant::now() - std::time::Duration::from_secs(4000);
+        assert!(!state.due(1800));
+        let marker = state.idle_marker.clone();
+        for part in marker.chunks(3) {
+            state.observe(part);
+        }
+        state.last_activity = std::time::Instant::now() - std::time::Duration::from_secs(4000);
+        assert!(state.due(1800));
+        assert!(!state.due(0));
+        state.activity();
+        assert!(!state.ready);
+        state.observe(&marker);
+        let busy = state.busy_marker.clone();
+        state.observe(&busy);
+        state.last_activity = std::time::Instant::now() - std::time::Duration::from_secs(4000);
+        assert!(!state.due(1800));
+        state.observe(&marker);
+        state.observe(b"background output");
+        assert!(!state.due(1800));
+        assert!(state.tail.len() <= marker.len().max(busy.len()));
+    }
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn idle_detection_protects_silent_commands_and_background_jobs() {
+        let _guard = TEST_LOCK.lock().unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        std::fs::write(temp.path().join(".zshrc"), "PROMPT='FIXTURE> '\n").unwrap();
+        let mut command = CommandBuilder::new("/bin/zsh");
+        command.arg("-il");
+        command.env("ZDOTDIR", temp.path());
+        let opened = open_command("idle".into(), temp.path(), 80, 24, command).unwrap();
+        let handle = session("idle", &opened.id).unwrap();
+        let wait_ready = |expected| {
+            let end = std::time::Instant::now() + std::time::Duration::from_secs(5);
+            loop {
+                if handle.idle.lock().unwrap().ready == expected {
+                    break;
+                }
+                assert!(std::time::Instant::now() < end, "prompt state not observed");
+                std::thread::sleep(std::time::Duration::from_millis(20));
+            }
+        };
+        wait_ready(true);
+        handle.idle.lock().unwrap().activity();
+        handle
+            .writer
+            .lock()
+            .unwrap()
+            .write_all(b"sleep 1\r")
+            .unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(150));
+        assert!(!handle.idle.lock().unwrap().ready);
+        assert!(!terminal_expire_idle("idle".into(), opened.id.clone(), 30).unwrap());
+        wait_ready(true);
+        handle.idle.lock().unwrap().activity();
+        handle
+            .writer
+            .lock()
+            .unwrap()
+            .write_all(b"sleep 2 &\r")
+            .unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        assert!(!handle.idle.lock().unwrap().ready);
+        assert!(!terminal_expire_idle("idle".into(), opened.id.clone(), 30).unwrap());
+        handle.writer.lock().unwrap().write_all(b"wait\r").unwrap();
+        wait_ready(true);
+        handle
+            .writer
+            .lock()
+            .unwrap()
+            .write_all(b"echo unfinished")
+            .unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        assert!(
+            !handle.idle.lock().unwrap().ready,
+            "unfinished command must remain open"
+        );
+        handle.writer.lock().unwrap().write_all(b"\x03").unwrap();
+        wait_ready(true);
+        {
+            let mut idle = handle.idle.lock().unwrap();
+            idle.last_activity = std::time::Instant::now() - std::time::Duration::from_secs(1900);
+        }
+        assert!(!terminal_expire_idle("idle".into(), opened.id.clone(), 0).unwrap());
+        assert!(terminal_expire_idle("idle".into(), opened.id.clone(), 30).unwrap());
+        terminal_close("idle".into(), opened.id).unwrap();
+    }
     #[test]
     fn output_and_dimensions_are_bounded() {
         let mut out = Output::default();

@@ -1,3 +1,4 @@
+import {useTerminalIdle} from './terminal-idle';
 import {useEffect,useRef,useState} from 'react';
 import {Terminal} from '@xterm/xterm';
 import {FitAddon} from '@xterm/addon-fit';
@@ -8,15 +9,17 @@ import {Icon} from './Icons';
 import {terminalWelcome} from './terminal-welcome';
 export type TerminalEntry={membershipId:string;name:string};
 
-function Shell({entry,visible,onReady}:{entry:TerminalEntry;visible:boolean;onReady:()=>void}){
+function Shell({entry,visible,onReady,onExpired}:{entry:TerminalEntry;visible:boolean;onReady:()=>void;onExpired:()=>void}){
  useLocale();
  const root=useRef<HTMLDivElement>(null);
- const live=useRef({visible,onReady});live.current={visible,onReady};
+ const idleMinutes=useTerminalIdle();
+ const live=useRef({visible,onReady,onExpired,idleMinutes});live.current={visible,onReady,onExpired,idleMinutes};
  const [status,setStatus]=useState('Opening terminal…');const [error,setError]=useState('');
  const [context,setContext]=useState<{path:string;shell:string}|null>(null);
  const control=useRef<{fit:()=>void}|null>(null);
  useEffect(()=>{
   let disposed=false;let sessionId='';let timer:ReturnType<typeof setTimeout>|undefined;
+  let idleTimer:ReturnType<typeof setTimeout>|undefined;
   let outputPending=false;let queue='';let writing=false;let stopped=false;
   const terminal=new Terminal({scrollback:2000,fontSize:12,fontFamily:'Menlo, Monaco, monospace',cursorBlink:true,allowProposedApi:false,theme:{background:'#0c141c',foreground:'#d5e2ee',cursor:'#72afff'},disableStdin:true});
   const fit=new FitAddon();terminal.loadAddon(fit);terminal.open(root.current!);
@@ -40,6 +43,12 @@ function Shell({entry,visible,onReady}:{entry:TerminalEntry;visible:boolean;onRe
     terminal.write(new Uint8Array(batch.data),()=>{outputPending=false;if(disposed)return;if(batch.exited){stopped=true;terminal.options.disableStdin=true;setStatus('Shell exited');live.current.onReady();}else timer=setTimeout(()=>void poll(),batch.data.length?16:100);});
    }catch(e){fail(e);}
   };
+  const checkIdle=async()=>{
+   if(disposed||stopped)return;
+   try{if(sessionId&&live.current.idleMinutes&&await api.terminalExpireIdle(entry.membershipId,sessionId,live.current.idleMinutes)){if(!disposed){stopped=true;terminal.options.disableStdin=true;live.current.onExpired();}return;}}
+   catch{/* A failed/unknown idle check never closes a session. */}
+   if(!disposed&&!stopped)idleTimer=setTimeout(()=>void checkIdle(),15000);
+  };
   // StrictMode can dispose the first effect before it becomes interactive.
   // Defer admission one microtask so that cancelled mounts never spawn a shell.
   void Promise.resolve().then(async()=>{
@@ -47,9 +56,9 @@ function Shell({entry,visible,onReady}:{entry:TerminalEntry;visible:boolean;onRe
    const opened=await api.terminalOpen(entry.membershipId,80,24);
    sessionId=opened.id;
    if(disposed){void api.terminalClose(entry.membershipId,sessionId).catch(()=>{});return;}
-   setContext(opened);setStatus('Interactive shell');resize();terminal.write(terminalWelcome(terminal.cols,t('Git made simple. Every repository. Every change.')));terminal.options.disableStdin=false;terminal.focus();void poll();
+   setContext(opened);setStatus('Interactive shell');resize();terminal.write(terminalWelcome(terminal.cols,t('Git made simple. Every repository. Every change.')));terminal.options.disableStdin=false;terminal.focus();void poll();idleTimer=setTimeout(()=>void checkIdle(),15000);
   }).catch(fail);
-  return()=>{disposed=true;clearTimeout(timer);observer.disconnect();input.dispose();control.current=null;if(sessionId)void api.terminalClose(entry.membershipId,sessionId).catch(()=>{});if(outputPending)requestAnimationFrame(()=>terminal.dispose());else terminal.dispose();};
+  return()=>{disposed=true;clearTimeout(timer);clearTimeout(idleTimer);observer.disconnect();input.dispose();control.current=null;if(sessionId)void api.terminalClose(entry.membershipId,sessionId).catch(()=>{});if(outputPending)requestAnimationFrame(()=>terminal.dispose());else terminal.dispose();};
  },[entry.membershipId]);
  useEffect(()=>{if(visible)control.current?.fit();},[visible]);
  return <div className="repository-shell" hidden={!visible}>
@@ -58,7 +67,7 @@ function Shell({entry,visible,onReady}:{entry:TerminalEntry;visible:boolean;onRe
   <div ref={root} className="terminal-emulator" aria-label={t('Repository terminal input')}/>
  </div>;
 }
-export function RepositoryTerminal({entries,selectedId,visible,onHide,onEnd,onChanged}:{entries:TerminalEntry[];selectedId?:string;visible:boolean;onHide:()=>void;onEnd:(id:string)=>void;onChanged:()=>void}){
+export function RepositoryTerminal({entries,selectedId,visible,onHide,onEnd,onChanged,onExpired}:{entries:TerminalEntry[];selectedId?:string;visible:boolean;onHide:()=>void;onEnd:(id:string)=>void;onChanged:()=>void;onExpired:(id:string)=>void}){
  useLocale();const active=entries.find(entry=>entry.membershipId===selectedId);
  const [height,setHeight]=useState(260);const [ending,setEnding]=useState(false);
  useEffect(()=>setEnding(false),[selectedId,visible]);
@@ -67,6 +76,6 @@ export function RepositoryTerminal({entries,selectedId,visible,onHide,onEnd,onCh
   <header><Icon name="terminal" size={16}/><strong>{t('Terminal')} · {active?.name}</strong><small>{t('{0} active sessions',[entries.length])}</small><button onClick={()=>setEnding(true)}>{t('End session')}</button><button aria-label={t('Hide terminal')} title={t('Hide terminal; keep the shell running')} onClick={()=>{onHide();onChanged();}}><Icon name="close" size={16}/></button></header>
   {ending&&<div className="terminal-end-review">{t('End this shell and its running commands?')} <button onClick={()=>{if(selectedId)onEnd(selectedId);onChanged();setEnding(false);}}>{t('End session')}</button><button onClick={()=>setEnding(false)}>{t('Cancel')}</button></div>}
   <div className="terminal-hint">{t('Shell commands run directly, outside GitNova previews and connection commit identities.')}</div>
-  {entries.map(entry=><Shell key={entry.membershipId} entry={entry} visible={visible&&entry.membershipId===selectedId} onReady={onChanged}/>)}
+  {entries.map(entry=><Shell key={entry.membershipId} entry={entry} visible={visible&&entry.membershipId===selectedId} onReady={onChanged} onExpired={()=>onExpired(entry.membershipId)}/>)}
  </section>;
 }
