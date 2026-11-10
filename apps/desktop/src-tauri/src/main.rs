@@ -1329,6 +1329,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         terminal::terminal_read,
         terminal::terminal_write,
         terminal::terminal_resize,
+        terminal::terminal_expire_idle,
         terminal::terminal_close,
         native_soak_report,
         recorded_activity,

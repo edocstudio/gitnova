@@ -16,6 +16,21 @@ running commands are preserved, up to four sessions. A reused session retains
 any directory you intentionally navigated to. New zsh sessions restore the
 repository root after startup files, even if those files change directories.
 
+## Terminal idle timeout
+
+**Settings → General → Terminal idle timeout** applies across repositories on
+this device. The default is **Never close automatically**; optional limits are
+30 minutes and 1 hour. Preferences persist between app launches.
+
+Automatic closure requires a verified idle prompt with no background jobs.
+Typing, shell output and commands reset or suspend the timer. Partial input,
+silent foreground commands, background jobs and unknown shell states stay open.
+Currently idle detection integrates with zsh; other shells conservatively stay
+open. Hiding the dock or selecting another repository does not itself close a
+session. Expiry checks run about every 15 seconds while the app can run timers;
+sleep or OS suspension can delay them. An expired session is closed and removed,
+with a status message. Open Terminal again to start a new session.
+
 ## Source → review branch → destination
 
 Nova copies **whole file snapshots** from source onto the destination tree, creates

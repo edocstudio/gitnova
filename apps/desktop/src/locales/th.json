@@ -2281,5 +2281,12 @@
   "Next section": "ส่วนถัดไป",
   "Section {0} of {1}": "ส่วนที่ {0} จาก {1}",
   "Save writes the complete file, including other sections.": "บันทึกจะเขียนไฟล์ครบทั้งหมด รวมถึงส่วนอื่น ๆ",
-  "Git made simple. Every repository. Every change.": "จัดการ Git ให้ง่ายขึ้น ทุก repository ทุกการเปลี่ยนแปลง"
+  "Git made simple. Every repository. Every change.": "จัดการ Git ให้ง่ายขึ้น ทุก repository ทุกการเปลี่ยนแปลง",
+  "Terminal idle timeout": "เวลาปิด Terminal เมื่อไม่ได้ใช้งาน",
+  "Never close automatically": "ไม่ปิดอัตโนมัติ",
+  "After 30 minutes": "หลังจาก 30 นาที",
+  "After 1 hour": "หลังจาก 1 ชั่วโมง",
+  "Closes only a verified idle shell with no background jobs. Running commands and unfinished input stay open. Shells without idle detection stay open.": "ปิดเฉพาะ shell ที่ยืนยันว่ารอคำสั่งและไม่มีงานเบื้องหลัง คำสั่งที่กำลังทำงานหรือพิมพ์ค้างไว้จะไม่ถูกปิด หากตรวจสถานะ idle ไม่ได้จะคง session ไว้",
+  "Terminal session closed after inactivity.": "ปิด Terminal session เนื่องจากไม่มีการใช้งานแล้ว",
+  "Idle detection is currently available for zsh.": "ขณะนี้รองรับการตรวจสถานะ idle สำหรับ zsh"
 }

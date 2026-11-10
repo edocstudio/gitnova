@@ -1872,6 +1872,27 @@ test('graph Terminal action opens the selected repository dock without losing gr
  await page.locator('.terminal-end-review').getByRole('button',{name:'End session',exact:true}).click();await expect(page.locator('.repository-terminal')).toHaveCount(0);
 });
 
+test('terminal idle setting persists and verified expiry removes a hidden session',async({page})=>{
+ await connectRealCore(page,join(folder,'terminal-idle.json'));await page.goto('/');
+ await page.getByRole('button',{name:'Settings',exact:true}).click();
+ const settings=page.locator('dialog.settings-dialog');await expect(settings.getByLabel('Terminal idle timeout')).toHaveValue('0');
+ await settings.getByLabel('Terminal idle timeout').selectOption('30');await page.keyboard.press('Escape');await page.reload();
+ await page.getByRole('button',{name:'Settings',exact:true}).click();await expect(settings.getByLabel('Terminal idle timeout')).toHaveValue('30');await page.keyboard.press('Escape');
+ await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.evaluate(async path=>{
+  const {api}=await import('/src/api.ts');(window as any).idleChecks=[];(window as any).allowExpiry=false;(window as any).closedIdle=[];
+  api.terminalOpen=async()=>({id:'idle-session',path,shell:'/bin/zsh'});api.terminalRead=async()=>({data:[],dropped:false,exited:false});api.terminalWrite=async()=>{};api.terminalResize=async()=>{};
+  api.terminalClose=async(_membership,id)=>{(window as any).closedIdle.push(id);};
+  api.terminalExpireIdle=async(_membership,_id,minutes)=>{(window as any).idleChecks.push(minutes);return (window as any).allowExpiry;};
+ },repository);
+ await page.clock.install();await page.locator('.terminal-toggle').click();await expect(page.locator('.terminal-context')).toContainText(repository);
+ await page.getByRole('button',{name:'Hide terminal',exact:true}).click();await page.clock.runFor(16000);
+ expect(await page.evaluate(()=>(window as any).idleChecks)).toEqual([30]);await expect(page.locator('.repository-terminal')).toHaveCount(1);
+ await page.evaluate(()=>{(window as any).allowExpiry=true;});await page.clock.runFor(16000);
+ await expect(page.locator('.repository-terminal')).toHaveCount(0);await expect(page.getByRole('status').filter({hasText:'Terminal session closed after inactivity.'})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>(window as any).closedIdle)).toEqual(['idle-session']);
+});
+
 test('visible terminal follows repository selection and reuses each repository session',async({page})=>{
  const second=join(folder,'terminal-second-repo');mkdirSync(second);git(second,['init','-b','main']);
  await connectRealCore(page,join(folder,'terminal-follow.json'));await page.goto('/');

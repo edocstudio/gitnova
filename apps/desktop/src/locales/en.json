@@ -2281,5 +2281,12 @@
   "Next section": "Next section",
   "Section {0} of {1}": "Section {0} of {1}",
   "Save writes the complete file, including other sections.": "Save writes the complete file, including other sections.",
-  "Git made simple. Every repository. Every change.": "Git made simple. Every repository. Every change."
+  "Git made simple. Every repository. Every change.": "Git made simple. Every repository. Every change.",
+  "Terminal idle timeout": "Terminal idle timeout",
+  "Never close automatically": "Never close automatically",
+  "After 30 minutes": "After 30 minutes",
+  "After 1 hour": "After 1 hour",
+  "Closes only a verified idle shell with no background jobs. Running commands and unfinished input stay open. Shells without idle detection stay open.": "Closes only a verified idle shell with no background jobs. Running commands and unfinished input stay open. Shells without idle detection stay open.",
+  "Terminal session closed after inactivity.": "Terminal session closed after inactivity.",
+  "Idle detection is currently available for zsh.": "Idle detection is currently available for zsh."
 }

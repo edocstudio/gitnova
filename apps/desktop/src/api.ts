@@ -32,6 +32,7 @@ export const api = {
   saveWorkingFileText:(membershipId:string,path:NativePath,text:string,token:string)=>call<void>('save_working_file_text',{membershipId,path,text,token}),
   previewSubmoduleLifecycle:(membershipId:string,request:import('./contracts').SubmoduleLifecycleRequest)=>call<import('./contracts').SubmoduleLifecyclePreview>('preview_submodule_lifecycle',{membershipId,request}),
   changeSubmoduleLifecycle:(membershipId:string,request:import('./contracts').SubmoduleLifecycleRequest,token:string)=>call<OperationReceipt>('change_submodule_lifecycle',{membershipId,request,token}),
+  terminalExpireIdle:(membershipId:string,id:string,minutes:number)=>call<boolean>('terminal_expire_idle',{membershipId,id,minutes}),
   terminalOpen:(membershipId:string,cols:number,rows:number)=>call<{id:string;path:string;shell:string}>('terminal_open',{membershipId,cols,rows}),
   terminalRead:(membershipId:string,id:string)=>call<{data:number[];dropped:boolean;exited:boolean}>('terminal_read',{membershipId,id}),
   terminalWrite:(membershipId:string,id:string,data:string)=>call<void>('terminal_write',{membershipId,id,data}),
