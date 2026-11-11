@@ -6,8 +6,10 @@ mod file_identity;
 pub use credentials::install_transport_credential_helper;
 mod metrics;
 mod process;
+mod read_scope;
 mod wait;
 pub use metrics::{measure_git, GitMetrics};
+pub use read_scope::with_read_scope;
 mod clone;
 mod init;
 mod progress;
@@ -74,6 +76,10 @@ impl GitCli {
     pub fn read(&self, path: &Path, args: &[&OsStr], limit: usize) -> Result<Output> {
         self.execute(path, args, limit, false)
     }
+    /// Bounded preview; callers must preserve the truncation indicator.
+    pub fn read_preview(&self, path: &Path, args: &[&OsStr], limit: usize) -> Result<Output> {
+        self.execute(path, args, limit, true)
+    }
     pub(crate) fn execute(
         &self,
         path: &Path,
@@ -117,6 +123,36 @@ impl GitCli {
         protocols: &str,
         input: Option<&[u8]>,
     ) -> Result<Output> {
+        read_scope::check()?;
+        if read_scope::active()
+            && (!protocols.is_empty()
+                || !args.first().is_some_and(|a| {
+                    matches!(
+                        a.to_str(),
+                        Some(
+                            "config"
+                                | "rev-parse"
+                                | "symbolic-ref"
+                                | "show-ref"
+                                | "for-each-ref"
+                                | "ls-files"
+                                | "ls-tree"
+                                | "rev-list"
+                                | "log"
+                                | "status"
+                                | "diff"
+                                | "blame"
+                                | "cat-file"
+                                | "check-ref-format"
+                        )
+                    )
+                }))
+        {
+            return Err(AppError::new(
+                "read_only",
+                "Command is outside the read-only service.",
+            ));
+        }
         // Even `git status`/working-tree `diff` may invoke clean/process filters.
         // Discover driver keys through config-only reads, then neutralize those
         // commands for every inspection (including nested Git invocations).
@@ -164,7 +200,10 @@ impl GitCli {
                     .any(|a| a == &OsStr::new("--filters") || a == &OsStr::new("--textconv"));
         if !metadata_only {
             let mut drivers = self.filter_drivers(path)?;
-            if command == "status" || (command == "diff" && !args.contains(&OsStr::new("--raw"))) {
+            if !read_scope::active()
+                && (command == "status"
+                    || (command == "diff" && !args.contains(&OsStr::new("--raw"))))
+            {
                 self.nested_filter_drivers(path, &mut drivers)?;
             }
             for driver in drivers {
@@ -184,6 +223,20 @@ impl GitCli {
             if key.to_string_lossy().starts_with("GIT_") {
                 cmd.env_remove(key);
             }
+        }
+        if read_scope::active() {
+            cmd.args([
+                "-c",
+                "core.hooksPath=",
+                "-c",
+                "core.attributesFile=",
+                "-c",
+                "core.excludesFile=",
+                "-c",
+                "diff.external=",
+                "-c",
+                "log.showSignature=false",
+            ]);
         }
         commit_identity::configure(&mut cmd, path);
         cmd.env_remove("GITNOVA_CREDENTIAL_TARGETS");
@@ -301,6 +354,7 @@ impl GitCli {
                 "Git error output did not finish within its bounded read budget",
             )
         })??;
+        read_scope::check()?;
         if timed_out {
             return Err(AppError::new(
                 "timeout",

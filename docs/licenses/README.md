@@ -6,7 +6,7 @@ unchanged. NOTICE records project attribution, not a completed dependency audit.
 `dependency-inventory.json` is an offline inventory of the locked Rust graph for
 `aarch64-apple-darwin` with `gitnova-desktop/custom-protocol`, and the npm lockfile
 with installed package evidence. It includes development/build and optional
-candidates; it is **not** an exact list of code shipped in the executable or JS.
+candidates (including the optional Local MCP workspace executable); it is **not** an exact list of code shipped in the executable or JS.
 Assets are hashed candidates requiring provenance/permission review, including
 documentation screenshots that are not automatically included in the app.
 
@@ -40,7 +40,7 @@ approval of WebView2 runtime/SDK redistribution.
 `selectors` 0.38.0 explicitly declares MPL 2.0 in its pinned source header;
 its entry supplies the canonical text from Mozilla, the license steward.
 This does not resolve MPL source-form obligations or bundled native libraries.
-The current macOS inventory still has 49 unresolved entries and 27
+The current macOS inventory currently records 67 unresolved entries and 27
 component-specific terms to review.
 For example, the [pinned objc2 upstream licensing document](https://github.com/madsmtm/objc2/blob/d7d2fa23ceaa5e6096c923b081040e5d81b3b9df/LICENSE.md) discusses generated
 Apple SDK bindings; collecting that document alone would not resolve their

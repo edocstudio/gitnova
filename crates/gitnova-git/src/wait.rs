@@ -26,7 +26,7 @@ pub(crate) fn wait_for_exit<C: Waitable>(
             return Ok(Some(status));
         }
         let elapsed = start.elapsed();
-        if elapsed >= budget {
+        if elapsed >= budget || crate::read_scope::check().is_err() {
             return Ok(None);
         }
         let timeout = tick.min(budget.saturating_sub(elapsed));

@@ -204,6 +204,7 @@ All Git-writing test setup belongs in disposable repositories. Run build/test su
 | Start here | Details |
 | --- | --- |
 | [Usage & implementation reference](docs/implementation.md) | Workflows, commands, supported behavior and current limits. |
+| [Local MCP](docs/mcp/local-server.md) | Optional read-only stdio tools and explicit repository permission. |
 | [Nova CLI](docs/cli.md) | Promote selected file snapshots from source to destination through a reviewed PR/MR. |
 | [Architecture](docs/architecture/overview.md) | Domain boundaries, stable identities and the roadmap. |
 | [Interaction principles](docs/ux/workflows.md) | Current context, selected scope, next action and resulting state. |
@@ -246,3 +247,10 @@ npm run version:set -- 1.0.4
 After changing the version, regenerate the [license inventory](docs/licenses/README.md)
 and rebuild/install the app to update the visible version. Editing configuration
 does not update an already installed binary.
+
+## Optional Local MCP
+
+Use the standalone read-only [`gitnova-mcp` server](docs/mcp/local-server.md) with
+stdio-capable MCP clients. Access is opt-in through a separate repository
+allowlist; normal GitNova use needs no AI account. No client configuration is
+changed automatically.
