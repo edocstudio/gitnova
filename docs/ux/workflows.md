@@ -456,3 +456,33 @@ annotated range and mark changed resolved content as edited. Deletion choices
 mark their output insertion point. Scroll synchronization moves only the
 background layer; the editable textarea remains the sole text/selection surface.
 Review and explicit Save/Stage remain required before any Git write.
+
+
+## Undo and Redo of a local commit
+
+The repository toolbar exposes Undo and Redo next to branch context. These act
+on the current branch tip, independently of the selected historical row; a row
+context action alone would obscure that distinction. The compact review reuses
+the existing modal review styling and keeps the graph visible behind it.
+
+Undo moves the attached branch to its first parent and retains the exact index
+and working files, leaving the undone changes staged for editing. A root commit
+can be undone to an unborn branch. A merge commit uses its first parent; Redo
+restores the original commit object, including both parents and any signature.
+
+Both actions require no active merge/rebase/cherry-pick/revert and complete
+(non-shallow) history. Undo requires a clean checkout and staging, including no
+untracked files; commit or stash existing work first. Cached remote branches or
+tags containing the tip block Undo. Cached refs cannot prove publication never
+happened: the review requires confirmation that the commit has not been shared.
+No fetch, push, hooks, checkout filters or implicit stash is performed.
+
+Redo is one-level, scoped to the checkout and branch. It is usable only at the
+reviewed first parent (or unborn branch) with the original committed index tree
+and no additional working changes. Editing, staging or moving the branch can
+make Redo unavailable; changes are never discarded to make it work. Undoing a
+new commit replaces the single Redo slot. Recovery refs retain earlier tips.
+Refs are updated in a compare-and-swap Git transaction under the common
+GitNova operation lock and native index lock; externally changed state invalidates
+the review. As with other Git clients, arbitrary concurrent external ref writers
+should be avoided. Outcomes are checked and uncertainty is reported without rollback.

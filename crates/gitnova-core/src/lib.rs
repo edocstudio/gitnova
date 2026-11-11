@@ -15,6 +15,7 @@ use std::{
 
 mod activity;
 mod clone;
+mod commit_history;
 mod commit_identities;
 mod display_cache;
 pub mod git_credentials;
@@ -822,6 +823,8 @@ impl Application {
                         RefOperationKind::UnsetUpstream => format!("Upstream removed from {}",p.action.name), }, _ => "Ref operation completed".into() }),
                     "create_change_request" => "Provider request result verified".into(),
                     "delete_remote_branch" => "Remote branch deleted; local branches and recovery retained".into(),
+                    "undo_commit" => "Commit undone; changes remain staged for editing".into(),
+                    "redo_commit" => "Original commit restored; working files preserved".into(),
                     "amend_commit" => "Last commit amended; original retained for recovery".into(),
                     "create_tag" => "Tag created at the reviewed commit".into(),
                     "push_tag" => "Selected tag publication verified".into(),

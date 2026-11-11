@@ -1648,3 +1648,17 @@ pub struct HostedRepositories {
     pub repositories: Vec<HostedRepository>,
     pub has_more: bool,
 }
+
+/// A single reviewed local commit movement; files and index are never rewritten.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitHistoryPreview {
+    pub redo: bool,
+    pub branch: String,
+    pub commit_oid: String,
+    pub parent_oid: Option<String>,
+    pub subject: String,
+    pub recovery_ref: String,
+    pub token: String,
+    pub blocked_reason: Option<String>,
+}

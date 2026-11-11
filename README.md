@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.7-4c9aff?style=flat-square" alt="Version: 1.0.7" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.8-4c9aff?style=flat-square" alt="Version: 1.0.8" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -41,7 +41,7 @@
 
 ## Features
 
-The following workflows are implemented in version 1.0.7. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.0.8. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -163,7 +163,7 @@ This produces a local, ad-hoc-signed **debug build** with CPU-heavy first-party 
 
 ## Project status
 
-**GitNova 1.0.7** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.0.8** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |
@@ -254,3 +254,12 @@ Use the standalone read-only [`gitnova-mcp` server](docs/mcp/local-server.md) wi
 stdio-capable MCP clients. Access is opt-in through a separate repository
 allowlist; normal GitNova use needs no AI account. No client configuration is
 changed automatically.
+
+### Undo and Redo local commits
+
+Use **Undo** beside the current branch to undo its latest unpublished commit
+while keeping its files staged for editing. **Redo** restores that original
+commit while the branch, files and staging still match the Undo result. Both
+use a reviewed local operation with a recovery ref. Published/tagged tips are
+blocked based on locally fetched refs; confirm the commit has not been shared.
+See [workflow details](docs/ux/workflows.md#undo-and-redo-of-a-local-commit).

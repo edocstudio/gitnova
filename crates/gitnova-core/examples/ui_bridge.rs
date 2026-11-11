@@ -123,6 +123,15 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             }
         }
         "amend_original" => json!(app.amend_original(&s("membershipId")?, &s("oid")?)?),
+        "preview_commit_history" => json!(app.preview_commit_history(
+            &s("membershipId")?,
+            args["redo"].as_bool().unwrap_or(false)
+        )?),
+        "apply_commit_history" => json!(app.apply_commit_history(
+            &s("membershipId")?,
+            args["redo"].as_bool().unwrap_or(false),
+            &s("token")?
+        )?),
         "preview_amend" | "amend_commit" => {
             let request = serde_json::from_value(args["request"].clone())
                 .map_err(|e| AppError::new("amend_blocked", format!("{e}")))?;
