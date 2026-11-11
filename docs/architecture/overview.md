@@ -205,3 +205,17 @@ bytes and branch refs; staging the parent gitlink is separate. See [M76](../mile
 Current advanced replay and worktree movement boundaries are detailed in [M80](../milestone-80.md). Earlier milestone limitations describe their implementation date, not a pending status for completed workflows.
 
 M82 adds [bounded line attribution and committed root-package facts](../milestone-82.md) through existing investigation services. Package-name matches are tied to observed local OIDs; unresolved aliases, monorepo subpackages, lockfiles, registry publication and compatibility remain explicitly unverified.
+
+## Optional read-only Local MCP adapter
+
+`gitnova-mcp` is a separate stdio process using the Tauri-independent
+`gitnova-core::local_analysis` service and the same `gitnova-git::GitCli`
+executor as the UI. It never opens the UI catalog or treats workspace/recent
+membership as permission. An operator-maintained, default-deny allowlist grants
+exact checkout identities; requests accept IDs, revalidate permission and
+canonical identity, and apply bounded reads with cancellation. No write, shell,
+network, model API or embedded chat tools are exposed. No new UI surface is
+introduced. See [setup, tool contracts and security boundaries](../mcp/local-server.md).
+
+The allowlist is not an OS sandbox. Returned repository content is untrusted,
+and a cloud-backed MCP client may transmit that content outside the machine.

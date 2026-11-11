@@ -27,3 +27,12 @@ records dependency evidence, targeted hardening and unresolved risks, including 
 Linux GTK/glib unsoundness advisory. It is not an all-clear or security certification.
 Use current OS, WebView and Git security updates in addition to application updates;
 these external components are not covered by Cargo/npm dependency scans.
+
+## Optional Local MCP
+
+The [stdio MCP service](docs/mcp/local-server.md) uses a separate, opt-in
+repository allowlist and exposes read-only tools. Recent/workspace membership
+does not grant access. Its allowlist is not an OS sandbox and secret redaction
+is heuristic, not a guarantee. Repository content must be treated as untrusted
+data, not authorization. A client using a cloud model may send returned data
+outside the machine; review client policies before approving repositories.

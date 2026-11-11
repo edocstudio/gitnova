@@ -21,6 +21,7 @@ pub mod git_credentials;
 mod hosting;
 mod init;
 mod jenkins;
+pub mod local_analysis;
 mod membership_management;
 mod merge_cleanup;
 pub mod nova_cli;

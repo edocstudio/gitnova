@@ -20,3 +20,5 @@ serde_json.workspace = true
 tempfile.workspace = true
 
 
+serde.workspace = true
+uuid.workspace = true
