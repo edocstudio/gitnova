@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.4-4c9aff?style=flat-square" alt="Version: 1.0.4" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.7-4c9aff?style=flat-square" alt="Version: 1.0.7" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -41,11 +41,11 @@
 
 ## Features
 
-The following workflows are implemented in version 1.0.4. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.0.7. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
-| **Workspaces** | Open, initialize or clone repositories, browse connected GitHub/GitLab repository lists with search over loaded pages, switch within one window, pin projects, and search a five-repository-per-page picker. |
+| **Workspaces** | Open, initialize or clone repositories, browse connected GitHub/GitLab repository lists with search over loaded pages, switch within one window, pin projects, and search a five-repository-per-page picker. Manage an entry from its `⋯` button or right click: edit its workspace display name, reconnect a moved repository folder, or remove it from this workspace without deleting local files. |
 | **History & diffs** | Browse a virtualized graph with branch/tag labels and resizable columns; inspect side-by-side or unified patches and historical files. |
 | **Everyday changes** | Stage/unstage individual files or review Stage all, create a first commit with bounded per-file previews, amend the latest commit, edit current tracked UTF-8 files from a commit’s diff (up to 512 KiB, saved as working changes), or discard selected changes with recovery capture. Optional host-specific commit identities are configured in Settings → Connections, independently of authentication. |
 | Repository terminal | Open a shell in the current repository/worktree from the graph; hide or end separate, bounded sessions |
@@ -163,7 +163,7 @@ This produces a local, ad-hoc-signed **debug build** with CPU-heavy first-party 
 
 ## Project status
 
-**GitNova 1.0.4** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.0.7** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |

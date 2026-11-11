@@ -1638,10 +1638,12 @@ test('cherry-pick diff3 conflict blocks resolve current and both without writing
  await resolver.getByRole('checkbox',{name:'Include current block',exact:true}).check();
  await resolver.getByRole('checkbox',{name:'Include incoming block',exact:true}).check();
  await resolver.getByRole('checkbox',{name:'Include incoming block',exact:true}).uncheck();
+ await expect(resolver.locator('.conflict-result-highlight.current')).toHaveCount(1);
  await resolver.getByRole('button',{name:'Next conflict',exact:true}).click();await expect(resolver).toContainText('Conflict 2 of 2');await expect(page.getByLabel('Incoming conflict version',{exact:true})).toContainText('incoming second');
  await resolver.getByRole('checkbox',{name:'Include current block',exact:true}).check();await resolver.getByRole('checkbox',{name:'Include incoming block',exact:true}).check();await expect(resolver).toContainText('0 unresolved blocks');
  await resolver.getByRole('button',{name:'Previous conflict',exact:true}).click();await expect(resolver.getByRole('checkbox',{name:'Include current block',exact:true})).toBeChecked();await expect(resolver.getByRole('checkbox',{name:'Include incoming block',exact:true})).not.toBeChecked();
  await resolver.getByRole('checkbox',{name:'Include current block',exact:true}).uncheck();await expect(resolver).toContainText('1 unresolved blocks');await expect(resolver.getByRole('button',{name:'Review edited result',exact:true})).toBeDisabled();await resolver.getByRole('checkbox',{name:'Include current block',exact:true}).check();
+ await expect(resolver.locator('.conflict-result-highlight')).toHaveCount(2);await expect(resolver.locator('.conflict-result-highlight.both')).toHaveCount(1);
  const editor=page.getByRole('textbox',{name:'Edit merge result',exact:true});await expect(editor).toHaveValue(/current first/);await expect(editor).toHaveValue(/current second\nincoming second/);await expect(editor).not.toHaveValue(/incoming first|<<<<<<<|=======|\|\|\|\|\|\|\|/);expect(readFileSync(join(f.repo,'plan.txt'),'utf8')).toBe(before);expect(readFileSync(join(f.repo,'.git/index'))).toEqual(index);
  await page.screenshot({path:testInfo.outputPath('three-way-conflict-blocks.png')});await page.getByRole('button',{name:'Review edited result',exact:true}).click();await expect(f.inspector.getByRole('button',{name:'Apply resolution',exact:true})).toBeEnabled();expect(readFileSync(join(f.repo,'plan.txt'),'utf8')).toBe(before);await f.inspector.getByRole('button',{name:'Apply resolution',exact:true}).click();await expect(f.inspector).toContainText('All conflicts resolved.',{timeout:45000});expect(git(f.repo,['show',':plan.txt'])).toContain('current second\nincoming second');await f.inspector.getByRole('button',{name:'Review cherry-pick commit',exact:true}).click();await f.inspector.getByRole('button',{name:'Finish cherry-pick',exact:true}).click();await expect(f.inspector).toHaveCount(0,{timeout:45000});expect(git(f.repo,['show','-s','--format=%P','HEAD'])).toBe(f.original);expect(git(f.repo,['ls-files','--unmerged'])).toBe('');
 });
@@ -2288,4 +2290,48 @@ test('working editor colors YAML safely and keeps the mirror aligned while editi
  await page.locator('.commit-diff-dock').screenshot({path:testInfo.outputPath('syntax-editor-dark.png')});
  await page.evaluate(async()=>{const {setTheme}=await import('/src/theme.ts');setTheme('light');});await page.locator('.commit-diff-dock').screenshot({path:testInfo.outputPath('syntax-editor-light.png')});await expect(text).toHaveValue(changed);
  await editor.getByRole('button',{name:'Save working file',exact:true}).click();await expect(editor).toHaveCount(0);expect(readFileSync(join(repo,'settings.yaml'),'utf8')).toBe(changed);expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);
+});
+
+test('repository management renames missing entries, reconnects moved folders and removes only workspace membership',async({page},testInfo)=>{
+  test.setTimeout(120000);
+  const repo=join(folder,'manage-original'),moved=join(folder,'manage-moved'),state=join(folder,'manage.json');
+  mkdirSync(repo);git(repo,['init','-b','main']);writeFileSync(join(repo,'file.txt'),'original\n');git(repo,['add','.']);git(repo,['commit','-m','Management fixture']);
+  const head=git(repo,['rev-parse','HEAD']);writeFileSync(join(repo,'file.txt'),'keep dirty work\n');
+  await connectRealCore(page,state);await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+  await expect(page.locator('.repo-picker')).toContainText('manage-original');
+  renameSync(repo,moved);
+  await page.locator('.repo-picker').click();await page.getByRole('button',{name:'Manage repository manage-original',exact:true}).click();
+  const editor=page.getByRole('form',{name:'Manage repository',exact:true});
+  await expect(page.getByRole('dialog',{name:'Manage repository',exact:true})).toBeVisible();await expect(editor.getByLabel('Display name',{exact:true})).toHaveValue('manage-original');await expect(editor.getByLabel('Repository folder',{exact:true})).toHaveValue(/manage-original$/);
+  await editor.getByLabel('Display name',{exact:true}).fill('Friendly project');await editor.getByRole('button',{name:'Save changes',exact:true}).click();
+  await expect(editor).toHaveCount(0);await expect(page.locator('.repo-picker')).toContainText('Friendly project');
+  await page.locator('.repo-option-main').click({button:'right'});await expect(editor).toBeVisible();
+  await editor.getByLabel('Repository folder',{exact:true}).fill(join(folder,'missing-folder'));await editor.getByRole('button',{name:'Save changes',exact:true}).click();await expect(editor.getByRole('alert')).toContainText('Choose an existing repository root');
+  await editor.getByLabel('Repository folder',{exact:true}).fill(moved);await editor.getByRole('button',{name:'Save changes',exact:true}).click();await expect(editor).toHaveCount(0);
+  await page.keyboard.press('Escape');await expect(page.locator(`button#commit-${head}`)).toBeVisible();await page.reload();await expect(page.locator('.repo-picker')).toContainText('Friendly project');
+  await page.locator('.repo-picker').click();await page.getByRole('button',{name:'Manage repository Friendly project',exact:true}).click();await editor.getByRole('button',{name:'Remove from workspace…',exact:true}).click();await expect(editor).toContainText('Files, Git history and other workspaces stay unchanged.');
+  await page.screenshot({path:testInfo.outputPath('repository-membership-remove.png')});await editor.getByRole('button',{name:'Remove from workspace',exact:true}).click();await expect(editor).toHaveCount(0);await expect(page.locator('.repo-list')).toContainText('No repositories yet.');
+  expect(git(moved,['rev-parse','HEAD'])).toBe(head);expect(readFileSync(join(moved,'file.txt'),'utf8')).toBe('keep dirty work\n');await page.reload();await page.locator('.repo-picker').click();await expect(page.locator('.repo-list')).toContainText('No repositories yet.');
+});
+
+test('repository management protects commit drafts before path changes or removal',async({page})=>{
+  const repo=join(folder,'manage-draft');mkdirSync(repo);git(repo,['init','-b','main']);writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','Draft fixture']);writeFileSync(join(repo,'file.txt'),'changed\n');
+  await connectRealCore(page,join(folder,'manage-draft.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+  await page.locator('.working-row').click();await page.getByLabel('Summary',{exact:true}).fill('Keep my draft');await page.locator('.repo-picker').click();await page.getByRole('button',{name:'Manage repository manage-draft',exact:true}).click();
+  const editor=page.getByRole('form',{name:'Manage repository',exact:true});await expect(editor).toContainText('Save or clear this repository’s drafts');await expect(editor.getByRole('button',{name:'Remove from workspace…',exact:true})).toBeEnabled();
+  await editor.getByLabel('Repository folder',{exact:true}).fill(join(folder,'another-location'));await expect(editor.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();await editor.getByRole('button',{name:'Cancel',exact:true}).click();await page.keyboard.press('Escape');await expect(page.getByLabel('Summary',{exact:true})).toHaveValue('Keep my draft');
+});
+
+test('repository management dialog ends a hidden terminal by confirmation and removes an entry with empty edit fields',async({page},testInfo)=>{
+  const repo=join(folder,'manage-terminal');mkdirSync(repo);git(repo,['init','-b','main']);writeFileSync(join(repo,'file.txt'),'preserve files\n');git(repo,['add','.']);git(repo,['commit','-m','Terminal fixture']);const head=git(repo,['rev-parse','HEAD']);
+  await connectRealCore(page,join(folder,'manage-terminal.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await expect(page.locator('.terminal-toggle')).toBeEnabled();
+  await page.evaluate(async path=>{const {api}=await import('/src/api.ts');(window as any).closedSessions=0;api.terminalOpen=async()=>({id:'manage-shell',path,shell:'/bin/sh'});api.terminalRead=async()=>({data:[],dropped:false,exited:false});api.terminalWrite=async()=>{};api.terminalResize=async()=>{};api.terminalClose=async()=>{(window as any).closedSessions++;};},repo);
+  await page.locator('.terminal-toggle').click();await expect(page.locator('.terminal-context')).toContainText(repo);await page.getByRole('button',{name:'Hide terminal',exact:true}).click();
+  await page.locator('.repo-picker').click();const manage=page.getByRole('button',{name:'Manage repository manage-terminal',exact:true});await manage.click();const dialog=page.getByRole('dialog',{name:'Manage repository',exact:true});
+  await expect(dialog.getByLabel('Display name',{exact:true})).toHaveValue('manage-terminal');await expect(dialog.getByLabel('Repository folder',{exact:true})).toHaveValue(/manage-terminal$/);
+  await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(page.locator('#workspace-picker')).toBeVisible();await expect(manage).toBeFocused();await manage.click();
+  await dialog.getByLabel('Display name',{exact:true}).fill('');await dialog.getByLabel('Repository folder',{exact:true}).fill('');await dialog.getByRole('button',{name:'Remove from workspace…',exact:true}).click();await expect(dialog).toContainText('Remove manage-terminal from this workspace?');await expect(dialog.getByRole('button',{name:'Remove from workspace',exact:true})).toBeDisabled();
+  await dialog.getByRole('button',{name:'End Terminal session…',exact:true}).click();await expect(dialog).toContainText('End this shell and its running commands?');expect(await page.evaluate(()=>(window as any).closedSessions)).toBe(0);
+  await dialog.locator('.repo-terminal-review').getByRole('button',{name:'Cancel',exact:true}).click();expect(await page.evaluate(()=>(window as any).closedSessions)).toBe(0);await dialog.getByRole('button',{name:'End Terminal session…',exact:true}).click();await dialog.getByRole('button',{name:'End session',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>(window as any).closedSessions)).toBe(1);await expect(dialog.getByRole('button',{name:'Remove from workspace',exact:true})).toBeEnabled();await page.screenshot({path:testInfo.outputPath('repository-management-dialog.png')});await dialog.getByRole('button',{name:'Remove from workspace',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(page.locator('.repo-picker')).toBeFocused();await expect(page.locator('.repo-list')).toContainText('No repositories yet.');expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('preserve files\n');
 });

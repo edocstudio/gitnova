@@ -448,6 +448,22 @@ async fn add_repository(state: State<'_>, path: String) -> Result<Catalog, AppEr
     run(state, move |a| a.add_repository(&PathBuf::from(path))).await
 }
 #[tauri::command]
+async fn update_membership(
+    state: State<'_>,
+    membership_id: String,
+    name: String,
+    path: String,
+) -> Result<Catalog, AppError> {
+    run(state, move |a| {
+        a.update_membership(&membership_id, &name, &path)
+    })
+    .await
+}
+#[tauri::command]
+async fn remove_membership(state: State<'_>, membership_id: String) -> Result<Catalog, AppError> {
+    run(state, move |a| a.remove_membership(&membership_id)).await
+}
+#[tauri::command]
 async fn create_workspace(state: State<'_>, name: String) -> Result<Catalog, AppError> {
     run(state, move |a| a.create_workspace(&name)).await
 }
@@ -1445,6 +1461,8 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         recent_clones,
         add_repository,
         create_workspace,
+        update_membership,
+        remove_membership,
         switch_workspace,
         select_repository,
         pin_repository,

@@ -21,6 +21,7 @@ pub mod git_credentials;
 mod hosting;
 mod init;
 mod jenkins;
+mod membership_management;
 mod merge_cleanup;
 pub mod nova_cli;
 mod search;
@@ -1871,7 +1872,11 @@ fn register_identity(
             repository_id
         };
     let worktree_id = if let Some(root) = &root {
-        if let Some(w) = c.worktrees.iter().find(|w| w.git_dir == git_dir) {
+        if let Some(w) = c
+            .worktrees
+            .iter()
+            .find(|w| w.git_dir == git_dir && w.root == *root)
+        {
             Some(w.id.clone())
         } else {
             let worktree_id = id();

@@ -1,29 +1,34 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {t} from './i18n';
-import {buildConflictResult,conflictBlocks,hasConflictMarkers,type ConflictChoice} from './conflicts';
+import {buildConflictResult,conflictBlocks,hasConflictMarkers,resolutionRanges,remapResolutionRanges,resolutionLines,type ResolutionRange,type ConflictChoice} from './conflicts';
 import type {DockPatch} from './CommitDiffDock';
 export function ConflictResolver({editor}:{editor:NonNullable<DockPatch['editor']>}) {
  const area=useRef<HTMLTextAreaElement>(null);
+ const highlightLayer=useRef<HTMLDivElement>(null);
+ const [savedHighlights,setSavedHighlights]=useState<ResolutionRange[]>([]);
  const expected=useRef(editor.value);
  const [seed,setSeed]=useState(editor.value);
  const [choices,setChoices]=useState<ConflictChoice[]>([]);
  const [index,setIndex]=useState(0);
  // A manual/external replacement becomes the new draft snapshot. Never apply
  // old block choices over text that was not produced by those choices.
- useEffect(()=>{if(editor.value!==expected.current){expected.current=editor.value;setSeed(editor.value);setChoices([]);setIndex(0);}},[editor.value]);
+ useEffect(()=>{if(editor.value!==expected.current){expected.current=editor.value;setSeed(editor.value);setChoices([]);setSavedHighlights([]);setIndex(0);}},[editor.value]);
  const blocks=useMemo(()=>conflictBlocks(seed),[seed]);
  const selected=Math.min(index,Math.max(0,blocks.length-1)),block=blocks[selected];
  const choice=choices[selected]??null;
+ const highlights=useMemo(()=>resolutionLines(editor.value,[...remapResolutionRanges(savedHighlights,seed,editor.value),...resolutionRanges(seed,choices)]),[editor.value,seed,choices,savedHighlights]);
+ const syncHighlights=()=>{if(highlightLayer.current&&area.current)highlightLayer.current.style.transform=`translateY(${-area.current.scrollTop}px)`;};
+ const scrollToOffset=(offset:number,text=editor.value)=>{if(!area.current)return;area.current.scrollTop=Math.max(0,(text.slice(0,offset).split("\n").length-2)*24);syncHighlights();};
  const remaining=blocks.filter((_,i)=>!choices[i]).length;
- const focusBlock=(next:number)=>{setIndex(next);const target=blocks[next];if(!target||!area.current)return;const before=buildConflictResult(seed.slice(0,target.start),choices.slice(0,next));const selection=choices[next];const content=selection==='current'?target.current:selection==='incoming'?target.incoming:selection==='both'?target.current+target.incoming:seed.slice(target.start,target.end);area.current.setSelectionRange(before.length,before.length+content.length);area.current.scrollTop=Math.max(0,(before.split('\n').length-2)*24);};
+ const focusBlock=(next:number)=>{setIndex(next);const target=blocks[next];if(!target||!area.current)return;const before=buildConflictResult(seed.slice(0,target.start),choices.slice(0,next));const selection=choices[next];const content=selection==='current'?target.current:selection==='incoming'?target.incoming:selection==='both'?target.current+target.incoming:seed.slice(target.start,target.end);area.current.setSelectionRange(before.length,before.length+content.length);scrollToOffset(before.length);};
  const include=(side:'current'|'incoming',checked:boolean)=>{
   if(!block||editor.disabled)return;
   const current=side==='current'?checked:choice==='current'||choice==='both';
   const incoming=side==='incoming'?checked:choice==='incoming'||choice==='both';
   const next=[...choices];next[selected]=current&&incoming?'both':current?'current':incoming?'incoming':null;
-  const result=buildConflictResult(seed,next);expected.current=result;setChoices(next);editor.onChange(result);
+  const result=buildConflictResult(seed,next);expected.current=result;setChoices(next);editor.onChange(result);requestAnimationFrame(()=>{const range=resolutionRanges(seed,next)[next.slice(0,selected).filter(Boolean).length];if(next[selected]&&range)scrollToOffset(range.start,result);});
  };
- const manual=(value:string)=>{expected.current=value;setSeed(value);setChoices([]);setIndex(0);editor.onChange(value);};
+ const manual=(value:string)=>{setSavedHighlights(remapResolutionRanges(highlights,editor.value,value));expected.current=value;setSeed(value);setChoices([]);setIndex(0);editor.onChange(value);};
  const markers=hasConflictMarkers(editor.value);
  return <div className="conflict-resolver" role="region" aria-label={t('Conflict resolution editor')}>
   <div className="conflict-toolbar">
@@ -42,6 +47,6 @@ export function ConflictResolver({editor}:{editor:NonNullable<DockPatch['editor'
     </section>;
    })}
   </div>
-  <section className="conflict-result"><div className="conflict-output-heading"><label className="merge-editor-label" htmlFor="conflict-result-editor">{t('Result')}</label><small>{t('Choices change only this draft. Review, then confirm to save and stage.')}{choice==='both'&&' '+t('When both are selected, Current is placed before Incoming.')}</small></div><textarea id="conflict-result-editor" ref={area} aria-label={t('Edit merge result')} readOnly={editor.readOnly} disabled={editor.disabled} value={editor.value} maxLength={524288} spellCheck={false} wrap="off" onChange={e=>manual(e.target.value)}/></section>
+  <section className="conflict-result"><div className="conflict-output-heading"><label className="merge-editor-label" htmlFor="conflict-result-editor">{t('Result')}</label><small>{t('Choices change only this draft. Review, then confirm to save and stage.')}{choice==='both'&&' '+t('When both are selected, Current is placed before Incoming.')}</small>{highlights.length>0&&<small className="conflict-highlight-legend">{t("Highlighted lines show resolved conflict blocks.")}</small>}</div><div className="conflict-result-surface"><div className="conflict-highlight-viewport" aria-hidden="true"><div ref={highlightLayer}>{highlights.map((range,i)=><div key={i} className={`conflict-result-highlight ${range.choice}`} data-resolution-choice={range.choice} style={{top:8+range.line*24,height:range.lines*24}}/>)}</div></div><textarea id="conflict-result-editor" ref={area} aria-label={t('Edit merge result')} readOnly={editor.readOnly} disabled={editor.disabled} value={editor.value} maxLength={524288} spellCheck={false} wrap="off" onChange={e=>manual(e.target.value)} onScroll={syncHighlights}/></div></section>
  </div>;
 }
