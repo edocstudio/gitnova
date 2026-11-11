@@ -589,6 +589,30 @@ async fn amend_original(
     run(state, move |a| a.amend_original(&membership_id, &oid)).await
 }
 #[tauri::command]
+async fn preview_commit_history(
+    state: State<'_>,
+    membership_id: String,
+    redo: bool,
+) -> Result<CommitHistoryPreview, AppError> {
+    run(state, move |a| {
+        a.preview_commit_history(&membership_id, redo)
+    })
+    .await
+}
+#[tauri::command]
+async fn apply_commit_history(
+    state: State<'_>,
+    membership_id: String,
+    redo: bool,
+    token: String,
+) -> Result<OperationReceipt, AppError> {
+    run(state, move |a| {
+        a.apply_commit_history(&membership_id, redo, &token)
+    })
+    .await
+}
+
+#[tauri::command]
 async fn preview_amend(
     state: State<'_>,
     membership_id: String,
@@ -1441,6 +1465,8 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         save_working_file_text,
         file_preview,
         amend_original,
+        preview_commit_history,
+        apply_commit_history,
         preview_amend,
         amend_commit,
         preview_stage_all,
@@ -2322,6 +2348,41 @@ mod tests {
             fixture_git(&clone_path, &["rev-parse", "native/v1"]),
             tagged
         );
+        let undo_repo = directory.path().join("undo-repo");
+        std::fs::create_dir(&undo_repo).unwrap();
+        fixture_git(&undo_repo, &["init", "-b", "main"]);
+        fixture_git(&undo_repo, &["commit", "--allow-empty", "-m", "Undo IPC"]);
+        let undo_oid = fixture_git(&undo_repo, &["rev-parse", "HEAD"]);
+        let catalog = invoke(
+            "add_repository",
+            json!({"path":undo_repo.to_str().unwrap()}),
+            local_ipc_origin(),
+        )
+        .unwrap();
+        let undo_id = catalog["workspaces"][0]["selectedId"].as_str().unwrap();
+        for redo in [false, true] {
+            let mut args = json!({"membershipId":undo_id,"redo":redo});
+            assert!(invoke(
+                "preview_commit_history",
+                args.clone(),
+                "https://example.invalid"
+            )
+            .is_err());
+            let preview =
+                invoke("preview_commit_history", args.clone(), local_ipc_origin()).unwrap();
+            assert!(preview["blockedReason"].is_null(), "{preview}");
+            args["token"] = preview["token"].clone();
+            assert!(invoke(
+                "apply_commit_history",
+                args.clone(),
+                "https://example.invalid"
+            )
+            .is_err());
+            let receipt = invoke("apply_commit_history", args, local_ipc_origin()).unwrap();
+            assert_eq!(receipt["status"], "succeeded", "{receipt}");
+        }
+        assert_eq!(fixture_git(&undo_repo, &["rev-parse", "HEAD"]), undo_oid);
+
         for command in ["preview_remote_delete", "delete_remote_branch"] {
             assert!(invoke(command,json!({"membershipId":pointer_membership,"request":{"remote":"origin","branch":"unused","oid":tagged},"token":"untrusted"}),"https://example.invalid").is_err());
         }

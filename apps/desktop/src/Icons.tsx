@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
-type Name = 'pull' | 'push' | 'pullRequest' | 'terminal' | 'settings' | 'trash' | 'search' | 'tag' | 'remote' | 'branch' | 'chevron' | 'refresh' | 'folder' | 'check' | 'close' | 'plus' | 'arrow' | 'file' | 'commit' | 'layers' | 'lock' | 'back' | 'star' | 'copy' | 'panel';
+type Name = 'undo' | 'redo' | 'pull' | 'push' | 'pullRequest' | 'terminal' | 'settings' | 'trash' | 'search' | 'tag' | 'remote' | 'branch' | 'chevron' | 'refresh' | 'folder' | 'check' | 'close' | 'plus' | 'arrow' | 'file' | 'commit' | 'layers' | 'lock' | 'back' | 'star' | 'copy' | 'panel';
 const paths: Record<Name, React.ReactNode> = {
+  undo: <path d="M3 10h10a7 7 0 0 1 0 14M3 10l6-6M3 10l6 6" transform="translate(0 -3)"/>,
+  redo: <path d="M21 10H11a7 7 0 0 0 0 14M21 10l-6-6M21 10l-6 6" transform="translate(0 -3)"/>,
   pull: <><path d="M12 3v12m-5-5 5 5 5-5M4 21h16"/></>,
   push: <><path d="M12 17V5m-5 5 5-5 5 5M4 21h16"/></>,
   pullRequest: <><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6 7v10M18 17V9a4 4 0 0 0-4-4h-2m3-3-3 3 3 3"/></>,

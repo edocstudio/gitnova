@@ -952,3 +952,5 @@ main { display: flex; flex: 1; min-height: 0; }
 .conflict-result-highlight.incoming {border-color:var(--warning, #e4b052);background:color-mix(in srgb,var(--warning, #e4b052) 16%,transparent);}
 .conflict-result-highlight.both,.conflict-result-highlight.edited {border-color:var(--success, #56cb9b);background:color-mix(in srgb,var(--success, #56cb9b) 16%,transparent);}
 .conflict-output-heading .conflict-highlight-legend {color:var(--ink);}
+
+.commit-history-review label{display:flex;gap:.6rem;align-items:flex-start;margin:1rem 0}.history-recovery-ref{display:block;overflow-wrap:anywhere;margin-top:.5rem}.undo-current,.redo-current{display:inline-flex;align-items:center;gap:.35rem}

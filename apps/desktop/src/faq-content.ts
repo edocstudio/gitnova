@@ -1,4 +1,5 @@
 export const faqEntries = [
+  {"group":"Everyday Git","question":"How do Undo and Redo work?","answer":"Undo beside the current branch moves its latest unpublished commit back to its first parent, keeping the committed files staged for editing. Commit or stash existing work first. Redo restores the original commit only while files, staging and branch history still match the Undo result. A merge uses its first parent; the first commit can be undone to an unborn branch. Remote/tag references block Undo, but cached refs cannot detect pushes not fetched yet: confirm the commit has not been shared. Recovery refs retain the original commit. This is one-level commit Redo, not an undo history for every Git operation."},
 
   {
     "group": "Start here",

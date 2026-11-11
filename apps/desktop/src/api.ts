@@ -1,3 +1,4 @@
+import type {CommitHistoryPreview} from './contracts';
 import type {StaleLockPreview} from './contracts';
 import type {RepositoryCreateRequest,RepositoryCreateOptions,RepositoryCreatePreview,RepositoryCreateOutcome} from './contracts';
 import type {StageAllPreview,RemoteAddRequest,RemoteAddPreview} from './contracts';
@@ -58,6 +59,8 @@ export const api = {
   previewRemoteAdd:(membershipId:string,request:RemoteAddRequest)=>call<RemoteAddPreview>('preview_remote_add',{membershipId,request}),
   addRemote:(membershipId:string,request:RemoteAddRequest,token:string)=>call<OperationReceipt>('add_remote',{membershipId,request,token}),
   amendOriginal: (membershipId:string,oid:string)=>call<AmendOriginal>('amend_original',{membershipId,oid}),
+  previewCommitHistory: (membershipId:string,redo:boolean)=>call<CommitHistoryPreview>('preview_commit_history',{membershipId,redo}),
+  applyCommitHistory: (membershipId:string,redo:boolean,token:string)=>call<OperationReceipt>('apply_commit_history',{membershipId,redo,token}),
   previewAmend: (membershipId:string,request:AmendRequest)=>call<AmendPreview>('preview_amend',{membershipId,request}),
   amendCommit: (membershipId:string,request:AmendRequest,token:string,acknowledgeRewrite:boolean)=>call<OperationReceipt>('amend_commit',{membershipId,request,token,acknowledgeRewrite}),
   previewRemoteDelete: (membershipId: string, request: RemoteDeleteRequest) => call<RemoteDeletePreview>('preview_remote_delete', { membershipId, request }),

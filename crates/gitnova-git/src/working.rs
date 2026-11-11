@@ -4,6 +4,7 @@ mod batch;
 mod discard;
 mod edit;
 mod gitlink;
+mod history;
 mod hunk;
 mod registration;
 use crate::{path_from_bytes, GitCli, RepositoryReader, StatusReader};
