@@ -39,6 +39,16 @@ kbd { font-size: 10px; color: var(--ink-9ca6b1, #9ca6b1); border: 1px solid var(
 .repo-list { padding: 18px 0; margin-bottom: 19px; border-bottom: 1px solid var(--line); }
 .repo-option { display: flex; border-radius: 6px; margin-bottom: 3px; }
 .repo-option.active { background: var(--surface-2b3949, #2b3949); }
+.repo-manage { align-self: center; font-size: 20px; }
+.repo-entry-editor { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
+.repo-entry-editor label { display: block; margin-top: 12px; }
+.repo-entry-editor input { width: 100%; margin-top: 6px; }
+.repo-management-dialog .repo-entry-editor { margin: 0; padding: 22px; border: 0; }
+.repo-management-dialog h2 { margin: 0 0 14px; font-size: 18px; }
+.repo-management-context small { display: block; margin-top: 5px; color: var(--muted); overflow-wrap: anywhere; }
+.repo-terminal-review { margin-block: 12px; }
+.repo-terminal-review button + button { margin-left: 8px; }
+.repo-entry-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .repo-option-main { border: 0; text-align: left; flex: 1; min-width: 0; justify-content: flex-start; gap: 10px; padding: 10px 8px; }
 .repo-option-main > svg { color: var(--ink-a2b3c6, #a2b3c6); }
 .repo-option-main > span { flex: 1; min-width: 0; }
@@ -933,3 +943,12 @@ main { display: flex; flex: 1; min-height: 0; }
 .commit-ci a.ci-badge { text-decoration: none; cursor: pointer; }
 .commit-ci a.ci-badge:hover { text-decoration: underline; }
 .commit-ci a.ci-badge:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.conflict-result-surface {position:relative;display:flex;flex:1;min-height:0;overflow:hidden;}
+.conflict-result-surface textarea {position:relative;z-index:1;background:transparent;}
+.conflict-highlight-viewport {position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.conflict-highlight-viewport>div {position:relative;}
+.conflict-result-highlight {position:absolute;left:0;right:0;border-left:3px solid var(--edge-4b8eff, #4b8eff);background:color-mix(in srgb,var(--edge-4b8eff, #4b8eff) 16%,transparent);}
+.conflict-result-highlight.incoming {border-color:var(--warning, #e4b052);background:color-mix(in srgb,var(--warning, #e4b052) 16%,transparent);}
+.conflict-result-highlight.both,.conflict-result-highlight.edited {border-color:var(--success, #56cb9b);background:color-mix(in srgb,var(--success, #56cb9b) 16%,transparent);}
+.conflict-output-heading .conflict-highlight-legend {color:var(--ink);}

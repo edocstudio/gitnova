@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {conflictBlocks,resolveBlock,hasConflictMarkers,buildConflictResult} from './conflicts';
+import {conflictBlocks,resolveBlock,hasConflictMarkers,buildConflictResult,resolutionRanges,remapResolutionRanges,resolutionLines} from './conflicts';
 describe('Git conflict block drafts',()=>{
  it('resolves separate blocks without changing surrounding content',()=>{
   const text='prefix\n<<<<<<< HEAD\ncurrent\n=======\nincoming\n>>>>>>> topic\nmiddle\n<<<<<<< HEAD\nleft\n=======\nright\n>>>>>>> topic\nsuffix\n';
@@ -37,4 +37,26 @@ describe('Git conflict block drafts',()=>{
   expect(buildConflictResult('<<<<<<< broken\n',['incoming'])).toBe('<<<<<<< broken\n');
  });
 
+});
+
+describe('resolved draft highlights',()=>{
+ const seed='prefix\r\n<<<<<<< HEAD\r\na\r\n=======\r\nb\r\n>>>>>>> other\r\nmiddle\r\n<<<<<<< HEAD\r\nx\r\n=======\r\ny\r\n>>>>>>> other\r\nsuffix';
+ it('locates both resolved blocks in output coordinates, excluding surrounding lines',()=>{
+  const choices=['current','both'] as const,result=buildConflictResult(seed,choices),ranges=resolutionRanges(seed,choices);
+  expect(ranges.map(r=>result.slice(r.start,r.end))).toEqual(['a\r\n','x\r\ny\r\n']);
+  expect(resolutionLines(result,ranges).map(r=>[r.line,r.lines])).toEqual([[1,1],[3,2]]);
+  expect(resolutionRanges(seed,[null,'incoming'])).toHaveLength(1);
+ });
+ it('moves highlights with edits before them and marks edits inside them',()=>{
+  const result=buildConflictResult(seed,['current','incoming']),ranges=resolutionRanges(seed,['current','incoming']);
+  const moved=remapResolutionRanges(ranges,result,'new\n'+result);
+  expect(moved[0].start).toBe(ranges[0].start+4);
+  const edited=remapResolutionRanges(ranges,result,result.replace('a\r\n','changed\r\n'));
+  expect(edited[0].choice).toBe('edited');expect(edited[1].start).toBe(ranges[1].start+6);
+ });
+ it('shows a deletion at its output position without including the next block',()=>{
+  const text='before\n<<<<<<< HEAD\n=======\nincoming\n>>>>>>> other\nafter';
+  const ranges=resolutionRanges(text,['current']);expect(ranges).toEqual([{start:7,end:7,choice:'current'}]);
+  expect(resolutionLines(buildConflictResult(text,['current']),ranges)[0]).toMatchObject({line:1,lines:1});
+ });
 });

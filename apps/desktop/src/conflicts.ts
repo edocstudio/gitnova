@@ -41,3 +41,33 @@ export function buildConflictResult(text:string,choices:readonly ConflictChoice[
 export function hasConflictMarkers(text:string):boolean {
  return text.split('\n').some(line=>/^(?:<{7,}|>{7,}|\|{7,})(?:\s|$)/.test(line));
 }
+
+// Draft-only ranges. They never change the text sent to Git.
+export type ResolutionRange = {start:number; end:number; choice:Exclude<ConflictChoice,null>|'edited'};
+export function resolutionRanges(text:string,choices:readonly ConflictChoice[]):ResolutionRange[] {
+ let delta=0;
+ const ranges:ResolutionRange[]=[];
+ for(const [index,block] of conflictBlocks(text).entries()) {
+  const choice=choices[index];if(!choice)continue;
+  const length=(choice==='current'?block.current:choice==='incoming'?block.incoming:block.current+block.incoming).length;
+  ranges.push({start:block.start+delta,end:block.start+delta+length,choice});
+  delta+=length-(block.end-block.start);
+ }
+ return ranges;
+}
+// Track a contiguous editor change, including typing/paste/undo before a range.
+export function remapResolutionRanges(ranges:readonly ResolutionRange[],before:string,after:string):ResolutionRange[] {
+ if(ranges.length===0)return [];
+ if(before===after)return [...ranges];
+ let start=0,oldEnd=before.length,newEnd=after.length;
+ while(start<oldEnd&&start<newEnd&&before[start]===after[start])start++;
+ while(oldEnd>start&&newEnd>start&&before[oldEnd-1]===after[newEnd-1]){oldEnd--;newEnd--;}
+ const delta=newEnd-oldEnd;
+ return ranges.map(range=>range.end<=start?range:range.start>=oldEnd?{...range,start:range.start+delta,end:range.end+delta}:{start:Math.min(range.start,start),end:Math.max(newEnd,range.end+delta),choice:'edited'});
+}
+export function resolutionLines(text:string,ranges:readonly ResolutionRange[]) {
+ if(ranges.length===0)return [];
+ const starts=[0];for(let i=0;i<text.length;i++)if(text[i]==='\n')starts.push(i+1);
+ const lineAt=(offset:number)=>{let lo=0,hi=starts.length;while(lo+1<hi){const mid=(lo+hi)>>>1;if(starts[mid]<=offset)lo=mid;else hi=mid;}return lo;};
+ return ranges.map(range=>({...range,line:lineAt(range.start),lines:lineAt(Math.max(range.start,range.end-1))-lineAt(range.start)+1}));
+}

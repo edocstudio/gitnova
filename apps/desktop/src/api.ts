@@ -147,6 +147,8 @@ export const api = {
   switchWorkspace: (workspaceId: string) => call<Catalog>('switch_workspace', { workspaceId }),
   select: (membershipId: string) => call<Catalog>('select_repository', { membershipId }),
   pin: (membershipId: string) => call<Catalog>('pin_repository', { membershipId }),
+  updateMembership: (membershipId:string,name:string,path:string) => call<Catalog>('update_membership',{membershipId,name,path}),
+  removeMembership: (membershipId:string) => call<Catalog>('remove_membership',{membershipId}),
   status: (membershipId: string) => call<RepoStatus>('repository_status', { membershipId }),
   graph: (membershipId: string, cursor: GraphCursor | null = null) => call<GraphPage>('graph_page', { membershipId, cursor }),
   detail: (membershipId: string, oid: string) => call<CommitDetail>('commit_detail', { membershipId, oid }),

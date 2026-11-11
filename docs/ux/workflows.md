@@ -20,6 +20,23 @@ Maintain one primary action per decision, with exact scope in its surrounding co
 
 ## Existing flows
 
+Repository entry management belongs in the existing workspace picker because
+the graph cannot represent an unavailable checkout or edit workspace membership.
+Each repository row exposes one labelled actions button (`⋯`); right click opens
+the same focused dialog. A modal keeps management visible instead of placing
+it below a potentially scrolling repository list; no graph row exists for an
+unavailable checkout. The repository name and original path remain visible
+independently of editable fields. Display names are workspace-local labels, not filesystem
+renames. Folder updates validate a repository root before saving catalog data and
+use fresh UI membership identity for a changed location. Removal has an explicit
+confirmation naming the workspace and preserves files, Git history and other
+workspace memberships. Active Terminal sessions and unsaved drafts block folder
+changes/removal; plain label edits remain available. The Remove action always
+opens its confirmation even when fields are blank. An active Terminal can be
+ended from the same dialog, with explicit confirmation that running commands
+will stop; cancellation keeps it running. No permanent panel or new
+navigation item is introduced.
+
 | Flow | Context and sequence | Result and next action |
 | --- | --- | --- |
 | Workspace | Existing workspace picker → choose repository, or enter an existing repository path | Graph switches to that repository; cached context restores |
@@ -430,3 +447,12 @@ Native create/push reviews still revalidate refs before writes.
 ### Tags in the graph
 
 The creation inventory checks the selected push destination without fetching. The graph shows local refs; manual Fetch or auto fetch imports tags from the fetch destination. Distinct fetch/push URLs can therefore expose different tags. Fetch keeps existing tag objects unchanged and rejects a moved-name conflict. Compact rows keep the checked-out branch and newest version tag visible before additional branch badges; overflow remains listed in the tooltip and commit context. No new panel is required.
+
+Conflict Result highlights reuse the existing editable result surface. Choosing
+Current, Incoming or both marks the corresponding output lines in blue, amber
+or green, respectively, and scrolls the result to that block. These are draft
+annotations, never marker text written into the file. Manual edits track the
+annotated range and mark changed resolved content as edited. Deletion choices
+mark their output insertion point. Scroll synchronization moves only the
+background layer; the editable textarea remains the sole text/selection surface.
+Review and explicit Save/Stage remain required before any Git write.
