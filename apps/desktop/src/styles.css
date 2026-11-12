@@ -632,7 +632,7 @@ main { display: flex; flex: 1; min-height: 0; }
   .context-subtitle,.context-separator { display: inline; }
   .context-subtitle { max-width: 170px; }
   .repo-actions { margin-left: auto; gap: 7px; }
-  .repo-actions .branch-menu { left: auto; right: 0; }
+  .repo-actions .branch-menu { left: 0; right: auto; }
   .app-footer { justify-content: space-between; }
   .app-footer > span:first-child { display: flex; font-size: 9px; white-space: nowrap; }
 }
