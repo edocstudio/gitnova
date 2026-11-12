@@ -1146,7 +1146,7 @@ test('remote picker Fetch refreshes counters and Pull reviews current branch wit
   writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','Sync base']);const base=git(repo,['rev-parse','HEAD']);git(repo,['remote','add','origin',bare]);git(repo,['push','-u','origin','main:release']);git(repo,['branch','release']);git(folder,['clone','--branch','release',bare,writer]);
   await connectRealCore(page,join(folder,'direct-sync.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await expect(page.locator('.branch-current .branch-tracking')).toHaveText('=');
   await expect(page.locator('.topbar .branch-current,.topbar .sync-pull,.topbar .push-current')).toHaveCount(0);await expect(page.locator('.contextbar .branch-current')).toBeVisible();await expect(page.locator('.contextbar .sync-pull')).toBeVisible();await expect(page.locator('.contextbar .push-current')).toBeVisible();
-  for(const width of [1360,1000,780]){
+  for(const width of [1360,1000,850,780]){
     await page.setViewportSize({width,height:width===780?560:900});
     for(const selector of ['.topbar','.contextbar'])expect(await page.locator(selector).evaluate(node=>node.scrollWidth<=node.clientWidth+1)).toBe(true);
     expect((await page.locator('.brand-mark').boundingBox())!.width).toBe(width<=850?40:44);await expect(page.locator('.app-footer')).toContainText('GitNova · by edocstudio');await expect(page.locator('.context-subtitle')).toHaveText('direct-sync');
