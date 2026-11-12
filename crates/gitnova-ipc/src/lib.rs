@@ -96,3 +96,5 @@ pub use gitnova_domain::{BranchRequests, OpenBranchRequest};
 pub use gitnova_domain::{HostedRepositories, HostedRepository};
 
 pub use gitnova_domain::CommitHistoryPreview;
+
+pub use gitnova_domain::RemoteGraphTags;

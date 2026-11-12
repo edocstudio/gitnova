@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.8-4c9aff?style=flat-square" alt="Version: 1.0.8" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.10-4c9aff?style=flat-square" alt="Version: 1.0.10" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -41,7 +41,7 @@
 
 ## Features
 
-The following workflows are implemented in version 1.0.8. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.0.10. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -149,21 +149,21 @@ HTTPS Git operations can use the matching host account saved in GitNova Settings
 
 For Windows/Linux setup and native installer commands, see [Desktop platforms](docs/platforms.md).
 
-### Build a standalone macOS app
+### Build a standalone desktop app
 
 From `apps/desktop`:
 
 ```sh
-npm run build:local
+npm run build:desktop
 ```
 
-Open the `.app` path printed by the builder. The default output is `target/debug/bundle/macos/GitNova.app` relative to the repository root. Close GitNova before building; the builder updates this single app and refuses to overwrite a running instance. The bundle embeds the UI and runs without a development server.
+This verifies the native-target license inventory and builds with the **release profile** on macOS, Windows and Linux. The bundle embeds the UI and runs without a development server. On macOS the output is `target/release/bundle/macos/GitNova.app`; close GitNova before building. Candidates are ad-hoc signed, not notarized. This command does not install or publish them. See [platform prerequisites and license preparation](docs/platforms.md) and the [release candidate workflow](docs/contributing/release-candidates.md).
 
-This produces a local, ad-hoc-signed **debug build** with CPU-heavy first-party Rust crates optimized at level 2; debug assertions and debug information remain enabled. For release-profile installer preparation, use the [release candidate workflow](docs/contributing/release-candidates.md). This local debug build is not the release installer.
+For macOS development diagnostics, `npm run build:local` still produces `target/debug/bundle/macos/GitNova.app`, with CPU-heavy first-party crates optimized at level 2 but debug assertions/information enabled. Keep debug and release results separate when measuring performance.
 
 ## Project status
 
-**GitNova 1.0.8** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.0.10** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |
@@ -192,6 +192,11 @@ Reviewed linear/root Rebase, optional Pick/Drop/Fixup/reordering on Unix, cousin
 **Next priorities:** broader rebase/hunk support, remaining submodule/worktree operations, long-session performance/RAM measurement, and more recovery testing from real usage. SQLite FTS5 indexing is also planned; current catalog/index persistence uses JSON.
 
 See the [architecture and milestone plan](docs/architecture/overview.md), [delivery priorities](docs/delivery-priorities.md) and [measured operation performance](docs/milestone-47.md). The published performance samples describe a local debug fixture, not a cross-product comparison or a latency guarantee.
+
+The [2026-11-12 performance investigation](docs/verification/2026-11-12/performance.md)
+separates debug/release core measurements, selection responsiveness and native
+IPC. Its [machine-readable results](docs/verification/2026-11-12/performance.json)
+include sample counts, median/p95 and explicit coverage limits.
 
 ## Contributing
 

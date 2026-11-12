@@ -240,6 +240,33 @@ impl GitCli {
         }
         commit_identity::configure(&mut cmd, path);
         cmd.env_remove("GITNOVA_CREDENTIAL_TARGETS");
+        cmd.env_remove("GITNOVA_BACKGROUND_FETCH");
+        // Match background fetch's non-interactive transport policy for tag
+        // advertisements. Never interrupt graph navigation with an auth prompt.
+        if !protocols.is_empty()
+            && args.windows(2).any(|pair| {
+                pair[0] == OsStr::new("-c") && pair[1] == OsStr::new("gitnova.backgroundFetch=true")
+            })
+        {
+            cmd.args([
+                "-c",
+                "credential.helper=",
+                "-c",
+                "credential.interactive=false",
+                "-c",
+                "core.askPass=",
+                "-c",
+                "core.hooksPath=/dev/null",
+            ])
+            .env("GITNOVA_BACKGROUND_FETCH", "1")
+            .env("GCM_INTERACTIVE", "Never")
+            .env(
+                "GIT_SSH_COMMAND",
+                "ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10",
+            )
+            .env("SSH_ASKPASS_REQUIRE", "never")
+            .env_remove("SSH_ASKPASS");
+        }
         if !protocols.is_empty() {
             let arguments = args.iter().map(|v| (*v).to_owned()).collect::<Vec<_>>();
             credentials::configure(&mut cmd, path, &arguments);

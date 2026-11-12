@@ -446,7 +446,7 @@ Native create/push reviews still revalidate refs before writes.
 
 ### Tags in the graph
 
-The creation inventory checks the selected push destination without fetching. The graph shows local refs; manual Fetch or auto fetch imports tags from the fetch destination. Distinct fetch/push URLs can therefore expose different tags. Fetch keeps existing tag objects unchanged and rejects a moved-name conflict. Compact rows keep the checked-out branch and newest version tag visible before additional branch badges; overflow remains listed in the tooltip and commit context. No new panel is required.
+The creation inventory checks the selected push destination without fetching. The graph also decorates loaded commits with remote-only tags from the configured upstream remote, otherwise origin or the sole remote. A read-only background ls-remote uses the fetch URL and peels annotated tags to their commit IDs. Remote badges include the remote name; matching local/remote tags share one badge. These labels never become local refs or authorize tag writes. Requests are scoped to repository identity and remote URL, cached for at most 60 seconds within a 4 MiB weighted cache, and polling stops while hidden or busy. Failures keep the local graph usable and identify unavailable/cached remote evidence. No remote-only commit objects are downloaded just to decorate the graph. Manual Fetch or auto fetch still imports tags from the fetch destination. Distinct fetch/push URLs can therefore expose different tags. Fetch keeps existing tag objects unchanged and rejects a moved-name conflict. Compact rows keep the checked-out branch and newest version tag visible before additional branch badges; overflow remains listed in the tooltip and commit context. No new panel is required.
 
 Conflict Result highlights reuse the existing editable result surface. Choosing
 Current, Incoming or both marks the corresponding output lines in blue, amber
@@ -486,3 +486,19 @@ Refs are updated in a compare-and-swap Git transaction under the common
 GitNova operation lock and native index lock; externally changed state invalidates
 the review. As with other Git clients, arbitrary concurrent external ref writers
 should be avoided. Outcomes are checked and uncertainty is reported without rollback.
+
+
+### Responsive reads and graph restoration
+
+Selection-only commit details and file patches use a latest-pending read lane.
+A changed selection/repository aborts its UI subscription; at most one started
+native read per lane finishes while the newest pending selection replaces older
+pending work. This does not cancel writes, invalidate their previews or cache a
+mutable result. Aborted hunk reads must not start a fallback file preview.
+
+After refs change in a deeply scrolled graph, show the validated first page
+before rebuilding the bounded range needed for its previous anchor. Restore the
+anchor if the user leaves it alone; stop restoration if the user selects or
+navigates the graph. Keep mutation controls guarded until repository refresh
+completes. Local foreground commands retain access to one of the existing two
+native worker slots while background CI/host reads wait on their own gate.

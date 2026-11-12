@@ -1662,3 +1662,11 @@ pub struct CommitHistoryPreview {
     pub token: String,
     pub blocked_reason: Option<String>,
 }
+
+/// Advertised tags from one validated fetch remote, used only for graph decoration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteGraphTags {
+    pub remote: Option<String>,
+    pub tags: Vec<GitRef>,
+}

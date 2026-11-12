@@ -1,0 +1,1678 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-performance",
+  "date": "2026-11-12",
+  "baseCommit": "73a1396fec5f79333b2564dd1b6c7f0f61e2e26c",
+  "baselineSourceVersion": "1.0.9",
+  "candidateSourceVersion": "1.0.10",
+  "uncommittedSource": true,
+  "baselineSnapshotSha256": "970223c0f58871a68a76b002d313f0518dacfab5e00b9475bb5829c75af6316a",
+  "environment": {
+    "os": "macOS-26.7.1-arm64-arm-64bit-Mach-O",
+    "arch": "arm64",
+    "ramGiB": 16,
+    "physicalCpus": 10,
+    "logicalCpus": 10,
+    "rust": "1.99.1",
+    "node": "26.13.0",
+    "concurrentRunners": 1,
+    "postBenchmarkMemoryObservation": {
+      "compressedOccupiedGiB": 6.629,
+      "swapUsedMiB": 4882.25,
+      "scope": "Read after core measurements; not a continuous trace or causal attribution"
+    }
+  },
+  "units": {
+    "durations": "milliseconds",
+    "gitDurations": "microseconds"
+  },
+  "core": {
+    "core-debug-before": {
+      "profile": "debug",
+      "fixture": {
+        "commits": 2000,
+        "largeDiffLines": 20000,
+        "trackedFiles": 1,
+        "untrackedFiles": 1
+      },
+      "scenarios": {
+        "open_registered_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 31.479,
+            "p95": 46.963
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.008,
+            "p95": 0.011
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 24.636,
+            "p95": 31.182
+          }
+        },
+        "graph_first_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 249.862,
+            "p95": 384.928
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.072,
+            "p95": 0.101
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 249.007,
+            "p95": 383.613
+          }
+        },
+        "graph_first_warm": {
+          "executionMs": {
+            "n": 20,
+            "median": 188.173,
+            "p95": 283.963
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.07,
+            "p95": 0.074
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 187.445,
+            "p95": 282.873
+          }
+        },
+        "graph_next": {
+          "executionMs": {
+            "n": 20,
+            "median": 183.576,
+            "p95": 234.801
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.069,
+            "p95": 0.075
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 182.826,
+            "p95": 233.916
+          }
+        },
+        "deep_refresh_first_page": {
+          "executionMs": {
+            "n": 20,
+            "median": 187.479,
+            "p95": 233.68
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.07,
+            "p95": 0.078
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 186.74,
+            "p95": 232.853
+          }
+        },
+        "deep_refresh_all_ten_pages": {
+          "executionMs": {
+            "n": 20,
+            "median": 1863.174,
+            "p95": 2114.405
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.069,
+            "p95": 0.083
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 170.0,
+            "p95": 170
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 1855.838,
+            "p95": 2105.51
+          }
+        },
+        "detail": {
+          "executionMs": {
+            "n": 20,
+            "median": 59.634,
+            "p95": 89.486
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.008,
+            "p95": 0.011
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 6.0,
+            "p95": 6
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 59.46,
+            "p95": 89.308
+          }
+        },
+        "snapshot_clean": {
+          "executionMs": {
+            "n": 20,
+            "median": 204.846,
+            "p95": 289.087
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.009,
+            "p95": 0.013
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 203.423,
+            "p95": 287.354
+          }
+        },
+        "snapshot_dirty_untracked": {
+          "executionMs": {
+            "n": 20,
+            "median": 225.013,
+            "p95": 298.678
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.01,
+            "p95": 0.012
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 223.625,
+            "p95": 297.126
+          }
+        },
+        "large_file_preview": {
+          "executionMs": {
+            "n": 20,
+            "median": 232.389,
+            "p95": 293.896
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.145,
+            "p95": 0.162
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 216.23,
+            "p95": 275.801
+          }
+        },
+        "stage": {
+          "executionMs": {
+            "n": 20,
+            "median": 515.362,
+            "p95": 766.1
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.007,
+            "p95": 0.011
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 44.0,
+            "p95": 44
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 464.207,
+            "p95": 715.858
+          }
+        },
+        "switch_preview": {
+          "executionMs": {
+            "n": 40,
+            "median": 157.681,
+            "p95": 194.689
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.005,
+            "p95": 0.006
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 16.0,
+            "p95": 16
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 156.869,
+            "p95": 193.649
+          }
+        },
+        "switch_apply": {
+          "executionMs": {
+            "n": 40,
+            "median": 408.878,
+            "p95": 556.852
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.007,
+            "p95": 0.01
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 36.0,
+            "p95": 36
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 393.118,
+            "p95": 539.473
+          }
+        }
+      }
+    },
+    "core-release-before": {
+      "profile": "release",
+      "fixture": {
+        "commits": 2000,
+        "largeDiffLines": 20000,
+        "trackedFiles": 1,
+        "untrackedFiles": 1
+      },
+      "scenarios": {
+        "open_registered_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 32.065,
+            "p95": 44.852
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.008,
+            "p95": 0.015
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 25.203,
+            "p95": 30.88
+          }
+        },
+        "graph_first_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 266.501,
+            "p95": 341.015
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.047,
+            "p95": 0.07
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 265.711,
+            "p95": 339.999
+          }
+        },
+        "graph_first_warm": {
+          "executionMs": {
+            "n": 20,
+            "median": 187.103,
+            "p95": 238.825
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.045,
+            "p95": 0.07
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 186.351,
+            "p95": 238.185
+          }
+        },
+        "graph_next": {
+          "executionMs": {
+            "n": 20,
+            "median": 183.965,
+            "p95": 264.486
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.044,
+            "p95": 0.069
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 183.334,
+            "p95": 263.741
+          }
+        },
+        "deep_refresh_first_page": {
+          "executionMs": {
+            "n": 20,
+            "median": 191.76,
+            "p95": 243.34
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.056,
+            "p95": 0.075
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 191.119,
+            "p95": 242.62
+          }
+        },
+        "deep_refresh_all_ten_pages": {
+          "executionMs": {
+            "n": 20,
+            "median": 1855.346,
+            "p95": 2243.539
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.054,
+            "p95": 0.079
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 170.0,
+            "p95": 170
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 1847.553,
+            "p95": 2234.057
+          }
+        },
+        "detail": {
+          "executionMs": {
+            "n": 20,
+            "median": 69.987,
+            "p95": 106.94
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.006,
+            "p95": 0.007
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 6.0,
+            "p95": 6
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 69.833,
+            "p95": 106.752
+          }
+        },
+        "snapshot_clean": {
+          "executionMs": {
+            "n": 20,
+            "median": 217.043,
+            "p95": 303.889
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.007,
+            "p95": 0.009
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 215.765,
+            "p95": 302.045
+          }
+        },
+        "snapshot_dirty_untracked": {
+          "executionMs": {
+            "n": 20,
+            "median": 233.155,
+            "p95": 316.695
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.008,
+            "p95": 0.01
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 231.668,
+            "p95": 315.112
+          }
+        },
+        "large_file_preview": {
+          "executionMs": {
+            "n": 20,
+            "median": 221.728,
+            "p95": 289.5
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.139,
+            "p95": 0.167
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 218.421,
+            "p95": 285.747
+          }
+        },
+        "stage": {
+          "executionMs": {
+            "n": 20,
+            "median": 513.817,
+            "p95": 659.835
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.005,
+            "p95": 0.007
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 44.0,
+            "p95": 44
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 474.356,
+            "p95": 617.167
+          }
+        },
+        "switch_preview": {
+          "executionMs": {
+            "n": 40,
+            "median": 159.571,
+            "p95": 254.904
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.004,
+            "p95": 0.007
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 16.0,
+            "p95": 16
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 158.498,
+            "p95": 253.742
+          }
+        },
+        "switch_apply": {
+          "executionMs": {
+            "n": 40,
+            "median": 410.983,
+            "p95": 541.723
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.006,
+            "p95": 0.009
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 36.0,
+            "p95": 36
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 394.361,
+            "p95": 522.485
+          }
+        }
+      }
+    },
+    "core-debug-after": {
+      "profile": "debug",
+      "fixture": {
+        "commits": 2000,
+        "largeDiffLines": 20000,
+        "relatedFixture": {
+          "childCommits": 10,
+          "linkedWorktrees": 1,
+          "parentCommits": 121,
+          "submodules": 1,
+          "untrackedFiles": 1000
+        },
+        "trackedFiles": 1,
+        "untrackedFiles": 1
+      },
+      "scenarios": {
+        "open_registered_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 43.771,
+            "p95": 68.527
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.013,
+            "p95": 0.061
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 35.752,
+            "p95": 60.789
+          }
+        },
+        "graph_first_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 403.371,
+            "p95": 591.274
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.081,
+            "p95": 0.12
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 401.965,
+            "p95": 589.537
+          }
+        },
+        "graph_first_warm": {
+          "executionMs": {
+            "n": 20,
+            "median": 258.556,
+            "p95": 514.436
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.078,
+            "p95": 0.117
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 257.533,
+            "p95": 513.145
+          }
+        },
+        "graph_next": {
+          "executionMs": {
+            "n": 20,
+            "median": 266.925,
+            "p95": 434.01
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.077,
+            "p95": 0.121
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 265.952,
+            "p95": 432.615
+          }
+        },
+        "deep_refresh_first_page": {
+          "executionMs": {
+            "n": 20,
+            "median": 285.448,
+            "p95": 466.615
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.086,
+            "p95": 0.13
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 284.433,
+            "p95": 464.915
+          }
+        },
+        "deep_refresh_all_ten_pages": {
+          "executionMs": {
+            "n": 20,
+            "median": 2728.695,
+            "p95": 3241.496
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.085,
+            "p95": 0.112
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 170.0,
+            "p95": 170
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 2718.378,
+            "p95": 3229.815
+          }
+        },
+        "detail": {
+          "executionMs": {
+            "n": 20,
+            "median": 86.336,
+            "p95": 133.332
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.008,
+            "p95": 0.011
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 6.0,
+            "p95": 6
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 86.112,
+            "p95": 133.115
+          }
+        },
+        "snapshot_clean": {
+          "executionMs": {
+            "n": 20,
+            "median": 280.044,
+            "p95": 354.644
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.009,
+            "p95": 0.015
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 278.437,
+            "p95": 352.692
+          }
+        },
+        "snapshot_dirty_untracked": {
+          "executionMs": {
+            "n": 20,
+            "median": 316.055,
+            "p95": 425.177
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.011,
+            "p95": 0.015
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 314.291,
+            "p95": 422.396
+          }
+        },
+        "large_file_preview": {
+          "executionMs": {
+            "n": 20,
+            "median": 340.602,
+            "p95": 394.378
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.177,
+            "p95": 0.202
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 321.521,
+            "p95": 373.421
+          }
+        },
+        "stage": {
+          "executionMs": {
+            "n": 20,
+            "median": 740.182,
+            "p95": 888.773
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.01,
+            "p95": 0.019
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 44.0,
+            "p95": 44
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 679.068,
+            "p95": 823.258
+          }
+        },
+        "switch_preview": {
+          "executionMs": {
+            "n": 40,
+            "median": 242.621,
+            "p95": 375.721
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.005,
+            "p95": 0.013
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 16.0,
+            "p95": 16
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 241.375,
+            "p95": 374.134
+          }
+        },
+        "switch_apply": {
+          "executionMs": {
+            "n": 40,
+            "median": 579.835,
+            "p95": 843.884
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.01,
+            "p95": 0.016
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 36.0,
+            "p95": 36
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 561.834,
+            "p95": 821.523
+          }
+        },
+        "snapshot_submodule_1000_untracked": {
+          "executionMs": {
+            "n": 20,
+            "median": 410.243,
+            "p95": 483.966
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.217,
+            "p95": 0.251
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 26.0,
+            "p95": 26
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 397.929,
+            "p95": 472.964
+          }
+        },
+        "submodule_discovery": {
+          "executionMs": {
+            "n": 20,
+            "median": 441.56,
+            "p95": 534.949
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.008,
+            "p95": 0.013
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 27.0,
+            "p95": 27
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 439.583,
+            "p95": 532.637
+          }
+        },
+        "worktree_list": {
+          "executionMs": {
+            "n": 20,
+            "median": 31.073,
+            "p95": 41.742
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.006,
+            "p95": 0.007
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 30.975,
+            "p95": 41.621
+          }
+        }
+      }
+    },
+    "core-release-after": {
+      "profile": "release",
+      "fixture": {
+        "commits": 2000,
+        "largeDiffLines": 20000,
+        "relatedFixture": {
+          "childCommits": 10,
+          "linkedWorktrees": 1,
+          "parentCommits": 121,
+          "submodules": 1,
+          "untrackedFiles": 1000
+        },
+        "trackedFiles": 1,
+        "untrackedFiles": 1
+      },
+      "scenarios": {
+        "open_registered_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 45.587,
+            "p95": 94.596
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.009,
+            "p95": 0.038
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 36.029,
+            "p95": 79.483
+          }
+        },
+        "graph_first_cold_app": {
+          "executionMs": {
+            "n": 20,
+            "median": 417.704,
+            "p95": 873.165
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.052,
+            "p95": 0.083
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 416.308,
+            "p95": 868.11
+          }
+        },
+        "graph_first_warm": {
+          "executionMs": {
+            "n": 20,
+            "median": 269.141,
+            "p95": 410.296
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.053,
+            "p95": 0.084
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 268.211,
+            "p95": 408.894
+          }
+        },
+        "graph_next": {
+          "executionMs": {
+            "n": 20,
+            "median": 264.536,
+            "p95": 450.631
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.05,
+            "p95": 0.077
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 263.623,
+            "p95": 448.995
+          }
+        },
+        "deep_refresh_first_page": {
+          "executionMs": {
+            "n": 20,
+            "median": 282.736,
+            "p95": 777.743
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.058,
+            "p95": 0.134
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 281.769,
+            "p95": 775.218
+          }
+        },
+        "deep_refresh_all_ten_pages": {
+          "executionMs": {
+            "n": 20,
+            "median": 2879.918,
+            "p95": 5400.31
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.062,
+            "p95": 0.195
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 170.0,
+            "p95": 170
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 2869.97,
+            "p95": 5381.926
+          }
+        },
+        "detail": {
+          "executionMs": {
+            "n": 20,
+            "median": 106.762,
+            "p95": 174.563
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.006,
+            "p95": 0.016
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 6.0,
+            "p95": 6
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 106.538,
+            "p95": 174.332
+          }
+        },
+        "snapshot_clean": {
+          "executionMs": {
+            "n": 20,
+            "median": 303.708,
+            "p95": 523.544
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.008,
+            "p95": 0.022
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 301.665,
+            "p95": 520.625
+          }
+        },
+        "snapshot_dirty_untracked": {
+          "executionMs": {
+            "n": 20,
+            "median": 372.209,
+            "p95": 533.971
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.009,
+            "p95": 0.017
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 370.387,
+            "p95": 531.271
+          }
+        },
+        "large_file_preview": {
+          "executionMs": {
+            "n": 20,
+            "median": 306.846,
+            "p95": 580.374
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.162,
+            "p95": 0.201
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 300.734,
+            "p95": 574.142
+          }
+        },
+        "stage": {
+          "executionMs": {
+            "n": 20,
+            "median": 784.473,
+            "p95": 1340.22
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.007,
+            "p95": 0.021
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 44.0,
+            "p95": 44
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 740.017,
+            "p95": 1285.601
+          }
+        },
+        "switch_preview": {
+          "executionMs": {
+            "n": 40,
+            "median": 244.211,
+            "p95": 524.47
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.004,
+            "p95": 0.011
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 16.0,
+            "p95": 16
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 243.105,
+            "p95": 520.671
+          }
+        },
+        "switch_apply": {
+          "executionMs": {
+            "n": 40,
+            "median": 595.258,
+            "p95": 1311.394
+          },
+          "serializationProbeMs": {
+            "n": 40,
+            "median": 0.007,
+            "p95": 0.016
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 36.0,
+            "p95": 36
+          },
+          "gitMs": {
+            "n": 40,
+            "median": 577.167,
+            "p95": 1280.297
+          }
+        },
+        "snapshot_submodule_1000_untracked": {
+          "executionMs": {
+            "n": 20,
+            "median": 315.256,
+            "p95": 489.06
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.172,
+            "p95": 0.194
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 26.0,
+            "p95": 26
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 309.226,
+            "p95": 481.96
+          }
+        },
+        "submodule_discovery": {
+          "executionMs": {
+            "n": 20,
+            "median": 352.018,
+            "p95": 482.656
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.005,
+            "p95": 0.006
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 27.0,
+            "p95": 27
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 350.443,
+            "p95": 480.719
+          }
+        },
+        "worktree_list": {
+          "executionMs": {
+            "n": 20,
+            "median": 24.873,
+            "p95": 36.406
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.004,
+            "p95": 0.005
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          },
+          "gitMs": {
+            "n": 20,
+            "median": 24.794,
+            "p95": 36.306
+          }
+        }
+      }
+    }
+  },
+  "selection": {
+    "before": {
+      "readyMs": {
+        "n": 20,
+        "median": 2189.5,
+        "p95": 2580
+      },
+      "startedReads": {
+        "n": 20,
+        "median": 12.0,
+        "p95": 12
+      },
+      "samples": [
+        {
+          "milliseconds": 1982,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1581,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2480,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2580,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2944,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2064,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2416,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1601,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1557,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2398,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1994,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2377,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1995,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1976,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1997,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2508,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2495,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2478,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 2315,
+          "startedReads": 12,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1961,
+          "startedReads": 12,
+          "selections": 12
+        }
+      ]
+    },
+    "after": {
+      "readyMs": {
+        "n": 20,
+        "median": 530.5,
+        "p95": 1494
+      },
+      "startedReads": {
+        "n": 20,
+        "median": 2.0,
+        "p95": 2
+      },
+      "samples": [
+        {
+          "milliseconds": 1130,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1148,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1977,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 614,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 398,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 514,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 396,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 382,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 547,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 881,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 480,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 863,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 512,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 397,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 880,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1002,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1494,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 463,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 364,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 398,
+          "startedReads": 2,
+          "selections": 12
+        }
+      ]
+    }
+  },
+  "nativeReleaseAfter": {
+    "fixture": {
+      "commits": 2000,
+      "trackedFiles": 1,
+      "untrackedFiles": 1000
+    },
+    "visibility": "hidden",
+    "ui": {
+      "graph_first_ipc": {
+        "n": 20,
+        "median": 272.0,
+        "p95": 426.0
+      },
+      "graph_next_ipc": {
+        "n": 20,
+        "median": 240.5,
+        "p95": 327
+      },
+      "snapshot_ipc": {
+        "n": 20,
+        "median": 281.0,
+        "p95": 372
+      },
+      "file_preview_ipc": {
+        "n": 20,
+        "median": 214.0,
+        "p95": 408
+      },
+      "detail_ipc": {
+        "n": 20,
+        "median": 84.5,
+        "p95": 136
+      },
+      "detail_ui_dom_ready": {
+        "n": 20,
+        "median": 123.5,
+        "p95": 202
+      },
+      "working_diff_ui_dom_ready": {
+        "n": 20,
+        "median": 643.5,
+        "p95": 1083
+      }
+    },
+    "native": {
+      "samples": 184,
+      "queueMs": {
+        "n": 184,
+        "median": 0.013,
+        "p95": 78.338
+      },
+      "executionMs": {
+        "n": 184,
+        "median": 204.472,
+        "p95": 424.248
+      },
+      "serializationProbeMs": {
+        "n": 184,
+        "median": 0.008,
+        "p95": 0.195
+      }
+    },
+    "limits": [
+      "Warm native application only. Background CI/network accounts absent.",
+      "Serialization is an additional diagnostic probe, not the actual Tauri encoding timestamp.",
+      "UI timings end at matching DOM content, not physical screen presentation."
+    ]
+  },
+  "limits": [
+    "Synthetic 2,000-commit/one-tracked-file fixture, not a large production monorepo.",
+    "Cold means a fresh Application/catalog, not an evicted OS disk cache.",
+    "Chromium selection protocol holds the first read until 12 selections have been submitted; both versions use the same gate and real Rust core. It is not native IPC.",
+    "Unpaired serial core measurements show slower candidate samples; no core throughput speedup is established. Host scheduling/temperature were not controlled.",
+    "Native release measurements are after-only. No paired native baseline, real network/CI-account on/off measurement, physical-paint timing, long RAM soak or competitor benchmark.",
+    "Windows/Linux native builds and GUI behavior were not tested in this macOS run.",
+    "Already-started reads finish; obsolete queued selections are rejected before native invocation. Writes are never cancelled."
+  ],
+  "installedCandidate": {
+    "version": "1.0.10",
+    "profile": "release",
+    "sha256": "e64afc9b444e67eedf7c1ca217d1399135a805703639fbc5b0bb2b9e6050b6cb",
+    "matchesReleaseCandidate": true
+  }
+}

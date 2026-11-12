@@ -95,10 +95,10 @@ export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFi
   const needsLoad = Boolean(!collapsed && !source && detail?.truncated && historicalFile && membershipId);
   const patchLoading = needsLoad && historical?.key !== patchKey && !patchError;
   useEffect(() => {
-    let cancelled = false; setHistorical(null); setPatchError('');
+    const controller=new AbortController(); let cancelled = false; setHistorical(null); setPatchError('');
     if (!needsLoad || !historicalFile || !detail || !membershipId) return;
-    api.historicalPatch(membershipId, detail.commit.oid, historicalFile.path).then(value => { if (!cancelled) setHistorical({key: patchKey, ...value}); }).catch(e => { if (!cancelled) setPatchError(errorMessage(e)); });
-    return () => { cancelled = true; };
+    api.historicalPatch(membershipId, detail.commit.oid, historicalFile.path,controller.signal).then(value => { if (!cancelled) setHistorical({key: patchKey, ...value}); }).catch(e => { if (!cancelled) setPatchError(errorMessage(e)); });
+    return () => { cancelled = true; controller.abort(); };
   }, [patchKey, needsLoad, membershipId]);
   const activeIndex = controlledIndex >= 0 ? controlledIndex : Math.min(fileIndex, Math.max(0, files.length - 1));
   const unmatched = Boolean(source?.selectedPath && controlledIndex < 0 && !busy);

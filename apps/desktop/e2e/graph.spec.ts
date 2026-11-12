@@ -69,9 +69,9 @@ test.afterAll(async () => {
   await Promise.allSettled([...pendingCore]);
   rmSync(folder, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
-async function connectRealCore(page: Page, state: string, observe?: (command: string, args: unknown) => void, autoFetchSeconds:number|null=0, afterProgress?: (command:string,event:WorkProgress)=>Promise<void>) {
+async function connectRealCore(page: Page, state: string, observe?: (command: string, args: unknown) => void | Promise<void>, autoFetchSeconds:number|null=0, afterProgress?: (command:string,event:WorkProgress)=>Promise<void>) {
   await page.exposeBinding('gitnovaTestInvoke', async (_source, command: string, args: unknown) => runCoreSerially(async () => {
-    observe?.(command, args);
+    await observe?.(command, args);
     // Spawn with an argument array; the JSON request goes through stdin.
     const child = exec(bridge, [state], { maxBuffer: 16 * 1024 * 1024, env: { ...process.env, HOME:join(folder,'empty-home'), USERPROFILE:join(folder,'empty-home'), XDG_CONFIG_HOME:join(folder,'empty-home') } });
     const channel=(args as {onProgress?:string})?.onProgress;const id=channel?.startsWith('__CHANNEL__:') ? Number(channel.split(':')[1]) : null;
@@ -2246,21 +2246,45 @@ test('tag inventory discovers remote-only names, searches all pages and rejects 
  await list.getByLabel('Check tags on remote',{exact:true}).selectOption('');await list.getByLabel('Search existing tags',{exact:true}).fill('v9.0.0');await expect(list).toContainText('No matching tags.');await expect(panel.getByRole('button',{name:'Review tag',exact:true})).toBeEnabled();
 });
 
-test('Fetch brings a remote-only version tag into the visible graph beside HEAD',async({page})=>{
+test('remote-only annotated tags decorate the graph before Fetch and deduplicate after import',async({page},testInfo)=>{
  const repo=join(folder,'tag-graph'),bare=join(folder,'tag-graph.git');mkdirSync(repo);
  git(repo,['init','-b','main']);git(repo,['commit','--allow-empty','-m','Version base']);const oid=git(repo,['rev-parse','HEAD']);
  git(repo,['branch','release']);git(folder,['init','--bare',bare]);git(repo,['remote','add','origin',bare]);git(repo,['push','origin','main']);
  git(repo,['tag','-a','0.0.35','-m','Release version']);git(repo,['push','origin','refs/tags/0.0.35']);git(repo,['tag','-d','0.0.35']);
  await connectRealCore(page,join(folder,'tag-graph.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
  const badge=page.locator(`[data-ref-name="refs/tags/0.0.35"]`);await expect(badge).toHaveCount(0);
+ const remoteBadge=page.locator('[data-remote-tag="true"]').filter({hasText:'0.0.35'});
+ await expect(remoteBadge).toBeVisible();await expect(remoteBadge).toContainText('origin');
+ await remoteBadge.dblclick();await expect(page.locator('.graph-actions')).toHaveCount(0);expect(git(repo,['symbolic-ref','--short','HEAD'])).toBe('main');
+ expect(git(repo,['tag','--list','0.0.35'])).toBe('');
+ await page.screenshot({path:testInfo.outputPath('remote-tag-before-fetch.png')});
  await page.locator(`button#commit-${oid}`).click({button:'right'});await page.getByRole('menuitem',{name:'Create tag…',exact:true}).click();
  const panel=page.getByLabel('Version tag review',{exact:true});await expect(panel.locator('.existing-tags')).toContainText('0.0.35');expect(git(repo,['tag','--list','0.0.35'])).toBe('');
  await panel.getByRole('button',{name:'Back',exact:true}).click();await page.keyboard.press('Escape');
  await page.locator('.topbar .fetch-current').click();await expect(page.locator('.topbar .fetch-current')).toBeEnabled({timeout:45000});
- await expect(badge).toBeVisible();await expect(badge).toContainText('0.0.35');await expect(page.locator('.graph-ref.current')).toContainText('main');
+ await expect(badge).toBeVisible();await expect(badge).toContainText('0.0.35');await expect(remoteBadge).toHaveCount(0);await expect(page.locator('.graph-ref.current')).toContainText('main');
  expect(git(repo,['rev-parse','HEAD'])).toBe(oid);expect(git(repo,['status','--porcelain'])).toBe('');expect(git(repo,['cat-file','-t','0.0.35'])).toBe('tag');
 });
 
+
+test('late remote tag evidence cannot leak into another repository',async({page})=>{
+ const first=join(folder,'tag-scope-first'),second=join(folder,'tag-scope-second'),bare=join(folder,'tag-scope.git');
+ for(const repo of [first,second]){mkdirSync(repo);git(repo,['init','-b','main']);git(repo,['commit','--allow-empty','-m','Scoped history']);}
+ git(folder,['init','--bare',bare]);git(first,['remote','add','origin',bare]);git(first,['tag','remote-version']);git(first,['push','origin','refs/tags/remote-version']);git(first,['tag','-d','remote-version']);
+ await connectRealCore(page,join(folder,'tag-scope.json'));
+ await page.addInitScript(()=>{
+   const w=window as unknown as {__TAURI_INTERNALS__:{invoke:(command:string,args?:unknown)=>Promise<unknown>};releaseTags?:()=>void;releasedTags?:boolean};
+   const invoke=w.__TAURI_INTERNALS__.invoke;
+   w.__TAURI_INTERNALS__.invoke=async(command,args)=>{const result=await invoke(command,args);if(command==='remote_graph_tags'&&(result as {tags?:unknown[]}).tags?.length){await new Promise<void>(resolve=>{w.releaseTags=resolve;});w.releasedTags=true;}return result;};
+ });
+ await page.goto('/');await page.getByLabel('Add an existing repository').fill(first);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>Boolean((window as unknown as {releaseTags?:()=>void}).releaseTags))).toBe(true);
+ await page.keyboard.press('Control+o');await page.getByLabel('Add an existing repository').fill(second);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await expect(page.locator('.repo-picker')).toContainText('tag-scope-second');
+ await page.evaluate(()=>(window as unknown as {releaseTags:()=>void}).releaseTags());
+ await expect.poll(()=>page.evaluate(()=>(window as unknown as {releasedTags?:boolean}).releasedTags)).toBe(true);
+ await expect(page.locator('[data-remote-tag]')).toHaveCount(0);await expect(page.locator('.commit-row')).toContainText('Scoped history');
+});
 
 test('edit file opens and saves UTF-8 working text larger than 512 KiB', async ({page})=>{
   const repo=join(folder,'large-file-editor');mkdirSync(repo);git(repo,['init','-b','main']);
@@ -2344,4 +2368,52 @@ test('Undo and Redo local commit preserve files, restore history and block edite
  expect(git(repo,['rev-parse','HEAD'])).toBe(base);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('edited\n');expect(git(repo,['status','--porcelain'])).toBe('M  file.txt');await expect(page.locator('.redo-current')).toBeEnabled();
  await page.locator('.redo-current').click();await expect(review).toContainText('Restore the original commit.');await review.getByRole('button',{name:'Restore commit',exact:true}).click();await expect(review).toHaveCount(0);expect(git(repo,['rev-parse','HEAD'])).toBe(tip);expect(git(repo,['status','--porcelain'])).toBe('');await expect(page.locator('.redo-current')).toBeDisabled();
  await page.locator('.undo-current').click();await review.getByRole('checkbox').check();await review.getByRole('button',{name:'Undo and keep changes',exact:true}).click();await expect(review).toHaveCount(0);await expect(page.locator('.redo-current')).toBeEnabled();writeFileSync(join(repo,'file.txt'),'new edits\n');await page.locator('.redo-current').click();await expect(review).toContainText('Files or staging have changed.');await expect(review.getByRole('button',{name:'Restore commit',exact:true})).toBeDisabled();expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('new edits\n');
+});
+
+
+test('selection performance coalesces superseded real reads and preserves the final selection',async({page},testInfo)=>{
+  test.setTimeout(120000);
+  let held=false,started=0;let release=()=>{};let gate=Promise.resolve();
+  await connectRealCore(page,join(folder,'selection-perf.json'),async command=>{if(command==='commit_detail'&&held){started++;if(started===1)await gate;}});
+  await page.goto('/');await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();
+  await expect(page.locator('.commit-inspector .commit-identity code')).not.toBeEmpty();
+  const samples=[];const rounds=Number(process.env.GITNOVA_PERF_SAMPLES??'1');
+  try{for(let round=0;round<rounds;round++){
+    await expect(page.locator('.sync-state')).toHaveCount(0);
+    gate=new Promise<void>(resolve=>{release=resolve;});started=0;held=true;
+    const begin=Date.now();let oid='';
+    for(let n=0;n<12;n++){
+      oid=await page.evaluate(n=>{const rows=document.querySelectorAll<HTMLButtonElement>('.commit-row:not(.stash-graph-row)');const row=rows[(n+1)%rows.length];row.click();return row.id.slice(7);},n);
+      if(n===0)await expect.poll(()=>started).toBe(1);
+    }
+    release();await expect(page.locator('.commit-inspector .commit-identity code')).toHaveText(oid.slice(0,8));
+    // Drain all started reads so the next round never overlaps this sample.
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    samples.push({milliseconds:Date.now()-begin,startedReads:started,selections:12});held=false;
+    if(process.env.GITNOVA_PERF_BASELINE!=='1')expect(started).toBeLessThanOrEqual(3);
+  }}finally{release();held=false;}
+  await testInfo.attach('selection-performance.json',{body:JSON.stringify({samples,scope:'Chromium real Rust core transport; first read held until burst submitted, then released. Not native IPC.'}),contentType:'application/json'});
+  if(process.env.GITNOVA_PERF_OUTPUT)writeFileSync(process.env.GITNOVA_PERF_OUTPUT,JSON.stringify({samples},null,2));
+});
+
+test('deep graph refresh publishes its validated first page and yields restoration to user selection',async({page})=>{
+  const repo=join(folder,'progressive-refresh');mkdirSync(repo);git(repo,['init','-b','main']);
+  let stream='';for(let i=0;i<350;i++)stream+=`commit refs/heads/main\ncommitter Test <test@example.invalid> ${1700000000+i} +0000\ndata ${`Commit ${i}\n`.length}\nCommit ${i}\n\n`;
+  execFileSync('git',['-C',repo,'fast-import','--quiet'],{input:stream+'done\n',stdio:['pipe','pipe','pipe']});git(repo,['reset','--hard','HEAD']);
+  let hold=false,entered=false;let release=()=>{};const gate=new Promise<void>(resolve=>{release=resolve;});
+  await connectRealCore(page,join(folder,'progressive-refresh.json'),async(command,args)=>{if(hold&&command==='graph_page'&&(args as {cursor?:unknown}).cursor){entered=true;await gate;}});
+  await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+  await page.getByRole('button',{name:'Load older commits',exact:true}).click();await expect(page.locator('.app-footer')).toContainText('1–200 commits');
+  await page.locator('.history-scroll').evaluate(node=>{node.scrollTop=2500;});
+  git(repo,['commit','--allow-empty','-m','External refresh ready']);hold=true;
+  try{
+    await page.locator('.topbar .refresh').click();await expect.poll(()=>entered).toBe(true);
+    // The second real Git page is still held; first page is already usable.
+    await expect(page.locator('.commit-row').first()).toContainText('External refresh ready');
+    await page.locator('.commit-row').nth(2).click();const selected=await page.locator('.commit-row.selected').getAttribute('id');
+    hold=false;release();await expect(page.locator('.sync-state')).toHaveCount(0);
+    await expect(page.locator('.commit-row.selected')).toHaveAttribute('id',selected!);
+    await expect(page.locator('.app-footer')).toContainText('1–100 commits');
+    expect(git(repo,['status','--porcelain'])).toBe('');
+  }finally{hold=false;release();}
 });
