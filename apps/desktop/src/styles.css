@@ -954,3 +954,5 @@ main { display: flex; flex: 1; min-height: 0; }
 .conflict-output-heading .conflict-highlight-legend {color:var(--ink);}
 
 .commit-history-review label{display:flex;gap:.6rem;align-items:flex-start;margin:1rem 0}.history-recovery-ref{display:block;overflow-wrap:anywhere;margin-top:.5rem}.undo-current,.redo-current{display:inline-flex;align-items:center;gap:.35rem}
+
+.remote-tag-source { flex-shrink:0; font-size:10px; opacity:.85; }

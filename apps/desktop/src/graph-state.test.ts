@@ -90,3 +90,21 @@ it('keeps original stash messages intact while leaving generated recovery identi
   const original = 'On main: work ภาษาไทย [GitNova 12345678-1234-1234-1234-123456789abc]';
   expect(stashTitle(original)).toBe('On main: work ภาษาไทย'); expect(original).toContain('[GitNova'); expect(stashTitle('User [GitNova custom]')).toBe('User [GitNova custom]');
 });
+
+
+it('decorates remote-only tags at their peeled commit and deduplicates matching local tags', () => {
+  const page = {status:{branch:'release',head:'a',dirty:false,changedEntries:0,bare:false},refs:[
+    {oid:'a',name:'refs/heads/release'},{oid:'a',name:'refs/tags/0.0.34'},
+    {oid:'b',name:'refs/tags/0.0.35'},
+  ]};
+  const remote = {remote:'origin',tags:[{oid:'a',name:'refs/tags/0.0.35'},{oid:'a',name:'refs/tags/0.0.34'}]};
+  const labels = graphRefLabels(page,'a',remote);
+  expect(labels.map(r=>r.label)).toEqual(['release','0.0.35','0.0.34']);
+  expect(labels[1]).toMatchObject({remoteTag:true,tagRemotes:['origin'],fullNames:['origin: refs/tags/0.0.35']});
+  expect(labels[2]).toMatchObject({tagRemotes:['origin'],fullNames:['refs/tags/0.0.34']});
+  expect(labels[2].remoteTag).toBeUndefined();
+  expect(graphRefLabels(page,'b',remote)).toEqual(graphRefLabels(page,'b'));
+  const indexed=graphLabelsByCommit(page,[{...row(1),commit:{...row(1).commit,oid:'a'}}],remote);
+  expect(indexed.get('a')).toEqual(labels);
+  expect(graphRefLabels(page,'a',{remote:'other',tags:[]})).toEqual(graphRefLabels(page,'a'));
+});

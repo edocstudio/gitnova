@@ -51,6 +51,91 @@ impl GitCli {
             })
             .collect()
     }
+    /// Resolve only an explicitly configured fetch remote through the existing
+    /// transport validation. Graph decoration never imports or overwrites tags.
+    pub fn remote_graph_tag_destination(&self, path: &Path, remote: &str) -> Result<String> {
+        if remote.starts_with('-')
+            || !self
+                .text(path, &["remote"])?
+                .lines()
+                .any(|name| name == remote)
+        {
+            return Err(AppError::new(
+                "remote",
+                "Choose a configured remote from this repository.",
+            ));
+        }
+        Ok(self
+            .text(path, &["remote", "get-url", remote])?
+            .trim()
+            .to_owned())
+    }
+
+    pub fn remote_graph_tag_refs(&self, path: &Path, url: &str) -> Result<Vec<GitRef>> {
+        let args = [
+            "-c",
+            "gitnova.backgroundFetch=true",
+            "ls-remote",
+            "--tags",
+            "--",
+            url,
+        ];
+        let output = self.execute_transport(
+            path,
+            &args.iter().map(OsStr::new).collect::<Vec<_>>(),
+            4 * 1024 * 1024,
+            false,
+            "file:http:https:ssh:git",
+        )?;
+        let text = String::from_utf8(output.bytes)
+            .map_err(|_| AppError::new("tag_inspection", "Invalid remote tag response."))?;
+        let mut objects = std::collections::BTreeMap::new();
+        let mut peeled = std::collections::HashMap::new();
+        for line in text.lines() {
+            let (oid, name) = line
+                .split_once('\t')
+                .ok_or_else(|| AppError::new("tag_inspection", "Invalid remote tag response."))?;
+            crate::validate_oid(oid)?;
+            let (name, is_peeled) = name
+                .strip_suffix("^{}")
+                .map_or((name, false), |name| (name, true));
+            if !name.starts_with("refs/tags/")
+                || name.len() <= 10
+                || name.chars().any(|c| c.is_control() || c.is_whitespace())
+            {
+                return Err(AppError::new(
+                    "tag_inspection",
+                    "Invalid remote tag response.",
+                ));
+            }
+            let previous = if is_peeled {
+                peeled.insert(name.to_owned(), oid.to_owned())
+            } else {
+                objects.insert(name.to_owned(), oid.to_owned())
+            };
+            if previous.is_some() {
+                return Err(AppError::new(
+                    "tag_inspection",
+                    "Invalid remote tag response.",
+                ));
+            }
+        }
+        if peeled.keys().any(|name| !objects.contains_key(name)) {
+            return Err(AppError::new(
+                "tag_inspection",
+                "Invalid remote tag response.",
+            ));
+        }
+        // Annotated tag objects do not identify a graph row; their peeled target does.
+        Ok(objects
+            .into_iter()
+            .map(|(name, object)| GitRef {
+                oid: peeled.remove(&name).unwrap_or(object),
+                name,
+            })
+            .collect())
+    }
+
     fn tag_object(&self, path: &Path, name: &str) -> Result<Option<String>> {
         let full = format!("refs/tags/{name}");
         if self

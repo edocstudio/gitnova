@@ -1,4 +1,4 @@
-import type { GraphPage, GraphRow } from './contracts';
+import type { GraphPage, GraphRow, RemoteGraphTags } from './contracts';
 export const ROW_HEIGHT = 36;
 export const MAX_ROWS = 1000;
 // Refreshing an existing entry also makes it most recent. All insertion paths
@@ -39,9 +39,9 @@ export function refLabels(page: Pick<GraphPage, 'refs'>, oid: string) {
   return page.refs.filter(ref => ref.oid === oid).map(ref => ref.name.replace(/^refs\/(heads|remotes|tags)\//, ''));
 }
 
-export type GraphRefLabel = { label: string; kind: 'local' | 'remote' | 'tag'; tracked: boolean; current: boolean; fullNames: string[] };
+export type GraphRefLabel = { label: string; kind: 'local' | 'remote' | 'tag'; tracked: boolean; current: boolean; fullNames: string[]; tagRemotes?: string[]; remoteTag?: boolean };
 // Co-located local and remote refs share a badge; divergent tips always stay separate.
-export function graphRefLabels(page: Pick<GraphPage, 'refs' | 'status'>, oid: string): GraphRefLabel[] {
+export function graphRefLabels(page: Pick<GraphPage, 'refs' | 'status'>, oid: string, remoteTags?: RemoteGraphTags|null): GraphRefLabel[] {
   const refs = page.refs.filter(ref => ref.oid === oid && !(ref.name.startsWith('refs/remotes/') && ref.name.endsWith('/HEAD')));
   const local = refs.filter(ref => ref.name.startsWith('refs/heads/'));
   const remotesByBranch = new Map<string, typeof refs>();
@@ -61,6 +61,12 @@ export function graphRefLabels(page: Pick<GraphPage, 'refs' | 'status'>, oid: st
     if (grouped.has(ref.name)) continue;
     const kind = ref.name.startsWith('refs/tags/') ? 'tag' : 'remote';
     result.push({ label: ref.name.replace(/^refs\/(heads|remotes|tags)\//, ''), kind, tracked: false, current: false, fullNames: [ref.name] });
+  }
+  if(remoteTags?.remote) for(const tag of remoteTags.tags){
+    if(tag.oid!==oid)continue;
+    const local=result.find(ref=>ref.kind==='tag'&&ref.fullNames.includes(tag.name));
+    if(local){local.tagRemotes=[remoteTags.remote];continue;}
+    result.push({label:tag.name.slice(10),kind:'tag',tracked:false,current:false,remoteTag:true,tagRemotes:[remoteTags.remote],fullNames:[`${remoteTags.remote}: ${tag.name}`]});
   }
   if (page.status.head === oid && !page.status.branch) result.unshift({ label: 'HEAD', kind: 'local', tracked: false, current: true, fullNames: ['Detached HEAD'] });
   // The compact row has two badge slots: keep HEAD first and a version tag
@@ -86,12 +92,14 @@ export function historyItems(rows: GraphRow[], stashes: import('./contracts').St
   return items;
 }
 
-export function graphLabelsByCommit(page: Pick<GraphPage, 'refs' | 'status'>, rows: GraphRow[]) {
+export function graphLabelsByCommit(page: Pick<GraphPage, 'refs' | 'status'>, rows: GraphRow[], remoteTags?:RemoteGraphTags|null) {
   const byOid = new Map<string, GraphPage['refs']>();
   for (const ref of page.refs) {
     const refs = byOid.get(ref.oid) ?? []; refs.push(ref); byOid.set(ref.oid, refs);
   }
-  return new Map(rows.map(row => [row.commit.oid, graphRefLabels({ refs: byOid.get(row.commit.oid) ?? [], status: page.status }, row.commit.oid)]));
+  const remoteByOid=new Map<string,RemoteGraphTags['tags']>();
+  for(const ref of remoteTags?.tags??[]){const refs=remoteByOid.get(ref.oid)??[];refs.push(ref);remoteByOid.set(ref.oid,refs);}
+  return new Map(rows.map(row => [row.commit.oid, graphRefLabels({ refs: byOid.get(row.commit.oid) ?? [], status: page.status }, row.commit.oid,remoteTags?{remote:remoteTags.remote,tags:remoteByOid.get(row.commit.oid)??[]}:null)]));
 }
 
 // Saved work never borrows a real Git lane, including lanes occupied only by strokes.

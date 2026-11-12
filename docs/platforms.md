@@ -61,7 +61,7 @@ cd apps/desktop
 npm run build:desktop
 ```
 
-On systems where Python is named `python3`, use that command instead. `build:desktop` verifies inventory lockfile hashes and the native target. Windows/Linux invoke a release Tauri build; macOS delegates to the existing bounded local debug build and refuses to overwrite a running app. Output is under Cargo's target directory, normally `target/release/bundle/nsis`, `deb`, or `appimage`. This script creates artifacts without publishing or installing them.
+On systems where Python is named `python3`, use that command instead. `build:desktop` verifies inventory lockfile hashes and the native target. All three platforms invoke a release-profile Tauri build; macOS refuses to build while the app is running. `build:local` remains the macOS debug/diagnostic workflow. macOS release candidates are ad-hoc signed and are not notarized. Output is under Cargo's target directory, normally `target/release/bundle/nsis`, `deb`, or `appimage`. This script creates artifacts without publishing or installing them.
 
 The installers are **unsigned**. Windows may display SmartScreen warnings. There is no signing/notarization or automatic update promise. The dependency inventory is evidence with unresolved items, not a completed license audit; follow the [binary distribution checklist](contributing/binary-distribution.md) before redistribution.
 

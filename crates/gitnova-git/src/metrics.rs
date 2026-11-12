@@ -7,6 +7,7 @@ pub struct GitMetrics {
     pub calls: u64,
     pub command_microseconds: u128,
     pub commands: BTreeMap<String, u64>,
+    pub command_microseconds_by_name: BTreeMap<String, u128>,
 }
 thread_local! {static METRICS:RefCell<Option<GitMetrics>>=const {RefCell::new(None)};}
 struct Scope(Option<GitMetrics>);
@@ -40,7 +41,12 @@ impl Drop for CommandTimer {
             METRICS.with(|m| {
                 if let Some(value) = m.borrow_mut().as_mut() {
                     value.calls += 1;
-                    value.command_microseconds += start.elapsed().as_micros();
+                    let elapsed = start.elapsed().as_micros();
+                    value.command_microseconds += elapsed;
+                    *value
+                        .command_microseconds_by_name
+                        .entry(name.clone())
+                        .or_default() += elapsed;
                     *value.commands.entry(name).or_default() += 1;
                 }
             });

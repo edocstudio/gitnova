@@ -171,3 +171,5 @@ export interface HostedRepository {project:string;cloneUrl:string;private:boolea
 export interface HostedRepositories {repositories:HostedRepository[];hasMore:boolean}
 
 export interface CommitHistoryPreview {redo:boolean;branch:string;commitOid:string;parentOid:string|null;subject:string;recoveryRef:string;token:string;blockedReason:string|null}
+
+export type RemoteGraphTags = {remote:string|null;tags:GitRef[]};

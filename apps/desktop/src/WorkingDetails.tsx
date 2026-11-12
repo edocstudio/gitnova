@@ -1,3 +1,4 @@
+import {traceUsable} from './performance-trace';
 import {SubmodulePointerControls} from './SubmodulePointerControls';
 import {useRecoveredLockError} from './useRecoveredLockError';
 import {CommitIdentityNotice} from './CommitIdentity';
@@ -69,12 +70,13 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
   useEffect(() => { if (!entries.some(e => e.key === selection)) setSelection(entries[0]?.key ?? null); }, [entries, selection]);
   useEffect(() => {
     if (busy || stashOpen) return;
+    const controller=new AbortController();const started=performance.now();
     const version = ++request.current; setPreview(null); setHunks(null); setLoading(false); setSubmodule(null);
     if (!entry || review && !reviewPerFile) return;
     setLoading(true); setError('');
     if (entry.file.blockedReason?.includes('Submodule')) void api.submodules(membershipId).then(items => { if (version === request.current) setSubmodule(items.find(sub => sub.path.hex === entry.file.path.hex) ?? null); }).catch(e => { if (version === request.current) setError(errorMessage(e)); });
-    (reviewPerFile&&review?api.commitFilePreview(membershipId,entry.file.path,review.token):!entry.file.blockedReason?api.previewHunks(membershipId,entry.file.path,entry.staged).then(p=>{if(version===request.current)setHunks(p);return p.file;}).catch(()=>api.filePreview(membershipId,entry.file.path,entry.staged)):api.filePreview(membershipId, entry.file.path, entry.staged)).then(value => { if (version === request.current) setPreview(value); }).catch(e => { if (version === request.current) setError(errorMessage(e)); }).finally(() => { if (version === request.current) setLoading(false); });
-    return () => { request.current++; };
+    (reviewPerFile&&review?api.commitFilePreview(membershipId,entry.file.path,review.token):!entry.file.blockedReason?api.previewHunks(membershipId,entry.file.path,entry.staged,controller.signal).then(p=>{if(version===request.current)setHunks(p);return p.file;}).catch(error=>{if(controller.signal.aborted)throw error;return api.filePreview(membershipId,entry.file.path,entry.staged,controller.signal);}):api.filePreview(membershipId, entry.file.path, entry.staged,controller.signal)).then(value => { if (version === request.current) {setPreview(value);traceUsable('working-file',started,()=>version===request.current);} }).catch(e => { if (version === request.current) setError(errorMessage(e)); }).finally(() => { if (version === request.current) setLoading(false); });
+    return () => { request.current++; controller.abort(); };
   }, [membershipId, selection, changes?.token, review, reviewPerFile, busy, stashOpen]);
   useEffect(() => {
     if (review && reviewedState !== changes?.token) { setReview(null); setAmendReview(null); setReviewInvalidated(true); }

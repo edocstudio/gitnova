@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod acceptance;
 mod browser;
+mod command_slots;
 mod terminal;
 use gitnova_core::Application;
 use gitnova_ipc::*;
@@ -9,10 +10,12 @@ use tauri::Manager;
 type State<'a> = tauri::State<'a, Arc<Application>>;
 // Bound native command concurrency before allocating blocking workers. Keep
 // permits inside the worker even if the invoking WebView disappears.
-static COMMAND_SLOTS: std::sync::LazyLock<Arc<tokio::sync::Semaphore>> =
-    std::sync::LazyLock::new(|| Arc::new(tokio::sync::Semaphore::new(2)));
 static COMMAND_QUEUE: std::sync::LazyLock<Arc<tokio::sync::Semaphore>> =
     std::sync::LazyLock::new(|| Arc::new(tokio::sync::Semaphore::new(32)));
+// Background requests cannot consume all admission slots while waiting on their
+// single worker gate. The total queue remains bounded at 32.
+static BACKGROUND_QUEUE: std::sync::LazyLock<Arc<tokio::sync::Semaphore>> =
+    std::sync::LazyLock::new(|| Arc::new(tokio::sync::Semaphore::new(8)));
 // Diagnostic profile: debug environment or explicit installed-app acceptance flag.
 // Both require a private fixture catalog; neither may fall back to user data.
 fn native_smoke() -> bool {
@@ -36,11 +39,15 @@ fn native_smoke_state() -> Result<Option<PathBuf>, AppError> {
     Ok(Some(canonical))
 }
 
-// Fixture-only telemetry. Never enabled for a normal user catalog or release.
+// Fixture-only telemetry. Never enabled for a normal user catalog.
 #[tauri::command]
 fn native_soak_report(sample: serde_json::Value) -> Result<(), AppError> {
     use std::io::Write;
-    if !cfg!(debug_assertions) || std::env::var_os("GITNOVA_NATIVE_SOAK_SECONDS").is_none() {
+    let perf = native_smoke()
+        && std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1"));
+    if !perf
+        && (!cfg!(debug_assertions) || std::env::var_os("GITNOVA_NATIVE_SOAK_SECONDS").is_none())
+    {
         return Err(AppError::new("soak", "Isolated soak profile required"));
     }
     let state = native_smoke_state()?
@@ -69,30 +76,64 @@ fn native_soak_report(sample: serde_json::Value) -> Result<(), AppError> {
     Ok(())
 }
 
-async fn run<T: Send + 'static>(
+async fn run<T: Send + serde::Serialize + 'static>(
     state: State<'_>,
     f: impl FnOnce(&Application) -> Result<T, AppError> + Send + 'static,
 ) -> Result<T, AppError> {
+    run_on_lane(state, false, f).await
+}
+async fn run_background<T: Send + serde::Serialize + 'static>(
+    state: State<'_>,
+    f: impl FnOnce(&Application) -> Result<T, AppError> + Send + 'static,
+) -> Result<T, AppError> {
+    run_on_lane(state, true, f).await
+}
+async fn run_on_lane<T: Send + serde::Serialize + 'static>(
+    state: State<'_>,
+    background: bool,
+    f: impl FnOnce(&Application) -> Result<T, AppError> + Send + 'static,
+) -> Result<T, AppError> {
+    let queued_at = std::time::Instant::now();
+    // Opt-in fixture diagnostics: command/result type and durations only. Never
+    // log arguments, paths, DTO contents, Git output, URLs or credentials.
+    let diagnostics = native_smoke()
+        && std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1"));
     let app = state.inner().clone();
+    let background_admission = if background {
+        Some(BACKGROUND_QUEUE.clone().try_acquire_owned().map_err(|_| {
+            AppError::new(
+                "busy",
+                "GitNova is busy; wait for the current operation to finish.",
+            )
+        })?)
+    } else {
+        None
+    };
     let queued = COMMAND_QUEUE.clone().try_acquire_owned().map_err(|_| {
         AppError::new(
             "busy",
             "GitNova is busy; wait for the current operation to finish.",
         )
     })?;
-    let slot = COMMAND_SLOTS
-        .clone()
-        .acquire_owned()
+    let slot = command_slots::SLOTS
+        .acquire(background)
         .await
         .map_err(|_| AppError::new("state", "Native command queue is unavailable."))?;
     tauri::async_runtime::spawn_blocking(move || {
-        let (_queued, _slot) = (queued, slot);
-        f(&app)
+        let (_queued, _slot, _background_admission) = (queued, slot, background_admission);
+        if !diagnostics {return f(&app);}
+        let queue_ms=queued_at.elapsed().as_secs_f64()*1000.;let start=std::time::Instant::now();
+        let (result,git)=gitnova_core::measure_git(||f(&app));
+        let execution_ms=start.elapsed().as_secs_f64()*1000.;
+        let serialize=std::time::Instant::now();
+        let bytes=result.as_ref().ok().and_then(|value|serde_json::to_vec(value).ok()).map_or(0,|value|value.len());
+        eprintln!("GITNOVA_PERF:{}",serde_json::json!({"resultType":std::any::type_name::<T>(),"background":background,"queueMs":queue_ms,"executionMs":execution_ms,"serializationProbeMs":serialize.elapsed().as_secs_f64()*1000.,"bytes":bytes,"git":git}));
+        result
     })
     .await
     .map_err(|e| AppError::new("worker", e.to_string()))?
 }
-async fn run_progress<T: Send + 'static>(
+async fn run_progress<T: Send + serde::Serialize + 'static>(
     state: State<'_>,
     on_progress: Option<tauri::ipc::Channel<WorkProgress>>,
     f: impl FnOnce(&Application) -> Result<T, AppError> + Send + 'static,
@@ -996,7 +1037,7 @@ async fn jenkins_builds(
     selection: JenkinsSelection,
     refresh: bool,
 ) -> Result<JenkinsSnapshot, AppError> {
-    run(state, move |a| {
+    run_background(state, move |a| {
         a.jenkins_builds(&membership_id, &selection, refresh)
     })
     .await
@@ -1108,7 +1149,7 @@ async fn branch_requests(
     membership_id: String,
     selection: HostingSelection,
 ) -> Result<BranchRequests, AppError> {
-    run(state, move |a| {
+    run_background(state, move |a| {
         a.branch_requests(&membership_id, &selection)
     })
     .await
@@ -1120,7 +1161,7 @@ async fn ci_connection(
     oid: String,
     profiles: Vec<HostProfile>,
 ) -> Result<Option<HostingSelection>, AppError> {
-    run(state, move |a| {
+    run_background(state, move |a| {
         a.ci_connection(&membership_id, &oid, &profiles)
     })
     .await
@@ -1185,7 +1226,7 @@ async fn ci_summary(
     membership_id: String,
     selection: HostingSelection,
 ) -> Result<PipelineSnapshot, AppError> {
-    run(state, move |a| a.ci_summary(&membership_id, &selection)).await
+    run_background(state, move |a| a.ci_summary(&membership_id, &selection)).await
 }
 #[tauri::command]
 async fn pipelines(
@@ -1194,7 +1235,7 @@ async fn pipelines(
     selection: HostingSelection,
     refresh: bool,
 ) -> Result<PipelineSnapshot, AppError> {
-    run(state, move |a| {
+    run_background(state, move |a| {
         a.pipelines(&membership_id, &selection, refresh)
     })
     .await
@@ -1252,6 +1293,13 @@ async fn create_hosting(
         a.create_hosting(&membership_id, &request, &token)
     })
     .await
+}
+#[tauri::command]
+async fn remote_graph_tags(
+    state: State<'_>,
+    membership_id: String,
+) -> Result<RemoteGraphTags, AppError> {
+    run_background(state, move |a| a.remote_graph_tags(&membership_id)).await
 }
 #[tauri::command]
 async fn tag_refs(
@@ -1438,6 +1486,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         preview_hosting,
         create_hosting,
         tag_refs,
+        remote_graph_tags,
         preview_tag,
         change_tag,
         preview_push,
@@ -1657,6 +1706,11 @@ fn main() {
                 && matches!(payload.event(), tauri::webview::PageLoadEvent::Started)
             {
                 terminal::close_all();
+            }
+            if native_smoke() && std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1"))
+                && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
+            {
+                let _ = window.eval(include_str!("../../scripts/native-perf-driver.js"));
             }
             if cfg!(debug_assertions) && native_smoke() && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
             {
@@ -1955,6 +2009,11 @@ mod tests {
         drop(full_queue);
         assert!(invoke("catalog", json!({}), local_ipc_origin()).is_ok());
         let membership = catalog["workspaces"][0]["selectedId"].as_str().unwrap();
+        let tag_args = json!({"membershipId":membership});
+        let tags = invoke("remote_graph_tags", tag_args.clone(), local_ipc_origin()).unwrap();
+        assert!(tags["remote"].is_null());
+        assert_eq!(tags["tags"], json!([]));
+        assert!(invoke("remote_graph_tags", tag_args, "https://example.invalid").is_err());
         let clone_path = directory.path().join("ipc-clone");
         let clone_request = json!({"workspaceId":catalog["activeWorkspaceId"],"source":repo,"destination":clone_path});
         let clone_preview = invoke(

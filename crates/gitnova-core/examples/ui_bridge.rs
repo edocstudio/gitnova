@@ -330,6 +330,7 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.apply_merge_action(&s("membershipId")?, &action, &s("token")?)?)
             }
         }
+        "remote_graph_tags" => json!(app.remote_graph_tags(&s("membershipId")?)?),
         "tag_refs" => json!(app.tag_refs(
             &s("membershipId")?,
             args.get("remote").and_then(|value| value.as_str())

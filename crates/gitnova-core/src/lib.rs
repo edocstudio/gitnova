@@ -1,5 +1,5 @@
 use gitnova_domain::*;
-pub use gitnova_git::with_progress;
+pub use gitnova_git::{measure_git, with_progress};
 use gitnova_git::{
     BranchReader, BranchWriter, CommitWriter, DiffReader, GitCli, HistoryReader, IndexWriter,
     RefReader, RepositoryReader, StatusReader, WorkingTreeReader,
@@ -26,11 +26,13 @@ pub mod local_analysis;
 mod membership_management;
 mod merge_cleanup;
 pub mod nova_cli;
+mod remote_graph_tags;
 mod search;
 
 pub struct Application {
     commit_identities: Mutex<Vec<ConnectionCommitIdentity>>,
     tracking_cache: display_cache::TrackingCache,
+    remote_tags_cache: remote_graph_tags::RemoteTagsCache,
     branch_requests_cache:
         Mutex<std::collections::VecDeque<(String, std::time::Instant, BranchRequests)>>,
     pipeline_cache:
@@ -60,6 +62,7 @@ impl Application {
         Ok(Self {
             commit_identities: Mutex::new(identities),
             tracking_cache: display_cache::TrackingCache::default(),
+            remote_tags_cache: remote_graph_tags::RemoteTagsCache::default(),
             branch_requests_cache: Mutex::new(std::collections::VecDeque::new()),
             pipeline_cache: Mutex::new(std::collections::VecDeque::new()),
             jenkins_cache: Mutex::new(std::collections::VecDeque::new()),

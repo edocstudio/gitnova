@@ -242,3 +242,114 @@ fn conflicting_remote_tag_never_overwrites_local_tag_or_partially_updates_refs()
     assert_eq!(git(&f.root, &["rev-parse", "0.0.35"]), f.first);
     assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.last);
 }
+
+#[test]
+fn remote_graph_tags_peel_annotations_without_importing_refs_or_changing_work() {
+    let f = fixture();
+    git(
+        &f.root,
+        &["tag", "-a", "0.0.35", "-m", "Remote release", &f.last],
+    );
+    git(&f.root, &["tag", "0.0.34", &f.first]);
+    git(
+        &f.root,
+        &["push", "origin", "refs/tags/0.0.35", "refs/tags/0.0.34"],
+    );
+    git(&f.root, &["tag", "-d", "0.0.35", "0.0.34"]);
+    git(&f.remote, &["pack-refs", "--all"]);
+    fs::write(f.root.join("file.txt"), "staged\n").unwrap();
+    git(&f.root, &["add", "file.txt"]);
+    fs::write(f.root.join("file.txt"), "working\n").unwrap();
+    let index = fs::read(f.root.join(".git/index")).unwrap();
+    let refs = git(&f.root, &["show-ref"]);
+    for _ in 0..2 {
+        let snapshot = f.app.remote_graph_tags(&f.id).unwrap();
+        assert_eq!(snapshot.remote.as_deref(), Some("origin"));
+        assert_eq!(snapshot.tags.len(), 2);
+        assert!(snapshot
+            .tags
+            .iter()
+            .any(|r| r.name == "refs/tags/0.0.35" && r.oid == f.last));
+        assert!(snapshot
+            .tags
+            .iter()
+            .any(|r| r.name == "refs/tags/0.0.34" && r.oid == f.first));
+    }
+    assert_eq!(git(&f.root, &["show-ref"]), refs);
+    assert_eq!(git(&f.root, &["tag", "--list"]), "");
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.last);
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), index);
+    assert_eq!(
+        fs::read_to_string(f.root.join("file.txt")).unwrap(),
+        "working\n"
+    );
+    assert!(!f.root.join(".git/FETCH_HEAD").exists());
+}
+
+#[test]
+fn remote_graph_tags_use_fetch_url_and_isolate_cache_after_remote_change() {
+    let f = fixture();
+    git(&f.root, &["tag", "from-fetch", &f.last]);
+    git(&f.root, &["push", "origin", "refs/tags/from-fetch"]);
+    git(&f.root, &["tag", "-d", "from-fetch"]);
+    let other = f._dir.path().join("other.git");
+    git(f._dir.path(), &["init", "--bare", other.to_str().unwrap()]);
+    git(&f.root, &["tag", "from-other", &f.first]);
+    git(
+        &f.root,
+        &["push", other.to_str().unwrap(), "refs/tags/from-other"],
+    );
+    git(&f.root, &["tag", "-d", "from-other"]);
+    git(
+        &f.root,
+        &[
+            "remote",
+            "set-url",
+            "--push",
+            "origin",
+            other.to_str().unwrap(),
+        ],
+    );
+    let first = f.app.remote_graph_tags(&f.id).unwrap();
+    assert_eq!(first.tags.len(), 1);
+    assert_eq!(first.tags[0].name, "refs/tags/from-fetch");
+    git(
+        &f.root,
+        &["remote", "set-url", "origin", other.to_str().unwrap()],
+    );
+    let second = f.app.remote_graph_tags(&f.id).unwrap();
+    assert_eq!(second.tags.len(), 1);
+    assert_eq!(second.tags[0].name, "refs/tags/from-other");
+    assert_eq!(second.tags[0].oid, f.first);
+    git(
+        &f.root,
+        &[
+            "remote",
+            "set-url",
+            "origin",
+            f._dir.path().join("missing.git").to_str().unwrap(),
+        ],
+    );
+    assert!(
+        f.app.remote_graph_tags(&f.id).is_err(),
+        "An unavailable remote is not a verified empty tag list"
+    );
+    git(
+        &f.root,
+        &["remote", "set-url", "origin", other.to_str().unwrap()],
+    );
+    // Upstream selects a different configured fetch remote, independently of origin.
+    git(
+        &f.root,
+        &["remote", "add", "upstream", f.remote.to_str().unwrap()],
+    );
+    git(&f.root, &["config", "branch.main.remote", "upstream"]);
+    let upstream = f.app.remote_graph_tags(&f.id).unwrap();
+    assert_eq!(upstream.remote.as_deref(), Some("upstream"));
+    assert_eq!(upstream.tags[0].name, "refs/tags/from-fetch");
+    git(&f.root, &["remote", "remove", "upstream"]);
+    git(&f.root, &["remote", "remove", "origin"]);
+    let empty = f.app.remote_graph_tags(&f.id).unwrap();
+    assert!(empty.remote.is_none());
+    assert!(empty.tags.is_empty());
+}

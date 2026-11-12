@@ -1,3 +1,5 @@
+import {SelectionReads} from './selection-reads';
+import {recordPerformance} from './performance-trace';
 import type {CommitHistoryPreview} from './contracts';
 import type {StaleLockPreview} from './contracts';
 import type {RepositoryCreateRequest,RepositoryCreateOptions,RepositoryCreatePreview,RepositoryCreateOutcome} from './contracts';
@@ -9,10 +11,12 @@ import type { RemoteDeleteRequest, RemoteDeletePreview } from './contracts';
 import { t } from './i18n';
 import { Channel, invoke, isTauri } from '@tauri-apps/api/core';
 import type { HostingSelection, HostingContext, HostingRequest, HostingPreview, HostingOutcome, TagRequest, TagPreview, SubmoduleSnapshot, SubmodulePointerPreview, CloneRequest, ClonePreview, CloneOutcome, BranchTracking, WorkProgress, RecordedActivity, DiscardRequest, DiscardPreview, WorktreeRemoveRequest, WorktreeRemovePreview, WorktreeCreateRequest, WorktreeCreatePreview, StashList, StashPreview, StashRequest, CommitSearchRequest, CommitSearchPage, GraphFocus, MergeRequest, MergeStartPreview, MergeState, MergeAction, MergeActionPreview, MergeFile, RefOperation, RefOperationPreview, PushRequest, PushPreview, GraphAction, GraphActionPreview, SubmoduleUpdatePreview, RemoteBranches, RemoteSwitchPreview, LocalBranch, BranchSwitchPreview, WorkingChanges, FilePreview, CommitPreview, OperationReceipt, RepositorySnapshot, Catalog, CommitDetail, GraphCursor, GraphPage, LinkedWorktree, NativePath, RepoStatus, Submodule } from './contracts';
+const selectionReads=new SelectionReads(sample=>recordPerformance({kind:'selection',name:sample.lane,milliseconds:sample.executionMs,queueMs:sample.queueMs,started:sample.started,superseded:sample.superseded}));
 export const desktop = isTauri();
 function call<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!desktop) return Promise.reject({ code: 'desktop_required', message: 'Open GitNova with npm run tauri dev to read local repositories. The browser preview has no filesystem access.' });
-  return invoke<T>(command, args).catch((error: unknown) => {
+  const started=performance.now();
+  return invoke<T>(command, args).finally(()=>recordPerformance({kind:'ipc',name:command,milliseconds:performance.now()-started})).catch((error: unknown) => {
     // Route the owning membership, never a path parsed from an error message.
     if (command !== 'auto_fetch' && args && typeof args.membershipId === 'string'
       && error && typeof error === 'object' && 'code' in error && error.code === 'locked'
@@ -51,7 +55,7 @@ export const api = {
   maintainWorktree:(membershipId:string,request:import('./contracts').WorktreeMaintenanceRequest,token:string)=>call<OperationReceipt>('maintain_worktree',{membershipId,request,token}),
   previewSubmoduleSync:(membershipId:string,path:NativePath)=>call<import('./contracts').SubmoduleSyncPreview>('preview_submodule_sync',{membershipId,path}),
   syncSubmodule:(membershipId:string,path:NativePath,token:string)=>call<OperationReceipt>('sync_submodule',{membershipId,path,token}),
-  previewHunks:(membershipId:string,path:NativePath,staged:boolean)=>call<import('./contracts').HunkPreview>('preview_hunks',{membershipId,path,staged}),
+  previewHunks:(membershipId:string,path:NativePath,staged:boolean,signal?:AbortSignal)=>signal ? selectionReads.run('working-preview',()=>call<import('./contracts').HunkPreview>('preview_hunks',{membershipId,path,staged}),signal) : call<import('./contracts').HunkPreview>('preview_hunks',{membershipId,path,staged}),
   changeHunk:(membershipId:string,path:NativePath,staged:boolean,hunk:number,token:string)=>call<OperationReceipt>('change_hunk',{membershipId,path,staged,hunk,token}),
   previewStageAll:(membershipId:string)=>call<StageAllPreview>('preview_stage_all',{membershipId}),
   stageAll:(membershipId:string,token:string)=>call<OperationReceipt>('stage_all',{membershipId,token}),
@@ -81,7 +85,7 @@ export const api = {
   previewStash: (membershipId: string, request: StashRequest) => call<StashPreview>('preview_stash', { membershipId, request }).then(preview => { if (preview.version !== 2) throw new Error('Restart GitNova to load the native backend for this stash workflow. Nothing has been applied.'); return preview; }),
   applyStash: (membershipId: string, request: StashRequest, token: string) => call<OperationReceipt>('apply_stash', { membershipId, request, token }),
   stashPatch: (membershipId: string, request: StashRequest, token: string, path: NativePath, index: boolean) => call<{diff:string;truncated:boolean}>('stash_patch',{membershipId,request,token,path,index}),
-  historicalPatch: (membershipId: string, oid: string, path: NativePath) => call<{diff: string; truncated: boolean}>('historical_patch', { membershipId, oid, path }),
+  historicalPatch: (membershipId: string, oid: string, path: NativePath, signal?:AbortSignal) => signal ? selectionReads.run('historical-patch',()=>call<{diff:string;truncated:boolean}>('historical_patch',{membershipId,oid,path}),signal) : call<{diff:string;truncated:boolean}>('historical_patch',{membershipId,oid,path}),
   searchCommits: (request: CommitSearchRequest) => call<CommitSearchPage>('search_commits', { request }),
   focusCommit: (workspaceId: string, membershipId: string, oid: string) => call<GraphFocus>('focus_commit', { workspaceId, membershipId, oid }),
   mergeState: (membershipId: string) => call<MergeState>('merge_state', { membershipId }),
@@ -116,6 +120,7 @@ export const api = {
   connectHosting: (membershipId:string,selection:HostingSelection)=>call<HostingContext>('connect_hosting',{membershipId,selection,prompt:{message:t('Enter a provider access token. The verified token will be stored in macOS Keychain.'),confirm:t('Connect'),cancel:t('Cancel')}}),
   previewHosting: (membershipId:string,request:HostingRequest)=>call<HostingPreview>('preview_hosting',{membershipId,request}),
   createHosting: (membershipId:string,request:HostingRequest,token:string)=>call<HostingOutcome>('create_hosting',{membershipId,request,token}),
+  remoteGraphTags: (membershipId:string)=>call<import("./contracts").RemoteGraphTags>("remote_graph_tags",{membershipId}),
   tagRefs: (membershipId:string,remote:string|null)=>call<import("./contracts").GitRef[]>("tag_refs",{membershipId,remote}),
   previewTag: (membershipId:string,request:TagRequest)=>call<TagPreview>('preview_tag',{membershipId,request}),
   changeTag: (membershipId:string,request:TagRequest,token:string)=>call<OperationReceipt>('change_tag',{membershipId,request,token}),
@@ -140,7 +145,7 @@ export const api = {
   switchBranch: (membershipId: string, branch: string, token: string) => call<OperationReceipt>('switch_branch', { membershipId, branch, token }),
   snapshot: (membershipId: string) => call<RepositorySnapshot>('repository_snapshot', { membershipId }),
   changes: (membershipId: string) => call<WorkingChanges>('working_changes', { membershipId }),
-  filePreview: (membershipId: string, path: NativePath, staged: boolean) => call<FilePreview>('file_preview', { membershipId, path, staged }),
+  filePreview: (membershipId: string, path: NativePath, staged: boolean, signal?:AbortSignal) => signal ? selectionReads.run('working-preview',()=>call<FilePreview>('file_preview',{membershipId,path,staged}),signal) : call<FilePreview>('file_preview',{membershipId,path,staged}),
   commitPreview: (membershipId: string) => call<CommitPreview>('preview_commit', { membershipId }),
   changeIndex: (membershipId: string, path: NativePath, stage: boolean, token: string) => call<OperationReceipt>('change_index', { membershipId, path, stage, token }),
   commit: (membershipId: string, message: string, token: string) => call<OperationReceipt>('create_commit', { membershipId, message, token }),
@@ -154,7 +159,7 @@ export const api = {
   removeMembership: (membershipId:string) => call<Catalog>('remove_membership',{membershipId}),
   status: (membershipId: string) => call<RepoStatus>('repository_status', { membershipId }),
   graph: (membershipId: string, cursor: GraphCursor | null = null) => call<GraphPage>('graph_page', { membershipId, cursor }),
-  detail: (membershipId: string, oid: string) => call<CommitDetail>('commit_detail', { membershipId, oid }),
+  detail: (membershipId: string, oid: string, signal?:AbortSignal) => signal ? selectionReads.run('commit-detail',()=>call<CommitDetail>('commit_detail',{membershipId,oid}),signal) : call<CommitDetail>('commit_detail',{membershipId,oid}),
   submoduleSnapshot: (membershipId: string) => call<SubmoduleSnapshot>('submodule_snapshot', { membershipId }),
   submodules: (membershipId: string) => call<Submodule[]>('submodules', { membershipId }),
   worktrees: (membershipId: string) => call<LinkedWorktree[]>('worktrees', { membershipId }),
