@@ -1,8 +1,8 @@
 use gitnova_domain::*;
 pub use gitnova_git::{measure_git, with_progress};
 use gitnova_git::{
-    BranchReader, BranchWriter, CommitWriter, DiffReader, GitCli, HistoryReader, IndexWriter,
-    RefReader, RepositoryReader, StatusReader, WorkingTreeReader,
+    BranchReader, BranchWriter, CommitWriter, DiffReader, GitCli, IndexWriter, RefReader,
+    RepositoryReader, StatusReader, WorkingTreeReader,
 };
 use gitnova_git::{RemoteReader, RemoteWriter};
 pub use gitnova_hosting::validated_ci_url;
@@ -214,7 +214,7 @@ impl Application {
     }
     pub fn graph(&self, membership_id: &str, cursor: Option<GraphCursor>) -> Result<GraphPage> {
         let path = self.path(membership_id)?;
-        let fingerprint = self.git.fingerprint(&path)?;
+        let (fingerprint, tracking_key) = self.git.graph_read_keys(&path)?;
         let status = self.git.status(&path)?;
         let mut cursor = if let Some(cursor) = cursor {
             cursor
@@ -251,15 +251,20 @@ impl Application {
                 ));
             }
         }
-        let mut commits = self.git.history(&path, cursor.offset, 101)?;
+        let mut commits = self.git.history_with_observed_head(
+            &path,
+            cursor.offset,
+            101,
+            status.head.as_deref(),
+        )?;
         let more = commits.len() > 100;
         commits.truncate(100);
         let count = commits.len();
         let rows = gitnova_graph::layout(commits, &mut cursor);
         cursor.offset += count;
         let refs = self.git.refs(&path)?;
-        let tracking = self
-            .display_tracking(&path, &fingerprint)
+        let tracking = tracking_key
+            .and_then(|key| self.display_tracking_with_key(&path, key).ok())
             .unwrap_or_default();
         if self.git.fingerprint(&path)? != fingerprint {
             return Err(AppError::new(

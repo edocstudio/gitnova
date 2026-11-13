@@ -1,0 +1,4915 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "baseCommit": "12a826c61555b81e33d4102c9e1f7137354f4812",
+  "baseWorkingTree": "clean",
+  "candidateVersion": "1.0.11",
+  "measurementVersion": "1.0.10 on both sides; patch version bump followed measurement, with no further runtime changes",
+  "profile": "release",
+  "environment": {
+    "os": "macOS 26.7.1",
+    "architecture": "arm64",
+    "cpuCount": 10,
+    "ramGiB": 16,
+    "rust": "1.99.1",
+    "git": "2.39.2 (Apple Git-143)",
+    "buildJobs": 1,
+    "networkFeatures": "not invoked by core harness"
+  },
+  "fixture": {
+    "commits": 2000,
+    "trackedFiles": 1,
+    "untrackedFiles": 0
+  },
+  "results": [
+    {
+      "scenario": "graph_first_cold_app",
+      "before": {
+        "samples": 20,
+        "medianMs": 269.05,
+        "p95Ms": 322.028,
+        "gitCalls": [
+          23
+        ]
+      },
+      "after": {
+        "samples": 20,
+        "medianMs": 260.637,
+        "p95Ms": 355.639,
+        "gitCalls": [
+          21
+        ]
+      }
+    },
+    {
+      "scenario": "graph_first_warm",
+      "before": {
+        "samples": 20,
+        "medianMs": 193.957,
+        "p95Ms": 235.798,
+        "gitCalls": [
+          17
+        ]
+      },
+      "after": {
+        "samples": 20,
+        "medianMs": 192.118,
+        "p95Ms": 220.59,
+        "gitCalls": [
+          15
+        ]
+      }
+    },
+    {
+      "scenario": "graph_next",
+      "before": {
+        "samples": 20,
+        "medianMs": 201.641,
+        "p95Ms": 229.101,
+        "gitCalls": [
+          17
+        ]
+      },
+      "after": {
+        "samples": 20,
+        "medianMs": 195.425,
+        "p95Ms": 257.256,
+        "gitCalls": [
+          15
+        ]
+      }
+    },
+    {
+      "scenario": "graph_refresh",
+      "before": {
+        "samples": 20,
+        "medianMs": 199.431,
+        "p95Ms": 226.796,
+        "gitCalls": [
+          17
+        ]
+      },
+      "after": {
+        "samples": 20,
+        "medianMs": 194.651,
+        "p95Ms": 238.755,
+        "gitCalls": [
+          15
+        ]
+      }
+    }
+  ],
+  "rawSamples": {
+    "before": [
+      {
+        "bytes": 33930,
+        "executionMs": 299.51349999999996,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 298128,
+          "command_microseconds_by_name": {
+            "config": 31546,
+            "for-each-ref": 58823,
+            "log": 20318,
+            "ls-files": 14492,
+            "rev-parse": 105962,
+            "show-ref": 26936,
+            "status": 13205,
+            "symbolic-ref": 26846
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.093375
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 148.863291,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 148038,
+          "command_microseconds_by_name": {
+            "config": 15141,
+            "for-each-ref": 9086,
+            "log": 16046,
+            "ls-files": 7477,
+            "rev-parse": 53234,
+            "show-ref": 20889,
+            "status": 10512,
+            "symbolic-ref": 15653
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.058083
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 147.417833,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 146630,
+          "command_microseconds_by_name": {
+            "config": 14537,
+            "for-each-ref": 8897,
+            "log": 15954,
+            "ls-files": 7886,
+            "rev-parse": 56209,
+            "show-ref": 18293,
+            "status": 10743,
+            "symbolic-ref": 14111
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.057166999999999996
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 137.096625,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 136336,
+          "command_microseconds_by_name": {
+            "config": 13984,
+            "for-each-ref": 8945,
+            "log": 15923,
+            "ls-files": 6608,
+            "rev-parse": 47865,
+            "show-ref": 18489,
+            "status": 10372,
+            "symbolic-ref": 14150
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.044792
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 213.490917,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 212623,
+          "command_microseconds_by_name": {
+            "config": 22985,
+            "for-each-ref": 30614,
+            "log": 17233,
+            "ls-files": 7840,
+            "rev-parse": 74030,
+            "show-ref": 21331,
+            "status": 12204,
+            "symbolic-ref": 26386
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.045666
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 173.652959,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 172955,
+          "command_microseconds_by_name": {
+            "config": 14893,
+            "for-each-ref": 10748,
+            "log": 17857,
+            "ls-files": 9324,
+            "rev-parse": 63708,
+            "show-ref": 23441,
+            "status": 13111,
+            "symbolic-ref": 19873
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.045291
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 225.690167,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 224993,
+          "command_microseconds_by_name": {
+            "config": 24331,
+            "for-each-ref": 18873,
+            "log": 16833,
+            "ls-files": 9945,
+            "rev-parse": 89544,
+            "show-ref": 28881,
+            "status": 12816,
+            "symbolic-ref": 23770
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.047792
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 176.76791699999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 176058,
+          "command_microseconds_by_name": {
+            "config": 19818,
+            "for-each-ref": 9691,
+            "log": 18900,
+            "ls-files": 8232,
+            "rev-parse": 56838,
+            "show-ref": 28485,
+            "status": 17142,
+            "symbolic-ref": 16952
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.040917
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 282.412042,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 281556,
+          "command_microseconds_by_name": {
+            "config": 35388,
+            "for-each-ref": 37632,
+            "log": 19380,
+            "ls-files": 12779,
+            "rev-parse": 105223,
+            "show-ref": 28296,
+            "status": 14389,
+            "symbolic-ref": 28469
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.042624999999999996
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 171.584625,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 170861,
+          "command_microseconds_by_name": {
+            "config": 18571,
+            "for-each-ref": 11410,
+            "log": 19411,
+            "ls-files": 8077,
+            "rev-parse": 58107,
+            "show-ref": 24115,
+            "status": 11565,
+            "symbolic-ref": 19605
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.042833
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 229.10133399999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 228315,
+          "command_microseconds_by_name": {
+            "config": 23576,
+            "for-each-ref": 19367,
+            "log": 21473,
+            "ls-files": 11851,
+            "rev-parse": 83940,
+            "show-ref": 29148,
+            "status": 18622,
+            "symbolic-ref": 20338
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.040458
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 213.57916699999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 212846,
+          "command_microseconds_by_name": {
+            "config": 19443,
+            "for-each-ref": 16760,
+            "log": 21299,
+            "ls-files": 9068,
+            "rev-parse": 74097,
+            "show-ref": 32146,
+            "status": 13972,
+            "symbolic-ref": 26061
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.052375
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 260.095916,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 259120,
+          "command_microseconds_by_name": {
+            "config": 30301,
+            "for-each-ref": 33644,
+            "log": 19235,
+            "ls-files": 11315,
+            "rev-parse": 86375,
+            "show-ref": 26694,
+            "status": 18837,
+            "symbolic-ref": 32719
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.047542
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 235.104875,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 234279,
+          "command_microseconds_by_name": {
+            "config": 24396,
+            "for-each-ref": 18252,
+            "log": 22261,
+            "ls-files": 7795,
+            "rev-parse": 90356,
+            "show-ref": 29392,
+            "status": 17721,
+            "symbolic-ref": 24106
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043209
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 207.82704099999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 207024,
+          "command_microseconds_by_name": {
+            "config": 20910,
+            "for-each-ref": 17934,
+            "log": 18275,
+            "ls-files": 7675,
+            "rev-parse": 74299,
+            "show-ref": 30611,
+            "status": 12931,
+            "symbolic-ref": 24389
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.055167
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 204.187,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 203367,
+          "command_microseconds_by_name": {
+            "config": 21022,
+            "for-each-ref": 11457,
+            "log": 21527,
+            "ls-files": 10256,
+            "rev-parse": 68886,
+            "show-ref": 23674,
+            "status": 23753,
+            "symbolic-ref": 22792
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.044541
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 299.477083,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 298500,
+          "command_microseconds_by_name": {
+            "config": 45270,
+            "for-each-ref": 40055,
+            "log": 21249,
+            "ls-files": 12949,
+            "rev-parse": 101792,
+            "show-ref": 30402,
+            "status": 17572,
+            "symbolic-ref": 29211
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.044333
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 221.12258300000002,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 220366,
+          "command_microseconds_by_name": {
+            "config": 18663,
+            "for-each-ref": 18500,
+            "log": 21373,
+            "ls-files": 14298,
+            "rev-parse": 80231,
+            "show-ref": 27430,
+            "status": 22047,
+            "symbolic-ref": 17824
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043542
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 215.39933299999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 214597,
+          "command_microseconds_by_name": {
+            "config": 19609,
+            "for-each-ref": 19396,
+            "log": 28143,
+            "ls-files": 11547,
+            "rev-parse": 78464,
+            "show-ref": 23611,
+            "status": 15620,
+            "symbolic-ref": 18207
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.041041999999999995
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 195.335583,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 194603,
+          "command_microseconds_by_name": {
+            "config": 18205,
+            "for-each-ref": 17397,
+            "log": 23840,
+            "ls-files": 10276,
+            "rev-parse": 65750,
+            "show-ref": 25631,
+            "status": 14732,
+            "symbolic-ref": 18772
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.04125
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 248.255583,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 247365,
+          "command_microseconds_by_name": {
+            "config": 23872,
+            "for-each-ref": 33403,
+            "log": 16625,
+            "ls-files": 9931,
+            "rev-parse": 85745,
+            "show-ref": 30328,
+            "status": 14358,
+            "symbolic-ref": 33103
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.040791
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 187.216791,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 186505,
+          "command_microseconds_by_name": {
+            "config": 16749,
+            "for-each-ref": 11729,
+            "log": 17410,
+            "ls-files": 6898,
+            "rev-parse": 78482,
+            "show-ref": 23952,
+            "status": 11227,
+            "symbolic-ref": 20058
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.040625
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 187.463833,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 186773,
+          "command_microseconds_by_name": {
+            "config": 19669,
+            "for-each-ref": 11569,
+            "log": 18187,
+            "ls-files": 7112,
+            "rev-parse": 70576,
+            "show-ref": 26852,
+            "status": 11463,
+            "symbolic-ref": 21345
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.044
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 189.276583,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 188562,
+          "command_microseconds_by_name": {
+            "config": 15348,
+            "for-each-ref": 16173,
+            "log": 20432,
+            "ls-files": 9750,
+            "rev-parse": 68651,
+            "show-ref": 27700,
+            "status": 12169,
+            "symbolic-ref": 18339
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.041167
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 304.9635,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 303986,
+          "command_microseconds_by_name": {
+            "config": 26328,
+            "for-each-ref": 58624,
+            "log": 22541,
+            "ls-files": 8581,
+            "rev-parse": 98498,
+            "show-ref": 38505,
+            "status": 15879,
+            "symbolic-ref": 35030
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.041625
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 193.344084,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 192635,
+          "command_microseconds_by_name": {
+            "config": 16836,
+            "for-each-ref": 11576,
+            "log": 18319,
+            "ls-files": 11271,
+            "rev-parse": 67323,
+            "show-ref": 26658,
+            "status": 17506,
+            "symbolic-ref": 23146
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.040583
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 183.871958,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 183177,
+          "command_microseconds_by_name": {
+            "config": 14859,
+            "for-each-ref": 12006,
+            "log": 19834,
+            "ls-files": 8046,
+            "rev-parse": 65042,
+            "show-ref": 28471,
+            "status": 15713,
+            "symbolic-ref": 19206
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.041541
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 200.20908300000002,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 199526,
+          "command_microseconds_by_name": {
+            "config": 19737,
+            "for-each-ref": 16629,
+            "log": 24905,
+            "ls-files": 11988,
+            "rev-parse": 70172,
+            "show-ref": 23311,
+            "status": 17639,
+            "symbolic-ref": 15145
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.040791
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 218.259959,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 217439,
+          "command_microseconds_by_name": {
+            "config": 23705,
+            "for-each-ref": 31809,
+            "log": 18099,
+            "ls-files": 8618,
+            "rev-parse": 75177,
+            "show-ref": 22982,
+            "status": 12485,
+            "symbolic-ref": 24564
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.041708
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 202.586375,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 201868,
+          "command_microseconds_by_name": {
+            "config": 20711,
+            "for-each-ref": 19350,
+            "log": 23141,
+            "ls-files": 7367,
+            "rev-parse": 72542,
+            "show-ref": 27780,
+            "status": 11150,
+            "symbolic-ref": 19827
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.044541
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 226.182458,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 225474,
+          "command_microseconds_by_name": {
+            "config": 23759,
+            "for-each-ref": 17131,
+            "log": 24351,
+            "ls-files": 12163,
+            "rev-parse": 78123,
+            "show-ref": 32311,
+            "status": 14366,
+            "symbolic-ref": 23270
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.054458
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 198.653083,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 197876,
+          "command_microseconds_by_name": {
+            "config": 17049,
+            "for-each-ref": 17546,
+            "log": 17817,
+            "ls-files": 15761,
+            "rev-parse": 61529,
+            "show-ref": 23422,
+            "status": 13627,
+            "symbolic-ref": 31125
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.044833000000000005
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 322.02799999999996,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 321025,
+          "command_microseconds_by_name": {
+            "config": 27394,
+            "for-each-ref": 38624,
+            "log": 25656,
+            "ls-files": 14353,
+            "rev-parse": 115186,
+            "show-ref": 34387,
+            "status": 24127,
+            "symbolic-ref": 41298
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.04725
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 156.600417,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 155840,
+          "command_microseconds_by_name": {
+            "config": 15290,
+            "for-each-ref": 10702,
+            "log": 17214,
+            "ls-files": 7104,
+            "rev-parse": 55622,
+            "show-ref": 22349,
+            "status": 11257,
+            "symbolic-ref": 16302
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043042
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 178.55458399999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 177818,
+          "command_microseconds_by_name": {
+            "config": 19060,
+            "for-each-ref": 16288,
+            "log": 20917,
+            "ls-files": 7241,
+            "rev-parse": 54215,
+            "show-ref": 26969,
+            "status": 14782,
+            "symbolic-ref": 18346
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.040542
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 201.026458,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 200229,
+          "command_microseconds_by_name": {
+            "config": 17857,
+            "for-each-ref": 17982,
+            "log": 25935,
+            "ls-files": 8581,
+            "rev-parse": 72538,
+            "show-ref": 21427,
+            "status": 13314,
+            "symbolic-ref": 22595
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.042292
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 268.151542,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 267340,
+          "command_microseconds_by_name": {
+            "config": 28786,
+            "for-each-ref": 40294,
+            "log": 19773,
+            "ls-files": 11151,
+            "rev-parse": 86524,
+            "show-ref": 33065,
+            "status": 16309,
+            "symbolic-ref": 31438
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.040375
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 169.550125,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 168717,
+          "command_microseconds_by_name": {
+            "config": 17490,
+            "for-each-ref": 10076,
+            "log": 18020,
+            "ls-files": 7397,
+            "rev-parse": 64909,
+            "show-ref": 21595,
+            "status": 13746,
+            "symbolic-ref": 15484
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.042540999999999995
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 158.4035,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 157637,
+          "command_microseconds_by_name": {
+            "config": 13143,
+            "for-each-ref": 9672,
+            "log": 16466,
+            "ls-files": 6975,
+            "rev-parse": 50314,
+            "show-ref": 24977,
+            "status": 11955,
+            "symbolic-ref": 24135
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.042959
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 158.209167,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 157497,
+          "command_microseconds_by_name": {
+            "config": 15326,
+            "for-each-ref": 12146,
+            "log": 17213,
+            "ls-files": 7861,
+            "rev-parse": 55973,
+            "show-ref": 21056,
+            "status": 12305,
+            "symbolic-ref": 15617
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.043207999999999996
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 262.330833,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 261488,
+          "command_microseconds_by_name": {
+            "config": 31752,
+            "for-each-ref": 34716,
+            "log": 17156,
+            "ls-files": 10732,
+            "rev-parse": 89775,
+            "show-ref": 40078,
+            "status": 11398,
+            "symbolic-ref": 25881
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.04075
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 201.871666,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 201144,
+          "command_microseconds_by_name": {
+            "config": 20101,
+            "for-each-ref": 22202,
+            "log": 20561,
+            "ls-files": 7165,
+            "rev-parse": 70089,
+            "show-ref": 31050,
+            "status": 10857,
+            "symbolic-ref": 19119
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.047084
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 209.89362500000001,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 209196,
+          "command_microseconds_by_name": {
+            "config": 22626,
+            "for-each-ref": 16414,
+            "log": 20441,
+            "ls-files": 8571,
+            "rev-parse": 84425,
+            "show-ref": 23671,
+            "status": 16519,
+            "symbolic-ref": 16529
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.044791
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 206.15491699999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 205448,
+          "command_microseconds_by_name": {
+            "config": 19625,
+            "for-each-ref": 18657,
+            "log": 22236,
+            "ls-files": 8437,
+            "rev-parse": 73334,
+            "show-ref": 28396,
+            "status": 13054,
+            "symbolic-ref": 21709
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.049625
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 255.52341699999997,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 254708,
+          "command_microseconds_by_name": {
+            "config": 31585,
+            "for-each-ref": 41505,
+            "log": 18568,
+            "ls-files": 7829,
+            "rev-parse": 82954,
+            "show-ref": 29298,
+            "status": 14603,
+            "symbolic-ref": 28366
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.041916999999999996
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 222.24270800000002,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 221547,
+          "command_microseconds_by_name": {
+            "config": 22210,
+            "for-each-ref": 18104,
+            "log": 23628,
+            "ls-files": 7950,
+            "rev-parse": 79084,
+            "show-ref": 28365,
+            "status": 16976,
+            "symbolic-ref": 25230
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.045875
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 205.891291,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 205219,
+          "command_microseconds_by_name": {
+            "config": 20760,
+            "for-each-ref": 16616,
+            "log": 17497,
+            "ls-files": 9985,
+            "rev-parse": 81168,
+            "show-ref": 26250,
+            "status": 12811,
+            "symbolic-ref": 20132
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.045167000000000006
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 175.61179199999998,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 174871,
+          "command_microseconds_by_name": {
+            "config": 16972,
+            "for-each-ref": 12225,
+            "log": 18735,
+            "ls-files": 7524,
+            "rev-parse": 64697,
+            "show-ref": 27328,
+            "status": 11837,
+            "symbolic-ref": 15553
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045875
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 269.948166,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 269118,
+          "command_microseconds_by_name": {
+            "config": 23637,
+            "for-each-ref": 44808,
+            "log": 23030,
+            "ls-files": 10181,
+            "rev-parse": 91366,
+            "show-ref": 33157,
+            "status": 10770,
+            "symbolic-ref": 32169
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.045167000000000006
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 241.771625,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 241068,
+          "command_microseconds_by_name": {
+            "config": 27690,
+            "for-each-ref": 18915,
+            "log": 24936,
+            "ls-files": 12801,
+            "rev-parse": 82195,
+            "show-ref": 34959,
+            "status": 15355,
+            "symbolic-ref": 24217
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.045375
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 183.067583,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 182285,
+          "command_microseconds_by_name": {
+            "config": 15820,
+            "for-each-ref": 10471,
+            "log": 17395,
+            "ls-files": 7822,
+            "rev-parse": 71758,
+            "show-ref": 26568,
+            "status": 12124,
+            "symbolic-ref": 20327
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.041333
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 207.296542,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 206532,
+          "command_microseconds_by_name": {
+            "config": 17385,
+            "for-each-ref": 19488,
+            "log": 27367,
+            "ls-files": 8172,
+            "rev-parse": 80905,
+            "show-ref": 23110,
+            "status": 13254,
+            "symbolic-ref": 16851
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.043459
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 252.70091700000003,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 251827,
+          "command_microseconds_by_name": {
+            "config": 27149,
+            "for-each-ref": 39171,
+            "log": 18544,
+            "ls-files": 9952,
+            "rev-parse": 90058,
+            "show-ref": 26310,
+            "status": 14427,
+            "symbolic-ref": 26216
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.041167
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 192.37454200000002,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 191632,
+          "command_microseconds_by_name": {
+            "config": 20120,
+            "for-each-ref": 12601,
+            "log": 18891,
+            "ls-files": 8061,
+            "rev-parse": 68722,
+            "show-ref": 29792,
+            "status": 13059,
+            "symbolic-ref": 20386
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043542
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 187.102,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 186401,
+          "command_microseconds_by_name": {
+            "config": 20262,
+            "for-each-ref": 12413,
+            "log": 19373,
+            "ls-files": 10637,
+            "rev-parse": 64863,
+            "show-ref": 22848,
+            "status": 14184,
+            "symbolic-ref": 21821
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.046333
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 189.725375,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 189020,
+          "command_microseconds_by_name": {
+            "config": 16592,
+            "for-each-ref": 12624,
+            "log": 17460,
+            "ls-files": 10136,
+            "rev-parse": 70243,
+            "show-ref": 25728,
+            "status": 14588,
+            "symbolic-ref": 21649
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045084
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 263.587209,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 262761,
+          "command_microseconds_by_name": {
+            "config": 30715,
+            "for-each-ref": 38844,
+            "log": 24633,
+            "ls-files": 8605,
+            "rev-parse": 95660,
+            "show-ref": 23077,
+            "status": 13630,
+            "symbolic-ref": 27597
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.040333999999999995
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 194.570208,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 193884,
+          "command_microseconds_by_name": {
+            "config": 17312,
+            "for-each-ref": 13157,
+            "log": 19008,
+            "ls-files": 8694,
+            "rev-parse": 68336,
+            "show-ref": 29482,
+            "status": 13501,
+            "symbolic-ref": 24394
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.044417
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 201.346875,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 200655,
+          "command_microseconds_by_name": {
+            "config": 22476,
+            "for-each-ref": 16310,
+            "log": 20006,
+            "ls-files": 7384,
+            "rev-parse": 69521,
+            "show-ref": 30025,
+            "status": 13837,
+            "symbolic-ref": 21096
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.049875
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 231.377083,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 230649,
+          "command_microseconds_by_name": {
+            "config": 25640,
+            "for-each-ref": 13635,
+            "log": 19562,
+            "ls-files": 7723,
+            "rev-parse": 79996,
+            "show-ref": 34698,
+            "status": 12671,
+            "symbolic-ref": 36724
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045208
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 228.423208,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 227607,
+          "command_microseconds_by_name": {
+            "config": 22835,
+            "for-each-ref": 39159,
+            "log": 18867,
+            "ls-files": 8068,
+            "rev-parse": 76700,
+            "show-ref": 20919,
+            "status": 12607,
+            "symbolic-ref": 28452
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.040292
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 177.294792,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 176579,
+          "command_microseconds_by_name": {
+            "config": 17013,
+            "for-each-ref": 14883,
+            "log": 19844,
+            "ls-files": 7102,
+            "rev-parse": 67241,
+            "show-ref": 20058,
+            "status": 12935,
+            "symbolic-ref": 17503
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043584000000000005
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 177.765792,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 177055,
+          "command_microseconds_by_name": {
+            "config": 14823,
+            "for-each-ref": 13482,
+            "log": 17085,
+            "ls-files": 10438,
+            "rev-parse": 63301,
+            "show-ref": 24699,
+            "status": 12342,
+            "symbolic-ref": 20885
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.046
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 194.322292,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 193514,
+          "command_microseconds_by_name": {
+            "config": 23187,
+            "for-each-ref": 11299,
+            "log": 17266,
+            "ls-files": 7289,
+            "rev-parse": 74501,
+            "show-ref": 26517,
+            "status": 9866,
+            "symbolic-ref": 23589
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045250000000000005
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 283.177375,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 282336,
+          "command_microseconds_by_name": {
+            "config": 35749,
+            "for-each-ref": 39510,
+            "log": 21220,
+            "ls-files": 10289,
+            "rev-parse": 107125,
+            "show-ref": 26413,
+            "status": 12600,
+            "symbolic-ref": 29430
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.042542
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 235.0405,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 234288,
+          "command_microseconds_by_name": {
+            "config": 25608,
+            "for-each-ref": 21969,
+            "log": 25268,
+            "ls-files": 11770,
+            "rev-parse": 77429,
+            "show-ref": 34655,
+            "status": 19770,
+            "symbolic-ref": 17819
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.051084
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 177.093791,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 176349,
+          "command_microseconds_by_name": {
+            "config": 14072,
+            "for-each-ref": 17491,
+            "log": 19801,
+            "ls-files": 9340,
+            "rev-parse": 60815,
+            "show-ref": 27193,
+            "status": 11722,
+            "symbolic-ref": 15915
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.044209000000000005
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 201.003833,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 200243,
+          "command_microseconds_by_name": {
+            "config": 18661,
+            "for-each-ref": 15894,
+            "log": 22242,
+            "ls-files": 8551,
+            "rev-parse": 68337,
+            "show-ref": 29992,
+            "status": 16337,
+            "symbolic-ref": 20229
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.043083
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 278.20804100000004,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 277280,
+          "command_microseconds_by_name": {
+            "config": 27705,
+            "for-each-ref": 41976,
+            "log": 23257,
+            "ls-files": 12874,
+            "rev-parse": 88491,
+            "show-ref": 32304,
+            "status": 16744,
+            "symbolic-ref": 33929
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.040459
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 192.24875,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 191402,
+          "command_microseconds_by_name": {
+            "config": 16274,
+            "for-each-ref": 12524,
+            "log": 18919,
+            "ls-files": 8808,
+            "rev-parse": 78631,
+            "show-ref": 25470,
+            "status": 12670,
+            "symbolic-ref": 18106
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.041625
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 201.935416,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 201153,
+          "command_microseconds_by_name": {
+            "config": 20955,
+            "for-each-ref": 14763,
+            "log": 18238,
+            "ls-files": 10857,
+            "rev-parse": 75906,
+            "show-ref": 24517,
+            "status": 15344,
+            "symbolic-ref": 20573
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.040917
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 226.795583,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 225931,
+          "command_microseconds_by_name": {
+            "config": 17783,
+            "for-each-ref": 23624,
+            "log": 20977,
+            "ls-files": 9157,
+            "rev-parse": 89992,
+            "show-ref": 25269,
+            "status": 11955,
+            "symbolic-ref": 27174
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.041709
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 300.075542,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 299102,
+          "command_microseconds_by_name": {
+            "config": 31990,
+            "for-each-ref": 44550,
+            "log": 27341,
+            "ls-files": 9834,
+            "rev-parse": 89732,
+            "show-ref": 37887,
+            "status": 21946,
+            "symbolic-ref": 35822
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.040542
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 235.7985,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 234948,
+          "command_microseconds_by_name": {
+            "config": 23973,
+            "for-each-ref": 16624,
+            "log": 20128,
+            "ls-files": 12780,
+            "rev-parse": 85608,
+            "show-ref": 37313,
+            "status": 13323,
+            "symbolic-ref": 25199
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043000000000000003
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 237.887,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 237076,
+          "command_microseconds_by_name": {
+            "config": 23069,
+            "for-each-ref": 13715,
+            "log": 19300,
+            "ls-files": 8027,
+            "rev-parse": 84930,
+            "show-ref": 48860,
+            "status": 14548,
+            "symbolic-ref": 24627
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.045000000000000005
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 225.339167,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 224547,
+          "command_microseconds_by_name": {
+            "config": 24191,
+            "for-each-ref": 15350,
+            "log": 21962,
+            "ls-files": 8785,
+            "rev-parse": 91082,
+            "show-ref": 25545,
+            "status": 16027,
+            "symbolic-ref": 21605
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.041458
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 357.9135,
+        "git": {
+          "calls": 23,
+          "command_microseconds": 356873,
+          "command_microseconds_by_name": {
+            "config": 35016,
+            "for-each-ref": 43559,
+            "log": 26227,
+            "ls-files": 12195,
+            "rev-parse": 133499,
+            "show-ref": 27976,
+            "status": 45183,
+            "symbolic-ref": 33218
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 9,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.047166
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 228.04345800000002,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 227179,
+          "command_microseconds_by_name": {
+            "config": 18060,
+            "for-each-ref": 11561,
+            "log": 20626,
+            "ls-files": 14619,
+            "rev-parse": 85675,
+            "show-ref": 23653,
+            "status": 30083,
+            "symbolic-ref": 22902
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.044542
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 228.944708,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 228064,
+          "command_microseconds_by_name": {
+            "config": 21903,
+            "for-each-ref": 13028,
+            "log": 29741,
+            "ls-files": 11370,
+            "rev-parse": 86802,
+            "show-ref": 30462,
+            "status": 13376,
+            "symbolic-ref": 21382
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.040958999999999995
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 197.595584,
+        "git": {
+          "calls": 17,
+          "command_microseconds": 196772,
+          "command_microseconds_by_name": {
+            "config": 16134,
+            "for-each-ref": 14920,
+            "log": 21142,
+            "ls-files": 11090,
+            "rev-parse": 65798,
+            "show-ref": 30101,
+            "status": 14230,
+            "symbolic-ref": 23357
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.044
+      }
+    ],
+    "after": [
+      {
+        "bytes": 33930,
+        "executionMs": 256.47091700000004,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 255285,
+          "command_microseconds_by_name": {
+            "config": 28821,
+            "for-each-ref": 38964,
+            "log": 20114,
+            "ls-files": 12720,
+            "rev-parse": 75842,
+            "show-ref": 31012,
+            "status": 16645,
+            "symbolic-ref": 31167
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.107917
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 132.06495900000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 131273,
+          "command_microseconds_by_name": {
+            "config": 14172,
+            "for-each-ref": 9896,
+            "log": 16678,
+            "ls-files": 6710,
+            "rev-parse": 38152,
+            "show-ref": 19780,
+            "status": 10865,
+            "symbolic-ref": 15020
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.056167
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 124.809541,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 124124,
+          "command_microseconds_by_name": {
+            "config": 13531,
+            "for-each-ref": 9082,
+            "log": 16268,
+            "ls-files": 6931,
+            "rev-parse": 35318,
+            "show-ref": 18891,
+            "status": 10310,
+            "symbolic-ref": 13793
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.049542
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 126.190875,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 125560,
+          "command_microseconds_by_name": {
+            "config": 13459,
+            "for-each-ref": 9298,
+            "log": 17720,
+            "ls-files": 6591,
+            "rev-parse": 35132,
+            "show-ref": 18793,
+            "status": 10686,
+            "symbolic-ref": 13881
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.05
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 223.939125,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 223141,
+          "command_microseconds_by_name": {
+            "config": 24643,
+            "for-each-ref": 41525,
+            "log": 19432,
+            "ls-files": 8636,
+            "rev-parse": 63454,
+            "show-ref": 21237,
+            "status": 17071,
+            "symbolic-ref": 27143
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.047834
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 223.189583,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 222509,
+          "command_microseconds_by_name": {
+            "config": 15530,
+            "for-each-ref": 22829,
+            "log": 29909,
+            "ls-files": 11149,
+            "rev-parse": 50886,
+            "show-ref": 27927,
+            "status": 44158,
+            "symbolic-ref": 20121
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.048416
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 193.39362500000001,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 192673,
+          "command_microseconds_by_name": {
+            "config": 15895,
+            "for-each-ref": 11819,
+            "log": 19266,
+            "ls-files": 8635,
+            "rev-parse": 52760,
+            "show-ref": 52586,
+            "status": 14215,
+            "symbolic-ref": 17497
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.043375
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 248.075334,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 247372,
+          "command_microseconds_by_name": {
+            "config": 30000,
+            "for-each-ref": 19529,
+            "log": 27374,
+            "ls-files": 11697,
+            "rev-parse": 65648,
+            "show-ref": 28576,
+            "status": 36360,
+            "symbolic-ref": 28188
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.043375
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 286.45633300000003,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 285566,
+          "command_microseconds_by_name": {
+            "config": 25164,
+            "for-each-ref": 46444,
+            "log": 24408,
+            "ls-files": 7942,
+            "rev-parse": 84725,
+            "show-ref": 39009,
+            "status": 12836,
+            "symbolic-ref": 45038
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.044875
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 212.92137499999998,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 212188,
+          "command_microseconds_by_name": {
+            "config": 28569,
+            "for-each-ref": 11848,
+            "log": 17093,
+            "ls-files": 11139,
+            "rev-parse": 71741,
+            "show-ref": 33735,
+            "status": 13925,
+            "symbolic-ref": 24138
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.045916
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 169.67908400000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 169035,
+          "command_microseconds_by_name": {
+            "config": 20661,
+            "for-each-ref": 10453,
+            "log": 17940,
+            "ls-files": 7520,
+            "rev-parse": 47140,
+            "show-ref": 28896,
+            "status": 12333,
+            "symbolic-ref": 24092
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.042042
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 193.496375,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 192802,
+          "command_microseconds_by_name": {
+            "config": 17151,
+            "for-each-ref": 16952,
+            "log": 22494,
+            "ls-files": 11098,
+            "rev-parse": 54542,
+            "show-ref": 30405,
+            "status": 14311,
+            "symbolic-ref": 25849
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.044917
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 320.422125,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 319607,
+          "command_microseconds_by_name": {
+            "config": 60137,
+            "for-each-ref": 44977,
+            "log": 23136,
+            "ls-files": 8280,
+            "rev-parse": 87446,
+            "show-ref": 50911,
+            "status": 15496,
+            "symbolic-ref": 29224
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.046666
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 151.35975,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 150606,
+          "command_microseconds_by_name": {
+            "config": 15130,
+            "for-each-ref": 11486,
+            "log": 19297,
+            "ls-files": 8882,
+            "rev-parse": 45362,
+            "show-ref": 22296,
+            "status": 12255,
+            "symbolic-ref": 15898
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.0445
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 148.417792,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 147763,
+          "command_microseconds_by_name": {
+            "config": 16038,
+            "for-each-ref": 10628,
+            "log": 19217,
+            "ls-files": 7946,
+            "rev-parse": 43134,
+            "show-ref": 22986,
+            "status": 11988,
+            "symbolic-ref": 15826
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.046209
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 182.03383300000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 181366,
+          "command_microseconds_by_name": {
+            "config": 17341,
+            "for-each-ref": 17302,
+            "log": 19938,
+            "ls-files": 8466,
+            "rev-parse": 49262,
+            "show-ref": 37300,
+            "status": 15372,
+            "symbolic-ref": 16385
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.048333
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 233.88179200000002,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 233050,
+          "command_microseconds_by_name": {
+            "config": 26972,
+            "for-each-ref": 41554,
+            "log": 18207,
+            "ls-files": 8388,
+            "rev-parse": 67668,
+            "show-ref": 26624,
+            "status": 16125,
+            "symbolic-ref": 27512
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.045083000000000005
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 176.074209,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 175327,
+          "command_microseconds_by_name": {
+            "config": 18165,
+            "for-each-ref": 12499,
+            "log": 18938,
+            "ls-files": 8071,
+            "rev-parse": 49884,
+            "show-ref": 31902,
+            "status": 15297,
+            "symbolic-ref": 20571
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043875000000000004
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 216.658916,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 215802,
+          "command_microseconds_by_name": {
+            "config": 19110,
+            "for-each-ref": 25542,
+            "log": 24816,
+            "ls-files": 9516,
+            "rev-parse": 60940,
+            "show-ref": 35410,
+            "status": 14298,
+            "symbolic-ref": 26170
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.049708
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 214.33041599999999,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 213569,
+          "command_microseconds_by_name": {
+            "config": 21813,
+            "for-each-ref": 18626,
+            "log": 17323,
+            "ls-files": 9023,
+            "rev-parse": 71304,
+            "show-ref": 35336,
+            "status": 16763,
+            "symbolic-ref": 23381
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045167000000000006
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 246.576042,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 245740,
+          "command_microseconds_by_name": {
+            "config": 29118,
+            "for-each-ref": 46882,
+            "log": 22543,
+            "ls-files": 8507,
+            "rev-parse": 69123,
+            "show-ref": 22918,
+            "status": 12803,
+            "symbolic-ref": 33846
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.043083
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 176.00512500000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 175327,
+          "command_microseconds_by_name": {
+            "config": 16897,
+            "for-each-ref": 13165,
+            "log": 19689,
+            "ls-files": 10050,
+            "rev-parse": 52001,
+            "show-ref": 29450,
+            "status": 14066,
+            "symbolic-ref": 20009
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.046333
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 230.2205,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 229572,
+          "command_microseconds_by_name": {
+            "config": 25177,
+            "for-each-ref": 17399,
+            "log": 23055,
+            "ls-files": 13511,
+            "rev-parse": 71274,
+            "show-ref": 33314,
+            "status": 18962,
+            "symbolic-ref": 26880
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.044542
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 170.06787500000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 169399,
+          "command_microseconds_by_name": {
+            "config": 16699,
+            "for-each-ref": 14062,
+            "log": 17818,
+            "ls-files": 7805,
+            "rev-parse": 54247,
+            "show-ref": 20733,
+            "status": 12042,
+            "symbolic-ref": 25993
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.091417
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 255.26741600000003,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 254437,
+          "command_microseconds_by_name": {
+            "config": 31406,
+            "for-each-ref": 31641,
+            "log": 20541,
+            "ls-files": 11051,
+            "rev-parse": 78414,
+            "show-ref": 33137,
+            "status": 14135,
+            "symbolic-ref": 34112
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.049375
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 183.46599999999998,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 182770,
+          "command_microseconds_by_name": {
+            "config": 18226,
+            "for-each-ref": 10331,
+            "log": 17547,
+            "ls-files": 8527,
+            "rev-parse": 73071,
+            "show-ref": 20618,
+            "status": 11755,
+            "symbolic-ref": 22695
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043875000000000004
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 160.33804099999998,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 159686,
+          "command_microseconds_by_name": {
+            "config": 20647,
+            "for-each-ref": 11369,
+            "log": 18970,
+            "ls-files": 9917,
+            "rev-parse": 43696,
+            "show-ref": 24084,
+            "status": 14398,
+            "symbolic-ref": 16605
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.043583
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 195.805417,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 195106,
+          "command_microseconds_by_name": {
+            "config": 17304,
+            "for-each-ref": 17282,
+            "log": 22239,
+            "ls-files": 13229,
+            "rev-parse": 51219,
+            "show-ref": 32663,
+            "status": 13629,
+            "symbolic-ref": 27541
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.046458
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 259.41575,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 258460,
+          "command_microseconds_by_name": {
+            "config": 35022,
+            "for-each-ref": 42730,
+            "log": 23031,
+            "ls-files": 9929,
+            "rev-parse": 80866,
+            "show-ref": 21290,
+            "status": 13068,
+            "symbolic-ref": 32524
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.061
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 197.86379200000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 197094,
+          "command_microseconds_by_name": {
+            "config": 18358,
+            "for-each-ref": 18226,
+            "log": 24869,
+            "ls-files": 27234,
+            "rev-parse": 43393,
+            "show-ref": 22701,
+            "status": 24039,
+            "symbolic-ref": 18274
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043625000000000004
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 221.185291,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 220502,
+          "command_microseconds_by_name": {
+            "config": 32383,
+            "for-each-ref": 17887,
+            "log": 17840,
+            "ls-files": 15080,
+            "rev-parse": 63802,
+            "show-ref": 31581,
+            "status": 18865,
+            "symbolic-ref": 23064
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.045583
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 219.591,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 218854,
+          "command_microseconds_by_name": {
+            "config": 31110,
+            "for-each-ref": 20102,
+            "log": 19474,
+            "ls-files": 7180,
+            "rev-parse": 64129,
+            "show-ref": 37106,
+            "status": 15888,
+            "symbolic-ref": 23865
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045625
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 261.499792,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 260612,
+          "command_microseconds_by_name": {
+            "config": 28945,
+            "for-each-ref": 43605,
+            "log": 21950,
+            "ls-files": 13209,
+            "rev-parse": 79116,
+            "show-ref": 28509,
+            "status": 17986,
+            "symbolic-ref": 27292
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.045292
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 205.901792,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 205182,
+          "command_microseconds_by_name": {
+            "config": 24338,
+            "for-each-ref": 17441,
+            "log": 21328,
+            "ls-files": 12197,
+            "rev-parse": 54555,
+            "show-ref": 30878,
+            "status": 18977,
+            "symbolic-ref": 25468
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.048041
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 202.23970799999998,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 201480,
+          "command_microseconds_by_name": {
+            "config": 18832,
+            "for-each-ref": 18442,
+            "log": 18796,
+            "ls-files": 11991,
+            "rev-parse": 69071,
+            "show-ref": 28468,
+            "status": 16079,
+            "symbolic-ref": 19801
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.043250000000000004
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 165.805541,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 165098,
+          "command_microseconds_by_name": {
+            "config": 14924,
+            "for-each-ref": 11494,
+            "log": 17122,
+            "ls-files": 7949,
+            "rev-parse": 46562,
+            "show-ref": 38583,
+            "status": 11541,
+            "symbolic-ref": 16923
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045417
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 297.33412500000003,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 296466,
+          "command_microseconds_by_name": {
+            "config": 33226,
+            "for-each-ref": 58779,
+            "log": 21155,
+            "ls-files": 10629,
+            "rev-parse": 85298,
+            "show-ref": 29808,
+            "status": 16229,
+            "symbolic-ref": 41342
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.043083
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 201.71375,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 200918,
+          "command_microseconds_by_name": {
+            "config": 22763,
+            "for-each-ref": 19516,
+            "log": 24253,
+            "ls-files": 8891,
+            "rev-parse": 57081,
+            "show-ref": 27051,
+            "status": 21928,
+            "symbolic-ref": 19435
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.0425
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 177.57220800000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 176907,
+          "command_microseconds_by_name": {
+            "config": 19142,
+            "for-each-ref": 17764,
+            "log": 18108,
+            "ls-files": 7845,
+            "rev-parse": 48130,
+            "show-ref": 30448,
+            "status": 11807,
+            "symbolic-ref": 23663
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.043665999999999996
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 157.728541,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 157043,
+          "command_microseconds_by_name": {
+            "config": 19029,
+            "for-each-ref": 11367,
+            "log": 17482,
+            "ls-files": 7289,
+            "rev-parse": 49010,
+            "show-ref": 23380,
+            "status": 12044,
+            "symbolic-ref": 17442
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.043875000000000004
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 398.84933299999994,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 397971,
+          "command_microseconds_by_name": {
+            "config": 36964,
+            "for-each-ref": 90978,
+            "log": 65014,
+            "ls-files": 7533,
+            "rev-parse": 94311,
+            "show-ref": 39667,
+            "status": 23201,
+            "symbolic-ref": 40303
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.049166
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 166.600625,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 165849,
+          "command_microseconds_by_name": {
+            "config": 18230,
+            "for-each-ref": 12617,
+            "log": 20051,
+            "ls-files": 8842,
+            "rev-parse": 45272,
+            "show-ref": 26946,
+            "status": 14074,
+            "symbolic-ref": 19817
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043625000000000004
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 195.168959,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 194346,
+          "command_microseconds_by_name": {
+            "config": 26212,
+            "for-each-ref": 13752,
+            "log": 19046,
+            "ls-files": 9141,
+            "rev-parse": 68194,
+            "show-ref": 27916,
+            "status": 12205,
+            "symbolic-ref": 17880
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.044834
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 177.10512500000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 176392,
+          "command_microseconds_by_name": {
+            "config": 17276,
+            "for-each-ref": 14362,
+            "log": 17472,
+            "ls-files": 9137,
+            "rev-parse": 51349,
+            "show-ref": 33856,
+            "status": 12532,
+            "symbolic-ref": 20408
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.045000000000000005
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 248.195833,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 247287,
+          "command_microseconds_by_name": {
+            "config": 26991,
+            "for-each-ref": 36232,
+            "log": 19365,
+            "ls-files": 11928,
+            "rev-parse": 60098,
+            "show-ref": 25428,
+            "status": 37284,
+            "symbolic-ref": 29961
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.044791
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 184.21591600000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 183513,
+          "command_microseconds_by_name": {
+            "config": 18966,
+            "for-each-ref": 24565,
+            "log": 22876,
+            "ls-files": 8621,
+            "rev-parse": 47207,
+            "show-ref": 26257,
+            "status": 16687,
+            "symbolic-ref": 18334
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.042583
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 246.912125,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 246212,
+          "command_microseconds_by_name": {
+            "config": 20159,
+            "for-each-ref": 25129,
+            "log": 29029,
+            "ls-files": 15520,
+            "rev-parse": 64116,
+            "show-ref": 60819,
+            "status": 14455,
+            "symbolic-ref": 16985
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.045917
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 222.995667,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 222151,
+          "command_microseconds_by_name": {
+            "config": 19149,
+            "for-each-ref": 22962,
+            "log": 24020,
+            "ls-files": 18171,
+            "rev-parse": 56036,
+            "show-ref": 33684,
+            "status": 22711,
+            "symbolic-ref": 25418
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.048084
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 320.175875,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 319180,
+          "command_microseconds_by_name": {
+            "config": 43432,
+            "for-each-ref": 60275,
+            "log": 29526,
+            "ls-files": 9786,
+            "rev-parse": 96840,
+            "show-ref": 31836,
+            "status": 15115,
+            "symbolic-ref": 32370
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.08304199999999999
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 220.59004099999999,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 219679,
+          "command_microseconds_by_name": {
+            "config": 24478,
+            "for-each-ref": 31344,
+            "log": 21587,
+            "ls-files": 9328,
+            "rev-parse": 58048,
+            "show-ref": 33395,
+            "status": 14068,
+            "symbolic-ref": 27431
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043375
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 193.487292,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 192715,
+          "command_microseconds_by_name": {
+            "config": 35508,
+            "for-each-ref": 12931,
+            "log": 19315,
+            "ls-files": 10868,
+            "rev-parse": 52268,
+            "show-ref": 29447,
+            "status": 13525,
+            "symbolic-ref": 18853
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.04625
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 208.710083,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 207863,
+          "command_microseconds_by_name": {
+            "config": 20088,
+            "for-each-ref": 22524,
+            "log": 21384,
+            "ls-files": 20057,
+            "rev-parse": 50515,
+            "show-ref": 29078,
+            "status": 26951,
+            "symbolic-ref": 17266
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.04675
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 324.141791,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 323081,
+          "command_microseconds_by_name": {
+            "config": 33240,
+            "for-each-ref": 39501,
+            "log": 23013,
+            "ls-files": 10807,
+            "rev-parse": 110027,
+            "show-ref": 57133,
+            "status": 16388,
+            "symbolic-ref": 32972
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.04375
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 160.495958,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 159754,
+          "command_microseconds_by_name": {
+            "config": 16903,
+            "for-each-ref": 13387,
+            "log": 20568,
+            "ls-files": 8138,
+            "rev-parse": 48745,
+            "show-ref": 22403,
+            "status": 12169,
+            "symbolic-ref": 17441
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.042667000000000004
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 257.256375,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 256523,
+          "command_microseconds_by_name": {
+            "config": 29805,
+            "for-each-ref": 26093,
+            "log": 28274,
+            "ls-files": 15095,
+            "rev-parse": 71162,
+            "show-ref": 38218,
+            "status": 27132,
+            "symbolic-ref": 20744
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.051583
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 199.484208,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 198827,
+          "command_microseconds_by_name": {
+            "config": 24524,
+            "for-each-ref": 15169,
+            "log": 19650,
+            "ls-files": 8444,
+            "rev-parse": 59852,
+            "show-ref": 26536,
+            "status": 13695,
+            "symbolic-ref": 30957
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.043166
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 259.77475,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 259005,
+          "command_microseconds_by_name": {
+            "config": 36702,
+            "for-each-ref": 36364,
+            "log": 23093,
+            "ls-files": 9119,
+            "rev-parse": 80918,
+            "show-ref": 27128,
+            "status": 14864,
+            "symbolic-ref": 30817
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.043332999999999997
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 195.77904199999998,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 195119,
+          "command_microseconds_by_name": {
+            "config": 18750,
+            "for-each-ref": 27348,
+            "log": 21323,
+            "ls-files": 9414,
+            "rev-parse": 56832,
+            "show-ref": 25435,
+            "status": 11759,
+            "symbolic-ref": 24258
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.042916
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 195.68058299999998,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 194916,
+          "command_microseconds_by_name": {
+            "config": 25539,
+            "for-each-ref": 14205,
+            "log": 19461,
+            "ls-files": 10896,
+            "rev-parse": 60893,
+            "show-ref": 32413,
+            "status": 14637,
+            "symbolic-ref": 16872
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.047125
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 228.290292,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 227649,
+          "command_microseconds_by_name": {
+            "config": 27255,
+            "for-each-ref": 19113,
+            "log": 30633,
+            "ls-files": 10675,
+            "rev-parse": 62061,
+            "show-ref": 35291,
+            "status": 21170,
+            "symbolic-ref": 21451
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.047583999999999994
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 241.182458,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 240398,
+          "command_microseconds_by_name": {
+            "config": 32002,
+            "for-each-ref": 35775,
+            "log": 18260,
+            "ls-files": 8273,
+            "rev-parse": 72738,
+            "show-ref": 33829,
+            "status": 12175,
+            "symbolic-ref": 27346
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.043415999999999996
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 177.561542,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 176880,
+          "command_microseconds_by_name": {
+            "config": 21006,
+            "for-each-ref": 13076,
+            "log": 18801,
+            "ls-files": 9005,
+            "rev-parse": 58565,
+            "show-ref": 26835,
+            "status": 13486,
+            "symbolic-ref": 16106
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.043415999999999996
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 180.15075,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 179431,
+          "command_microseconds_by_name": {
+            "config": 17977,
+            "for-each-ref": 12202,
+            "log": 19607,
+            "ls-files": 24982,
+            "rev-parse": 52072,
+            "show-ref": 23187,
+            "status": 12910,
+            "symbolic-ref": 16494
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.043291
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 165.146959,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 164439,
+          "command_microseconds_by_name": {
+            "config": 15677,
+            "for-each-ref": 11228,
+            "log": 17920,
+            "ls-files": 8169,
+            "rev-parse": 50494,
+            "show-ref": 27423,
+            "status": 14568,
+            "symbolic-ref": 18960
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.043667
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 300.265583,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 299411,
+          "command_microseconds_by_name": {
+            "config": 38549,
+            "for-each-ref": 43763,
+            "log": 21183,
+            "ls-files": 9569,
+            "rev-parse": 91975,
+            "show-ref": 34241,
+            "status": 20372,
+            "symbolic-ref": 39759
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.049833
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 193.491167,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 192766,
+          "command_microseconds_by_name": {
+            "config": 20092,
+            "for-each-ref": 14301,
+            "log": 19387,
+            "ls-files": 8212,
+            "rev-parse": 63723,
+            "show-ref": 28662,
+            "status": 14607,
+            "symbolic-ref": 23782
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.048708
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 200.450292,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 199826,
+          "command_microseconds_by_name": {
+            "config": 25253,
+            "for-each-ref": 16928,
+            "log": 23199,
+            "ls-files": 12373,
+            "rev-parse": 54422,
+            "show-ref": 23682,
+            "status": 23587,
+            "symbolic-ref": 20382
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.049084
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 171.6745,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 170991,
+          "command_microseconds_by_name": {
+            "config": 15823,
+            "for-each-ref": 15255,
+            "log": 22441,
+            "ls-files": 10637,
+            "rev-parse": 45874,
+            "show-ref": 24146,
+            "status": 18645,
+            "symbolic-ref": 18170
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.044084
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 253.60812500000003,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 252835,
+          "command_microseconds_by_name": {
+            "config": 29721,
+            "for-each-ref": 33105,
+            "log": 17570,
+            "ls-files": 8016,
+            "rev-parse": 79623,
+            "show-ref": 34096,
+            "status": 11875,
+            "symbolic-ref": 38829
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.044958
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 216.017042,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 215301,
+          "command_microseconds_by_name": {
+            "config": 20673,
+            "for-each-ref": 21541,
+            "log": 24138,
+            "ls-files": 12456,
+            "rev-parse": 58857,
+            "show-ref": 30493,
+            "status": 27139,
+            "symbolic-ref": 20004
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.045041
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 182.07987500000002,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 181420,
+          "command_microseconds_by_name": {
+            "config": 20468,
+            "for-each-ref": 10984,
+            "log": 20543,
+            "ls-files": 11707,
+            "rev-parse": 56297,
+            "show-ref": 27997,
+            "status": 13174,
+            "symbolic-ref": 20250
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.045250000000000005
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 169.035917,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 168361,
+          "command_microseconds_by_name": {
+            "config": 16445,
+            "for-each-ref": 18266,
+            "log": 17761,
+            "ls-files": 7785,
+            "rev-parse": 51592,
+            "show-ref": 24563,
+            "status": 14398,
+            "symbolic-ref": 17551
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.051084
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 355.6395,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 354754,
+          "command_microseconds_by_name": {
+            "config": 32462,
+            "for-each-ref": 54618,
+            "log": 26028,
+            "ls-files": 48549,
+            "rev-parse": 81790,
+            "show-ref": 29106,
+            "status": 31453,
+            "symbolic-ref": 50748
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.046041
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 209.944666,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 209111,
+          "command_microseconds_by_name": {
+            "config": 21767,
+            "for-each-ref": 12358,
+            "log": 20281,
+            "ls-files": 10825,
+            "rev-parse": 77293,
+            "show-ref": 29795,
+            "status": 15265,
+            "symbolic-ref": 21527
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.05466699999999999
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 201.503333,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 200568,
+          "command_microseconds_by_name": {
+            "config": 28626,
+            "for-each-ref": 12548,
+            "log": 22601,
+            "ls-files": 8834,
+            "rev-parse": 51226,
+            "show-ref": 34152,
+            "status": 20211,
+            "symbolic-ref": 22370
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.043708000000000004
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 238.754916,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 237876,
+          "command_microseconds_by_name": {
+            "config": 36035,
+            "for-each-ref": 13914,
+            "log": 23491,
+            "ls-files": 18671,
+            "rev-parse": 59822,
+            "show-ref": 40108,
+            "status": 14403,
+            "symbolic-ref": 31432
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.042583
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 323.303667,
+        "git": {
+          "calls": 21,
+          "command_microseconds": 322204,
+          "command_microseconds_by_name": {
+            "config": 31659,
+            "for-each-ref": 70669,
+            "log": 26645,
+            "ls-files": 11269,
+            "rev-parse": 90527,
+            "show-ref": 26358,
+            "status": 38048,
+            "symbolic-ref": 27029
+          },
+          "commands": {
+            "config": 3,
+            "for-each-ref": 3,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 7,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 3
+          }
+        },
+        "scenario": "graph_first_cold_app",
+        "serializationProbeMs": 0.04475
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 190.74504100000001,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 189800,
+          "command_microseconds_by_name": {
+            "config": 19236,
+            "for-each-ref": 15121,
+            "log": 21214,
+            "ls-files": 9334,
+            "rev-parse": 57370,
+            "show-ref": 31227,
+            "status": 13769,
+            "symbolic-ref": 22529
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_first_warm",
+        "serializationProbeMs": 0.046834
+      },
+      {
+        "bytes": 33950,
+        "executionMs": 265.928916,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 264875,
+          "command_microseconds_by_name": {
+            "config": 40476,
+            "for-each-ref": 17702,
+            "log": 31294,
+            "ls-files": 12725,
+            "rev-parse": 91462,
+            "show-ref": 33562,
+            "status": 12624,
+            "symbolic-ref": 25030
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_next",
+        "serializationProbeMs": 0.059125000000000004
+      },
+      {
+        "bytes": 33930,
+        "executionMs": 198.709333,
+        "git": {
+          "calls": 15,
+          "command_microseconds": 197804,
+          "command_microseconds_by_name": {
+            "config": 17910,
+            "for-each-ref": 29628,
+            "log": 20814,
+            "ls-files": 9215,
+            "rev-parse": 63839,
+            "show-ref": 22772,
+            "status": 13671,
+            "symbolic-ref": 19955
+          },
+          "commands": {
+            "config": 2,
+            "for-each-ref": 1,
+            "log": 1,
+            "ls-files": 1,
+            "rev-parse": 5,
+            "show-ref": 2,
+            "status": 1,
+            "symbolic-ref": 2
+          }
+        },
+        "scenario": "graph_refresh",
+        "serializationProbeMs": 0.06212500000000001
+      }
+    ]
+  },
+  "limitations": [
+    "Cold means fresh Application/catalog, not cold OS disk cache.",
+    "Serial core reads exclude native queue, IPC, UI and network.",
+    "Sequential blocks, no thermal/scheduler control; p95 varies and several candidate p95 results regress.",
+    "No measured user-visible/IPC, network, memory, Windows or Linux improvement is claimed.",
+    "No production repositories or account credentials were used."
+  ]
+}

@@ -100,3 +100,115 @@ fn submodule_discovery_without_gitlinks_skips_status_and_head_tree_scans() {
         metrics.commands
     );
 }
+
+#[test]
+fn graph_reuses_request_metadata_but_rejects_external_ref_changes() {
+    let (_dir, app, id, root) = fixture();
+    let first = app.graph(&id, None).unwrap();
+    let (warm, metrics) = measure_git(|| app.graph(&id, None).unwrap());
+    assert_eq!(warm.fingerprint, first.fingerprint);
+    assert_eq!(
+        serde_json::to_value(&warm.refs).unwrap(),
+        serde_json::to_value(&first.refs).unwrap()
+    );
+    assert_eq!(metrics.commands.get("rev-parse"), Some(&5));
+    assert_eq!(metrics.commands.get("show-ref"), Some(&2));
+    assert_eq!(metrics.commands.get("status"), Some(&1));
+    // Create a valid page cursor, then change refs outside the application.
+    let cursor = gitnova_domain::GraphCursor {
+        version: 2,
+        fingerprint: first.fingerprint,
+        ..Default::default()
+    };
+    git(&root, &["commit", "--allow-empty", "-m", "external"]);
+    assert_eq!(
+        app.graph(&id, Some(cursor)).unwrap_err().code,
+        "stale_graph"
+    );
+    fs::write(root.join("file"), "new working edit\n").unwrap();
+    let fresh = app.graph(&id, None).unwrap();
+    assert!(fresh.status.dirty);
+    assert_eq!(fresh.rows[0].commit.subject, "external");
+    assert_eq!(fresh.tracking[0].ahead, Some(1));
+}
+
+#[test]
+fn graph_observations_keep_linked_worktrees_and_repositories_separate() {
+    let (dir, app, id, root) = fixture();
+    let original = app.graph(&id, None).unwrap();
+    let linked = dir.path().join("linked");
+    git(
+        &root,
+        &["worktree", "add", "-b", "side", linked.to_str().unwrap()],
+    );
+    git(&linked, &["commit", "--allow-empty", "-m", "side only"]);
+    let other = app.add_repository(&linked).unwrap().workspaces[0]
+        .selected_id
+        .clone()
+        .unwrap();
+    let side = app.graph(&other, None).unwrap();
+    assert_eq!(side.status.branch.as_deref(), Some("side"));
+    assert_ne!(side.status.head, original.status.head);
+    let main = app.graph(&id, None).unwrap();
+    assert_eq!(main.status.branch.as_deref(), Some("main"));
+    assert_eq!(main.status.head, original.status.head);
+    assert_ne!(main.fingerprint, side.fingerprint);
+    git(&linked, &["checkout", "--detach"]);
+    assert!(app.graph(&other, None).unwrap().status.branch.is_none());
+}
+
+#[test]
+fn graph_reads_unborn_bare_and_unusual_native_paths() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("unborn");
+    fs::create_dir(&root).unwrap();
+    git(&root, &["init", "-b", "main"]);
+    let app = Application::new(dir.path().join("catalog.json")).unwrap();
+    let id = app.add_repository(&root).unwrap().workspaces[0]
+        .selected_id
+        .clone()
+        .unwrap();
+    assert!(app.graph(&id, None).unwrap().rows.is_empty());
+    let bare = dir.path().join("bare.git");
+    fs::create_dir(&bare).unwrap();
+    git(&bare, &["init", "--bare"]);
+    let id = app.add_repository(&bare).unwrap().workspaces[0]
+        .selected_id
+        .clone()
+        .unwrap();
+    assert!(app.graph(&id, None).unwrap().rows.is_empty());
+    #[cfg(unix)]
+    {
+        let unusual = dir.path().join("native\npath");
+        fs::rename(root, &unusual).unwrap();
+        let id = app.add_repository(&unusual).unwrap().workspaces[0]
+            .selected_id
+            .clone()
+            .unwrap();
+        assert!(app.graph(&id, None).unwrap().rows.is_empty());
+    }
+}
+
+#[test]
+fn shared_graph_keys_match_uncached_keys_and_shallow_changes_expire_cursors() {
+    let (_dir, app, id, root) = fixture();
+    let cli = gitnova_git::GitCli;
+    let (fingerprint, tracking) = cli.graph_read_keys(&root).unwrap();
+    assert_eq!(fingerprint, cli.fingerprint(&root).unwrap());
+    assert_eq!(
+        tracking.unwrap(),
+        cli.tracking_display_key(&root, &fingerprint).unwrap()
+    );
+    let cursor = gitnova_domain::GraphCursor {
+        version: 2,
+        fingerprint,
+        ..Default::default()
+    };
+    let head = git(&root, &["rev-parse", "HEAD"]);
+    fs::write(root.join(".git/shallow"), format!("{head}\n")).unwrap();
+    assert_eq!(
+        app.graph(&id, Some(cursor)).unwrap_err().code,
+        "stale_graph"
+    );
+    assert_eq!(app.graph(&id, None).unwrap().rows.len(), 1);
+}

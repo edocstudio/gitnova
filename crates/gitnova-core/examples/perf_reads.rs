@@ -78,6 +78,27 @@ fn main() {
     git(&root, &["config", "commit.gpgsign", "false"]);
     git(&root, &["branch", "feature"]);
     let mut rows = vec![];
+    // Focused, repeatable graph measurements without running unrelated writes.
+    if std::env::args().any(|arg| arg == "--graph-only") {
+        for round in 0..20 {
+            let app =
+                Application::new(temp.path().join(format!("graph-{round}/catalog.json"))).unwrap();
+            let catalog = app.add_repository(&root).unwrap();
+            let id = catalog.workspaces[0].selected_id.as_ref().unwrap();
+            let first = sample(&mut rows, "graph_first_cold_app", || {
+                app.graph(id, None).unwrap()
+            });
+            sample(&mut rows, "graph_first_warm", || {
+                app.graph(id, None).unwrap()
+            });
+            sample(&mut rows, "graph_next", || {
+                app.graph(id, first.next.clone()).unwrap()
+            });
+            sample(&mut rows, "graph_refresh", || app.graph(id, None).unwrap());
+        }
+        println!("{}", serde_json::to_string_pretty(&json!({"schemaVersion":1,"profile":if cfg!(debug_assertions){"debug"}else{"release"},"fixture":{"commits":2000,"trackedFiles":1,"untrackedFiles":0},"samples":rows,"limits":["Cold means fresh Application/catalog, not cold OS disk cache.","Serial core reads exclude native queue, IPC, UI and network."]})).unwrap());
+        return;
+    }
     for round in 0..20 {
         let app =
             Application::new(temp.path().join(format!("state-{round}/catalog.json"))).unwrap();
