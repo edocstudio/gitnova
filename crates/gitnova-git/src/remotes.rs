@@ -1,6 +1,6 @@
 //! Selected-remote fetch and reviewed, nonrecursive fast-forward integration.
 use crate::{
-    working::{run_fetch, run_write},
+    working::{run_fetch_with_refspecs, run_write},
     BranchReader, GitCli, StatusReader,
 };
 use gitnova_domain::*;
@@ -46,6 +46,17 @@ impl GitCli {
             Some(branch) => format!("+refs/heads/{branch}:refs/remotes/{remote}/{branch}"),
             None => format!("+refs/heads/*:refs/remotes/{remote}/*"),
         };
+        // Explicit tag mapping plus negative refspecs imports only names that do
+        // not exist locally. A differing remote tag must not block branch fetch,
+        // and local tag ownership is preserved regardless of remote tagOpt.
+        // Feed refspecs through stdin to avoid OS argument limits on large repos.
+        let local_tags = self.text(path, &["for-each-ref", "--format=%(refname)", "refs/tags/"])?;
+        let mut refspecs = format!("{refspec}\nrefs/tags/*:refs/tags/*\n");
+        for name in local_tags.lines() {
+            refspecs.push('^');
+            refspecs.push_str(name);
+            refspecs.push('\n');
+        }
         let mut args: Vec<OsString> = [
             "-c",
             "protocol.allow=never",
@@ -62,10 +73,11 @@ impl GitCli {
             "-c",
             "submodule.recurse=false",
             "fetch",
-            // Tags use Git's non-forcing update rules. Atomic ref updates keep a
-            // conflicting local tag from leaving a partially refreshed graph.
-            "--tags",
+            // A concurrent new local tag still fails safely rather than being
+            // overwritten; atomic updates preserve the previous branch snapshot.
+            "--no-tags",
             "--atomic",
+            "--stdin",
             "--no-prune",
             "--no-prune-tags",
             "--no-recurse-submodules",
@@ -75,7 +87,6 @@ impl GitCli {
             "--refmap=",
             "--",
             remote,
-            &refspec,
         ]
         .iter()
         .map(OsString::from)
@@ -89,7 +100,7 @@ impl GitCli {
                 ],
             );
         }
-        run_fetch(path, &args)
+        run_fetch_with_refspecs(path, &args, refspecs.as_bytes())
     }
     /// Read the fetch destination without requiring a historical commit to be a branch tip.
     pub fn pipeline_remote(&self, path: &Path, remote: &str, oid: &str) -> Result<String> {

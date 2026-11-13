@@ -1747,7 +1747,10 @@ test('auto fetch defaults to one minute, preserves checkout and selection, pause
  writeFileSync(join(writer,'remote.txt'),'incoming\n');git(writer,['add','.']);git(writer,['commit','-m','Incoming auto fetched commit']);const incoming=git(writer,['rev-parse','HEAD']);
  await page.clock.fastForward(59000);expect(fetches).toBe(0);await page.clock.fastForward(1000);await expect.poll(()=>fetches).toBe(1);await expect(page.locator('.auto-fetch-status')).toHaveText('Auto fetched',{timeout:45000});await expect(page.locator(`#commit-${incoming}`)).toBeVisible();await expect(page.locator(`#commit-${head}`)).toHaveAttribute('aria-pressed','true');expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['rev-parse','origin/main'])).toBe(incoming);expect(readFileSync(join(repo,'.git/index'))).toEqual(index);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('unstaged draft\n');
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});await page.clock.fastForward(180000);expect(fetches).toBe(1);await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'));});await page.clock.fastForward(1000);await expect.poll(()=>fetches).toBe(2);await expect(page.locator('.auto-fetch-status')).toHaveText('Auto fetched');
- await page.keyboard.press('Control+,');const settings=page.getByRole('dialog',{name:'Settings',exact:true});await expect(settings.getByLabel('Auto fetch',{exact:true})).toHaveValue('60');await page.clock.fastForward(120000);expect(fetches).toBe(2);await settings.getByLabel('Auto fetch',{exact:true}).selectOption('0');await settings.getByRole('button',{name:'Close settings',exact:true}).click();await page.clock.fastForward(180000);expect(fetches).toBe(2);expect(await page.evaluate(()=>localStorage.getItem('gitnova.auto-fetch-seconds'))).toBe('0');await expect(page.locator('.auto-fetch-status')).toHaveCount(0);await page.screenshot({path:testInfo.outputPath('auto-fetch-preserved-graph.png')});
+ await page.keyboard.press('Control+,');const settings=page.getByRole('dialog',{name:'Settings',exact:true});
+ // A paused fake clock must also advance React's deferred module reveal.
+ await expect.poll(async()=>{await page.clock.runFor(50);return settings.isVisible();}).toBe(true);
+ await expect(settings.getByLabel('Auto fetch',{exact:true})).toHaveValue('60');await page.clock.fastForward(120000);expect(fetches).toBe(2);await settings.getByLabel('Auto fetch',{exact:true}).selectOption('0');await settings.getByRole('button',{name:'Close settings',exact:true}).click();await page.clock.fastForward(180000);expect(fetches).toBe(2);expect(await page.evaluate(()=>localStorage.getItem('gitnova.auto-fetch-seconds'))).toBe('0');await expect(page.locator('.auto-fetch-status')).toHaveCount(0);await page.screenshot({path:testInfo.outputPath('auto-fetch-preserved-graph.png')});
 });
 
 test('auto fetch failures back off without dialogs or repeated immediate retries',async({page})=>{
@@ -2160,11 +2163,11 @@ for(const mode of ['switch','pull'])test(`${mode} preparation saves overlapping 
 
 
 test('header Fetch beside Refresh updates remote counts without changing local work',async({page})=>{
- const writer=join(folder,'header-writer'),repo=join(folder,'header-local');mkdirSync(writer);git(writer,['init','-b','main']);writeFileSync(join(writer,'file.txt'),'base\n');git(writer,['add','.']);git(writer,['commit','-m','Fetch base']);git(folder,['clone',writer,repo]);const head=git(repo,['rev-parse','HEAD']);
+ const writer=join(folder,'header-writer'),repo=join(folder,'header-local');mkdirSync(writer);git(writer,['init','-b','main']);writeFileSync(join(writer,'file.txt'),'base\n');git(writer,['add','.']);git(writer,['commit','-m','Fetch base']);git(folder,['clone',writer,repo]);const head=git(repo,['rev-parse','HEAD']);git(repo,['tag','existing-version']);
  writeFileSync(join(repo,'file.txt'),'staged\n');git(repo,['add','file.txt']);writeFileSync(join(repo,'file.txt'),'draft\n');const index=readFileSync(join(repo,'.git/index'));
  let fetches=0;await connectRealCore(page,join(folder,'header-fetch.json'),command=>{if(command==='fetch_remote')fetches++;});await page.addInitScript(()=>{const transport=(window as unknown as {__TAURI_INTERNALS__:{invoke:(command:string,args:unknown)=>Promise<unknown>}}).__TAURI_INTERNALS__;const invoke=transport.invoke;transport.invoke=async(command,args)=>{if(command==='fetch_remote')await new Promise(resolve=>setTimeout(resolve,800));return invoke(command,args);};});await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator(`#commit-${head}`).click();
- writeFileSync(join(writer,'incoming.txt'),'incoming\n');git(writer,['add','.']);git(writer,['commit','-m','Incoming header fetch']);const tip=git(writer,['rev-parse','HEAD']);
- const fetch=page.locator('.topbar .fetch-current');await expect(fetch).toBeEnabled();await expect(page.locator('.fetch-current + .refresh')).toHaveCount(1);await fetch.click();await expect(fetch).toBeDisabled();await expect(fetch).toHaveAttribute('aria-busy','true');await expect(fetch.locator('.loading-spin')).toHaveCount(1);await expect(page.locator('.refresh')).toBeDisabled();await expect.poll(()=>fetches).toBe(1);await expect(page.locator('.graph-actions')).toHaveCount(0,{timeout:45000});await expect(fetch).toBeEnabled();await expect(fetch).toHaveAttribute('aria-busy','false');await expect(page.locator('.sync-pull .sync-count')).toHaveText('1');await expect(page.locator(`#commit-${tip}`)).toBeVisible();await expect(page.locator(`#commit-${head}`)).toHaveAttribute('aria-pressed','true');expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['rev-parse','origin/main'])).toBe(tip);expect(readFileSync(join(repo,'.git/index'))).toEqual(index);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('draft\n');expect(fetches).toBe(1);
+ writeFileSync(join(writer,'incoming.txt'),'incoming\n');git(writer,['add','.']);git(writer,['commit','-m','Incoming header fetch']);const tip=git(writer,['rev-parse','HEAD']);git(writer,['tag','existing-version']);git(writer,['tag','new-version']);
+ const fetch=page.locator('.topbar .fetch-current');await expect(fetch).toBeEnabled();await expect(page.locator('.fetch-current + .refresh')).toHaveCount(1);await fetch.click();await expect(fetch).toBeDisabled();await expect(fetch).toHaveAttribute('aria-busy','true');await expect(fetch.locator('.loading-spin')).toHaveCount(1);await expect(page.locator('.refresh')).toBeDisabled();await expect.poll(()=>fetches).toBe(1);await expect(page.locator('.graph-actions')).toHaveCount(0,{timeout:45000});await expect(fetch).toBeEnabled();await expect(fetch).toHaveAttribute('aria-busy','false');await expect(page.locator('.sync-pull .sync-count')).toHaveText('1');await expect(page.locator(`#commit-${tip}`)).toBeVisible();await expect(page.locator(`#commit-${head}`)).toHaveAttribute('aria-pressed','true');expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['rev-parse','origin/main'])).toBe(tip);expect(readFileSync(join(repo,'.git/index'))).toEqual(index);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('draft\n');expect(git(repo,['rev-parse','refs/tags/existing-version'])).toBe(head);expect(git(repo,['rev-parse','refs/tags/new-version'])).toBe(tip);expect(fetches).toBe(1);
 });
 
 
@@ -2416,4 +2419,31 @@ test('deep graph refresh publishes its validated first page and yields restorati
     await expect(page.locator('.app-footer')).toContainText('1–100 commits');
     expect(git(repo,['status','--porcelain'])).toBe('');
   }finally{hold=false;release();}
+});
+
+test('rapid working-file selections keep the final diff and coalesce replaced native reads',async({page},testInfo)=>{
+ test.setTimeout(120000);
+ const repo=join(folder,'working-selection-perf');mkdirSync(repo);git(repo,['init','-b','main']);
+ for(let i=0;i<4;i++)writeFileSync(join(repo,`file-${i}.txt`),`base ${i}\n`);
+ git(repo,['add','.']);git(repo,['commit','-m','Fixture base']);
+ for(let i=0;i<4;i++)writeFileSync(join(repo,`file-${i}.txt`),`changed ${i}\n`);
+ let held=false,started=0;let release=()=>{};let gate=Promise.resolve();
+ await connectRealCore(page,join(folder,'working-selection-perf.json'),async command=>{if(command==='preview_hunks'&&held){started++;if(started===1)await gate;}});
+ await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.locator('.working-row').click();await expect(page.locator('.dock-file-heading')).toBeVisible();
+ const samples=[];const rounds=Number(process.env.GITNOVA_PERF_SAMPLES??'1');
+ try{for(let round=0;round<rounds;round++){
+  gate=new Promise<void>(resolve=>{release=resolve;});started=0;held=true;const begin=Date.now();
+  let path='';
+  for(let i=0;i<12;i++){
+   path=await page.evaluate(i=>{const files=document.querySelectorAll<HTMLButtonElement>('.working-detail .changed-file');const active=[...files].findIndex(file=>file.classList.contains('active'));const file=files[(active+1)%files.length];file.click();return file.title;},i);
+   if(i===0)await expect.poll(()=>started).toBe(1);
+  }
+  release();await expect(page.locator('.dock-file-heading code')).toHaveText(path);await expect(page.locator('.patch-viewport')).toContainText(`changed ${path.match(/\d+/)![0]}`);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  samples.push({milliseconds:Date.now()-begin,selections:12,startedReads:started});expect(started).toBeLessThanOrEqual(3);held=false;
+ }}finally{release();held=false;}
+ expect(git(repo,['diff','--cached','--name-only'])).toBe('');expect(git(repo,['status','--porcelain']).split('\n')).toHaveLength(4);
+ await testInfo.attach('working-selection-performance.json',{body:JSON.stringify({samples,scope:'Chromium real Rust core; gated first read, not native WebView or uncontrolled input'}),contentType:'application/json'});
+ if(process.env.GITNOVA_WORKING_PERF_OUTPUT)writeFileSync(process.env.GITNOVA_WORKING_PERF_OUTPUT,JSON.stringify({samples},null,2));
 });

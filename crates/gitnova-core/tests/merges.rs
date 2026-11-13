@@ -1070,3 +1070,15 @@ fn session_cleanup_rejects_new_head_even_with_identical_index_and_rechecks_nativ
     assert!(repo.join(".git/gitnova-merge.json").exists());
     assert_eq!(git(&repo, &["rev-parse", "HEAD"]), moved);
 }
+
+#[test]
+fn operation_observation_rechecks_external_metadata_each_time() {
+    let (_temp, app, repo, id) = setup();
+    assert_eq!(app.merge_state(&id).unwrap().phase, "none");
+    // A previous clean read must not mask newly malformed recovery metadata.
+    fs::write(repo.join(".git/gitnova-merge.json"), b"not json").unwrap();
+    assert_eq!(app.merge_state(&id).unwrap().phase, "incomplete");
+    fs::remove_file(repo.join(".git/gitnova-merge.json")).unwrap();
+    assert_eq!(app.merge_state(&id).unwrap().phase, "none");
+    assert_eq!(git(&repo, &["status", "--porcelain"]), "");
+}

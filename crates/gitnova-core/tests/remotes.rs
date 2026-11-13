@@ -128,6 +128,68 @@ fn fetch_discovers_heads_and_tags_without_writing_local_branches_or_fetch_head()
     assert_eq!(git(&f.repo, &["rev-parse", "refs/tags/not-requested"]), oid);
 }
 #[test]
+fn fetch_preserves_conflicting_local_tags_and_refreshes_branches_and_new_tags() {
+    for background in [false, true] {
+        let f = fixture();
+        let head = git(&f.repo, &["rev-parse", "HEAD"]);
+        git(&f.repo, &["tag", "0.0.34"]);
+        git(
+            &f.repo,
+            &["tag", "-a", "annotated", "-m", "local annotation"],
+        );
+        let annotation = git(&f.repo, &["rev-parse", "refs/tags/annotated"]);
+        let incoming = commit(&f.writer, "remote.txt", "incoming\n");
+        git(&f.writer, &["tag", "0.0.34"]);
+        git(
+            &f.writer,
+            &["tag", "-a", "annotated", "-m", "remote annotation"],
+        );
+        git(&f.writer, &["tag", "0.0.35"]);
+        git(
+            &f.writer,
+            &["tag", "-a", "new-annotated", "-m", "new annotation"],
+        );
+        git(&f.repo, &["config", "remote.origin.tagOpt", "--tags"]);
+        fs::write(f.repo.join("file.txt"), "staged\n").unwrap();
+        git(&f.repo, &["add", "file.txt"]);
+        fs::write(f.repo.join("file.txt"), "unstaged\n").unwrap();
+        fs::write(f.repo.join("draft.txt"), "untracked\n").unwrap();
+        fs::write(f.repo.join(".git/FETCH_HEAD"), "sentinel\n").unwrap();
+        let index = fs::read(f.repo.join(".git/index")).unwrap();
+        let config = fs::read(f.repo.join(".git/config")).unwrap();
+        if background {
+            assert_eq!(f.app.auto_fetch(&f.id).unwrap().as_deref(), Some("origin"));
+        } else {
+            fetch(&f, Some("main"));
+        }
+        assert_eq!(git(&f.repo, &["rev-parse", "origin/main"]), incoming);
+        assert_eq!(git(&f.repo, &["rev-parse", "refs/tags/0.0.34"]), head);
+        assert_eq!(
+            git(&f.repo, &["rev-parse", "refs/tags/annotated"]),
+            annotation
+        );
+        assert_eq!(git(&f.repo, &["rev-parse", "refs/tags/0.0.35"]), incoming);
+        assert_eq!(git(&f.repo, &["rev-parse", "new-annotated^{}"]), incoming);
+        assert_eq!(git(&f.repo, &["rev-parse", "HEAD"]), head);
+        assert_eq!(fs::read(f.repo.join(".git/index")).unwrap(), index);
+        assert_eq!(fs::read(f.repo.join(".git/config")).unwrap(), config);
+        assert_eq!(
+            fs::read_to_string(f.repo.join("file.txt")).unwrap(),
+            "unstaged\n"
+        );
+        assert_eq!(
+            fs::read_to_string(f.repo.join("draft.txt")).unwrap(),
+            "untracked\n"
+        );
+        assert_eq!(
+            fs::read_to_string(f.repo.join(".git/FETCH_HEAD")).unwrap(),
+            "sentinel\n"
+        );
+        // Repeat against the same destination to cover already imported names.
+        fetch(&f, None);
+    }
+}
+#[test]
 fn remote_only_branch_creates_a_local_tracking_branch_at_reviewed_revision() {
     let f = fixture();
     git(&f.writer, &["switch", "-c", "feature/api"]);

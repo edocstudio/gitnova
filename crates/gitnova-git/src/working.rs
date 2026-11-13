@@ -707,6 +707,15 @@ pub(crate) fn run_fetch(root: &Path, args: &[OsString]) -> Result<()> {
     // GIT_ALLOW_PROTOCOL overrides per-protocol config too, including user-enabled helpers.
     run_git_write(root, args, None, Some("file:http:https:ssh:git"), None)
 }
+pub(crate) fn run_fetch_with_refspecs(root: &Path, args: &[OsString], input: &[u8]) -> Result<()> {
+    run_git_write(
+        root,
+        args,
+        None,
+        Some("file:http:https:ssh:git"),
+        Some(input),
+    )
+}
 pub(crate) fn run_ref_transaction(root: &Path, transaction: &str) -> Result<()> {
     run_git_write(
         root,

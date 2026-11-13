@@ -1707,12 +1707,15 @@ fn main() {
             {
                 terminal::close_all();
             }
-            if native_smoke() && std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1"))
+            if native_smoke() && std::env::var_os("GITNOVA_NATIVE_SOAK_SECONDS").is_none()
+                && std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1"))
                 && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
             {
                 let _ = window.eval(include_str!("../../scripts/native-perf-driver.js"));
             }
-            if cfg!(debug_assertions) && native_smoke() && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
+            if native_smoke()
+                && (cfg!(debug_assertions) || std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1")))
+                && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
             {
                 if let Ok(seconds) = std::env::var("GITNOVA_NATIVE_SOAK_SECONDS")
                     .unwrap_or_default()

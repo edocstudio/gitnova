@@ -1,4 +1,4 @@
-import {traceUsable} from './performance-trace';
+import {recordPerformance,traceUsable} from './performance-trace';
 import {CommitHistoryControls} from './CommitHistoryControls';
 import {version as appVersion} from '../package.json';
 import {BranchSyncCount} from './BranchTrackingBadge';
@@ -8,14 +8,12 @@ import {RepositoryIdentityFooter} from './RepositoryIdentity';
 import {LockRecoveryDialog} from './LockRecoveryDialog';
 import { formatTimestamp } from './date-format';
 import type {TerminalEntry} from './RepositoryTerminal';
-import {lazy,Suspense} from 'react';
 import {useAutoFetch} from './useAutoFetch';
 import {reuseObserved} from './observed-state';
 import {RemoteFooter} from './RemoteFooter';
 import brandIcon from '../assets/icon.svg';
 import { t, useLocale } from './i18n';
-import { Settings } from './Settings';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { api, desktop, errorMessage } from './api';
 import type { StashList, SearchLocation, MergeState, Catalog, CommitDetail, LinkedWorktree, Submodule, WorkingChanges, OperationReceipt, PlannedOperation } from './contracts';
 import { historyItems, appendPage, retainRecent, retainGraphSessions, MAX_ROWS, ROW_HEIGHT } from './graph-state';
@@ -38,6 +36,7 @@ import { BranchSubmodules } from './BranchSubmodules';
 import { MergeInspector } from './MergeInspector';
 import { WorkingDetails } from './WorkingDetails';
 import type { WorkingDiff } from './WorkingDetails';
+const Settings = lazy(() => import('./Settings').then(module => ({default: module.Settings})));
 const RepositoryTerminal=lazy(()=>import('./RepositoryTerminal').then(module=>({default:module.RepositoryTerminal})));
 export function App() {
   useLocale();
@@ -239,7 +238,9 @@ export function App() {
   const repositoryWritten = async (receipt: OperationReceipt) => {
     reportOperation(receipt);
     if (!selectedId || activeId.current !== selectedId) return;
-    await refreshWorking(selectedId);
+    const refreshStarted=performance.now();
+    try { await refreshWorking(selectedId); }
+    finally { recordPerformance({kind:'refresh',name:'post-write-refresh',milliseconds:performance.now()-refreshStarted}); }
     if (activeId.current === selectedId && ['merge_release','merge_resolve','undo_commit'].includes(receipt.kind) && receipt.status === 'succeeded') { selectCommit(WORKING); }
     else if (activeId.current === selectedId && receipt.merge && receipt.merge.phase !== 'none') { selectCommit(WORKING); }
     else if (activeId.current === selectedId && receipt.status === 'succeeded' && receipt.kind !== 'fetch_remote' && receipt.headAfter) {
@@ -312,7 +313,7 @@ export function App() {
       if(activeId.current!==lockRecovery)return;
       window.dispatchEvent(new Event('gitnova-write-completed'));
     }}/>}
-    <Settings open={settingsOpen} onClose={closeSettings} membershipId={selectedId} repositoryName={selected?.name} identityRequested={identityRequested} blocked={writeBusy||busy} onBusyChange={onWriteBusy} />
+    {settingsOpen && <Suspense fallback={<span role="status">{t("Loading…")}</span>}><Settings open={settingsOpen} onClose={closeSettings} membershipId={selectedId} repositoryName={selected?.name} identityRequested={identityRequested} blocked={writeBusy||busy} onBusyChange={onWriteBusy} /></Suspense>}
     <footer className="app-footer"><span><span className="footer-dot" />{t("GitNova · by edocstudio")}</span><RepositoryIdentityFooter membershipId={selectedId} revision={session?.page.fingerprint} blocked={writeBusy||busy} onEdit={()=>{settingsReturn.current=document.activeElement as HTMLElement;setIdentityRequested(true);setSettingsOpen(true);}}/><RemoteFooter membershipId={selectedId} branch={currentStatus?.branch} tracking={session?.page.tracking} revision={session?.page.fingerprint}/><span>{session ? session.rows.length ? t("{0}–{1} commits loaded", [session.base + 1, session.base + session.rows.length]) : t("0 commits loaded") : t("Git made simple.")}<span className="footer-separator">·</span><kbd>{t("⌘ / Ctrl O")}</kbd> {t("Switch repository")}</span></footer>
   </div>;
 }

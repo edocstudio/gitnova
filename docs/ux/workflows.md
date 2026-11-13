@@ -20,6 +20,14 @@ Maintain one primary action per decision, with exact scope in its surrounding co
 
 ## Existing flows
 
+Fetch imports remote branches and tag names absent locally. Existing local tag
+names are excluded from the fetch refspecs, including names whose remote object
+differs. They are never force-updated or deleted to make Fetch succeed. Manual
+and background Fetch share this policy and retain atomic ref updates: a concurrent
+conflicting tag creation still fails safely. Refspecs use stdin rather than an
+unbounded command line. Remote tag inspection remains separate from local tag
+ownership; no branch checkout, index update or automatic integration is implied.
+
 Repository entry management belongs in the existing workspace picker because
 the graph cannot represent an unavailable checkout or edit workspace membership.
 Each repository row exposes one labelled actions button (`⋯`); right click opens
