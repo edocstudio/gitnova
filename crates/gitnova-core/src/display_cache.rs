@@ -49,6 +49,13 @@ impl Application {
         fingerprint: &str,
     ) -> Result<Vec<BranchTracking>> {
         let key = self.git.tracking_display_key(path, fingerprint)?;
+        self.display_tracking_with_key(path, key)
+    }
+    pub(super) fn display_tracking_with_key(
+        &self,
+        path: &Path,
+        key: String,
+    ) -> Result<Vec<BranchTracking>> {
         let rows = self
             .tracking_cache
             .0

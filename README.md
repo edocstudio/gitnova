@@ -197,6 +197,8 @@ The [2026-11-12 performance investigation](docs/verification/2026-11-12/performa
 separates debug/release core measurements, selection responsiveness and native
 IPC. Its [machine-readable results](docs/verification/2026-11-12/performance.json)
 include sample counts, median/p95 and explicit coverage limits.
+The [2026-11-13 graph read follow-up](docs/verification/2026-11-13/graph-read-sharing.md)
+records two fewer Git subprocesses per page and the remaining latency uncertainty.
 
 ## Contributing
 

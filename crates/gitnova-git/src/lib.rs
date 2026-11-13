@@ -441,7 +441,23 @@ impl GitCli {
         let p = path_from_bytes(bytes)?;
         std::fs::canonicalize(if p.is_absolute() { p } else { path.join(p) }).map_err(Into::into)
     }
+    /// Request-local graph metadata. Discovery is shared with the display-cache
+    /// key only; callers still recheck fingerprint after loading the page.
+    /// Nothing here authorizes a write or retains repository state across calls.
+    pub fn graph_read_keys(&self, path: &Path) -> Result<(String, Option<String>)> {
+        let discovery = self.discover(path)?;
+        let fingerprint = self.fingerprint_at(path, &discovery.common_dir)?;
+        // Tracking is optional display metadata, as in the graph caller before
+        // this optimization. Its failure must not hide readable history.
+        let tracking = self
+            .tracking_display_key_at(path, &fingerprint, &discovery.git_dir)
+            .ok();
+        Ok((fingerprint, tracking))
+    }
     pub fn fingerprint(&self, path: &Path) -> Result<String> {
+        self.fingerprint_at(path, &self.path(path, "--git-common-dir")?)
+    }
+    fn fingerprint_at(&self, path: &Path, common_dir: &Path) -> Result<String> {
         use std::hash::{Hash, Hasher};
         let mut hash = std::collections::hash_map::DefaultHasher::new();
         self.text(path, &["show-ref", "--head"])
@@ -457,7 +473,7 @@ impl GitCli {
         // HEAD. A second rev-parse spawned another Git process for identical data.
         self.optional_text(path, &["symbolic-ref", "--quiet", "HEAD"])?
             .hash(&mut hash);
-        let shallow_path = self.path(path, "--git-common-dir")?.join("shallow");
+        let shallow_path = common_dir.join("shallow");
         match std::fs::read(shallow_path) {
             Ok(bytes) => bytes.hash(&mut hash),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
@@ -814,7 +830,26 @@ impl GitCli {
             ));
         }
         let head = self.optional_text(path, &["rev-parse", "--verify", "--quiet", "HEAD"])?;
-        if head.is_none() && self.refs(path)?.is_empty() {
+        self.history_with_observed_head(path, offset, count, head.as_deref())
+    }
+    /// Reuse HEAD from the caller's fresh status observation. Graph callers must
+    /// compare fingerprints before/after this read to reject concurrent changes.
+    pub fn history_with_observed_head(
+        &self,
+        path: &Path,
+        offset: usize,
+        count: usize,
+        head: Option<&str>,
+    ) -> Result<Vec<Commit>> {
+        if count > 20101 || offset > 1_000_000 {
+            return Err(AppError::new(
+                "pagination",
+                "History range exceeds its bounded budget.",
+            ));
+        }
+        if let Some(oid) = head {
+            validate_oid(oid)?;
+        } else if self.refs(path)?.is_empty() {
             return Ok(vec![]);
         }
         let mut args: Vec<OsString> = [

@@ -11,9 +11,17 @@ impl GitCli {
         fingerprint: &str,
     ) -> Result<String> {
         let discovery = self.discover(path)?;
+        self.tracking_display_key_at(path, fingerprint, &discovery.git_dir)
+    }
+    pub(crate) fn tracking_display_key_at(
+        &self,
+        path: &std::path::Path,
+        fingerprint: &str,
+        git_dir: &std::path::Path,
+    ) -> Result<String> {
         let mut hash = Sha256::new();
         hash.update(
-            serde_json::to_vec(&NativePath::new(&discovery.git_dir))
+            serde_json::to_vec(&NativePath::new(git_dir))
                 .map_err(|e| AppError::new("tracking", e.to_string()))?,
         );
         hash.update(fingerprint.as_bytes());
