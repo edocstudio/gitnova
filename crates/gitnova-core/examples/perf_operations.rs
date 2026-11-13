@@ -1,7 +1,7 @@
 //! Serial local-transport benchmark; only disposable repositories are changed.
 //! Network/provider latency, WebView RSS and cross-product comparisons are not measured here.
 use gitnova_core::Application;
-use gitnova_domain::*;
+use gitnova_domain::{MergeAction, MergeMethod, MergeRequest, PushRequest};
 use gitnova_git::measure_git;
 use serde_json::{json, Value};
 use std::{
@@ -57,6 +57,19 @@ fn main() {
         .unwrap_or_else(|| "0".into())
         .parse::<usize>()
         .unwrap();
+    let rounds = std::env::args()
+        .nth(3)
+        .unwrap_or_else(|| "20".into())
+        .parse::<usize>()
+        .unwrap();
+    assert!((1..=100).contains(&rounds));
+    let mut measurements = Vec::new();
+    for _ in 0..rounds {
+        measurements.extend(run_round(tracked_files, history_commits));
+    }
+    println!("{}", serde_json::to_string_pretty(&json!({"tracked_files": tracked_files, "history_commits": history_commits, "rounds": rounds, "transport": "local temporary bare repository", "build": if cfg!(debug_assertions) {"debug"} else {"release"}, "measurements": measurements})).unwrap());
+}
+fn run_round(tracked_files: usize, history_commits: usize) -> Vec<Value> {
     assert!((100..=50000).contains(&tracked_files) && history_commits <= 100000);
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path().join("local");
@@ -230,5 +243,5 @@ fn main() {
             .count(),
         2
     );
-    println!("{}",serde_json::to_string_pretty(&json!({"tracked_files":tracked_files,"history_commits":history_commits,"transport":"local temporary bare repository","build":"debug","measurements":rows})).unwrap());
+    rows
 }

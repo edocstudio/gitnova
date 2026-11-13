@@ -227,7 +227,7 @@ fn fetch_imports_remote_annotated_tag_into_warm_graph_without_checkout_changes()
 }
 
 #[test]
-fn conflicting_remote_tag_never_overwrites_local_tag_or_partially_updates_refs() {
+fn conflicting_remote_tag_is_preserved_while_new_tags_are_imported() {
     let f = fixture();
     git(&f.root, &["push", "origin", "main"]);
     git(&f.root, &["tag", "0.0.35", &f.last]);
@@ -237,8 +237,12 @@ fn conflicting_remote_tag_never_overwrites_local_tag_or_partially_updates_refs()
     git(&f.root, &["push", "origin", "refs/tags/new-remote-tag"]);
     git(&f.root, &["tag", "-d", "new-remote-tag"]);
     let before = git(&f.root, &["show-ref"]);
-    assert!(f.app.auto_fetch(&f.id).is_err());
-    assert_eq!(git(&f.root, &["show-ref"]), before);
+    assert_eq!(f.app.auto_fetch(&f.id).unwrap().as_deref(), Some("origin"));
+    assert_eq!(git(&f.root, &["rev-parse", "new-remote-tag"]), f.last);
+    let after = git(&f.root, &["show-ref"]);
+    for reference in before.lines() {
+        assert!(after.lines().any(|line| line == reference));
+    }
     assert_eq!(git(&f.root, &["rev-parse", "0.0.35"]), f.first);
     assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.last);
 }

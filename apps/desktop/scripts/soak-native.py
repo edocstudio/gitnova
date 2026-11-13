@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Serial isolated native/WebKit soak. Changes only newly created fixture repos.
-Requires an already-built debug bundle and ui_bridge; never builds during sampling.
+Requires an already-built selected-profile bundle and ui_bridge; never builds during sampling.
 """
 
 from argparse import ArgumentParser
 from datetime import datetime, timezone
 from hashlib import sha256
 from json import dumps, loads
+from math import ceil
 from os import environ
 from pathlib import Path
 from re import search
@@ -247,6 +248,7 @@ def slope(samples, key):
 
 def main():
     parser = ArgumentParser()
+    parser.add_argument("--profile", choices=["debug", "release"], default="debug")
     parser.add_argument("--seconds", type=int, default=1800)
     parser.add_argument("--commits", type=int, default=50000)
     parser.add_argument("--files", type=int, default=10000)
@@ -267,11 +269,11 @@ def main():
     if not 60 <= args.seconds <= 7200:
         parser.error("--seconds must be between 60 and 7200")
     bundle = (
-        ROOT / "target/debug/bundle/macos/GitNova.app/Contents/MacOS/gitnova-desktop"
+        ROOT / f"target/{args.profile}/bundle/macos/GitNova.app/Contents/MacOS/gitnova-desktop"
     )
-    bridge = ROOT / "target/debug/examples/ui_bridge"
+    bridge = ROOT / f"target/{args.profile}/examples/ui_bridge"
     if not bundle.exists() or not bridge.exists():
-        raise RuntimeError("Build the debug bundle and ui_bridge before sampling")
+        raise RuntimeError(f"Build the {args.profile} bundle and ui_bridge before sampling")
     if any(
         "gitnova-desktop" in row
         for row in run(["/bin/ps", "-A", "-o", "comm="]).decode().splitlines()
@@ -321,7 +323,7 @@ def main():
         home = folder / "home"
         home.mkdir()
         child = Popen(
-            [str(bundle)],
+            [str(bundle), "--native-acceptance"],
             cwd="/tmp",
             env={
                 **ENV,
@@ -330,6 +332,7 @@ def main():
                 "XDG_CACHE_HOME": str(home / "cache"),
                 "XDG_DATA_HOME": str(home / "data"),
                 "GITNOVA_NATIVE_SMOKE": "1",
+                "GITNOVA_PERF": "1",
                 "GITNOVA_NATIVE_SOAK_WORKLOAD": args.workload,
                 "GITNOVA_SMOKE_STATE": str(state),
                 "GITNOVA_NATIVE_SOAK_SECONDS": str(args.seconds),
@@ -470,7 +473,7 @@ def main():
             key: {
                 "samples": len(values),
                 "median_ms": median(values),
-                "p95_ms": sorted(values)[min(len(values) - 1, int(len(values) * 0.95))],
+                "p95_ms": sorted(values)[ceil(len(values) * 0.95) - 1],
                 "max_ms": max(values),
             }
             for key, values in metrics.items()
@@ -507,8 +510,9 @@ def main():
             },
             "foregroundRequested": args.foreground,
             "workload": args.workload,
-            "profile": "packaged debug app with optimized first-party crates, real WKWebView with observed visibility, scripted manual refresh/interaction; optional frontend diagnostic counters; no GPU measurement, provider/network or cross-product comparison",
-            "diagnosticLimitations": "Frontend counters are debug-only observations. performance.memory may be unavailable (then no JS heap data is claimed). RSS growth alone cannot identify a leak or its owner.",
+            "buildProfile": args.profile,
+            "profile": f"packaged {args.profile} app, real WKWebView with observed visibility, scripted manual refresh/interaction; optional frontend diagnostic counters; no GPU measurement, provider/network or cross-product comparison",
+            "diagnosticLimitations": "Frontend counters are isolated fixture observations. performance.memory may be unavailable (then no JS heap data is claimed). RSS growth alone cannot identify a leak or its owner.",
             "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
             "observed_webkit_visibility": sorted(
                 {v["visibility"] for v in ui if "visibility" in v}

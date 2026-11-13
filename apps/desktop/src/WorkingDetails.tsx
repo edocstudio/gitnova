@@ -3,7 +3,7 @@ import {SubmodulePointerControls} from './SubmodulePointerControls';
 import {useRecoveredLockError} from './useRecoveredLockError';
 import {CommitIdentityNotice} from './CommitIdentity';
 import { t, useLocale } from './i18n';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
 import type { AmendPreview, MergeState, NativePath, Submodule, StashEntry, ChangedFile, CommitPreview, FilePreview, OperationReceipt, WorkingChanges } from './contracts';
 import type { DockPatch } from './CommitDiffDock';
@@ -15,8 +15,8 @@ import type { SubmoduleIntent } from './SubmoduleEntry';
 import {SubmoduleLifecycle} from './SubmoduleLifecycle';
 import { SubmoduleEntry } from './SubmoduleEntry';
 import { StageAllControls } from './StageAllControls';
-import { StashControls } from './StashControls';
 import {VirtualFileRows} from './VirtualFileRows';
+const StashControls = lazy(() => import('./StashControls').then(module => ({default: module.StashControls})));
 type Entry = { file: ChangedFile; staged: boolean; key: string };
 export type WorkingDiff = { membershipId: string; source: DockPatch; loading: boolean } | null;
 export function WorkingDetails({ operationState, stashConflict, stashLaunch, initialStash, onStashBack, membershipId, changes, draft, onDraft, onRefresh, onClose, onBusyChange, onDiffChange, onInspect, onOperation, onOperationError, externalBusy, onOpenRelated }: {
@@ -141,7 +141,7 @@ export function WorkingDetails({ operationState, stashConflict, stashLaunch, ini
     </section>;
   };
   const next = amend ? 'Edit the message or stage additional changes, then review the replacement.' : stagedCount === 0 ? 'Stage files to include them in your next commit.' : !summary.trim() ? 'Add a summary, then review the staged changes.' : 'Review the staged diff before creating your commit.';
-  if (stashOpen) return <aside className="detail working-detail stash-detail" aria-label={t('Stashes')}><div className="detail-heading"><div><Icon name="layers" /><span>{t('Stashes')}</span></div><button className="text-button" disabled={busy || externalBusy} onClick={() => { setStashOpen(false); onStashBack?.(); }}>{t('Back to changes')}</button></div><StashControls operationState={operationState} key={stashLaunch?.nonce ?? 'graph'} initialKind={initialStash ? 'pop' : stashLaunch?.kind} initialEntry={initialStash} membershipId={membershipId} changes={changes} disabled={externalBusy} onBusyChange={onBusyChange} onOperation={value => { setReceipt(value); onOperation(value); }} onFailure={onOperationError} onRefresh={onRefresh} onDiffChange={onDiffChange} onClose={() => { setStashOpen(false); onStashBack?.(); }} /></aside>;
+  if (stashOpen) return <aside className="detail working-detail stash-detail" aria-label={t('Stashes')}><div className="detail-heading"><div><Icon name="layers" /><span>{t('Stashes')}</span></div><button className="text-button" disabled={busy || externalBusy} onClick={() => { setStashOpen(false); onStashBack?.(); }}>{t('Back to changes')}</button></div><Suspense fallback={<p className="loading-status" role="status">{t("Preparing saved work…")}</p>}><StashControls operationState={operationState} key={stashLaunch?.nonce ?? 'graph'} initialKind={initialStash ? 'pop' : stashLaunch?.kind} initialEntry={initialStash} membershipId={membershipId} changes={changes} disabled={externalBusy} onBusyChange={onBusyChange} onOperation={value => { setReceipt(value); onOperation(value); }} onFailure={onOperationError} onRefresh={onRefresh} onDiffChange={onDiffChange} onClose={() => { setStashOpen(false); onStashBack?.(); }} /></Suspense></aside>;
   return <aside className="detail working-detail" aria-label={t("Working changes")}>
     <div className="detail-heading"><div><Icon name="layers" /><span>{t("Working changes")}</span></div><div className="working-heading-actions"><button className="icon-button danger-action" title={t('Discard changes…')} aria-label={t('Discard changes…')} disabled={busy || externalBusy || Boolean(review) || Boolean(discard) || !entries.length} onClick={() => { setDiscard({path:null,scope:'all'}); setFileMenu(null); }}><Icon name="trash" /></button><button className="icon-button" aria-label={t("Close working changes")} disabled={busy} onClick={onClose}><Icon name="close" /></button></div></div>
     <div className="working-context"><strong>{changes?.files.length ?? 0} {changes?.files.some(isSubmodule) ? changes.files.length === 1 ? t("changed item") : t("changed items") : changes?.files.length === 1 ? t("changed file") : t("changed files")}</strong><span>{t("on")} <b>{changes?.status.branch ?? t("detached HEAD")}</b></span></div>

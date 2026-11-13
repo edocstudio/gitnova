@@ -1,6 +1,6 @@
 // Explicit opt-in diagnostics for controlled measurements. Never enabled by a
 // user preference, never persisted/uploaded, and never records request arguments.
-export type PerformanceSample={kind:'ipc'|'selection'|'usable';name:string;milliseconds:number;queueMs?:number;started?:boolean;superseded?:boolean};
+export type PerformanceSample={kind:'ipc'|'selection'|'usable'|'refresh';name:string;milliseconds:number;queueMs?:number;started?:boolean;superseded?:boolean};
 let enabled=false;
 const samples:PerformanceSample[]=[];
 export function enablePerformanceTrace(value:boolean){enabled=value;samples.length=0;}

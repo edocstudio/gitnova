@@ -1,7 +1,7 @@
-// Injected only into the isolated debug native-soak profile. Reviewed branch writes target only its clean large-b fixture.
+// Injected only into the isolated native-soak profile. Reviewed branch writes target only its clean large-b fixture.
 (async()=>{
  if(window.__gitnovaSoakRunning)return;window.__gitnovaSoakRunning=true;
- // Debug fixture telemetry only. Weak references must not retain canvases.
+ // Isolated fixture telemetry only. Weak references must not retain canvases.
  let dateFormatters=0;
  const NativeDateTimeFormat=Intl.DateTimeFormat;
  Intl.DateTimeFormat=new Proxy(NativeDateTimeFormat,{construct(target,args,newTarget){dateFormatters++;return Reflect.construct(target,args,newTarget);}});

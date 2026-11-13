@@ -137,6 +137,11 @@ fn metadata(path: &Path, limit: usize) -> Result<Vec<u8>> {
 }
 fn load_marker(git: &GitCli, root: &Path) -> Result<Option<Marker>> {
     let d = git.discover(root)?;
+    load_observed_marker(git, root, &d)
+}
+// Reuse only this read's freshly validated discovery. Writes still call
+// load_marker and obtain a new discovery before validating their plan.
+fn load_observed_marker(git: &GitCli, root: &Path, d: &crate::Discovery) -> Result<Option<Marker>> {
     let bytes = metadata(&d.git_dir.join(MARKER), 65536)?;
     if bytes.is_empty() {
         return Ok(None);
@@ -285,13 +290,13 @@ fn has_conflict_marker(line: &str) -> bool {
 impl GitCli {
     pub fn merge_state(&self, root: &Path) -> Result<MergeState> {
         let d = self.discover(root)?;
-        if let Ok(Some(marker)) = load_marker(self, root) {
+        let marker = load_observed_marker(self, root, &d);
+        if let Ok(Some(marker)) = &marker {
             if marker.request.operation == "rebase" {
-                return rebase::state(self, root, &marker);
+                return rebase::state(self, root, marker);
             }
         }
         let head = metadata(&d.git_dir.join("MERGE_HEAD"), 4096)?;
-        let marker = load_marker(self, root);
         let mut state = MergeState {
             delete_source_branch: false,
             source_ref: None,

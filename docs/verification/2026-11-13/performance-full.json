@@ -1,0 +1,2086 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-performance",
+  "measuredAt": "2026-11-13",
+  "baseline": {
+    "commit": "cccd7561e1b26438bb9dadf2c0fa60b3cb8ea04a",
+    "version": "1.0.11"
+  },
+  "candidate": {
+    "baseCommit": "cccd7561e1b26438bb9dadf2c0fa60b3cb8ea04a",
+    "version": "1.0.12",
+    "uncommitted": true
+  },
+  "environment": {
+    "os": "macOS 26.7.1",
+    "arch": "arm64",
+    "logicalCpus": 10,
+    "ramGiB": 16,
+    "rust": "1.99.1",
+    "node": "26.13.0",
+    "git": "2.39.2 (Apple Git-143)"
+  },
+  "summary": {
+    "schemaVersion": 1,
+    "percentileMethod": "nearest rank",
+    "units": {
+      "milliseconds": "ms",
+      "gitCalls": "subprocesses"
+    },
+    "reads": {
+      "before": {
+        "open_registered_cold_app": {
+          "milliseconds": {
+            "n": 20,
+            "median": 27.9829375,
+            "p95": 45.765541999999996
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          }
+        },
+        "graph_first_cold_app": {
+          "milliseconds": {
+            "n": 20,
+            "median": 275.9649585,
+            "p95": 401.96470800000003
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          }
+        },
+        "graph_first_warm": {
+          "milliseconds": {
+            "n": 20,
+            "median": 186.20425,
+            "p95": 236.17575
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 15.0,
+            "p95": 15
+          }
+        },
+        "graph_next": {
+          "milliseconds": {
+            "n": 20,
+            "median": 210.422646,
+            "p95": 263.668583
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 15.0,
+            "p95": 15
+          }
+        },
+        "deep_refresh_first_page": {
+          "milliseconds": {
+            "n": 20,
+            "median": 190.385583,
+            "p95": 248.656167
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 15.0,
+            "p95": 15
+          }
+        },
+        "deep_refresh_all_ten_pages": {
+          "milliseconds": {
+            "n": 20,
+            "median": 2026.855979,
+            "p95": 2205.417042
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 150.0,
+            "p95": 150
+          }
+        },
+        "detail": {
+          "milliseconds": {
+            "n": 20,
+            "median": 72.5892705,
+            "p95": 98.1675
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 6.0,
+            "p95": 6
+          }
+        },
+        "snapshot_clean": {
+          "milliseconds": {
+            "n": 20,
+            "median": 230.0116255,
+            "p95": 277.474208
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          }
+        },
+        "snapshot_dirty_untracked": {
+          "milliseconds": {
+            "n": 20,
+            "median": 259.31018800000004,
+            "p95": 319.471834
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 23.0,
+            "p95": 23
+          }
+        },
+        "large_file_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 263.23958400000004,
+            "p95": 292.701708
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          }
+        },
+        "stage": {
+          "milliseconds": {
+            "n": 20,
+            "median": 559.2246869999999,
+            "p95": 653.991875
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 44.0,
+            "p95": 44
+          }
+        },
+        "switch_preview": {
+          "milliseconds": {
+            "n": 40,
+            "median": 191.636396,
+            "p95": 254.469583
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 16.0,
+            "p95": 16
+          }
+        },
+        "switch_apply": {
+          "milliseconds": {
+            "n": 40,
+            "median": 474.773437,
+            "p95": 620.924584
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 36.0,
+            "p95": 36
+          }
+        },
+        "snapshot_submodule_1000_untracked": {
+          "milliseconds": {
+            "n": 20,
+            "median": 277.6378955,
+            "p95": 355.818208
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 26.0,
+            "p95": 26
+          }
+        },
+        "submodule_discovery": {
+          "milliseconds": {
+            "n": 20,
+            "median": 310.23125000000005,
+            "p95": 354.767125
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 27.0,
+            "p95": 27
+          }
+        },
+        "worktree_list": {
+          "milliseconds": {
+            "n": 20,
+            "median": 20.8948335,
+            "p95": 27.11525
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          }
+        }
+      },
+      "after": {
+        "open_registered_cold_app": {
+          "milliseconds": {
+            "n": 20,
+            "median": 42.138208000000006,
+            "p95": 51.440375
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          }
+        },
+        "graph_first_cold_app": {
+          "milliseconds": {
+            "n": 20,
+            "median": 325.3537295,
+            "p95": 376.888042
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          }
+        },
+        "graph_first_warm": {
+          "milliseconds": {
+            "n": 20,
+            "median": 217.82852050000002,
+            "p95": 296.947417
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 15.0,
+            "p95": 15
+          }
+        },
+        "graph_next": {
+          "milliseconds": {
+            "n": 20,
+            "median": 217.797146,
+            "p95": 298.079958
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 15.0,
+            "p95": 15
+          }
+        },
+        "deep_refresh_first_page": {
+          "milliseconds": {
+            "n": 20,
+            "median": 227.472271,
+            "p95": 288.087625
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 15.0,
+            "p95": 15
+          }
+        },
+        "deep_refresh_all_ten_pages": {
+          "milliseconds": {
+            "n": 20,
+            "median": 2238.154729,
+            "p95": 2703.8349999999996
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 150.0,
+            "p95": 150
+          }
+        },
+        "detail": {
+          "milliseconds": {
+            "n": 20,
+            "median": 83.26914599999999,
+            "p95": 100.967042
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 6.0,
+            "p95": 6
+          }
+        },
+        "snapshot_clean": {
+          "milliseconds": {
+            "n": 20,
+            "median": 204.739104,
+            "p95": 279.859625
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          }
+        },
+        "snapshot_dirty_untracked": {
+          "milliseconds": {
+            "n": 20,
+            "median": 246.8920625,
+            "p95": 378.092083
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 19.0,
+            "p95": 19
+          }
+        },
+        "large_file_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 274.6907505,
+            "p95": 361.58408399999996
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 21.0,
+            "p95": 21
+          }
+        },
+        "stage": {
+          "milliseconds": {
+            "n": 20,
+            "median": 609.0084165,
+            "p95": 741.558917
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 44.0,
+            "p95": 44
+          }
+        },
+        "switch_preview": {
+          "milliseconds": {
+            "n": 40,
+            "median": 203.63791650000002,
+            "p95": 315.73695899999996
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 16.0,
+            "p95": 16
+          }
+        },
+        "switch_apply": {
+          "milliseconds": {
+            "n": 40,
+            "median": 517.785854,
+            "p95": 654.029333
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 36.0,
+            "p95": 36
+          }
+        },
+        "snapshot_submodule_1000_untracked": {
+          "milliseconds": {
+            "n": 20,
+            "median": 291.33589600000005,
+            "p95": 341.358834
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 22.0,
+            "p95": 22
+          }
+        },
+        "submodule_discovery": {
+          "milliseconds": {
+            "n": 20,
+            "median": 339.413375,
+            "p95": 410.01349999999996
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 27.0,
+            "p95": 27
+          }
+        },
+        "worktree_list": {
+          "milliseconds": {
+            "n": 20,
+            "median": 25.742645500000002,
+            "p95": 35.245041
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 2.0,
+            "p95": 2
+          }
+        }
+      }
+    },
+    "operations": {
+      "before": {
+        "switch_feature_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 150.02325,
+            "p95": 197.922458
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 16.0,
+            "p95": 16
+          }
+        },
+        "switch_feature_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 398.32231249999995,
+            "p95": 611.854083
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 36.0,
+            "p95": 36
+          }
+        },
+        "switch_refresh": {
+          "milliseconds": {
+            "n": 40,
+            "median": 651.2008125,
+            "p95": 945.870958
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 43.5,
+            "p95": 45
+          }
+        },
+        "switch_main_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 217.164104,
+            "p95": 343.16075
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 16.0,
+            "p95": 16
+          }
+        },
+        "switch_main_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 587.0131455000001,
+            "p95": 763.697458
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 36.0,
+            "p95": 36
+          }
+        },
+        "push_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 459.580062,
+            "p95": 539.950708
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 35.0,
+            "p95": 35
+          }
+        },
+        "push_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 1717.3233335,
+            "p95": 2048.875
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 108.0,
+            "p95": 108
+          }
+        },
+        "push_refresh": {
+          "milliseconds": {
+            "n": 20,
+            "median": 614.109563,
+            "p95": 738.746083
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 42.0,
+            "p95": 42
+          }
+        },
+        "pull_fetch": {
+          "milliseconds": {
+            "n": 20,
+            "median": 302.9904795,
+            "p95": 432.197709
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 18.0,
+            "p95": 18
+          }
+        },
+        "pull_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 439.678292,
+            "p95": 484.975875
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 43.0,
+            "p95": 43
+          }
+        },
+        "pull_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 1331.9809375,
+            "p95": 1651.5758329999999
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 119.0,
+            "p95": 119
+          }
+        },
+        "pull_refresh": {
+          "milliseconds": {
+            "n": 20,
+            "median": 473.230063,
+            "p95": 542.438417
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 42.0,
+            "p95": 42
+          }
+        },
+        "merge_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 603.8652709999999,
+            "p95": 777.129416
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 49.0,
+            "p95": 49
+          }
+        },
+        "merge_begin": {
+          "milliseconds": {
+            "n": 20,
+            "median": 2472.556521,
+            "p95": 3288.771292
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 151.0,
+            "p95": 151
+          }
+        },
+        "merge_finish_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 832.3252915,
+            "p95": 1164.985542
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 51.0,
+            "p95": 51
+          }
+        },
+        "merge_finish": {
+          "milliseconds": {
+            "n": 20,
+            "median": 2459.363229,
+            "p95": 3202.4152080000003
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 156.0,
+            "p95": 156
+          }
+        },
+        "merge_refresh": {
+          "milliseconds": {
+            "n": 20,
+            "median": 719.187125,
+            "p95": 867.872875
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 42.0,
+            "p95": 42
+          }
+        }
+      },
+      "after": {
+        "switch_feature_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 147.50483350000002,
+            "p95": 168.36158400000002
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 16.0,
+            "p95": 16
+          }
+        },
+        "switch_feature_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 387.9560215,
+            "p95": 451.92516700000004
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 36.0,
+            "p95": 36
+          }
+        },
+        "switch_refresh": {
+          "milliseconds": {
+            "n": 40,
+            "median": 621.414896,
+            "p95": 904.420125
+          },
+          "gitCalls": {
+            "n": 40,
+            "median": 39.5,
+            "p95": 41
+          }
+        },
+        "switch_main_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 223.326708,
+            "p95": 285.460459
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 16.0,
+            "p95": 16
+          }
+        },
+        "switch_main_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 662.8151665,
+            "p95": 794.734041
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 36.0,
+            "p95": 36
+          }
+        },
+        "push_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 486.714271,
+            "p95": 554.4339160000001
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 35.0,
+            "p95": 35
+          }
+        },
+        "push_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 1937.7476665,
+            "p95": 2139.747792
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 108.0,
+            "p95": 108
+          }
+        },
+        "push_refresh": {
+          "milliseconds": {
+            "n": 20,
+            "median": 622.121229,
+            "p95": 698.714208
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 38.0,
+            "p95": 38
+          }
+        },
+        "pull_fetch": {
+          "milliseconds": {
+            "n": 20,
+            "median": 294.4534375,
+            "p95": 336.809208
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 18.0,
+            "p95": 18
+          }
+        },
+        "pull_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 400.0030415,
+            "p95": 465.555541
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 43.0,
+            "p95": 43
+          }
+        },
+        "pull_apply": {
+          "milliseconds": {
+            "n": 20,
+            "median": 1276.3371875,
+            "p95": 1452.4019589999998
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 119.0,
+            "p95": 119
+          }
+        },
+        "pull_refresh": {
+          "milliseconds": {
+            "n": 20,
+            "median": 436.61175000000003,
+            "p95": 549.906708
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 38.0,
+            "p95": 38
+          }
+        },
+        "merge_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 579.2279995,
+            "p95": 684.2090410000001
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 45.0,
+            "p95": 45
+          }
+        },
+        "merge_begin": {
+          "milliseconds": {
+            "n": 20,
+            "median": 2200.338833,
+            "p95": 2599.3767500000004
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 133.0,
+            "p95": 133
+          }
+        },
+        "merge_finish_preview": {
+          "milliseconds": {
+            "n": 20,
+            "median": 738.4418129999999,
+            "p95": 967.628625
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 46.0,
+            "p95": 46
+          }
+        },
+        "merge_finish": {
+          "milliseconds": {
+            "n": 20,
+            "median": 2381.951521,
+            "p95": 2604.335709
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 137.0,
+            "p95": 137
+          }
+        },
+        "merge_refresh": {
+          "milliseconds": {
+            "n": 20,
+            "median": 659.6732495,
+            "p95": 865.93625
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 38.0,
+            "p95": 38
+          }
+        }
+      }
+    },
+    "nativeUi": {
+      "before": {
+        "graph_first_ipc": {
+          "n": 20,
+          "median": 265.5,
+          "p95": 570
+        },
+        "graph_next_ipc": {
+          "n": 20,
+          "median": 208.0,
+          "p95": 433
+        },
+        "snapshot_ipc": {
+          "n": 20,
+          "median": 297.5,
+          "p95": 525
+        },
+        "file_preview_ipc": {
+          "n": 20,
+          "median": 203.00000000000364,
+          "p95": 260
+        },
+        "detail_ipc": {
+          "n": 20,
+          "median": 79.0,
+          "p95": 107.00000000000728
+        },
+        "detail_ui_dom_ready": {
+          "n": 20,
+          "median": 120.00000000000364,
+          "p95": 163
+        },
+        "working_diff_ui_dom_ready": {
+          "n": 20,
+          "median": 731.5000000000036,
+          "p95": 1385.0000000000073
+        }
+      },
+      "after": {
+        "graph_first_ipc": {
+          "n": 20,
+          "median": 326.99999999999636,
+          "p95": 468
+        },
+        "graph_next_ipc": {
+          "n": 20,
+          "median": 232.50000000000182,
+          "p95": 357
+        },
+        "snapshot_ipc": {
+          "n": 20,
+          "median": 269.00000000000364,
+          "p95": 318
+        },
+        "file_preview_ipc": {
+          "n": 20,
+          "median": 225.49999999999636,
+          "p95": 304
+        },
+        "detail_ipc": {
+          "n": 20,
+          "median": 94.99999999999818,
+          "p95": 129
+        },
+        "detail_ui_dom_ready": {
+          "n": 20,
+          "median": 123.50000000000182,
+          "p95": 184
+        },
+        "working_diff_ui_dom_ready": {
+          "n": 20,
+          "median": 725.0,
+          "p95": 969
+        }
+      }
+    },
+    "nativeTimings": {
+      "before": [
+        {
+          "resultType": "gitnova_domain::Catalog",
+          "background": false,
+          "queueMs": {
+            "n": 2,
+            "median": 0.3043745,
+            "p95": 0.559333
+          },
+          "executionMs": {
+            "n": 2,
+            "median": 0.325625,
+            "p95": 0.631
+          },
+          "serializationProbeMs": {
+            "n": 2,
+            "median": 0.29962500000000003,
+            "p95": 0.56525
+          },
+          "bytes": {
+            "n": 2,
+            "median": 1661.0,
+            "p95": 1661
+          },
+          "gitCalls": {
+            "n": 2,
+            "median": 0.0,
+            "p95": 0
+          }
+        },
+        {
+          "resultType": "gitnova_domain::CommitIdentityContext",
+          "background": false,
+          "queueMs": {
+            "n": 24,
+            "median": 0.014042,
+            "p95": 0.607209
+          },
+          "executionMs": {
+            "n": 24,
+            "median": 48.970895999999996,
+            "p95": 82.40870799999999
+          },
+          "serializationProbeMs": {
+            "n": 24,
+            "median": 0.004146,
+            "p95": 0.006417
+          },
+          "bytes": {
+            "n": 24,
+            "median": 107.0,
+            "p95": 107
+          },
+          "gitCalls": {
+            "n": 24,
+            "median": 3.0,
+            "p95": 3
+          }
+        },
+        {
+          "resultType": "gitnova_domain::RemoteBranches",
+          "background": false,
+          "queueMs": {
+            "n": 3,
+            "median": 72.04974999999999,
+            "p95": 131.99229200000002
+          },
+          "executionMs": {
+            "n": 3,
+            "median": 28.018250000000002,
+            "p95": 58.672250000000005
+          },
+          "serializationProbeMs": {
+            "n": 3,
+            "median": 0.004083,
+            "p95": 0.020707999999999997
+          },
+          "bytes": {
+            "n": 3,
+            "median": 38,
+            "p95": 38
+          },
+          "gitCalls": {
+            "n": 3,
+            "median": 3,
+            "p95": 3
+          }
+        },
+        {
+          "resultType": "gitnova_domain::GraphPage",
+          "background": false,
+          "queueMs": {
+            "n": 41,
+            "median": 0.013625000000000002,
+            "p95": 0.046375
+          },
+          "executionMs": {
+            "n": 41,
+            "median": 228.058209,
+            "p95": 514.277041
+          },
+          "serializationProbeMs": {
+            "n": 41,
+            "median": 0.049082999999999995,
+            "p95": 0.083541
+          },
+          "bytes": {
+            "n": 41,
+            "median": 32931,
+            "p95": 32951
+          },
+          "gitCalls": {
+            "n": 41,
+            "median": 15,
+            "p95": 15
+          }
+        },
+        {
+          "resultType": "gitnova_domain::CommitHistoryPreview",
+          "background": false,
+          "queueMs": {
+            "n": 1,
+            "median": 0.011250000000000001,
+            "p95": 0.011250000000000001
+          },
+          "executionMs": {
+            "n": 1,
+            "median": 102.032042,
+            "p95": 102.032042
+          },
+          "serializationProbeMs": {
+            "n": 1,
+            "median": 0.001708,
+            "p95": 0.001708
+          },
+          "bytes": {
+            "n": 1,
+            "median": 0,
+            "p95": 0
+          },
+          "gitCalls": {
+            "n": 1,
+            "median": 7,
+            "p95": 7
+          }
+        },
+        {
+          "resultType": "gitnova_domain::CommitDetail",
+          "background": false,
+          "queueMs": {
+            "n": 41,
+            "median": 0.011834,
+            "p95": 0.018125
+          },
+          "executionMs": {
+            "n": 41,
+            "median": 80.80695899999999,
+            "p95": 121.19824999999999
+          },
+          "serializationProbeMs": {
+            "n": 41,
+            "median": 0.007917,
+            "p95": 0.008875000000000001
+          },
+          "bytes": {
+            "n": 41,
+            "median": 559,
+            "p95": 559
+          },
+          "gitCalls": {
+            "n": 41,
+            "median": 6,
+            "p95": 6
+          }
+        },
+        {
+          "resultType": "gitnova_domain::RepositorySnapshot",
+          "background": false,
+          "queueMs": {
+            "n": 24,
+            "median": 0.01225,
+            "p95": 0.06837499999999999
+          },
+          "executionMs": {
+            "n": 24,
+            "median": 276.848937,
+            "p95": 501.76587500000005
+          },
+          "serializationProbeMs": {
+            "n": 24,
+            "median": 0.178646,
+            "p95": 0.234125
+          },
+          "bytes": {
+            "n": 24,
+            "median": 193420.0,
+            "p95": 193420
+          },
+          "gitCalls": {
+            "n": 24,
+            "median": 23.0,
+            "p95": 23
+          }
+        },
+        {
+          "resultType": "gitnova_domain::FilePreview",
+          "background": false,
+          "queueMs": {
+            "n": 20,
+            "median": 0.0120625,
+            "p95": 0.023458
+          },
+          "executionMs": {
+            "n": 20,
+            "median": 201.49818749999997,
+            "p95": 258.454
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.006229500000000001,
+            "p95": 0.007333999999999999
+          },
+          "bytes": {
+            "n": 20,
+            "median": 544.0,
+            "p95": 544
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          }
+        },
+        {
+          "resultType": "gitnova_domain::StashList",
+          "background": false,
+          "queueMs": {
+            "n": 4,
+            "median": 106.009958,
+            "p95": 142.661625
+          },
+          "executionMs": {
+            "n": 4,
+            "median": 17.018396,
+            "p95": 39.685375
+          },
+          "serializationProbeMs": {
+            "n": 4,
+            "median": 0.0032295,
+            "p95": 0.024791
+          },
+          "bytes": {
+            "n": 4,
+            "median": 27.0,
+            "p95": 27
+          },
+          "gitCalls": {
+            "n": 4,
+            "median": 2.0,
+            "p95": 2
+          }
+        },
+        {
+          "resultType": "gitnova_domain::SubmoduleSnapshot",
+          "background": false,
+          "queueMs": {
+            "n": 1,
+            "median": 40.345959,
+            "p95": 40.345959
+          },
+          "executionMs": {
+            "n": 1,
+            "median": 205.332125,
+            "p95": 205.332125
+          },
+          "serializationProbeMs": {
+            "n": 1,
+            "median": 0.010209,
+            "p95": 0.010209
+          },
+          "bytes": {
+            "n": 1,
+            "median": 142,
+            "p95": 142
+          },
+          "gitCalls": {
+            "n": 1,
+            "median": 19,
+            "p95": 19
+          }
+        },
+        {
+          "resultType": "gitnova_domain::RemoteGraphTags",
+          "background": true,
+          "queueMs": {
+            "n": 1,
+            "median": 0.44725,
+            "p95": 0.44725
+          },
+          "executionMs": {
+            "n": 1,
+            "median": 49.709375,
+            "p95": 49.709375
+          },
+          "serializationProbeMs": {
+            "n": 1,
+            "median": 0.003208,
+            "p95": 0.003208
+          },
+          "bytes": {
+            "n": 1,
+            "median": 25,
+            "p95": 25
+          },
+          "gitCalls": {
+            "n": 1,
+            "median": 5,
+            "p95": 5
+          }
+        },
+        {
+          "resultType": "gitnova_domain::HunkPreview",
+          "background": false,
+          "queueMs": {
+            "n": 20,
+            "median": 0.011042,
+            "p95": 0.018042000000000002
+          },
+          "executionMs": {
+            "n": 20,
+            "median": 369.61918749999995,
+            "p95": 426.799875
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.00625,
+            "p95": 0.008416
+          },
+          "bytes": {
+            "n": 20,
+            "median": 550.0,
+            "p95": 550
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 30.0,
+            "p95": 30
+          }
+        }
+      ],
+      "after": [
+        {
+          "resultType": "gitnova_domain::Catalog",
+          "background": false,
+          "queueMs": {
+            "n": 2,
+            "median": 98.798583,
+            "p95": 197.47424999999998
+          },
+          "executionMs": {
+            "n": 2,
+            "median": 0.045729000000000006,
+            "p95": 0.08695800000000001
+          },
+          "serializationProbeMs": {
+            "n": 2,
+            "median": 0.0482505,
+            "p95": 0.08666700000000001
+          },
+          "bytes": {
+            "n": 2,
+            "median": 1661.0,
+            "p95": 1661
+          },
+          "gitCalls": {
+            "n": 2,
+            "median": 0.0,
+            "p95": 0
+          }
+        },
+        {
+          "resultType": "gitnova_domain::CommitIdentityContext",
+          "background": false,
+          "queueMs": {
+            "n": 22,
+            "median": 0.015896,
+            "p95": 0.073458
+          },
+          "executionMs": {
+            "n": 22,
+            "median": 45.918353999999994,
+            "p95": 68.233125
+          },
+          "serializationProbeMs": {
+            "n": 22,
+            "median": 0.005,
+            "p95": 0.006
+          },
+          "bytes": {
+            "n": 22,
+            "median": 135.0,
+            "p95": 135
+          },
+          "gitCalls": {
+            "n": 22,
+            "median": 3.0,
+            "p95": 3
+          }
+        },
+        {
+          "resultType": "gitnova_domain::RemoteBranches",
+          "background": false,
+          "queueMs": {
+            "n": 2,
+            "median": 53.9425625,
+            "p95": 107.750459
+          },
+          "executionMs": {
+            "n": 2,
+            "median": 56.6958545,
+            "p95": 82.073042
+          },
+          "serializationProbeMs": {
+            "n": 2,
+            "median": 0.0104785,
+            "p95": 0.016666
+          },
+          "bytes": {
+            "n": 2,
+            "median": 38.0,
+            "p95": 38
+          },
+          "gitCalls": {
+            "n": 2,
+            "median": 3.0,
+            "p95": 3
+          }
+        },
+        {
+          "resultType": "gitnova_domain::GraphPage",
+          "background": false,
+          "queueMs": {
+            "n": 41,
+            "median": 0.015166,
+            "p95": 0.11558299999999999
+          },
+          "executionMs": {
+            "n": 41,
+            "median": 276.74475,
+            "p95": 450.160125
+          },
+          "serializationProbeMs": {
+            "n": 41,
+            "median": 0.051417,
+            "p95": 0.074125
+          },
+          "bytes": {
+            "n": 41,
+            "median": 32931,
+            "p95": 32951
+          },
+          "gitCalls": {
+            "n": 41,
+            "median": 15,
+            "p95": 15
+          }
+        },
+        {
+          "resultType": "gitnova_domain::StashList",
+          "background": false,
+          "queueMs": {
+            "n": 1,
+            "median": 0.021959,
+            "p95": 0.021959
+          },
+          "executionMs": {
+            "n": 1,
+            "median": 39.179,
+            "p95": 39.179
+          },
+          "serializationProbeMs": {
+            "n": 1,
+            "median": 0.003666,
+            "p95": 0.003666
+          },
+          "bytes": {
+            "n": 1,
+            "median": 27,
+            "p95": 27
+          },
+          "gitCalls": {
+            "n": 1,
+            "median": 2,
+            "p95": 2
+          }
+        },
+        {
+          "resultType": "gitnova_domain::CommitHistoryPreview",
+          "background": false,
+          "queueMs": {
+            "n": 1,
+            "median": 0.010875,
+            "p95": 0.010875
+          },
+          "executionMs": {
+            "n": 1,
+            "median": 71.15174999999999,
+            "p95": 71.15174999999999
+          },
+          "serializationProbeMs": {
+            "n": 1,
+            "median": 0.002791,
+            "p95": 0.002791
+          },
+          "bytes": {
+            "n": 1,
+            "median": 0,
+            "p95": 0
+          },
+          "gitCalls": {
+            "n": 1,
+            "median": 7,
+            "p95": 7
+          }
+        },
+        {
+          "resultType": "gitnova_domain::RepositorySnapshot",
+          "background": false,
+          "queueMs": {
+            "n": 21,
+            "median": 0.011125,
+            "p95": 0.031375
+          },
+          "executionMs": {
+            "n": 21,
+            "median": 266.3935,
+            "p95": 315.061541
+          },
+          "serializationProbeMs": {
+            "n": 21,
+            "median": 0.178875,
+            "p95": 0.20858300000000002
+          },
+          "bytes": {
+            "n": 21,
+            "median": 193420,
+            "p95": 193420
+          },
+          "gitCalls": {
+            "n": 21,
+            "median": 19,
+            "p95": 19
+          }
+        },
+        {
+          "resultType": "gitnova_domain::CommitDetail",
+          "background": false,
+          "queueMs": {
+            "n": 41,
+            "median": 0.012707999999999999,
+            "p95": 0.14216700000000002
+          },
+          "executionMs": {
+            "n": 41,
+            "median": 95.62445799999999,
+            "p95": 131.975333
+          },
+          "serializationProbeMs": {
+            "n": 41,
+            "median": 0.008042,
+            "p95": 0.011208000000000001
+          },
+          "bytes": {
+            "n": 41,
+            "median": 559,
+            "p95": 559
+          },
+          "gitCalls": {
+            "n": 41,
+            "median": 6,
+            "p95": 6
+          }
+        },
+        {
+          "resultType": "gitnova_domain::SubmoduleSnapshot",
+          "background": false,
+          "queueMs": {
+            "n": 1,
+            "median": 185.881833,
+            "p95": 185.881833
+          },
+          "executionMs": {
+            "n": 1,
+            "median": 171.5025,
+            "p95": 171.5025
+          },
+          "serializationProbeMs": {
+            "n": 1,
+            "median": 0.01275,
+            "p95": 0.01275
+          },
+          "bytes": {
+            "n": 1,
+            "median": 142,
+            "p95": 142
+          },
+          "gitCalls": {
+            "n": 1,
+            "median": 19,
+            "p95": 19
+          }
+        },
+        {
+          "resultType": "gitnova_domain::RemoteGraphTags",
+          "background": true,
+          "queueMs": {
+            "n": 1,
+            "median": 0.034875,
+            "p95": 0.034875
+          },
+          "executionMs": {
+            "n": 1,
+            "median": 52.61175,
+            "p95": 52.61175
+          },
+          "serializationProbeMs": {
+            "n": 1,
+            "median": 0.0028339999999999997,
+            "p95": 0.0028339999999999997
+          },
+          "bytes": {
+            "n": 1,
+            "median": 25,
+            "p95": 25
+          },
+          "gitCalls": {
+            "n": 1,
+            "median": 5,
+            "p95": 5
+          }
+        },
+        {
+          "resultType": "gitnova_domain::FilePreview",
+          "background": false,
+          "queueMs": {
+            "n": 20,
+            "median": 0.012458,
+            "p95": 0.018625
+          },
+          "executionMs": {
+            "n": 20,
+            "median": 223.8747085,
+            "p95": 302.566042
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.0060625,
+            "p95": 0.006458
+          },
+          "bytes": {
+            "n": 20,
+            "median": 544.0,
+            "p95": 544
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 17.0,
+            "p95": 17
+          }
+        },
+        {
+          "resultType": "gitnova_domain::HunkPreview",
+          "background": false,
+          "queueMs": {
+            "n": 20,
+            "median": 0.0109585,
+            "p95": 0.026167
+          },
+          "executionMs": {
+            "n": 20,
+            "median": 387.788146,
+            "p95": 495.7765
+          },
+          "serializationProbeMs": {
+            "n": 20,
+            "median": 0.006354,
+            "p95": 0.007333999999999999
+          },
+          "bytes": {
+            "n": 20,
+            "median": 550.0,
+            "p95": 550
+          },
+          "gitCalls": {
+            "n": 20,
+            "median": 30.0,
+            "p95": 30
+          }
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Sequential blocks, not randomized; OS filesystem caches and other applications uncontrolled.",
+    "No other-client speed comparison measured.",
+    "No live provider network timing measured.",
+    "No Windows/Linux native GUI or RSS measurement on this host.",
+    "Foreground attempt failed; it is not acceptance.",
+    "No paired before/after long RSS measurement; no RAM improvement claim.",
+    "DOM readiness is not physical presentation; serialization probe is not actual Tauri serialization timestamp."
+  ],
+  "profileComparison": {
+    "debug": {
+      "graph_first_cold_app": {
+        "n": 20,
+        "medianMs": 305.55589599999996,
+        "p95Ms": 354.74675
+      },
+      "graph_first_warm": {
+        "n": 20,
+        "medianMs": 203.729625,
+        "p95Ms": 277.762584
+      },
+      "graph_next": {
+        "n": 20,
+        "medianMs": 198.818146,
+        "p95Ms": 244.892208
+      },
+      "graph_refresh": {
+        "n": 20,
+        "medianMs": 201.5404165,
+        "p95Ms": 242.08974999999998
+      }
+    },
+    "release": {
+      "graph_first_cold_app": {
+        "n": 20,
+        "medianMs": 323.0204165,
+        "p95Ms": 428.531791
+      },
+      "graph_first_warm": {
+        "n": 20,
+        "medianMs": 228.00264549999997,
+        "p95Ms": 255.89387499999998
+      },
+      "graph_next": {
+        "n": 20,
+        "medianMs": 204.123396,
+        "p95Ms": 271.44579200000004
+      },
+      "graph_refresh": {
+        "n": 20,
+        "medianMs": 222.29862500000002,
+        "p95Ms": 258.631583
+      }
+    }
+  },
+  "rawEvidenceFile": "performance-full.raw.json",
+  "bundle": {
+    "before": {
+      "entryBytes": 1032273,
+      "staticClosureBytes": 1032273,
+      "staticClosureGzipBytes": 266098,
+      "files": [
+        "assets/index-D7rfgVWR.js"
+      ]
+    },
+    "after": {
+      "entryBytes": 559417,
+      "staticClosureBytes": 949529,
+      "staticClosureGzipBytes": 241894,
+      "files": [
+        "assets/index-DjRGZX-1.js",
+        "assets/jsx-runtime-CkgL3MYq.js"
+      ]
+    }
+  },
+  "soak": {
+    "soak-release-foreground": {
+      "schemaVersion": 1,
+      "kind": "gitnova-native-soak",
+      "measuredAt": "2026-11-13T03:54:33.007966+00:00",
+      "sourceBaseCommit": "cccd7561e1b26438bb9dadf2c0fa60b3cb8ea04a",
+      "sourceHasUncommittedChanges": true,
+      "binarySha256": "e52ade3e071c71329b0e87ab2971fe3a2493cc2c4bc0a4d61f30656d8b440c65",
+      "passed": false,
+      "failure": "Foreground soak observed a hidden WebView",
+      "requested_seconds": 1800,
+      "sampled_seconds": 6.11,
+      "fixture": {
+        "large_commits": 50000,
+        "large_tracked_files": 10000,
+        "medium_commits": 5000,
+        "locations": 10,
+        "linked_worktrees": 2,
+        "submodules": 2,
+        "tracking_branches": 200,
+        "merge_commits": 10
+      },
+      "foregroundRequested": true,
+      "workload": "interactions",
+      "buildProfile": "release",
+      "profile": "packaged release app, real WKWebView with observed visibility, scripted manual refresh/interaction; optional frontend diagnostic counters; no GPU measurement, provider/network or cross-product comparison",
+      "diagnosticLimitations": "Frontend counters are isolated fixture observations. performance.memory may be unavailable (then no JS heap data is claimed). RSS growth alone cannot identify a leak or its owner.",
+      "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+      "observed_webkit_visibility": [
+        "hidden",
+        "visible"
+      ],
+      "idle_sleep_guard": "Temporary task-owned caffeinate -di tied to native PID; prevents display idle sleep only during foreground sampling; no preferences changed or session unlocked",
+      "latencies": {},
+      "memory": {
+        "peak_native_mib": 114.953125,
+        "peak_sampled_total_mib": 263.40625,
+        "native_warm_slope_mib_per_minute": null,
+        "webkit_warm_slope_mib_per_minute": null,
+        "last_5min_native_median_mib": null
+      },
+      "cycles": 0,
+      "frontend_diagnostics": {},
+      "max_dom_nodes": 0,
+      "max_visible_rows": 0
+    },
+    "soak-release-background": {
+      "schemaVersion": 1,
+      "kind": "gitnova-native-soak",
+      "measuredAt": "2026-11-13T04:25:45.217279+00:00",
+      "sourceBaseCommit": "cccd7561e1b26438bb9dadf2c0fa60b3cb8ea04a",
+      "sourceHasUncommittedChanges": true,
+      "binarySha256": "e52ade3e071c71329b0e87ab2971fe3a2493cc2c4bc0a4d61f30656d8b440c65",
+      "passed": true,
+      "failure": null,
+      "requested_seconds": 1800,
+      "sampled_seconds": 1809.36,
+      "fixture": {
+        "large_commits": 50000,
+        "large_tracked_files": 10000,
+        "medium_commits": 5000,
+        "locations": 10,
+        "linked_worktrees": 2,
+        "submodules": 2,
+        "tracking_branches": 200,
+        "merge_commits": 10
+      },
+      "foregroundRequested": false,
+      "workload": "interactions",
+      "buildProfile": "release",
+      "profile": "packaged release app, real WKWebView with observed visibility, scripted manual refresh/interaction; optional frontend diagnostic counters; no GPU measurement, provider/network or cross-product comparison",
+      "diagnosticLimitations": "Frontend counters are isolated fixture observations. performance.memory may be unavailable (then no JS heap data is claimed). RSS growth alone cannot identify a leak or its owner.",
+      "attribution": "Native RSS is exact PID. WebKit RSS includes new WebKit helpers absent before launch; XPC parentage cannot exclude unrelated helpers launched during the interval. Git RSS is sampled descendants only and can miss short-lived peaks. Summed RSS may double-count shared pages; it is not JS heap or total GPU allocation.",
+      "observed_webkit_visibility": [
+        "hidden"
+      ],
+      "idle_sleep_guard": "Temporary task-owned caffeinate -i tied to native PID; no display/lock settings changed",
+      "latencies": {
+        "branch_roundtrip_review_apply_ipc": {
+          "samples": 13,
+          "median_ms": 2425.000000000233,
+          "p95_ms": 2890.000000000001,
+          "max_ms": 2890.000000000001
+        },
+        "detail_ui": {
+          "samples": 144,
+          "median_ms": 106.0,
+          "p95_ms": 216,
+          "max_ms": 711
+        },
+        "manual_refresh_ui": {
+          "samples": 144,
+          "median_ms": 1627.5,
+          "p95_ms": 2660,
+          "max_ms": 3175
+        },
+        "older_graph_ui": {
+          "samples": 48,
+          "median_ms": 919.0000000001164,
+          "p95_ms": 1185,
+          "max_ms": 1307
+        },
+        "snapshot_ipc": {
+          "samples": 144,
+          "median_ms": 422.5,
+          "p95_ms": 774,
+          "max_ms": 1641
+        },
+        "switch_repository_ui": {
+          "samples": 144,
+          "median_ms": 544.4999999998836,
+          "p95_ms": 1096,
+          "max_ms": 3906
+        },
+        "search_ui_current": {
+          "samples": 24,
+          "median_ms": 935.0,
+          "p95_ms": 2206,
+          "max_ms": 2271.999999999942
+        },
+        "workspace_search_ipc": {
+          "samples": 24,
+          "median_ms": 3026.5,
+          "p95_ms": 3358,
+          "max_ms": 11430.999999999984
+        }
+      },
+      "memory": {
+        "peak_native_mib": 226.390625,
+        "peak_sampled_total_mib": 490.21875,
+        "native_warm_slope_mib_per_minute": 0.00456827277237431,
+        "webkit_warm_slope_mib_per_minute": 3.139796196158741,
+        "last_5min_native_median_mib": 165.21875
+      },
+      "cycles": 144,
+      "frontend_diagnostics": {
+        "date_formatters_created": {
+          "first": 3,
+          "last": 4,
+          "peak": 4
+        },
+        "tauri_callbacks": {
+          "first": 0,
+          "last": 0,
+          "peak": 0
+        },
+        "canvas_contexts_created": {
+          "first": 1,
+          "last": 1,
+          "peak": 1
+        },
+        "text_measure_calls": {
+          "first": 5,
+          "last": 98,
+          "peak": 98
+        }
+      },
+      "max_dom_nodes": 2224,
+      "max_visible_rows": 25
+    }
+  },
+  "rapidSelection": {
+    "selection-after": {
+      "samples": [
+        {
+          "milliseconds": 609,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 481,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 396,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 581,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 880,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1613,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 578,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1047,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1116,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1076,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 1098,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 511,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 882,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 494,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 881,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 978,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 830,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 879,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 964,
+          "startedReads": 2,
+          "selections": 12
+        },
+        {
+          "milliseconds": 947,
+          "startedReads": 2,
+          "selections": 12
+        }
+      ]
+    },
+    "working-selection-after": {
+      "samples": [
+        {
+          "milliseconds": 1658,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1101,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1950,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1600,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1583,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 2017,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1598,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1584,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1566,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1083,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 983,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1484,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 982,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1500,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1482,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 2017,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1500,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1484,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1466,
+          "selections": 12,
+          "startedReads": 2
+        },
+        {
+          "milliseconds": 1450,
+          "selections": 12,
+          "startedReads": 2
+        }
+      ]
+    }
+  },
+  "checks": {
+    "frontendUnit": {
+      "passed": 89,
+      "files": 23
+    },
+    "rustDebugTargeted": {
+      "passed": 123
+    },
+    "rustReleaseReadAndMerge": {
+      "passed": 32
+    },
+    "nativeReleaseDesktop": {
+      "passed": 11
+    },
+    "browserDistinctScenarios": {
+      "passedAfterHarnessFix": 15,
+      "initialFailures": 1,
+      "note": "Paused-clock Settings harness corrected; affected test passed on rerun."
+    },
+    "versionScript": {
+      "passed": 1
+    },
+    "releaseBuild": true,
+    "soakBackground": true,
+    "soakForeground": false,
+    "fullCrossPlatformSuite": false
+  }
+}
