@@ -604,7 +604,82 @@ fn selected_prune_archives_missing_metadata_keeps_branch_dirty_other_checkout_an
         .any(|t| t.root == NativePath::new(&linked)));
 }
 #[test]
-fn prune_refuses_locked_missing_other_missing_and_changed_metadata() {
+fn prune_multiple_missing_registrations_individually_preserves_locked_and_live_worktrees() {
+    let d = tempfile::tempdir().unwrap();
+    let root = d.path().join("repo");
+    repo(&root);
+    for name in ["first", "second", "locked", "live"] {
+        git(
+            &root,
+            &[
+                "worktree",
+                "add",
+                "-b",
+                name,
+                d.path().join(name).to_str().unwrap(),
+            ],
+        );
+    }
+    git(
+        &root,
+        &[
+            "worktree",
+            "lock",
+            d.path().join("locked").to_str().unwrap(),
+        ],
+    );
+    for name in ["first", "second", "locked"] {
+        fs::remove_dir_all(d.path().join(name)).unwrap();
+    }
+    // A stale registration can name a branch which no longer exists. Git's
+    // worktree listing then advertises an all-zero HEAD, not a real object.
+    fs::write(
+        root.join(".git/worktrees/second/HEAD"),
+        "ref: refs/heads/absent\n",
+    )
+    .unwrap();
+    fs::write(d.path().join("live/file"), "keep live edits\n").unwrap();
+    let index = fs::read(root.join(".git/index")).unwrap();
+    let locked_head = fs::read(root.join(".git/worktrees/locked/HEAD")).unwrap();
+    let second_index = fs::read(root.join(".git/worktrees/second/index")).unwrap();
+    let refs = git(&root, &["show-ref", "--heads"]);
+    let (a, id) = app(&root, d.path());
+    for name in ["first", "second"] {
+        let r = WorktreeMaintenanceRequest {
+            kind: "prune".into(),
+            path: NativePath::new(&d.path().join(name)),
+            destination: String::new(),
+            reason: String::new(),
+        };
+        let p = a.preview_worktree_maintenance(&id, &r).unwrap();
+        assert_eq!(p.affected.len(), 1);
+        let archive = p.recovery_dir.unwrap().to_path().unwrap();
+        let result = a.maintain_worktree(&id, &r, &p.token).unwrap();
+        assert_eq!(result.status, "succeeded", "{result:?}");
+        assert!(archive.join("registration/HEAD").exists());
+        assert!(!root.join(".git/worktrees").join(name).exists());
+        if name == "first" {
+            assert_eq!(
+                fs::read(root.join(".git/worktrees/second/index")).unwrap(),
+                second_index
+            );
+        }
+        assert_eq!(git(&root, &["show-ref", "--heads"]), refs);
+        assert_eq!(fs::read(root.join(".git/index")).unwrap(), index);
+        assert_eq!(
+            fs::read(root.join(".git/worktrees/locked/HEAD")).unwrap(),
+            locked_head
+        );
+        assert!(root.join(".git/worktrees/locked/locked").exists());
+        assert_eq!(
+            fs::read_to_string(d.path().join("live/file")).unwrap(),
+            "keep live edits\n"
+        );
+    }
+}
+
+#[test]
+fn prune_refuses_locked_selected_and_changed_metadata() {
     let d = tempfile::tempdir().unwrap();
     let root = d.path().join("repo");
     repo(&root);
@@ -639,8 +714,9 @@ fn prune_refuses_locked_missing_other_missing_and_changed_metadata() {
         &root,
         &["worktree", "add", "-b", "other", other.to_str().unwrap()],
     );
-    fs::remove_dir_all(other).unwrap();
-    assert!(a.preview_worktree_maintenance(&id, &r).is_err());
+    fs::remove_dir_all(&other).unwrap();
+    // Another missing registration does not block a fresh selected review.
+    assert!(a.preview_worktree_maintenance(&id, &r).is_ok());
 }
 
 #[test]

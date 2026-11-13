@@ -4,7 +4,7 @@ default-members = ["crates/gitnova-core", "crates/gitnova-search", "crates/gitno
 resolver = "2"
 
 [workspace.package]
-version = "1.0.13"
+version = "1.0.14"
 edition = "2021"
 license = "Apache-2.0"
 rust-version = "1.99.1"

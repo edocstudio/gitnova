@@ -72,6 +72,8 @@ fn metadata(
     if trees.len() > 256 {
         return Err(err("Prune exceeds the 256-checkout review budget."));
     }
+    // Only the selected registration is archived below; unrelated missing
+    // checkouts must not prevent reviewing it. Never run global Git prune here.
     let mut selected = None;
     let base = d.common_dir.join("worktrees");
     if fs::symlink_metadata(&base)?.file_type().is_symlink() {
@@ -100,21 +102,6 @@ fn metadata(
                 return Err(err("Ambiguous worktree metadata; inspect with Git."));
             }
             selected = Some(admin);
-        } else {
-            // Native prune considers all metadata. No other missing/broken entry may be touched.
-            let other = git.discover(checkout).map_err(|_| {
-                err("Repair or inspect the other missing worktrees before selected pruning.")
-            })?;
-            if other.git_dir != admin.canonicalize()?
-                || other.common_dir != d.common_dir
-                || !trees
-                    .iter()
-                    .any(|t| t.path.to_path().ok().as_deref() == Some(checkout))
-            {
-                return Err(err(
-                    "Repair or inspect the other missing worktrees before selected pruning.",
-                ));
-            }
         }
     }
     let admin = selected.ok_or_else(|| err("Choose the registered missing checkout to prune."))?;
@@ -239,7 +226,14 @@ impl GitCli {
                 "Worktree metadata changed while saving recovery. Nothing was pruned.",
             ));
         }
-        if let Some(head) = &p.tree.head {
+        // Git reports an all-zero HEAD for a missing/unborn branch. There is
+        // no commit to retain in that case; the complete metadata is archived.
+        if let Some(head) = p
+            .tree
+            .head
+            .as_ref()
+            .filter(|oid| !oid.bytes().all(|b| b == b'0'))
+        {
             crate::validate_oid(head)?;
             run_ref_transaction(root,&format!("start\ncreate refs/gitnova/recovery/worktree-prune-{token} {head}\nprepare\ncommit\n"))?;
         }

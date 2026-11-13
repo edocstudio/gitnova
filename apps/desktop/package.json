@@ -1,7 +1,7 @@
 {
   "name": "gitnova-desktop",
   "private": true,
-  "version": "1.0.13",
+  "version": "1.0.14",
   "type": "module",
   "license": "Apache-2.0",
   "engines": {
