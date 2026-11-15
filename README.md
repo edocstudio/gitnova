@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.14-4c9aff?style=flat-square" alt="Version: 1.0.14" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.15-4c9aff?style=flat-square" alt="Version: 1.0.15" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -41,7 +41,7 @@
 
 ## Features
 
-The following workflows are implemented in version 1.0.14. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.0.15. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -163,7 +163,7 @@ For macOS development diagnostics, `npm run build:local` still produces `target/
 
 ## Project status
 
-**GitNova 1.0.14** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.0.15** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |
@@ -202,6 +202,9 @@ records two fewer Git subprocesses per page and the remaining latency uncertaint
 The [full performance follow-up](docs/verification/2026-11-13/performance-full.md)
 compares operation/read timings and frontend loading, with native release RAM
 measurements and machine-readable results for the measured fixtures.
+The [2026-11-15 display-read review](docs/verification/2026-11-15/performance.md)
+records one fewer Git subprocess per normal graph page, timing variability and
+remaining opportunities; it does not claim an overall latency improvement.
 
 ## Contributing
 

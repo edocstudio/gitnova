@@ -441,16 +441,52 @@ impl GitCli {
         let p = path_from_bytes(bytes)?;
         std::fs::canonicalize(if p.is_absolute() { p } else { path.join(p) }).map_err(Into::into)
     }
-    /// Request-local graph metadata. Discovery is shared with the display-cache
+    /// Resolve only the directories needed by display reads. Full discovery
+    /// (including worktree root and object format) remains the identity boundary.
+    fn display_git_directories(&self, path: &Path) -> Result<(PathBuf, PathBuf)> {
+        let path = std::fs::canonicalize(path)?;
+        let raw = self
+            .read(
+                &path,
+                &[
+                    OsStr::new("rev-parse"),
+                    OsStr::new("--path-format=absolute"),
+                    OsStr::new("--absolute-git-dir"),
+                    OsStr::new("--git-common-dir"),
+                ],
+                DEFAULT_LIMIT,
+            )?
+            .bytes;
+        let fields: Vec<_> = raw
+            .strip_suffix(b"\n")
+            .unwrap_or(&raw)
+            .split(|byte| *byte == b'\n')
+            .collect();
+        if fields.len() == 2 {
+            let git_dir = path_from_bytes(fields[0].to_vec())?;
+            let common_dir = path_from_bytes(fields[1].to_vec())?;
+            if git_dir.is_absolute() && common_dir.is_absolute() {
+                return Ok((
+                    std::fs::canonicalize(git_dir)?,
+                    std::fs::canonicalize(common_dir)?,
+                ));
+            }
+        }
+        // Native paths can contain newlines. Preserve the existing unambiguous
+        // single-field discovery fallback rather than guessing their boundaries.
+        let discovery = self.discover(&path)?;
+        Ok((discovery.git_dir, discovery.common_dir))
+    }
+    /// Request-local graph metadata. Directory resolution is shared with the display-cache
     /// key only; callers still recheck fingerprint after loading the page.
     /// Nothing here authorizes a write or retains repository state across calls.
     pub fn graph_read_keys(&self, path: &Path) -> Result<(String, Option<String>)> {
-        let discovery = self.discover(path)?;
-        let fingerprint = self.fingerprint_at(path, &discovery.common_dir)?;
+        let (git_dir, common_dir) = self.display_git_directories(path)?;
+        let fingerprint = self.fingerprint_at(path, &common_dir)?;
         // Tracking is optional display metadata, as in the graph caller before
         // this optimization. Its failure must not hide readable history.
         let tracking = self
-            .tracking_display_key_at(path, &fingerprint, &discovery.git_dir)
+            .tracking_display_key_at(path, &fingerprint, &git_dir)
             .ok();
         Ok((fingerprint, tracking))
     }
