@@ -510,3 +510,24 @@ anchor if the user leaves it alone; stop restoration if the user selects or
 navigates the graph. Keep mutation controls guarded until repository refresh
 completes. Local foreground commands retain access to one of the existing two
 native worker slots while background CI/host reads wait on their own gate.
+
+
+## Publishing work inside submodules
+
+The existing Push action remains visible on detached checkouts with a commit.
+It opens the existing create-branch preview at that commit, explaining why a
+branch is needed to publish saved work. Creating the branch and publishing it
+remain separate confirmations. No existing branch is moved implicitly.
+
+Parent pushes retain native Git's submodule publication check. When a child
+commit has not been published, the existing Push context offers initialized
+submodules to open in the graph. A separate dashboard cannot improve this
+recovery: selecting the child uses the existing related-repository navigation,
+then the same branch and Push controls. No recursive push is performed. Return
+to the parent and obtain a fresh Push review after publishing child commits.
+
+An HTTP redirect during authenticated Git transport is reported separately from
+an authentication failure. Check the exact HTTPS clone URL supplied by the host
+(including `.git` where required); changing a remote remains explicit. GitNova
+does not follow redirects or rewrite remote URLs automatically, so credentials
+remain scoped to the reviewed repository.

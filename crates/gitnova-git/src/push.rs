@@ -99,7 +99,7 @@ impl GitCli {
         let full = format!("refs/heads/{branch}");
         let args = ["ls-remote", "--refs", "--heads", "--", url, &full];
         let args = args.iter().map(OsStr::new).collect::<Vec<_>>();
-        let bytes=self.execute_transport(path,&args,1024*1024,false,"file:http:https:ssh:git").map_err(|error|if error.code=="git_auth" {error} else {AppError::new("push_inspection",format!("Cannot inspect the selected push destination ({}). Check repository access and credentials, then review again.",error.code))})?.bytes;
+        let bytes=self.execute_transport(path,&args,1024*1024,false,"file:http:https:ssh:git").map_err(|error|if matches!(error.code.as_str(), "git_auth" | "git_redirect") {error} else {AppError::new("push_inspection",format!("Cannot inspect the selected push destination ({}). Check repository access and credentials, then review again.",error.code))})?.bytes;
         let text = String::from_utf8(bytes)
             .map_err(|_| AppError::new("push", "Invalid remote ref response."))?;
         let mut result = None;

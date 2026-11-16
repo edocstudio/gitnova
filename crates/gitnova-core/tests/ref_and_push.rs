@@ -715,6 +715,7 @@ fn pushing_a_parent_never_implicitly_publishes_an_unpushed_submodule_commit() {
     let parent_before = git(&repo, &["rev-parse", "HEAD"]);
     let parent_remote = remote(&repo, temp.path());
     let child = repo.join("libs/child");
+    git(&child, &["switch", "--detach"]);
     fs::write(child.join("child.txt"), "second not pushed\n").unwrap();
     git(
         &child,
@@ -751,6 +752,57 @@ fn pushing_a_parent_never_implicitly_publishes_an_unpushed_submodule_commit() {
     assert_eq!(remote_oid(&child_remote, "main"), first);
     assert_eq!(git(&child, &["rev-parse", "HEAD"]), second);
     assert_eq!(git(&repo, &["rev-parse", "HEAD"]), head);
+    assert!(
+        receipt
+            .summary
+            .starts_with("Push stopped because a submodule commit has not been published."),
+        "{}",
+        receipt.summary
+    );
+    assert!(receipt
+        .recovery
+        .as_deref()
+        .unwrap()
+        .contains("No recursive push"));
+    let catalog = app.add_repository(&child).unwrap();
+    let child_id = catalog.workspaces[0].selected_id.as_ref().unwrap();
+    let branch = GraphAction {
+        kind: GraphActionKind::CreateBranch,
+        oid: second.clone(),
+        name: "saved/child".into(),
+    };
+    let review = app.preview_graph_action(child_id, &branch).unwrap();
+    assert!(
+        review.blocked_reason.is_none(),
+        "{:?}",
+        review.blocked_reason
+    );
+    assert_eq!(
+        app.apply_graph_action(child_id, &branch, &review.token)
+            .unwrap()
+            .status,
+        "succeeded"
+    );
+    let child_request = PushRequest {
+        branch: "saved/child".into(),
+        oid: second.clone(),
+        remote: "origin".into(),
+        remote_branch: "saved/child".into(),
+        set_upstream: true,
+        buffered_https: false,
+    };
+    let review = app.preview_push(child_id, &child_request).unwrap();
+    let receipt = app
+        .push_branch(child_id, &child_request, &review.token)
+        .unwrap();
+    assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);
+    assert_eq!(remote_oid(&child_remote, "saved/child"), second);
+    assert_eq!(remote_oid(&child_remote, "main"), first);
+    assert_eq!(remote_oid(&parent_remote, "main"), parent_before);
+    let review = app.preview_push(&id, &request).unwrap();
+    let receipt = app.push_branch(&id, &request, &review.token).unwrap();
+    assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);
+    assert_eq!(remote_oid(&parent_remote, "main"), head);
 }
 
 #[test]
