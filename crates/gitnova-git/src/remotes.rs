@@ -32,7 +32,7 @@ pub trait RemoteWriter {
 impl GitCli {
     /// Fetch remote branches and tags, with a noninteractive budget.
     pub fn fetch_remote_background(&self, path: &Path, remote: &str) -> Result<()> {
-        self.fetch_remote_impl(path, remote, None, true)
+        self.fetch_remote_impl(path, remote, None, true, true)
     }
     fn fetch_remote_impl(
         &self,
@@ -40,6 +40,7 @@ impl GitCli {
         remote: &str,
         branch: Option<&str>,
         background: bool,
+        include_tags: bool,
     ) -> Result<()> {
         self.validate_remote_selection(path, remote, branch)?;
         let refspec = match branch {
@@ -375,7 +376,7 @@ impl GitCli {
 }
 impl RemoteWriter for GitCli {
     fn fetch_remote(&self, path: &Path, remote: &str, branch: Option<&str>) -> Result<()> {
-        self.fetch_remote_impl(path, remote, branch, false)
+        self.fetch_remote_impl(path, remote, branch, false, true)
     }
     fn switch_remote_branch(
         &self,

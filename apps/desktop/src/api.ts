@@ -32,6 +32,9 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  remoteEndpoint:(membershipId:string,name:string)=>call<import('./contracts').RemoteEndpointSettings>('remote_endpoint',{membershipId,name}),
+  previewRemoteEndpoint:(membershipId:string,request:import('./contracts').RemoteEndpointRequest,settingsToken:string)=>call<import('./contracts').RemoteEndpointPreview>('preview_remote_endpoint',{membershipId,request,settingsToken}),
+  changeRemoteEndpoint:(membershipId:string,request:import('./contracts').RemoteEndpointRequest,settingsToken:string,token:string)=>call<OperationReceipt>('change_remote_endpoint',{membershipId,request,settingsToken,token}),
   branchRequests:(membershipId:string,selection:HostingSelection)=>call<import('./contracts').BranchRequests>('branch_requests',{membershipId,selection}),
   workingFileText:(membershipId:string,path:NativePath)=>call<import('./contracts').WorkingFileText>('working_file_text',{membershipId,path}),
   saveWorkingFileText:(membershipId:string,path:NativePath,text:string,token:string)=>call<void>('save_working_file_text',{membershipId,path,text,token}),

@@ -2461,11 +2461,11 @@ test('parent push guides publication of a detached submodule without recursive w
   await connectRealCore(page,join(folder,'publish-child-state.json')); await page.goto('/');
   await page.getByLabel('Add an existing repository').fill(parent); await page.getByRole('button',{name:'Open',exact:true}).click();
   await expect(page.locator('.push-current')).toBeEnabled(); await page.locator('.push-current').click();
-  await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await page.getByRole('button',{name:'Push reviewed branch',exact:true}).click();
-  const openChild=page.getByRole('button',{name:'Open submodule · child',exact:true}); await expect(openChild).toBeEnabled({timeout:45000});
+  await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await expect(page.getByRole('button',{name:'Push reviewed branch',exact:true})).toBeDisabled();
+  const openChild=page.getByRole('button',{name:`Review branch at required commit ${tip.slice(0,8)}`,exact:true}); await expect(openChild).toBeEnabled({timeout:45000});
   expect(git(parentRemote,['rev-parse','main'])).toBe(before); expect(git(childRemote,['rev-parse','main'])).toBe(first);
-  await openChild.click(); await expect(page.locator('.branch-current')).toContainText('Detached'); await expect(page.locator('.push-current')).toBeEnabled(); await page.locator('.push-current').click();
-  await expect(page.locator('.graph-actions')).toContainText('HEAD is detached. Create a branch');
+  await openChild.click(); await expect(page.locator('.branch-current')).toContainText('Detached');
+  await expect(page.locator('.graph-actions')).toContainText('Review a branch at the required historical submodule commit.');
   await page.getByLabel('New branch name',{exact:true}).fill('saved/child'); await page.getByRole('button',{name:'Review branch',exact:true}).click();
   await page.getByRole('button',{name:'Create & open saved/child',exact:true}).click(); await expect(page.locator('.graph-actions')).toHaveCount(0,{timeout:45000});
   expect(git(child,['branch','--show-current'])).toBe('saved/child'); expect(git(child,['rev-parse','HEAD'])).toBe(tip);
@@ -2474,4 +2474,83 @@ test('parent push guides publication of a detached submodule without recursive w
   await page.keyboard.press('Control+o'); await page.getByLabel('Add an existing repository').fill(parent); await page.getByRole('button',{name:'Open',exact:true}).click(); await expect(page.locator('.branch-current')).toContainText('main');
   await expect(page.locator('.push-current')).toBeEnabled(); await page.locator('.push-current').click(); await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await page.getByRole('button',{name:'Push reviewed branch',exact:true}).click(); await expect(page.locator('.ref-manager')).toHaveCount(0,{timeout:45000});
   expect(git(parentRemote,['rev-parse','main'])).toBe(parentTip); expect(git(parent,['status','--porcelain'])).toBe('');
+});
+
+
+for(const layout of ['Unified','Side by side'])test(`edit file reveals the visible diff in a shifted multi-section working file (${layout})`,async({page},testInfo)=>{
+  const repo=join(folder,`edit-location-${layout.replaceAll(' ','-')}`);mkdirSync(repo);git(repo,['init','-b','main']);
+  const lines=Array.from({length:6000},(_,i)=>`setting_${i+1}: "configuration value ${i+1}"`);
+  writeFileSync(join(repo,'settings.yaml'),lines.join('\n')+'\n');git(repo,['add','.']);git(repo,['commit','-m','Original long configuration']);
+  lines[10]='setting_11: "first change"';lines[5101]='setting_5102: "fix this value"';
+  writeFileSync(join(repo,'settings.yaml'),lines.join('\n')+'\n');git(repo,['add','.']);git(repo,['commit','-m','Two distant changes']);
+  const working='# locally inserted line\n'.repeat(150)+lines.join('\n')+'\n';writeFileSync(join(repo,'settings.yaml'),working);
+  const head=git(repo,['rev-parse','HEAD']),index=git(repo,['write-tree']);
+  await connectRealCore(page,join(folder,`edit-location-${layout}.json`));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+  await page.locator('.commit-row').filter({hasText:'Two distant changes'}).click();
+  const dock=page.locator('.commit-diff-dock');await dock.getByRole('button',{name:layout,exact:true}).click();
+  const scroll=layout==='Unified'?dock.locator('.dock-code-scroll'):dock.getByRole('region',{name:'After code',exact:true});
+  await scroll.evaluate(node=>{node.scrollTop=node.scrollHeight;node.dispatchEvent(new Event('scroll'));});
+  await expect(dock.locator('code').filter({hasText:'setting_5102: "fix this value"'}).first()).toBeVisible();
+  await dock.getByRole('button',{name:'Edit file',exact:true}).click();
+  const editor=page.getByRole('region',{name:'Edit current working file',exact:true}),text=editor.getByRole('textbox',{name:'Edit current file content',exact:true});
+  await expect(text).toBeFocused();await expect(editor.locator('.working-editor-pagination')).not.toContainText('Section 1 of');
+  const caret=await text.evaluate(area=>({tail:area.value.slice(area.selectionStart),scroll:area.scrollTop,line:area.value.slice(0,area.selectionStart).split('\n').length-1,height:area.clientHeight}));
+  expect(caret.tail).toMatch(/^setting_5102: "fix this value"/);expect(caret.scroll).toBeGreaterThan(0);
+  expect(caret.line*24-caret.scroll).toBeGreaterThanOrEqual(0);expect(caret.line*24-caret.scroll).toBeLessThan(caret.height);
+  await expect.poll(()=>editor.locator('.syntax-editor').evaluate(root=>Math.abs(root.querySelector('textarea')!.scrollTop-root.querySelector('pre')!.scrollTop))).toBeLessThan(2);
+  await dock.screenshot({path:testInfo.outputPath('diff-edit-location.png')});
+  await text.press('Home');await text.press('ArrowRight');const selection=await text.evaluate(area=>area.selectionStart);await text.press('x');
+  await expect.poll(()=>text.evaluate(area=>area.selectionStart)).toBe(selection+1);
+  await editor.getByRole('button',{name:'Back to diff',exact:true}).click();
+  await scroll.evaluate(node=>{node.scrollTop=node.scrollHeight;node.dispatchEvent(new Event('scroll'));});
+  await dock.getByRole('button',{name:'Resume file edit',exact:true}).click();
+  await expect(text).toBeFocused();expect(await text.inputValue()).toContain('sxetting_5102');
+  await editor.getByRole('button',{name:'Discard editor draft',exact:true}).click();
+  expect(readFileSync(join(repo,'settings.yaml'),'utf8')).toBe(working);expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);
+});
+
+
+test('footer remote dialog migrates fetch and push URLs with review, locale and repository scope',async({page},testInfo)=>{
+ const repo=join(folder,'endpoint-migration');mkdirSync(repo);git(repo,['init','-b','main']);writeFileSync(join(repo,'file.txt'),'original\n');git(repo,['add','.']);git(repo,['commit','-m','Endpoint fixture']);
+ const old='ssh://git@old.example.invalid:2424/team/project.git',destination='https://new.example.invalid/team/project.git';
+ git(repo,['remote','add','origin',old]);git(repo,['config','remote.origin.pushurl','ssh://git@old-push.example.invalid/team/project.git']);git(repo,['remote','add','upstream','https://other.example.invalid/project.git']);
+ git(repo,['update-ref','refs/remotes/origin/main','HEAD']);git(repo,['config','branch.main.remote','origin']);git(repo,['config','branch.main.merge','refs/heads/main']);
+ writeFileSync(join(repo,'file.txt'),'staged\n');git(repo,['add','file.txt']);writeFileSync(join(repo,'file.txt'),'dirty\n');
+ const head=git(repo,['rev-parse','HEAD']),index=git(repo,['write-tree']),config=readFileSync(join(repo,'.git/config'),'utf8'),refs=git(repo,['show-ref']);
+ const calls:string[]=[];await connectRealCore(page,join(folder,'endpoint-migration.json'),command=>{calls.push(command);});await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ const footer=page.getByRole('button',{name:'Repository remote',exact:true});await expect(footer).toContainText('Remote: origin');await expect(footer).toHaveAttribute('title',new RegExp(':2424'));
+ await footer.click();const dialog=page.getByRole('dialog',{name:'Edit remote endpoint',exact:true});const fetch=dialog.getByLabel('Fetch URLs (one per line)',{exact:true});
+ await expect(fetch).toHaveValue(old);await expect(fetch).toBeFocused();await expect(dialog.getByLabel('Push URLs (one per line)',{exact:true})).toHaveValue('ssh://git@old-push.example.invalid/team/project.git');
+ await fetch.fill(destination);await dialog.getByLabel('Use fetch URL for push',{exact:true}).check();
+ await page.evaluate(async()=>{const {setLocale}=await import('/src/i18n.ts');setLocale('th');});await expect(page.getByRole('dialog',{name:'แก้ไขปลายทาง remote',exact:true}).getByLabel('URL สำหรับ fetch (หนึ่ง URL ต่อบรรทัด)',{exact:true})).toHaveValue(destination);
+ await page.evaluate(async()=>{const {setLocale}=await import('/src/i18n.ts');setLocale('en');});await dialog.getByRole('button',{name:'Review remote change',exact:true}).click();
+ const review=dialog.getByRole('region',{name:'Review remote endpoint',exact:true});await expect(review).toContainText(old);await expect(review).toContainText(destination);expect(readFileSync(join(repo,'.git/config'),'utf8')).toBe(config);
+ await dialog.screenshot({path:testInfo.outputPath('remote-endpoint-review.png')});await dialog.getByRole('button',{name:'Save remote URLs',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(footer).toBeFocused();await expect(footer).toContainText(destination);
+ expect(git(repo,['remote','get-url','origin'])).toBe(destination);expect(git(repo,['remote','get-url','--push','origin'])).toBe(destination);expect(git(repo,['remote','get-url','upstream'])).toBe('https://other.example.invalid/project.git');
+ expect(git(repo,['rev-parse','HEAD'])).toBe(head);expect(git(repo,['write-tree'])).toBe(index);expect(git(repo,['show-ref'])).toBe(refs);expect(readFileSync(join(repo,'file.txt'),'utf8')).toBe('dirty\n');expect(calls).not.toContain('auto_fetch');expect(calls).not.toContain('fetch_remote');expect(calls).not.toContain('push_branch');
+ await footer.click();await expect(fetch).toHaveValue(destination);await dialog.getByLabel('Remote name',{exact:true}).selectOption('upstream');await expect(fetch).toHaveValue('https://other.example.invalid/project.git');await fetch.fill('https://cancel.example.invalid/project.git');await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);expect(git(repo,['remote','get-url','upstream'])).toBe('https://other.example.invalid/project.git');
+});
+
+test('remote endpoint dialog refuses stale confirmation and reloads external changes',async({page})=>{
+ const repo=join(folder,'endpoint-stale');mkdirSync(repo);git(repo,['init','-b','main']);writeFileSync(join(repo,'file.txt'),'original\n');git(repo,['add','.']);git(repo,['commit','-m','Stale endpoint fixture']);git(repo,['remote','add','origin','https://old.example.invalid/a.git']);
+ await connectRealCore(page,join(folder,'endpoint-stale.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.getByRole('button',{name:'Repository remote',exact:true}).click();
+ const dialog=page.getByRole('dialog',{name:'Edit remote endpoint',exact:true}),fetch=dialog.getByLabel('Fetch URLs (one per line)',{exact:true});await expect(fetch).toHaveValue('https://old.example.invalid/a.git');await fetch.fill('https://new.example.invalid/a.git');await dialog.getByRole('button',{name:'Review remote change',exact:true}).click();await expect(dialog.getByRole('button',{name:'Save remote URLs',exact:true})).toBeVisible();
+ git(repo,['remote','set-url','origin','https://external.example.invalid/a.git']);await dialog.getByRole('button',{name:'Save remote URLs',exact:true}).click();await expect(dialog.getByRole('alert')).toContainText('Remote configuration changed.');expect(git(repo,['remote','get-url','origin'])).toBe('https://external.example.invalid/a.git');await expect(dialog.getByRole('button',{name:'Review remote change',exact:true})).toBeDisabled();
+ await dialog.getByRole('button',{name:'Reload current remote URLs',exact:true}).click();await expect(fetch).toHaveValue('https://external.example.invalid/a.git');await dialog.getByRole('button',{name:'Cancel',exact:true}).click();await expect(dialog).toHaveCount(0);
+});
+
+
+test('push review identifies an older unpublished gitlink and opens branch review at that exact orphan commit',async({page},testInfo)=>{
+ const source=join(folder,'history-child-source'),remote=join(folder,'history-child.git'),parent=join(folder,'history-parent'),parentRemote=join(folder,'history-parent.git');
+ mkdirSync(source);git(source,['init','-b','main']);writeFileSync(join(source,'file.txt'),'base\n');git(source,['add','.']);git(source,['commit','-m','Child base']);git(source,['checkout','-b','unpublished']);writeFileSync(join(source,'file.txt'),'old history\n');git(source,['commit','-am','Required historical child']);const old=git(source,['rev-parse','HEAD']);git(source,['checkout','main']);writeFileSync(join(source,'file.txt'),'new history\n');git(source,['commit','-am','Published child latest']);const current=git(source,['rev-parse','HEAD']);git(folder,['init','--bare',remote]);git(remote,['symbolic-ref','HEAD','refs/heads/main']);git(source,['remote','add','origin',remote]);git(source,['push','origin','main']);
+ mkdirSync(parent);git(parent,['init','-b','main']);git(parent,['-c','protocol.file.allow=always','submodule','add',remote,'dpfunction']);git(parent,['commit','-am','Parent base']);git(folder,['init','--bare',parentRemote]);git(parent,['remote','add','origin',parentRemote]);git(parent,['push','-u','origin','main']);const publishedParent=git(parent,['rev-parse','HEAD']);const child=join(parent,'dpfunction');git(child,['fetch',source,old]);git(child,['checkout','--detach',old]);git(parent,['add','dpfunction']);git(parent,['commit','-m','Intermediate historical pointer']);const middle=git(parent,['rev-parse','HEAD']);git(child,['checkout','main']);git(parent,['add','dpfunction']);git(parent,['commit','-m','Latest pointer already published']);
+ const parentHead=git(parent,['rev-parse','HEAD']);const childIndex=git(child,['write-tree']);let branchOid='';await connectRealCore(page,join(folder,'history-diagnostic.json'),(command,args)=>{if(command==='preview_graph_action')branchOid=(args as {action:{oid:string}}).action.oid;});await page.goto('/');await page.getByLabel('Add an existing repository').fill(parent);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator('.push-current').click();await page.getByRole('button',{name:'Check destination & review',exact:true}).click();
+ const help=page.getByRole('region',{name:'Submodule publication checks',exact:true});await expect(help).toContainText(old);await expect(help).toContainText(current);await expect(help).toContainText(middle);await expect(page.getByRole('button',{name:'Push reviewed branch',exact:true})).toBeDisabled();await page.locator('.graph-actions').screenshot({path:testInfo.outputPath('historical-submodule-preflight.png')});
+ await help.getByRole('button',{name:`Review branch at required commit ${old.slice(0,8)}`,exact:true}).click();await expect(page.locator('.repo-picker')).toContainText('dpfunction');await expect(page.getByRole('complementary',{name:'Selected commit',exact:true}).locator('.full-sha')).toHaveText(old);await expect(page.locator('.graph-actions')).toContainText('Review a branch at the required historical submodule commit.');await page.getByLabel('New branch name',{exact:true}).fill('recovery/history');await page.getByRole('button',{name:'Review branch',exact:true}).click();await expect(page.getByRole('button',{name:'Create & open recovery/history',exact:true})).toBeVisible();expect(branchOid).toBe(old);expect(git(child,['branch','--show-current'])).toBe('main');expect(git(child,['rev-parse','HEAD'])).toBe(current);expect(git(child,['write-tree'])).toBe(childIndex);expect(git(child,['branch','--list','recovery/history'])).toBe('');expect(git(parent,['rev-parse','HEAD'])).toBe(parentHead);expect(git(parentRemote,['rev-parse','main'])).toBe(publishedParent);
+});
+
+test('redirect error opens reviewed endpoint editing without automatically retrying fetch',async({page},testInfo)=>{
+ const repo=join(folder,'redirect-help');mkdirSync(repo);git(repo,['init','-b','main']);git(repo,['commit','--allow-empty','-m','Redirect fixture']);git(repo,['remote','add','origin','https://host.example.invalid/group/project']);await connectRealCore(page,join(folder,'redirect-help.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.evaluate(()=>{const state=window as unknown as {__TAURI_INTERNALS__:{invoke:(command:string,args:unknown)=>Promise<unknown>};diagnosticFetches?:number};const invoke=state.__TAURI_INTERNALS__.invoke;state.diagnosticFetches=0;state.__TAURI_INTERNALS__.invoke=(command,args)=>{if(command==='fetch_remote'){state.diagnosticFetches=(state.diagnosticFetches??0)+1;return Promise.reject({code:'git_redirect',message:'The Git server redirected this repository URL. Check the repository clone URL.'});}return invoke(command,args);};});
+ await page.locator('.topbar .fetch-current').click();const help=page.getByRole('region',{name:'Resolve remote URL',exact:true});await expect(help).toBeVisible();await help.getByRole('button',{name:'Review remote URL…',exact:true}).click();const dialog=page.getByRole('dialog',{name:'Edit remote endpoint',exact:true});await expect(dialog.getByLabel('Fetch URLs (one per line)',{exact:true})).toHaveValue('https://host.example.invalid/group/project');await dialog.getByLabel('Fetch URLs (one per line)',{exact:true}).fill('https://host.example.invalid/group/project.git');await dialog.getByRole('button',{name:'Review remote change',exact:true}).click();await dialog.screenshot({path:testInfo.outputPath('redirect-endpoint-review.png')});await dialog.getByRole('button',{name:'Save remote URLs',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(help).toHaveCount(0);expect(git(repo,['remote','get-url','origin'])).toBe('https://host.example.invalid/group/project.git');expect(await page.evaluate(()=>(window as unknown as {diagnosticFetches:number}).diagnosticFetches)).toBe(1);await expect(page.locator('.graph-actions').getByRole('button',{name:'Fetch',exact:true})).toBeEnabled();
 });

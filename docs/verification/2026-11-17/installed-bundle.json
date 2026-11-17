@@ -1,0 +1,16 @@
+{
+  "version": "1.0.17",
+  "previousVersion": "1.0.16",
+  "profile": "release",
+  "installedApp": "/Users/if668061/Desktop/GitNova.app",
+  "builtExecutableSha256": "a35838848c4eeb413020c2dc848d73fcb6941a66f58e4dd4cdaf305fa426c389",
+  "installedExecutableSha256": "a35838848c4eeb413020c2dc848d73fcb6941a66f58e4dd4cdaf305fa426c389",
+  "signatureVerification": "passed (ad-hoc)",
+  "licenseResources": {
+    "resourcesChecked": 5,
+    "auditComplete": false,
+    "unresolved": 67
+  },
+  "embeddedUiVerification": "GitNova 1.0.17: embedded UI assets verified; no dev server or workspace opened; native-smoke=disabled; native-acceptance=enabled.",
+  "nativeGuiAcceptance": "Not performed; no workspace opened."
+}

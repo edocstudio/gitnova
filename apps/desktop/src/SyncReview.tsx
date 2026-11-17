@@ -1,3 +1,4 @@
+import {RemoteFailureHelp,isRemoteRedirect} from './RemoteFailureHelp';
 import {WorkPreparation, needsWorkPreparation} from './WorkPreparation';
 import { useEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
@@ -10,6 +11,7 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
   onBusyChange: (busy: boolean) => void; onDone: (receipt: OperationReceipt) => Promise<void>; onClose: () => void;
   onFailure: (id: string, message: string) => void; onReviewWork: () => void;
 }) {
+  const [redirect,setRedirect]=useState(false);
   const [remotes, setRemotes] = useState<string[]>([]); const [remote, setRemote] = useState('');
   const [reading, setReading] = useState(true); const [writing, setWriting] = useState(false);
   const [phase, setPhase] = useState(''); const [error, setError] = useState('');
@@ -19,18 +21,18 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
   const inFlight = useRef(false);
   const fetch = async (selected: string, upstream?: { remote: string; remoteBranch: string }) => {
     if (inFlight.current) return;
-    inFlight.current = true; setWriting(true); onBusyChange(true); setError(''); setReview(null);
+    inFlight.current = true; setWriting(true); onBusyChange(true); setError(''); setRedirect(false); setReview(null);
     setPhase(t('Fetching {0}{1}…', [selected, upstream ? `/${upstream.remoteBranch}` : '']));
     try {
       const receipt = await api.fetchRemote(membershipId, selected, upstream?.remoteBranch ?? null);
       await onDone(receipt);
-      if (receipt.status !== 'succeeded') { setError(`${t(receipt.summary)} ${receipt.recovery ?? ''}`); return; }
+      if (receipt.status !== 'succeeded') { setRedirect(isRemoteRedirect(receipt)); setError(`${t(receipt.summary)} ${receipt.recovery ?? ''}`); return; }
       if (!upstream) { onClose(); return; }
       setPhase(t('Preparing pull preview…'));
       const next = await api.previewPullCurrent(membershipId);
       if (next.switch.branch !== branch || next.remote !== upstream.remote || next.remoteBranch !== upstream.remoteBranch) throw new Error('Branch or upstream changed. Close this review and try again.');
       setReview(next);
-    } catch (e) { setError(errorMessage(e)); }
+    } catch (e) { setRedirect(isRemoteRedirect(e)); setError(errorMessage(e)); }
     finally { inFlight.current = false; setWriting(false); setPhase(''); onBusyChange(false); }
   };
   useEffect(() => {
@@ -45,6 +47,7 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
               if (cancelled) return;
               const comparison = candidates.branches.find(item => `refs/remotes/${item.remote}/${item.name}` === tracking.comparison?.reference);
               if (!comparison) throw new Error('Branch or upstream changed. Close this review and try again.');
+              setRemote(comparison.remote);
               setPhase(t('Fetching {0}{1}…', [comparison.remote, `/${comparison.name}`]));
               const receipt = await api.fetchRemote(membershipId, comparison.remote, comparison.name);
               await onDone(receipt);
@@ -71,7 +74,7 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
           setRemote(preferred); setReading(false);
           if (preferred) await fetch(preferred);
         }
-      } catch (e) { if (!cancelled) { setError(errorMessage(e)); setReading(false); } }
+      } catch (e) { if (!cancelled) { setRedirect(isRemoteRedirect(e)); setError(errorMessage(e)); setReading(false); } }
     })();
     return () => { cancelled = true; };
     // One explicit graph intent. Ref refresh after Fetch must not replay it.
@@ -101,6 +104,7 @@ export function SyncReview({ kind, membershipId, branch, tracking, blocked, onBu
       {review.switch.blockedReason ? <p className="notice" role="status">{diverged ? t('Branches have diverged. Review a merge to keep both histories; a fast-forward cannot combine them.') : t(review.switch.blockedReason)}</p> : <p className="hint">{t('Configured Git hooks and filters can run. Submodules are not initialized or updated.')}</p>}
     </div>}
     {review && !diverged && needsWorkPreparation(review.switch.blockedReason) && <WorkPreparation key={`${review.remote}:${review.remoteBranch}:${review.switch.branch}`} membershipId={membershipId} disabled={blocked || writing} onBusyChange={value => { inFlight.current = value; setWriting(value); onBusyChange(value); }} onDone={onDone} onFailure={onFailure} onReady={() => void fetch(review.remote, {remote: review.remote, remoteBranch: review.remoteBranch})}/>}
+    {redirect&&<RemoteFailureHelp membershipId={membershipId} remote={remote} blocked={locked} onBusyChange={onBusyChange} onDone={onDone} onChanged={()=>{setRedirect(false);setError('');setReview(null);}}/>}
     {error && <p className="inline-error" role="alert">{t(error)}</p>}
     <div className="graph-action-footer"><button disabled={writing} onClick={onClose}>{t('Close')}</button>{kind === 'fetch' ? <button className="primary" disabled={locked || !remote} onClick={() => void fetch(remote)}>{t('Fetch')}</button> : review && (diverged ? <button className="primary" disabled={locked || !review.localOid} onClick={() => { if (!review.remoteOid) { setError('Restart GitNova to load the fetched revision before reviewing a merge.'); return; } setMerging(true); }}>{t('Review merge…')}</button> : <button className="primary" disabled={locked || Boolean(review.switch.blockedReason)} onClick={() => void apply()}>{t('Pull into {0}', [review.switch.branch])}</button>)}</div>
   </div>;

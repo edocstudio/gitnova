@@ -63,13 +63,14 @@ export function App() {
   const [stashErrors, setStashErrors] = useState<Record<string, string>>({});
   const stashRef = useRef(stashes); stashRef.current = stashes;
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [pendingRelatedCommit,setPendingRelatedCommit]=useState<{membershipId:string;oid:string}|null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState<{membershipId:string;oid:string}|null>(null);
   const searchFocused = useCallback(() => setSearchFocus(null), []);
   const [cloneDrafts, setCloneDrafts] = useState<Record<string, CloneDraft>>({});
   const [menu, setMenu] = useState(false); const [path, setPath] = useState(''); const [workspaceName, setWorkspaceName] = useState('');
   const [operationFeedback, setOperationFeedback] = useState<Record<string, { status: string; summary: string; kind?: string; planned?: PlannedOperation | null; recovery: string | null; branchCleanup?: OperationReceipt['branchCleanup'] }>>({});
-  const reportOperation = useCallback((receipt: OperationReceipt) => {window.dispatchEvent(new Event('gitnova-write-completed'));if(['create_change_request','add_remote'].includes(receipt.kind))window.dispatchEvent(new Event('gitnova-requests-changed'));setOperationFeedback(old => retainRecent(old, receipt.membershipId, receipt));}, []);
+  const reportOperation = useCallback((receipt: OperationReceipt) => {window.dispatchEvent(new Event('gitnova-write-completed'));if(['create_change_request','add_remote','change_remote_endpoint'].includes(receipt.kind))window.dispatchEvent(new Event('gitnova-requests-changed'));setOperationFeedback(old => retainRecent(old, receipt.membershipId, receipt));}, []);
   const reportOperationError = useCallback((id: string, message: string) => setOperationFeedback(old => retainRecent(old, id, { status: 'unknown', summary: message, recovery: 'Inspect the repository before retrying.' })), []);
   const [lockRecovery,setLockRecovery]=useState<string|null>(null);
   const [recoveryRevision,setRecoveryRevision]=useState(0);
@@ -235,6 +236,24 @@ export function App() {
       setSearchFocus({membershipId:location.membershipId,oid});
     } finally { setBusy(false); }
   };
+  const openRelatedCommit = async (path:import('./contracts').NativePath,oid?:string) => {
+    if(!selectedId||writeBusy||busy)return;
+    setGraphIntent(null);
+    if(!oid){await mutate(api.openRelated(selectedId,path));return;}
+    setBusy(true);setError('');
+    try{
+      const next=await api.openRelated(selectedId,path);
+      const target=next.workspaces.find(w=>w.id===next.activeWorkspaceId);
+      const id=target?.selectedId;
+      if(!target||!id)throw new Error('Related repository is unavailable or not initialized');
+      let focus;
+      try{focus=await api.focusCommit(target.id,id,oid);}
+      catch(e){if(!e||typeof e!=='object'||!('code' in e)||e.code!=='search_location')throw e;focus={page:await api.graph(id),base:0};}
+      setSessions(old=>retainGraphSessions(old,id,{page:focus.page,rows:focus.page.rows,selected:oid,base:focus.base,scroll:Math.max(0,focus.page.rows.findIndex(row=>row.commit.oid===oid)*ROW_HEIGHT-72),revision:(old[id]?.revision??0)+1}));
+      setCatalog(next);setInspectorOpen(true);setDiffCollapsed(false);setSearchFocus({membershipId:id,oid});setPendingRelatedCommit({membershipId:id,oid});
+    }catch(e){setError(errorMessage(e));}finally{setBusy(false);}
+  };
+  useEffect(()=>{if(pendingRelatedCommit&&selectedId===pendingRelatedCommit.membershipId){setGraphIntent({oid:pendingRelatedCommit.oid,x:Math.max(12,window.innerWidth/2-180),y:180,quick:false,action:'createBranch',purpose:'publishSubmodule'});setPendingRelatedCommit(null);}},[pendingRelatedCommit,selectedId]);
   const repositoryWritten = async (receipt: OperationReceipt) => {
     reportOperation(receipt);
     if (!selectedId || activeId.current !== selectedId) return;
@@ -306,7 +325,7 @@ export function App() {
       {selectedOid && !working && <CommitDiffDock key={`${selectedId}:${selectedOid}`} membershipId={selectedId} fileDrafts={fileDrafts.current} editBlocked={writeBusy||busy} onEditBusy={onWriteBusy} onFileSaved={async()=>{if(selectedId){window.dispatchEvent(new Event('gitnova-write-completed'));setOperationFeedback(old=>retainRecent(old,selectedId,{status:'succeeded',summary:'File saved. Stage and commit it from Working changes.',kind:'file_edit',recovery:null}));await refreshWorking(selectedId);}}} preferredPath={investigationFile?.membershipId===selectedId && investigationFile?.oid===selectedOid?investigationFile.path:undefined} detail={detail} busy={detailBusy} size={diffHeight} onResize={setDiffHeight} collapsed={diffCollapsed} onToggle={() => setDiffCollapsed(value => !value)} />}
       </div>
     </div>}</main>
-    {graphIntent && selectedId && currentStatus && <GraphActions onOpenRelated={path => { setGraphIntent(null); void mutate(api.openRelated(selectedId!, path)); }} key={`actions-${recoveryRevision}-${selectedId}`} intent={graphIntent} onConfigureRemote={()=>{settingsReturn.current=document.activeElement as HTMLElement;setSettingsOpen(true);}} pendingOperation={Boolean(merges[selectedId] && merges[selectedId].phase !== 'none')} tracking={session?.page.tracking} membershipId={selectedId} refs={session?.page.refs ?? []} status={currentStatus} blocked={writeBusy || busy} onClose={() => setGraphIntent(null)} onInspect={selectCommit} onBusyChange={onWriteBusy} onDone={repositoryWritten} onFailure={reportOperationError} />}
+    {graphIntent && selectedId && currentStatus && <GraphActions onOpenRelated={(path,oid)=>{void openRelatedCommit(path,oid);}} key={`actions-${recoveryRevision}-${selectedId}`} intent={graphIntent} onConfigureRemote={()=>{settingsReturn.current=document.activeElement as HTMLElement;setSettingsOpen(true);}} pendingOperation={Boolean(merges[selectedId] && merges[selectedId].phase !== 'none')} tracking={session?.page.tracking} membershipId={selectedId} refs={session?.page.refs ?? []} status={currentStatus} blocked={writeBusy || busy} onClose={() => setGraphIntent(null)} onInspect={selectCommit} onBusyChange={onWriteBusy} onDone={repositoryWritten} onFailure={reportOperationError} />}
     {terminalEntries.length>0&&<Suspense fallback={<div role="status">{t("Opening terminal…")}</div>}><RepositoryTerminal entries={terminalEntries} onExpired={id=>{setTerminalEntries(entries=>entries.filter(entry=>entry.membershipId!==id));setTerminalNotice(true);}} selectedId={selectedId} visible={terminalVisible} onHide={()=>setTerminalVisible(false)} onEnd={endTerminal} onChanged={()=>{if(selectedId)void refreshWorking(selectedId).catch(e=>setSyncError(errorMessage(e)));}}/></Suspense>}
     {lockRecovery && lockRecovery===selectedId && <LockRecoveryDialog key={lockRecovery} membershipId={lockRecovery} disabled={writeBusy||busy} onBusyChange={onWriteBusy} onClose={()=>setLockRecovery(null)} onRefresh={async()=>{
       await refreshWorking(lockRecovery,true);
@@ -314,6 +333,6 @@ export function App() {
       window.dispatchEvent(new Event('gitnova-write-completed'));
     }}/>}
     {settingsOpen && <Suspense fallback={<span role="status">{t("Loading…")}</span>}><Settings open={settingsOpen} onClose={closeSettings} membershipId={selectedId} repositoryName={selected?.name} identityRequested={identityRequested} blocked={writeBusy||busy} onBusyChange={onWriteBusy} /></Suspense>}
-    <footer className="app-footer"><span><span className="footer-dot" />{t("GitNova · by edocstudio")}</span><RepositoryIdentityFooter membershipId={selectedId} revision={session?.page.fingerprint} blocked={writeBusy||busy} onEdit={()=>{settingsReturn.current=document.activeElement as HTMLElement;setIdentityRequested(true);setSettingsOpen(true);}}/><RemoteFooter membershipId={selectedId} branch={currentStatus?.branch} tracking={session?.page.tracking} revision={session?.page.fingerprint}/><span>{session ? session.rows.length ? t("{0}–{1} commits loaded", [session.base + 1, session.base + session.rows.length]) : t("0 commits loaded") : t("Git made simple.")}<span className="footer-separator">·</span><kbd>{t("⌘ / Ctrl O")}</kbd> {t("Switch repository")}</span></footer>
+    <footer className="app-footer"><span><span className="footer-dot" />{t("GitNova · by edocstudio")}</span><RepositoryIdentityFooter membershipId={selectedId} revision={session?.page.fingerprint} blocked={writeBusy||busy} onEdit={()=>{settingsReturn.current=document.activeElement as HTMLElement;setIdentityRequested(true);setSettingsOpen(true);}}/><RemoteFooter key={selectedId} repositoryName={selected?.name??''} blocked={writeBusy||busy} onBusyChange={onWriteBusy} onDone={async receipt=>{reportOperation(receipt);if(selectedId)await refreshWorking(selectedId,true);}} membershipId={selectedId} branch={currentStatus?.branch} tracking={session?.page.tracking} revision={session?.page.fingerprint}/><span>{session ? session.rows.length ? t("{0}–{1} commits loaded", [session.base + 1, session.base + session.rows.length]) : t("0 commits loaded") : t("Git made simple.")}<span className="footer-separator">·</span><kbd>{t("⌘ / Ctrl O")}</kbd> {t("Switch repository")}</span></footer>
   </div>;
 }

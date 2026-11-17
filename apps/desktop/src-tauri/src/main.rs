@@ -702,6 +702,39 @@ async fn preview_commit_file(
     .await
 }
 #[tauri::command]
+async fn remote_endpoint(
+    state: State<'_>,
+    membership_id: String,
+    name: String,
+) -> Result<RemoteEndpointSettings, AppError> {
+    run(state, move |a| a.remote_endpoint(&membership_id, &name)).await
+}
+#[tauri::command]
+async fn preview_remote_endpoint(
+    state: State<'_>,
+    membership_id: String,
+    request: RemoteEndpointRequest,
+    settings_token: String,
+) -> Result<RemoteEndpointPreview, AppError> {
+    run(state, move |a| {
+        a.preview_remote_endpoint(&membership_id, &request, &settings_token)
+    })
+    .await
+}
+#[tauri::command]
+async fn change_remote_endpoint(
+    state: State<'_>,
+    membership_id: String,
+    request: RemoteEndpointRequest,
+    settings_token: String,
+    token: String,
+) -> Result<OperationReceipt, AppError> {
+    run(state, move |a| {
+        a.change_remote_endpoint(&membership_id, &request, &settings_token, &token)
+    })
+    .await
+}
+#[tauri::command]
 async fn preview_remote_add(
     state: State<'_>,
     membership_id: String,
@@ -1521,6 +1554,9 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         preview_stage_all,
         stage_all,
         preview_commit_file,
+        remote_endpoint,
+        preview_remote_endpoint,
+        change_remote_endpoint,
         preview_remote_add,
         add_remote,
         preview_commit,
