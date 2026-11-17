@@ -111,7 +111,7 @@ fn graph_reuses_request_metadata_but_rejects_external_ref_changes() {
         serde_json::to_value(&warm.refs).unwrap(),
         serde_json::to_value(&first.refs).unwrap()
     );
-    assert_eq!(metrics.commands.get("rev-parse"), Some(&5));
+    assert_eq!(metrics.commands.get("rev-parse"), Some(&4));
     assert_eq!(metrics.commands.get("show-ref"), Some(&2));
     assert_eq!(metrics.commands.get("status"), Some(&1));
     // Create a valid page cursor, then change refs outside the application.
@@ -193,7 +193,9 @@ fn graph_reads_unborn_bare_and_unusual_native_paths() {
 fn shared_graph_keys_match_uncached_keys_and_shallow_changes_expire_cursors() {
     let (_dir, app, id, root) = fixture();
     let cli = gitnova_git::GitCli;
-    let (fingerprint, tracking) = cli.graph_read_keys(&root).unwrap();
+    let ((fingerprint, tracking), metrics) = measure_git(|| cli.graph_read_keys(&root).unwrap());
+    // Display keys need Git directories, not another worktree-root query.
+    assert_eq!(metrics.commands.get("rev-parse"), Some(&1));
     assert_eq!(fingerprint, cli.fingerprint(&root).unwrap());
     assert_eq!(
         tracking.unwrap(),

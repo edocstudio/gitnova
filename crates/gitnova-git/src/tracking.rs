@@ -1,4 +1,4 @@
-use crate::{GitCli, RepositoryReader};
+use crate::GitCli;
 use gitnova_domain::*;
 use sha2::{Digest, Sha256};
 
@@ -10,8 +10,8 @@ impl GitCli {
         path: &std::path::Path,
         fingerprint: &str,
     ) -> Result<String> {
-        let discovery = self.discover(path)?;
-        self.tracking_display_key_at(path, fingerprint, &discovery.git_dir)
+        let git_dir = self.path(path, "--absolute-git-dir")?;
+        self.tracking_display_key_at(path, fingerprint, &git_dir)
     }
     pub(crate) fn tracking_display_key_at(
         &self,
