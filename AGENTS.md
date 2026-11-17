@@ -1,3 +1,27 @@
+# Session startup and handoff
+
+Before planning or changing files, read [.docs/HANDOFF.md](.docs/HANDOFF.md).
+It records the current task, completed work, remaining validation, relevant files
+and evidence. Then inspect `git status --short`, `git branch --show-current` and
+`git log -5 --oneline` in this repository. Verify the recorded version against
+`apps/desktop/package.json` and `Cargo.toml`; reconcile stale notes with the actual
+checkout and the latest user request. Preserve unrelated edits.
+
+Do not restart completed work, rerun long verification merely to reconstruct
+context, or ask the user to repeat information already recorded. A pending item
+in the handoff is context, not a replacement for the current user request. Past
+confirmation that the desktop app was closed is not evidence that it is closed
+now; inspect current processes before packaging or installation.
+
+Update `.docs/HANDOFF.md` at meaningful task boundaries and before ending a
+session with incomplete work. Record the result, branch/base or relevant commits,
+exact next step, checks actually run and their limits, and any active task-owned
+process or blocker. Include the handoff update in the task commit when committing.
+Keep durable rules and user preferences here; keep the handoff concise and link
+to detailed evidence under `docs/`. Do not store secrets, credentials, raw private
+logs or a copied conversation in either file. Do not invent a task's own final
+commit SHA before it exists; the next session can obtain it from Git.
+
 # GitNova product and interaction rules
 
 GitNova is a graph-first, multi-repository desktop Git client. Preserve repository and worktree identity and real Git integration.
