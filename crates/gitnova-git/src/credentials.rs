@@ -150,7 +150,7 @@ pub(crate) fn transport_error(code: &str, message: String) -> AppError {
     } else if message.contains("submodule paths contain changes that can")
         && message.contains("not be found on any remote")
     {
-        AppError::new("git_submodule_unpublished", "Push stopped because a submodule commit has not been published. Open the submodule, create a branch at its current commit if HEAD is detached, then review and push that branch before retrying the parent push.")
+        AppError::new("git_submodule_unpublished", "Push stopped because Git could not confirm submodule commit availability. Inspect the exact historical commit required by the parent. If already published, fetch in the child checkout; otherwise review and publish that required commit, then review the parent push again.")
     } else if ["301", "302", "303", "307", "308"]
         .iter()
         .any(|status| message.contains(&format!("returned error: {status}")))
@@ -340,7 +340,9 @@ mod transport_error_tests {
     fn unpublished_children_have_actionable_errors_without_remote_details() {
         let error = transport_error("git_push", "The following submodule paths contain changes that can\nnot be found on any remote:\n  libs/child\nfatal: Aborting.".into());
         assert_eq!(error.code, "git_submodule_unpublished");
-        assert!(error.message.contains("HEAD is detached"));
+        assert!(error.message.contains("exact historical commit"));
+        assert!(error.message.contains("If already published, fetch in the child checkout"));
+        assert!(!error.message.contains("branch at its current commit"));
         assert!(!error.message.contains("libs/child"));
     }
 

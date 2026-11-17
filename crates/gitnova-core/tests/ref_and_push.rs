@@ -755,7 +755,9 @@ fn pushing_a_parent_never_implicitly_publishes_an_unpushed_submodule_commit() {
     assert!(
         receipt
             .summary
-            .starts_with("Push stopped because a submodule commit has not been published."),
+            .starts_with(
+                "Push stopped because Git could not confirm submodule commit availability."
+            ),
         "{}",
         receipt.summary
     );
@@ -799,6 +801,8 @@ fn pushing_a_parent_never_implicitly_publishes_an_unpushed_submodule_commit() {
     assert_eq!(remote_oid(&child_remote, "saved/child"), second);
     assert_eq!(remote_oid(&child_remote, "main"), first);
     assert_eq!(remote_oid(&parent_remote, "main"), parent_before);
+    // Publication by another client can leave this checkout's tracking refs stale.
+    git(&child, &["update-ref", "-d", "refs/remotes/origin/saved/child"]);
     let review = app.preview_push(&id, &request).unwrap();
     let receipt = app.push_branch(&id, &request, &review.token).unwrap();
     assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);

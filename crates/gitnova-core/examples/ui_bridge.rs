@@ -443,6 +443,20 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 .map_err(|e| AppError::new("test", e.to_string()))?,
             &s("token")?
         )?),
+        "remote_endpoint" => json!(app.remote_endpoint(&s("membershipId")?, &s("name")?)?),
+        "preview_remote_endpoint" => json!(app.preview_remote_endpoint(
+            &s("membershipId")?,
+            &serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("test", e.to_string()))?,
+            &s("settingsToken")?
+        )?),
+        "change_remote_endpoint" => json!(app.change_remote_endpoint(
+            &s("membershipId")?,
+            &serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("test", e.to_string()))?,
+            &s("settingsToken")?,
+            &s("token")?
+        )?),
         "preview_remote_add" => json!(app.preview_remote_add(
             &s("membershipId")?,
             &serde_json::from_value(args["request"].clone())

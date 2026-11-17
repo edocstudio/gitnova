@@ -593,6 +593,8 @@ pub struct PushRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PushPreview {
+    #[serde(default)]
+    pub submodule_report: Option<PushSubmoduleReport>,
     pub tracking_ref: Option<String>,
     pub tracking_oid: Option<String>,
     pub upstream_before: Option<String>,
@@ -603,6 +605,22 @@ pub struct PushPreview {
     pub outgoing_count: usize,
     pub token: String,
     pub blocked_reason: Option<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PushSubmoduleIssue {
+    pub path: NativePath,
+    pub oid: String,
+    pub parent_oid: String,
+    pub current_oid: Option<String>,
+    pub can_open: bool,
+    pub object_available: bool,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PushSubmoduleReport {
+    pub issues: Vec<PushSubmoduleIssue>,
+    pub complete: bool,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
@@ -641,6 +659,7 @@ pub enum PlannedOperation {
     RepositoryCreate(Box<RepositoryCreatePreview>),
     StageAll(StageAllPreview),
     AddRemote(RemoteAddPreview),
+    RemoteEndpoint(RemoteEndpointPreview),
     Amend(AmendPreview),
     RemoteDelete(RemoteDeletePreview),
     Hosting(Box<HostingPreview>),
@@ -1326,6 +1345,28 @@ pub struct RemoteAddRequest {
 #[serde(rename_all = "camelCase")]
 pub struct RemoteAddPreview {
     pub request: RemoteAddRequest,
+    pub token: String,
+    pub recovery_path: NativePath,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteEndpointRequest {
+    pub name: String,
+    pub urls: Vec<String>,
+    pub push_urls: Vec<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteEndpointSettings {
+    pub request: RemoteEndpointRequest,
+    pub token: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteEndpointPreview {
+    pub request: RemoteEndpointRequest,
+    pub previous: RemoteEndpointSettings,
     pub token: String,
     pub recovery_path: NativePath,
 }

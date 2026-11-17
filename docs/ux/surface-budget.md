@@ -310,3 +310,30 @@ claim that a bounded code preview is complete.
 ## Windows/Linux credential entry
 
 Reuse the existing Settings → Connections and provider-account actions. Native masked token dialogs are required because a graph row cannot securely collect a secret. macOS keeps its existing prompt; Windows uses a masked native form and Linux uses Zenity. No new navigation item, settings tab or graph button is added.
+
+
+## Direct repository endpoint editing
+
+The footer already identifies the active repository remote. Make that existing
+label keyboard/click actionable and open one focused endpoint dialog there, as
+requested by the user. Migration needs editable fetch/push URLs plus an explicit
+old/new review; fitting those fields into the narrow footer or a commit inspector
+would obscure repository scope. Do not add a sidebar, settings tab or navigation
+item. Existing account connections remain in header Settings; missing destinations
+continue to use Push. The dialog edits only the selected existing remote's URLs,
+with an explicit repository/linked-worktree scope, config backup, stale-state
+validation and no implicit fetch, push or branch change.
+
+
+## Actionable transport and historical submodule diagnostics
+
+Reuse the existing Fetch/Pull/Push error and Push review surfaces. Redirect
+failures need one contextual action opening the existing remote endpoint dialog;
+no additional settings surface is needed. Push review needs bounded offline
+evidence naming each historical gitlink commit missing from locally cached
+child remote refs, including the parent commit that references it. Provide an
+exact-commit navigation action into the existing child graph, where reviewed
+branch creation and publication already exist. Never substitute the child's
+current HEAD, change URLs automatically, follow credential redirects, publish
+recursively, or replay a failed parent operation. Explicit recheck refreshes the
+preview. Incomplete/unknown inspection must remain labelled.

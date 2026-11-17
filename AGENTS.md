@@ -16,6 +16,8 @@ Run only one build/test runner at a time. Cargo compilation defaults to two jobs
 
 # Persistent settings
 
+User direction, 2026-11-17: after completing requested code changes, commit the task changes on a descriptive branch and report the branch name, commit SHA, commit message/comment and verification result. Preserve unrelated existing edits outside the task commit.
+
 User direction, 2026-11-09: each delivered app update must advance the patch
 version. Use apps/desktop/scripts/set-version.mjs to synchronize metadata,
 regenerate attribution inventory, and verify the installed bundle's version

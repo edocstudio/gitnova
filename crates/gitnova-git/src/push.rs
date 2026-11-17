@@ -390,6 +390,7 @@ impl GitCli {
         ))
         .map_err(|e| AppError::new("snapshot", e.to_string()))?;
         Ok(PushPreview {
+            submodule_report: None,
             request: request.clone(),
             destination: display_destination(&url),
             remote_oid,

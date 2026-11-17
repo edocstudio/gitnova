@@ -286,7 +286,7 @@ The inline pointer review was below the selected file and could require scrollin
 
 ### Edit a file while investigating a commit
 
-The existing diff dock owns this workflow: no extra screen or navigation is needed. Edit file reads the current tracked UTF-8 working file, not the selected historical revision. The dock shows a read-only baseline beside the draft. Save changes only working bytes; staging and commits remain explicit existing actions. Missing files, binaries, symlinks, nested repositories, submodules and unresolved operations require their own workflows.
+The existing diff dock owns this workflow: no extra screen or navigation is needed. Edit file reads the current tracked UTF-8 working file, not the selected historical revision. The dock shows a read-only baseline beside the draft. Opening Edit file carries the visible diff location into the existing editor: prefer a visible changed row, select its text section, focus the draft cursor and scroll both columns near that line. Removed rows use a surviving new-side neighbor. Historical line drift is resolved with matching text and nearby context; unmatched locations fall back to the nearest existing line. This changes navigation only and preserves the current working-file and draft scope. Save changes only working bytes; staging and commits remain explicit existing actions. Missing files, binaries, symlinks, nested repositories, submodules and unresolved operations require their own workflows.
 
 Large-file layout and full-document selection can stall the browser even below the native budget. Section navigation is therefore placed inside the existing editor (no new panel): only a bounded text section and its read-only baseline are rendered at a time, while Save writes the whole draft. Sections are editing chunks, not diff hunks; a line may span sections if unusually long. Oversized section paste is rejected without truncation.
 
@@ -531,3 +531,55 @@ an authentication failure. Check the exact HTTPS clone URL supplied by the host
 (including `.git` where required); changing a remote remains explicit. GitNova
 does not follow redirects or rewrite remote URLs automatically, so credentials
 remain scoped to the reviewed repository.
+
+
+## Change an existing repository endpoint
+
+Click the existing remote label in the footer to open its scoped endpoint dialog.
+The initial selection follows the current branch remote, otherwise origin or the
+first configured remote; the selector can reach other configured remotes. Show
+raw configured fetch/push URLs and preserve URL order (up to eight per list).
+Use fetch URL for push explicitly removes separate pushurl entries.
+
+Review shows old/new URL lists for the named remote before a separate Save. Only
+that remote's local URLs change, shared with its linked worktrees; keep refspecs,
+branch/upstream selection, refs, staged data, working files and other remotes.
+The action performs no fetch/push or hosted repository creation. Cached remote
+refs still describe previous observations until a later Fetch. Scheduled auto
+fetch pauses while the dialog is open and obeys the normal post-write interval.
+
+Snapshot-bound review, the shared operation guard, native config.lock and a
+retained original config protect publication. External changes require reloading
+current URLs and a new review. Show failures honestly and expose the backup in
+Recent activity & recovery. Config endpoints inherited through includes, global
+or worktree config require Git; do not silently append local overrides. Git URL
+rewrites remain effective; host credentials/connections are managed separately
+in Settings and are not migrated or copied by endpoint changes.
+
+
+## Resolve redirects and historical submodule publication checks
+
+Fetch/Pull/Push redirect errors link directly to the existing endpoint dialog,
+scoped to the attempted repository and remote. Copy the host's exact clone URL
+(including .git when required), review old/new URLs and save explicitly. Saving
+invalidates the old review but never follows a redirect, sends credentials to a
+redirect target or retries the failed operation. Retry remains a separate action.
+
+Before confirming a parent Push, inspect historical gitlink changes across the
+reviewed outgoing range, including intermediate commits. Evidence is offline and
+bounded to the latest 500 commits, 64 distinct path/OID pairs and 8 MiB raw history.
+It names the child path, exact required SHA, referencing parent SHA and current
+child checkout. Missing cached remote reachability is not proof of absence on a
+live server. If already published elsewhere, fetch within that child checkout
+and explicitly recheck. Missing/unavailable checkouts or incomplete inspection
+remain Unknown and retain native Git's final check. Known local missing evidence
+disables the UI's confirmation until rechecked; native writes retain their own
+validation and never recursively publish child commits.
+
+Review branch at required commit opens the existing child commit inspector and
+branch review at that exact OID, including a dangling/orphan historical object
+not reachable from the normal graph roots. No ref or checkout changes during
+navigation. Branch creation/opening and the subsequent child Push require their
+existing explicit confirmations. Do not substitute current HEAD or move an
+existing branch to hide a historical gitlink dependency. Return through the
+repository picker and recheck the parent Push after publishing.

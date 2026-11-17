@@ -818,6 +818,7 @@ impl Application {
             Ok(()) if inspected.is_ok() && submodule_inspected => {
                 receipt.status = "succeeded".into();
                 receipt.summary = match kind {
+                    "change_remote_endpoint" => "Remote URLs updated. Fetch to refresh remote branches.".into(),
                     "merge_begin" if matches!(&receipt.planned, Some(PlannedOperation::Merge(p)) if p.operation == "merge" && receipt.head_after.as_deref() == Some(p.source_oid.as_str()) && receipt.head_before != receipt.head_after) => "Branch fast-forwarded to the reviewed commit; no merge commit was created".into(),
                     "merge_begin" => "Merge prepared; inspect its resulting state".into(),
                     "merge_resolve" => "Resolution staged; review remaining conflicts and staged files".into(),
@@ -1221,6 +1222,41 @@ impl Application {
         self.with_repo_identity(id, || {
             self.git.commit_file_preview(&self.path(id)?, path, token)
         })
+    }
+    pub fn remote_endpoint(&self, id: &str, name: &str) -> Result<RemoteEndpointSettings> {
+        self.git.remote_endpoint(&self.path(id)?, name)
+    }
+    pub fn preview_remote_endpoint(
+        &self,
+        id: &str,
+        request: &RemoteEndpointRequest,
+        settings_token: &str,
+    ) -> Result<RemoteEndpointPreview> {
+        self.git
+            .preview_remote_endpoint(&self.path(id)?, request, settings_token)
+    }
+    pub fn change_remote_endpoint(
+        &self,
+        id: &str,
+        request: &RemoteEndpointRequest,
+        settings_token: &str,
+        token: &str,
+    ) -> Result<OperationReceipt> {
+        let preview = self.preview_remote_endpoint(id, request, settings_token)?;
+        if preview.token != token {
+            return Err(AppError::new(
+                "stale_preview",
+                "Remote configuration review changed. Review again.",
+            ));
+        }
+        self.execute_write_detailed(
+            id,
+            "change_remote_endpoint",
+            None,
+            None,
+            Some(PlannedOperation::RemoteEndpoint(preview)),
+            |git, path| git.change_remote_endpoint(path, request, settings_token, token),
+        )
     }
     pub fn preview_remote_add(
         &self,
@@ -1668,7 +1704,19 @@ impl Application {
         )
     }
     pub fn preview_push(&self, membership_id: &str, request: &PushRequest) -> Result<PushPreview> {
-        self.git.preview_push(&self.path(membership_id)?, request)
+        let path = self.path(membership_id)?;
+        let mut preview = self.git.preview_push(&path, request)?;
+        if preview.blocked_reason.is_none() && preview.outgoing_count > 0 {
+            preview.submodule_report = Some(
+                self.submodules(membership_id)
+                    .and_then(|children| self.git.push_submodule_report(&path, &preview, &children))
+                    .unwrap_or(PushSubmoduleReport {
+                        issues: vec![],
+                        complete: false,
+                    }),
+            );
+        }
+        Ok(preview)
     }
     pub fn push_branch(
         &self,
