@@ -1,0 +1,126 @@
+{
+  "baselineCommit": "e2297e3101b6ecd5c55b4449ac0dc44f78d59ccc",
+  "candidateSourceSha256": "f65f0eaef9442e531c3f7b830abb5f3feb055d16935ed01b5fbd1e05451237e0",
+  "baselineSourceSha256": "18106f203f253c09abdbbab3105273a8b181a7c1544fa605a2b64fc97a37b3b9",
+  "node": "v26.13.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": 3,
+  "limitations": [
+    "Synthetic pure-function timings in Node, not native WebView or full UI timings.",
+    "Sequential blocks; OS scheduling/thermal state are uncontrolled.",
+    "No process memory or physical presentation latency claim."
+  ],
+  "results": [
+    {
+      "name": "unique-20k",
+      "utf16Units": 677779,
+      "before": {
+        "samplesMs": [
+          3.6743339999999876,
+          3.1025419999999997,
+          2.002874999999989
+        ],
+        "medianMs": 3.1025419999999997,
+        "offset": 502745
+      },
+      "after": {
+        "samplesMs": [
+          0.6201669999999808,
+          0.40441699999999514,
+          0.272041999999999
+        ],
+        "medianMs": 0.40441699999999514,
+        "offset": 502745
+      }
+    },
+    {
+      "name": "repeated-131072",
+      "utf16Units": 131070,
+      "before": {
+        "samplesMs": [
+          37.91733300000001,
+          35.402208,
+          35.029292
+        ],
+        "medianMs": 35.402208,
+        "offset": 65526
+      },
+      "after": {
+        "samplesMs": [
+          0.37220800000000054,
+          0.21391700000000924,
+          0.21337500000001342
+        ],
+        "medianMs": 0.21391700000000924,
+        "offset": 65526
+      }
+    },
+    {
+      "name": "repeated-1048576",
+      "utf16Units": 1048572,
+      "before": {
+        "samplesMs": [
+          265.918542,
+          262.61120800000003,
+          265.47341599999993
+        ],
+        "medianMs": 265.47341599999993,
+        "offset": 524280
+      },
+      "after": {
+        "samplesMs": [
+          2.0093340000000808,
+          1.6434169999999995,
+          1.5321670000000722
+        ],
+        "medianMs": 1.6434169999999995,
+        "offset": 524280
+      }
+    },
+    {
+      "name": "repeated-4194304",
+      "utf16Units": 4194300,
+      "before": {
+        "samplesMs": [
+          1063.374,
+          1062.4413749999999,
+          1066.2587079999998
+        ],
+        "medianMs": 1063.374,
+        "offset": 2097144
+      },
+      "after": {
+        "samplesMs": [
+          6.269666000000143,
+          6.482082999999875,
+          6.086083000000144
+        ],
+        "medianMs": 6.269666000000143,
+        "offset": 2097144
+      }
+    },
+    {
+      "name": "repeated-4MiB-no-match",
+      "utf16Units": 4194300,
+      "before": {
+        "samplesMs": [
+          53.310583999999835,
+          50.60999999999967,
+          58.968415999999706
+        ],
+        "medianMs": 53.310583999999835,
+        "offset": 1799994
+      },
+      "after": {
+        "samplesMs": [
+          6.1990420000001905,
+          4.803207999999358,
+          5.733666000000085
+        ],
+        "medianMs": 5.733666000000085,
+        "offset": 1799994
+      }
+    }
+  ]
+}

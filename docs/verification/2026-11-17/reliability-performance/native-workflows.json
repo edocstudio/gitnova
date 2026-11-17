@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "reviewed-child-publication-and-parent-return",
+    "reviewed-endpoint-migration",
+    "distant-diff-editor-reveal-and-save",
+    "fixture-remote-refs-content-index-and-head-verified"
+  ],
+  "head": "ce584fbb71cf2393fee6993b4b6e24bb2dded544",
+  "kind": "gitnova-native-workflows",
+  "scope": "Visible macOS WebView DOM actions through native IPC and real disposable Git repositories; no physical-screen or credential acceptance claim.",
+  "visibility": "visible",
+  "schemaVersion": 1,
+  "version": "1.0.20",
+  "passed": true,
+  "platform": "darwin",
+  "arch": "arm64",
+  "artifact": "gitnova-desktop",
+  "artifactSha256": "fd31954c4dd5a4956b12b3f70208d55b0132da26473022890800847d3b99d6c5",
+  "installedBinarySha256": "fd31954c4dd5a4956b12b3f70208d55b0132da26473022890800847d3b99d6c5"
+}

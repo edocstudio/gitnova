@@ -4,6 +4,10 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
+// Recovery deliberately inspects all Git processes. Its process-probe fixtures
+// must not overlap each other when the integration runner uses two threads.
+static PROCESS_PROBE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 fn git(p: &Path, args: &[&str]) -> String {
     let o = Command::new("git")
         .arg("-C")
@@ -58,6 +62,7 @@ fn stale(root: &Path) -> Vec<u8> {
 }
 #[test]
 fn archives_dead_owner_only_and_preserves_dirty_staging_refs_and_journals() {
+    let _serial = PROCESS_PROBE.lock().unwrap();
     let (_d, root, a, id) = fixture();
     fs::write(root.join("file"), "staged\n").unwrap();
     git(&root, &["add", "file"]);
@@ -89,6 +94,7 @@ fn archives_dead_owner_only_and_preserves_dirty_staging_refs_and_journals() {
 }
 #[test]
 fn alive_owner_malformed_symlink_and_native_state_are_never_removed() {
+    let _serial = PROCESS_PROBE.lock().unwrap();
     let (_d, root, a, id) = fixture();
     let lock = root.join(".git/gitnova-operation.lock");
     fs::write(&lock, format!("GitNova pid={}\n", std::process::id())).unwrap();
@@ -121,6 +127,7 @@ fn alive_owner_malformed_symlink_and_native_state_are_never_removed() {
 }
 #[test]
 fn changed_inode_or_content_invalidates_confirmation() {
+    let _serial = PROCESS_PROBE.lock().unwrap();
     let (_d, root, a, id) = fixture();
     let bytes = stale(&root);
     let p = a.preview_stale_lock(&id).unwrap();
@@ -137,6 +144,7 @@ fn changed_inode_or_content_invalidates_confirmation() {
 }
 #[test]
 fn common_lock_is_visible_from_linked_worktree_and_other_native_state_blocks() {
+    let _serial = PROCESS_PROBE.lock().unwrap();
     let (d, root, a, id) = fixture();
     let linked = d.path().join("linked");
     git(
@@ -161,6 +169,7 @@ fn common_lock_is_visible_from_linked_worktree_and_other_native_state_blocks() {
 }
 #[test]
 fn orphan_git_process_blocks_recovery_until_it_exits() {
+    let _serial = PROCESS_PROBE.lock().unwrap();
     let (_d, root, a, id) = fixture();
     stale(&root);
     let p = a.preview_stale_lock(&id).unwrap();

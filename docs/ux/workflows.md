@@ -583,3 +583,34 @@ navigation. Branch creation/opening and the subsequent child Push require their
 existing explicit confirmations. Do not substitute current HEAD or move an
 existing branch to hide a historical gitlink dependency. Return through the
 repository picker and recheck the parent Push after publishing.
+
+
+## Returning from child publication to the parent Push
+
+When Push identifies a required child commit, opening that child keeps a temporary
+return action in the existing header. Return restores the parent branch, remote,
+destination and upload/upstream options. It discards the old confirmation token:
+the user checks the live destination and confirms a new Push. If the parent source
+branch moved, return selects the parent and explains why a fresh Push is needed.
+No child or parent publication happens during navigation. The return context is
+in memory for the current flow, not a repository preference.
+
+## Saved file with unavailable refreshed status
+
+A successful working-file write clears the editor draft and reports that the file
+was saved, even if the following repository refresh fails. Retry refresh repeats
+reads only. It must not resubmit the original content or overwrite an external edit
+made after the save. An actual save failure keeps the draft and its stale-preview
+recovery flow.
+
+## Remote endpoint count and bounded publication evidence
+
+The endpoint dialog preserves existing multiple URLs for inspection, but requires
+an explicit selection of one fetch URL and at most one separate push URL before
+review. This matches GitNova Push's single-destination contract.
+
+Child publication diagnostics batch immutable object queries and cached-ref
+reachability per child. Evidence remains offline and bounded. A missing object,
+changed refs, failed inspection, or exhausted traversal budget is shown as unknown,
+not as verified publication or an instruction to create a branch. A fresh reviewed
+Push still checks the live parent destination and retains Git's submodule guard.

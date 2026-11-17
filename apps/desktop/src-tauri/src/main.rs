@@ -1747,7 +1747,12 @@ fn main() {
                 && std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1"))
                 && matches!(payload.event(), tauri::webview::PageLoadEvent::Finished)
             {
-                let _ = window.eval(include_str!("../../scripts/native-perf-driver.js"));
+                let script = if std::env::var_os("GITNOVA_NATIVE_WORKFLOWS").as_deref() == Some(std::ffi::OsStr::new("1")) {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                    include_str!("../../scripts/native-workflows-driver.js")
+                } else { include_str!("../../scripts/native-perf-driver.js") };
+                let _ = window.eval(script);
             }
             if native_smoke()
                 && (cfg!(debug_assertions) || std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1")))

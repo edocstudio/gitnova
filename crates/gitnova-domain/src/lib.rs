@@ -606,9 +606,18 @@ pub struct PushPreview {
     pub token: String,
     pub blocked_reason: Option<String>,
 }
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum PushSubmoduleEvidence {
+    Missing,
+    #[default]
+    Unknown,
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PushSubmoduleIssue {
+    #[serde(default)]
+    pub evidence: PushSubmoduleEvidence,
     pub path: NativePath,
     pub oid: String,
     pub parent_oid: String,

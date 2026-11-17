@@ -341,7 +341,9 @@ mod transport_error_tests {
         let error = transport_error("git_push", "The following submodule paths contain changes that can\nnot be found on any remote:\n  libs/child\nfatal: Aborting.".into());
         assert_eq!(error.code, "git_submodule_unpublished");
         assert!(error.message.contains("exact historical commit"));
-        assert!(error.message.contains("If already published, fetch in the child checkout"));
+        assert!(error
+            .message
+            .contains("If already published, fetch in the child checkout"));
         assert!(!error.message.contains("branch at its current commit"));
         assert!(!error.message.contains("libs/child"));
     }

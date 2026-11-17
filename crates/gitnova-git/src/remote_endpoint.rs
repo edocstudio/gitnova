@@ -136,10 +136,10 @@ impl GitCli {
                 "Remote configuration changed. Reload the current URLs and review again.",
             ));
         }
-        if request.urls.is_empty() || request.urls.len() > 8 || request.push_urls.len() > 8 {
+        if request.urls.len() != 1 || request.push_urls.len() > 1 {
             return Err(AppError::new(
                 "remote_config",
-                "Enter one to eight fetch URLs and up to eight push URLs.",
+                "Enter one fetch URL and at most one separate push URL.",
             ));
         }
         let validate = |values: &[String]| -> Result<Vec<String>> {

@@ -15,7 +15,7 @@ import brandIcon from '../assets/icon.svg';
 import { t, useLocale } from './i18n';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { api, desktop, errorMessage } from './api';
-import type { StashList, SearchLocation, MergeState, Catalog, CommitDetail, LinkedWorktree, Submodule, WorkingChanges, OperationReceipt, PlannedOperation } from './contracts';
+import type { StashList, SearchLocation, MergeState, Catalog, CommitDetail, LinkedWorktree, Submodule, WorkingChanges, OperationReceipt, PlannedOperation, PushRequest, NativePath } from './contracts';
 import { historyItems, appendPage, retainRecent, retainGraphSessions, MAX_ROWS, ROW_HEIGHT } from './graph-state';
 import { CommitSearch } from './CommitSearch';
 import { Icon } from './Icons';
@@ -63,7 +63,8 @@ export function App() {
   const [stashErrors, setStashErrors] = useState<Record<string, string>>({});
   const stashRef = useRef(stashes); stashRef.current = stashes;
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [pendingRelatedCommit,setPendingRelatedCommit]=useState<{membershipId:string;oid:string}|null>(null);
+  const [pendingNavigation,setPendingNavigation]=useState<{membershipId:string;intent:GraphIntent}|null>(null);
+  const [parentPush,setParentPush]=useState<{parentId:string;parentName:string;childId:string;request:PushRequest}|null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState<{membershipId:string;oid:string}|null>(null);
   const searchFocused = useCallback(() => setSearchFocus(null), []);
@@ -236,24 +237,36 @@ export function App() {
       setSearchFocus({membershipId:location.membershipId,oid});
     } finally { setBusy(false); }
   };
-  const openRelatedCommit = async (path:import('./contracts').NativePath,oid?:string) => {
+  const openRelatedCommit = async (path:NativePath,oid?:string,request?:PushRequest) => {
     if(!selectedId||writeBusy||busy)return;
     setGraphIntent(null);
-    if(!oid){await mutate(api.openRelated(selectedId,path));return;}
+    if(!oid&&!request){await mutate(api.openRelated(selectedId,path));return;}
     setBusy(true);setError('');
     try{
       const next=await api.openRelated(selectedId,path);
       const target=next.workspaces.find(w=>w.id===next.activeWorkspaceId);
       const id=target?.selectedId;
       if(!target||!id)throw new Error('Related repository is unavailable or not initialized');
-      let focus;
-      try{focus=await api.focusCommit(target.id,id,oid);}
-      catch(e){if(!e||typeof e!=='object'||!('code' in e)||e.code!=='search_location')throw e;focus={page:await api.graph(id),base:0};}
-      setSessions(old=>retainGraphSessions(old,id,{page:focus.page,rows:focus.page.rows,selected:oid,base:focus.base,scroll:Math.max(0,focus.page.rows.findIndex(row=>row.commit.oid===oid)*ROW_HEIGHT-72),revision:(old[id]?.revision??0)+1}));
-      setCatalog(next);setInspectorOpen(true);setDiffCollapsed(false);setSearchFocus({membershipId:id,oid});setPendingRelatedCommit({membershipId:id,oid});
+      // Branch review is pinned to the requested OID in the inspector. It does
+      // not need a 20k-commit graph search, including for dangling child objects.
+      const focus={page:await api.graph(id),base:0};
+      setSessions(old=>retainGraphSessions(old,id,{page:focus.page,rows:focus.page.rows,selected:oid??focus.page.rows[0]?.commit.oid??null,base:focus.base,scroll:Math.max(0,focus.page.rows.findIndex(row=>row.commit.oid===oid)*ROW_HEIGHT-72),revision:(old[id]?.revision??0)+1}));
+      setCatalog(next);setInspectorOpen(true);setDiffCollapsed(false);if(oid){setSearchFocus({membershipId:id,oid});setPendingNavigation({membershipId:id,intent:{oid,x:Math.max(12,window.innerWidth/2-180),y:180,quick:false,action:'createBranch',purpose:'publishSubmodule'}});}if(request)setParentPush({parentId:selectedId,parentName:selected?.name??'',childId:id,request});
     }catch(e){setError(errorMessage(e));}finally{setBusy(false);}
   };
-  useEffect(()=>{if(pendingRelatedCommit&&selectedId===pendingRelatedCommit.membershipId){setGraphIntent({oid:pendingRelatedCommit.oid,x:Math.max(12,window.innerWidth/2-180),y:180,quick:false,action:'createBranch',purpose:'publishSubmodule'});setPendingRelatedCommit(null);}},[pendingRelatedCommit,selectedId]);
+  useEffect(()=>{if(pendingNavigation&&selectedId===pendingNavigation.membershipId){setGraphIntent(pendingNavigation.intent);setPendingNavigation(null);}},[pendingNavigation,selectedId]);
+  const returnToParentPush=async()=>{
+    if(!parentPush||writeBusy||busy)return;
+    setBusy(true);setError('');setGraphIntent(null);
+    try{
+      const page=await api.graph(parentPush.parentId);
+      const next=await api.select(parentPush.parentId);
+      const reference=page.refs.find(ref=>ref.name===`refs/heads/${parentPush.request.branch}`);
+      if(!reference||reference.oid!==parentPush.request.oid){setCatalog(next);setParentPush(null);reportOperationError(parentPush.parentId,'The parent branch changed. Review a fresh Push from that repository.');return;}
+      setSessions(old=>retainGraphSessions(old,parentPush.parentId,{page,rows:page.rows,selected:reference.oid,base:0,scroll:0,revision:(old[parentPush.parentId]?.revision??0)+1}));
+      setCatalog(next);setPendingNavigation({membershipId:parentPush.parentId,intent:{oid:reference.oid,refName:reference.name,x:Math.max(12,window.innerWidth/2-180),y:160,quick:false,action:'push',pushDraft:parentPush.request}});setParentPush(null);
+    }catch(e){setError(errorMessage(e));}finally{setBusy(false);}
+  };
   const repositoryWritten = async (receipt: OperationReceipt) => {
     reportOperation(receipt);
     if (!selectedId || activeId.current !== selectedId) return;
@@ -303,7 +316,7 @@ export function App() {
         }} />)}</div>}
         <p className="shortcut"><kbd>{t("⌘ / Ctrl O")}</kbd> {t("Switch repository")}</p>
       </div>}</div>
-      {catalog && workspace && selectedId && <CommitSearch key={workspace.id} catalog={catalog} workspace={workspace} currentId={selectedId} disabled={writeBusy || busy} open={searchOpen} onOpenChange={value => { setSearchOpen(value); if (value) { setMenu(false); setGraphIntent(null); } }} onNavigate={openSearchResult} />}<div className="topbar-spacer" /><span className="local-indicator"><Icon name="lock" size={12} />{t("Local workspace")}</span>{selectedId && <button className="fetch-current" title={t('Fetch remote updates; preserve local branches and files.')} disabled={busy || graphBusy || writeBusy || !currentStatus || Boolean(graphIntent) || Boolean(lockRecovery)} aria-busy={autoFetchBusy || (graphIntent?.action === 'fetch' && foregroundWriteBusy)} onClick={event => { if (!currentStatus || writingRef.current) return; const box = event.currentTarget.getBoundingClientRect(); setMenu(false); setSearchOpen(false); setGraphIntent({oid: currentStatus.head ?? '', x: box.left, y: box.bottom + 6, quick: false, action: 'fetch'}); }}><Icon name={autoFetchBusy || (graphIntent?.action === 'fetch' && foregroundWriteBusy) ? 'refresh' : 'pull'} size={15} className={autoFetchBusy || (graphIntent?.action === 'fetch' && foregroundWriteBusy) ? 'loading-spin' : undefined}/><span>{t('Fetch')}</span></button>}{selectedId && <button className="refresh" title={t("Refresh repository")} disabled={graphBusy || writeBusy} onClick={() => { const id=selectedId; window.dispatchEvent(new Event('gitnova-remotes-changed')); setGraphBusy(true); void refreshWorking(id, true).catch(e => setError(errorMessage(e))).finally(()=>{if(activeId.current===id)setGraphBusy(false);}); }}><Icon name="refresh" size={15} className={graphBusy ? 'spinning' : undefined} /><span>{t("Refresh")}</span></button>}
+      {catalog && workspace && selectedId && <CommitSearch key={workspace.id} catalog={catalog} workspace={workspace} currentId={selectedId} disabled={writeBusy || busy} open={searchOpen} onOpenChange={value => { setSearchOpen(value); if (value) { setMenu(false); setGraphIntent(null); } }} onNavigate={openSearchResult} />}{parentPush&&selectedId===parentPush.childId&&<button className="return-parent-push" title={t('Return to {0} Push',[parentPush.parentName])} disabled={busy||writeBusy} onClick={()=>void returnToParentPush()}>{t('Return to {0} Push',[parentPush.parentName])}</button>}<div className="topbar-spacer" /><span className="local-indicator"><Icon name="lock" size={12} />{t("Local workspace")}</span>{selectedId && <button className="fetch-current" title={t('Fetch remote updates; preserve local branches and files.')} disabled={busy || graphBusy || writeBusy || !currentStatus || Boolean(graphIntent) || Boolean(lockRecovery)} aria-busy={autoFetchBusy || (graphIntent?.action === 'fetch' && foregroundWriteBusy)} onClick={event => { if (!currentStatus || writingRef.current) return; const box = event.currentTarget.getBoundingClientRect(); setMenu(false); setSearchOpen(false); setGraphIntent({oid: currentStatus.head ?? '', x: box.left, y: box.bottom + 6, quick: false, action: 'fetch'}); }}><Icon name={autoFetchBusy || (graphIntent?.action === 'fetch' && foregroundWriteBusy) ? 'refresh' : 'pull'} size={15} className={autoFetchBusy || (graphIntent?.action === 'fetch' && foregroundWriteBusy) ? 'loading-spin' : undefined}/><span>{t('Fetch')}</span></button>}{selectedId && <button className="refresh" title={t("Refresh repository")} disabled={graphBusy || writeBusy} onClick={() => { const id=selectedId; window.dispatchEvent(new Event('gitnova-remotes-changed')); setGraphBusy(true); void refreshWorking(id, true).catch(e => setError(errorMessage(e))).finally(()=>{if(activeId.current===id)setGraphBusy(false);}); }}><Icon name="refresh" size={15} className={graphBusy ? 'spinning' : undefined} /><span>{t("Refresh")}</span></button>}
       <button ref={settingsButton} className="icon-button settings-trigger" aria-label={t('Settings')} title={t('Settings')} aria-haspopup="dialog" aria-expanded={settingsOpen} disabled={writeBusy || busy} onClick={()=>{setMenu(false);setSearchOpen(false);setSettingsOpen(true);}}><Icon name="settings" size={20}/></button>
     </header>
     {problem && <div className="error-banner" role="alert"><span>{t(problem)}</span><button className="icon-button" aria-label={t("Dismiss error")} onClick={() => { setError(''); if (selectedId) setOperationFeedback(old => Object.fromEntries(Object.entries(old).filter(([id]) => id !== selectedId))); }}><Icon name="close" /></button></div>}
@@ -325,7 +338,7 @@ export function App() {
       {selectedOid && !working && <CommitDiffDock key={`${selectedId}:${selectedOid}`} membershipId={selectedId} fileDrafts={fileDrafts.current} editBlocked={writeBusy||busy} onEditBusy={onWriteBusy} onFileSaved={async()=>{if(selectedId){window.dispatchEvent(new Event('gitnova-write-completed'));setOperationFeedback(old=>retainRecent(old,selectedId,{status:'succeeded',summary:'File saved. Stage and commit it from Working changes.',kind:'file_edit',recovery:null}));await refreshWorking(selectedId);}}} preferredPath={investigationFile?.membershipId===selectedId && investigationFile?.oid===selectedOid?investigationFile.path:undefined} detail={detail} busy={detailBusy} size={diffHeight} onResize={setDiffHeight} collapsed={diffCollapsed} onToggle={() => setDiffCollapsed(value => !value)} />}
       </div>
     </div>}</main>
-    {graphIntent && selectedId && currentStatus && <GraphActions onOpenRelated={(path,oid)=>{void openRelatedCommit(path,oid);}} key={`actions-${recoveryRevision}-${selectedId}`} intent={graphIntent} onConfigureRemote={()=>{settingsReturn.current=document.activeElement as HTMLElement;setSettingsOpen(true);}} pendingOperation={Boolean(merges[selectedId] && merges[selectedId].phase !== 'none')} tracking={session?.page.tracking} membershipId={selectedId} refs={session?.page.refs ?? []} status={currentStatus} blocked={writeBusy || busy} onClose={() => setGraphIntent(null)} onInspect={selectCommit} onBusyChange={onWriteBusy} onDone={repositoryWritten} onFailure={reportOperationError} />}
+    {graphIntent && selectedId && currentStatus && <GraphActions onOpenRelated={(path,oid,request)=>{void openRelatedCommit(path,oid,request);}} key={`actions-${recoveryRevision}-${selectedId}`} intent={graphIntent} onConfigureRemote={()=>{settingsReturn.current=document.activeElement as HTMLElement;setSettingsOpen(true);}} pendingOperation={Boolean(merges[selectedId] && merges[selectedId].phase !== 'none')} tracking={session?.page.tracking} membershipId={selectedId} refs={session?.page.refs ?? []} status={currentStatus} blocked={writeBusy || busy} onClose={() => setGraphIntent(null)} onInspect={selectCommit} onBusyChange={onWriteBusy} onDone={repositoryWritten} onFailure={reportOperationError} />}
     {terminalEntries.length>0&&<Suspense fallback={<div role="status">{t("Opening terminal…")}</div>}><RepositoryTerminal entries={terminalEntries} onExpired={id=>{setTerminalEntries(entries=>entries.filter(entry=>entry.membershipId!==id));setTerminalNotice(true);}} selectedId={selectedId} visible={terminalVisible} onHide={()=>setTerminalVisible(false)} onEnd={endTerminal} onChanged={()=>{if(selectedId)void refreshWorking(selectedId).catch(e=>setSyncError(errorMessage(e)));}}/></Suspense>}
     {lockRecovery && lockRecovery===selectedId && <LockRecoveryDialog key={lockRecovery} membershipId={lockRecovery} disabled={writeBusy||busy} onBusyChange={onWriteBusy} onClose={()=>setLockRecovery(null)} onRefresh={async()=>{
       await refreshWorking(lockRecovery,true);

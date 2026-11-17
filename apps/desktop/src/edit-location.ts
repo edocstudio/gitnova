@@ -36,23 +36,50 @@ export function diffEditAnchor(file:PatchFile, visible:DiffLine[]):EditAnchor|nu
 // break duplicate-text ties by distance, and fall back to a clamped line number.
 export function editorOffset(text:string,anchor:EditAnchor|null):number {
   if(!anchor)return 0;
+  const clean=(line:string)=>line.endsWith('\r')?line.slice(0,-1):line;
+  const contexts=[...anchor.before.map((value,i)=>({value,delta:i-anchor.before.length})),
+    ...anchor.after.map((value,i)=>({value,delta:i+1}))].filter(seed=>seed.value.trim());
+  const target=Boolean(anchor.text.trim());
+  const maximum=(contexts.length+Number(target))*2;
+  // Common path: walk only to the expected line, then inspect bounded context.
+  // A perfect match here is optimal and closest; no whole-file split is needed.
+  let expectedOffset=0;
+  for(let line=1;line<anchor.line;line++){
+    const end=text.indexOf('\n',expectedOffset);
+    if(end<0)break;
+    expectedOffset=end+1;
+  }
+  if(!maximum)return expectedOffset;
+  const at=(offset:number)=>{const end=text.indexOf('\n',offset);return clean(text.slice(offset,end<0?text.length:end));};
+  let perfect=!target||at(expectedOffset)===anchor.text;
+  for(const seed of contexts){
+    let offset=expectedOffset;
+    for(let i=0;i<Math.abs(seed.delta)&&offset>=0;i++){
+      if(seed.delta<0)offset=offset===0?-1:text.lastIndexOf('\n',offset-2)+1;
+      else {const end=text.indexOf('\n',offset);offset=end<0?-1:end+1;}
+    }
+    if(offset<0||at(offset)!==seed.value){perfect=false;break;}
+  }
+  if(perfect)return expectedOffset;
+  // Normalize once and score each candidate once, nearest first. This replaces
+  // repeated seed/candidate rescoring and regex allocation on duplicate lines.
+  if(!(target&&text.includes(anchor.text))&&!contexts.some(seed=>text.includes(seed.value)))return expectedOffset;
   const lines=text.split('\n');
+  const normalized=lines.map(clean);
   const expected=Math.max(0,Math.min(lines.length-1,anchor.line-1));
   let best=expected,bestScore=0;
-  const seeds=[...anchor.before.map((value,i)=>({value,delta:i-anchor.before.length})),
-    {value:anchor.text,delta:0},...anchor.after.map((value,i)=>({value,delta:i+1}))].filter(seed=>seed.value.trim());
-  for(let i=0;i<lines.length;i++){
-    const value=lines[i].replace(/\r$/,'');
-    for(const seed of seeds){
-      if(value!==seed.value)continue;
-      const candidate=i-seed.delta;
+  const score=(index:number)=>{
+    let value=target&&normalized[index]===anchor.text?2:0;
+    for(const seed of contexts)if(normalized[index+seed.delta]===seed.value)value+=2;
+    return value;
+  };
+  search:for(let distance=0;distance<Math.max(expected+1,lines.length-expected);distance++){
+    const candidates=distance?[expected-distance,expected+distance]:[expected];
+    for(const candidate of candidates){
       if(candidate<0||candidate>=lines.length)continue;
-      let score=lines[candidate].replace(/\r$/,'')===anchor.text&&anchor.text.trim()?2:0;
-      for(const other of seeds){
-        if(other.delta!==0&&lines[candidate+other.delta]?.replace(/\r$/,'')===other.value)score+=2;
-      }
-      if(score<2)continue;
-      if(score>bestScore||(score===bestScore&&Math.abs(candidate-expected)<Math.abs(best-expected))){best=candidate;bestScore=score;}
+      const value=score(candidate);
+      if(value>=2&&value>bestScore){best=candidate;bestScore=value;}
+      if(value===maximum)break search;
     }
   }
   let offset=0;

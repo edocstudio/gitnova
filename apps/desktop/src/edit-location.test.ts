@@ -46,3 +46,34 @@ it('uses visible context when the changed rows have scrolled out of view',()=>{
   const file=patch('@@ -8,3 +8,3 @@\n-old\n+new\n context\n end\n');
   expect(diffEditAnchor(file,[file.lines[3]])?.line).toBe(9);
 });
+
+it('keeps exact UTF-16 offsets for large repeated text and CRLF context at section boundaries',()=>{
+  const text='value\r\n'.repeat(600000);
+  const anchor={line:300001,text:'value',before:['value','value','value'],after:['value','value','value']};
+  expect(editorOffset(text,anchor)).toBe(300000*7);
+  expect(editorOffset('😀\r\nภาษาไทย\r\ntail',{line:2,text:'ภาษาไทย',before:['😀'],after:['tail']})).toBe(4);
+});
+
+it('matches a complete candidate search across repeated, shifted and missing context',()=>{
+  let seed=17112026;
+  const random=(n:number)=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed%n;};
+  const choices=['','same','value','other','ภาษาไทย','😀','  '];
+  for(let example=0;example<400;example++){
+    const original=Array.from({length:5+random(40)},()=>choices[random(choices.length)]);
+    const target=random(original.length),start=Math.max(0,target-3);
+    const anchor={line:target+1,text:original[target],before:original.slice(start,target),after:original.slice(target+1,target+4)};
+    const current=[...original];current.splice(random(current.length),random(4),...Array.from({length:random(5)},()=>choices[random(choices.length)]));
+    const text=current.join(example%2?'\r\n':'\n'),lines=text.split('\n');
+    const normalized=lines.map(line=>line.replace(/\r$/,''));
+    const expected=Math.min(lines.length-1,anchor.line-1);
+    let best=expected,bestScore=0;
+    for(let candidate=0;candidate<lines.length;candidate++){
+      let score=anchor.text.trim()&&normalized[candidate]===anchor.text?2:0;
+      anchor.before.forEach((value,i)=>{if(value.trim()&&normalized[candidate+i-anchor.before.length]===value)score+=2;});
+      anchor.after.forEach((value,i)=>{if(value.trim()&&normalized[candidate+i+1]===value)score+=2;});
+      if(score>=2&&(score>bestScore||score===bestScore&&Math.abs(candidate-expected)<Math.abs(best-expected))){best=candidate;bestScore=score;}
+    }
+    const offset=lines.slice(0,best).reduce((sum,line)=>sum+line.length+1,0);
+    expect(editorOffset(text,anchor),`case ${example}`).toBe(offset);
+  }
+});

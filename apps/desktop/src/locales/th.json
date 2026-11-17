@@ -2399,5 +2399,14 @@
   "A historical submodule commit may be missing from cached remote branches. Fetch inside the child repository, then review Push again to identify the exact required commits. Publishing the current HEAD alone may not resolve this.": "อาจมี commit เก่าของ submodule ที่ไม่พบใน remote branch ที่แคชไว้ ให้ Fetch ใน repo ลูกแล้วตรวจสอบ Push ใหม่เพื่อระบุ commit ที่ต้องใช้ การเผยแพร่เฉพาะ HEAD ปัจจุบันอาจยังไม่แก้ปัญหานี้",
   "Review branch at required commit {0}": "ตรวจสอบ branch จาก commit ที่ต้องใช้ {0}",
   "Review a branch at the required historical submodule commit. This may differ from the current HEAD. Existing branches are preserved.": "ตรวจสอบ branch จาก commit เก่าของ submodule ที่ต้องใช้ ซึ่งอาจต่างจาก HEAD ปัจจุบัน โดยคง branch เดิมไว้",
-  "Push stopped because Git could not confirm submodule commit availability. Inspect the exact historical commit required by the parent. If already published, fetch in the child checkout; otherwise review and publish that required commit, then review the parent push again.": "หยุด Push เพราะ Git ยังยืนยันความพร้อมของ commit ใน submodule ไม่ได้ ตรวจสอบ commit เก่าที่ repo แม่ต้องใช้ หากเผยแพร่แล้วให้ Fetch ใน checkout ของ repo ลูก มิฉะนั้นให้ตรวจสอบและเผยแพร่ commit ที่ต้องใช้นั้น แล้วตรวจสอบ Push ของ repo แม่ใหม่"
+  "Push stopped because Git could not confirm submodule commit availability. Inspect the exact historical commit required by the parent. If already published, fetch in the child checkout; otherwise review and publish that required commit, then review the parent push again.": "หยุด Push เพราะ Git ยังยืนยันความพร้อมของ commit ใน submodule ไม่ได้ ตรวจสอบ commit เก่าที่ repo แม่ต้องใช้ หากเผยแพร่แล้วให้ Fetch ใน checkout ของ repo ลูก มิฉะนั้นให้ตรวจสอบและเผยแพร่ commit ที่ต้องใช้นั้น แล้วตรวจสอบ Push ของ repo แม่ใหม่",
+  "Working file saved.": "บันทึกไฟล์งานแล้ว",
+  "Refresh saved file": "รีเฟรชสถานะไฟล์ที่บันทึกแล้ว",
+  "The file was saved, but its refreshed status is unavailable. Retry refresh without saving the file again.": "บันทึกไฟล์แล้ว แต่ยังรีเฟรชสถานะไม่ได้ ลองรีเฟรชใหม่โดยไม่บันทึกไฟล์ซ้ำ",
+  "Retry refresh": "ลองรีเฟรชใหม่",
+  "GitNova Push supports one destination. Choose one fetch URL and at most one separate push URL before reviewing.": "GitNova Push รองรับปลายทางเดียว เลือก URL สำหรับ fetch หนึ่งรายการ และ URL สำหรับ push แยกได้ไม่เกินหนึ่งรายการก่อนตรวจสอบ",
+  "Enter one fetch URL and at most one separate push URL.": "ระบุ URL สำหรับ fetch หนึ่งรายการ และ URL สำหรับ push แยกได้ไม่เกินหนึ่งรายการ",
+  "Remote reachability could not be fully inspected. Fetch in the child checkout and recheck; publication is not confirmed.": "ยังตรวจสอบประวัติ remote ได้ไม่ครบ ให้ Fetch ใน checkout ของ repo ลูกแล้วตรวจสอบอีกครั้ง ยังไม่ยืนยันการเผยแพร่",
+  "Return to {0} Push": "กลับไปตรวจ Push ของ {0}",
+  "The parent branch changed. Review a fresh Push from that repository.": "branch ของ repo แม่เปลี่ยนไป ให้ตรวจสอบ Push ใหม่จาก repository นั้น"
 }

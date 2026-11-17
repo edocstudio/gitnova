@@ -274,13 +274,8 @@ impl Application {
         let commits = self.git.history_range(&path, 0, 20101)?;
         let index=commits.iter().position(|c|c.oid==oid).ok_or_else(||AppError::new("search_location","This commit is no longer reachable inside the supported graph range. Search again."))?;
         let base = index / 100 * 100;
-        let commits = self.git.history_range(&path, 0, base + 101)?;
-        if commits.get(index).is_none_or(|commit| commit.oid != oid) {
-            return Err(AppError::new(
-                "stale_search",
-                "Matching graph position changed while opening. Search again.",
-            ));
-        }
+        // Reuse the immutable metadata already read above. The final fresh
+        // fingerprint still rejects concurrent ref changes before publication.
         let more = commits.len() > base + 100;
         let mut cursor = GraphCursor {
             version: 2,

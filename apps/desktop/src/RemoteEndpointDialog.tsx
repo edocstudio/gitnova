@@ -18,13 +18,14 @@ export function RemoteEndpointDialog({membershipId,repositoryName,names,initialN
   },[membershipId,name,reload]);
   useEffect(()=>{if(settings&&!loading)urlInput.current?.focus();},[settings,loading]);
   const locked=blocked||busy||loading;
+  const urlLines=(value:string)=>value.split('\n').map(line=>line.trim()).filter(Boolean);
+  const multiple=urlLines(urls).length>1||!samePush&&urlLines(pushUrls).length>1;
   const close=()=>{if(!flight.current)onClose();};
   const failed=(e:unknown)=>{setError(errorMessage(e));setReview(null);if(e&&typeof e==='object'&&'code' in e&&e.code==='stale_preview')setStale(true);};
   const prepare=async()=>{
-    if(!settings||locked||flight.current||stale)return;
+    if(!settings||locked||flight.current||stale||multiple)return;
     flight.current=true;setLoading(true);setError('');
-    const lines=(value:string)=>value.split('\n').map(line=>line.trim()).filter(Boolean);
-    try{setReview(await api.previewRemoteEndpoint(membershipId,{name,urls:lines(urls),pushUrls:samePush?[]:lines(pushUrls)},settings.token));}
+    try{setReview(await api.previewRemoteEndpoint(membershipId,{name,urls:urlLines(urls),pushUrls:samePush?[]:urlLines(pushUrls)},settings.token));}
     catch(e){failed(e);}finally{flight.current=false;setLoading(false);}
   };
   const apply=async()=>{
@@ -53,8 +54,9 @@ export function RemoteEndpointDialog({membershipId,repositoryName,names,initialN
       <label htmlFor="endpoint-fetch">{t('Fetch URLs (one per line)')}</label><textarea ref={urlInput} id="endpoint-fetch" rows={Math.min(4,Math.max(1,urls.split('\n').length))} value={urls} maxLength={65543} disabled={locked||!settings} required spellCheck={false} onChange={event=>setUrls(event.target.value)}/>
       <label className="ref-checkbox"><input type="checkbox" checked={samePush} disabled={locked||!settings} onChange={event=>setSamePush(event.target.checked)}/>{t('Use fetch URL for push')}</label>
       {!samePush&&<><label htmlFor="endpoint-push">{t('Push URLs (one per line)')}</label><textarea id="endpoint-push" rows={Math.min(4,Math.max(1,pushUrls.split('\n').length))} value={pushUrls} maxLength={65543} disabled={locked||!settings} required spellCheck={false} onChange={event=>setPushUrls(event.target.value)}/></>}
+      {multiple&&<p className="notice" role="status">{t('GitNova Push supports one destination. Choose one fetch URL and at most one separate push URL before reviewing.')}</p>}
       <p className="hint">{t('Use a credential helper or SSH agent. Do not put tokens or passwords in URLs.')}</p>
-      <div className="graph-action-footer"><button type="button" disabled={busy} onClick={close}>{t('Cancel')}</button><button className="primary" disabled={locked||!settings||stale||!urls.trim()||!samePush&&!pushUrls.trim()}>{t('Review remote change')}</button></div>
+      <div className="graph-action-footer"><button type="button" disabled={busy} onClick={close}>{t('Cancel')}</button><button className="primary" disabled={locked||!settings||stale||multiple||!urls.trim()||!samePush&&!pushUrls.trim()}>{t('Review remote change')}</button></div>
     </form>}
     {loading&&<p className="loading-status" role="status">{t('Reading remote…')}</p>}{error&&<p className="inline-error" role="alert">{t(error)}</p>}
     {stale&&<button disabled={locked} onClick={()=>setReload(value=>value+1)}>{t('Reload current remote URLs')}</button>}

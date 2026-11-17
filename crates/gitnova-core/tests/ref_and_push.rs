@@ -753,11 +753,9 @@ fn pushing_a_parent_never_implicitly_publishes_an_unpushed_submodule_commit() {
     assert_eq!(git(&child, &["rev-parse", "HEAD"]), second);
     assert_eq!(git(&repo, &["rev-parse", "HEAD"]), head);
     assert!(
-        receipt
-            .summary
-            .starts_with(
-                "Push stopped because Git could not confirm submodule commit availability."
-            ),
+        receipt.summary.starts_with(
+            "Push stopped because Git could not confirm submodule commit availability."
+        ),
         "{}",
         receipt.summary
     );
@@ -802,8 +800,23 @@ fn pushing_a_parent_never_implicitly_publishes_an_unpushed_submodule_commit() {
     assert_eq!(remote_oid(&child_remote, "main"), first);
     assert_eq!(remote_oid(&parent_remote, "main"), parent_before);
     // Publication by another client can leave this checkout's tracking refs stale.
-    git(&child, &["update-ref", "-d", "refs/remotes/origin/saved/child"]);
+    git(
+        &child,
+        &["update-ref", "-d", "refs/remotes/origin/saved/child"],
+    );
+    let stale_review = app.preview_push(&id, &request).unwrap();
+    let evidence = stale_review.submodule_report.as_ref().unwrap();
+    assert!(evidence.issues.iter().any(|issue| issue.oid == second));
+    let blocked = app.push_branch(&id, &request, &stale_review.token).unwrap();
+    assert_ne!(blocked.status, "succeeded");
+    assert_eq!(remote_oid(&parent_remote, "main"), parent_before);
+    // Explicitly refresh the child checkout; parent Push never fetches it implicitly.
+    assert_eq!(
+        app.fetch_remote(child_id, "origin", None).unwrap().status,
+        "succeeded"
+    );
     let review = app.preview_push(&id, &request).unwrap();
+    assert!(review.submodule_report.as_ref().unwrap().issues.is_empty());
     let receipt = app.push_branch(&id, &request, &review.token).unwrap();
     assert_eq!(receipt.status, "succeeded", "{}", receipt.summary);
     assert_eq!(remote_oid(&parent_remote, "main"), head);

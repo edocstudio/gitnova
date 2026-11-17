@@ -1,0 +1,74 @@
+{
+  "version": "1.0.20",
+  "resourcePolicy": "One runner at a time; two Rust test threads; one Playwright worker; all action fixtures disposable.",
+  "format": "cargo fmt --all -- --check: passed",
+  "clippy": "cargo clippy --workspace --all-targets --locked -- -D warnings: passed",
+  "core": {
+    "broadCommand": "cargo test --workspace --exclude gitnova-desktop --locked --no-fail-fast -- --test-threads=2",
+    "initial": {
+      "suites": 72,
+      "passed": 501,
+      "failed": 3,
+      "ignored": 1
+    },
+    "failure": "Global Git-process probes in stale_lock overlapped their own orphan-process fixture.",
+    "repair": "Serialize only stale_lock fixtures with a test mutex; production guard unchanged.",
+    "retested": {
+      "stale_lock": {
+        "passed": 5,
+        "failed": 0
+      },
+      "push_submodule_diagnostics": {
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    "uniqueCasesVerifiedAfterRepair": 504
+  },
+  "desktop": {
+    "passed": 11,
+    "failed": 0
+  },
+  "frontendUnit": {
+    "files": 24,
+    "passed": 96,
+    "failed": 0
+  },
+  "browserRealCore": {
+    "uniqueWorkflows": 11,
+    "broadTargetedRun": {
+      "passed": 8,
+      "failed": 1
+    },
+    "failure": "Moved-parent navigation cleared its source-change explanation.",
+    "repair": "Keep the explanation in repository-scoped feedback.",
+    "finalAffectedRerun": {
+      "passed": 2,
+      "failed": 0
+    },
+    "scope": "Chromium UI with emulated transport and real Rust core/Git. Native workflow evidence is separate.",
+    "lineEndingLayoutMatrix": {
+      "layouts": [
+        "Unified",
+        "Side by side"
+      ],
+      "lineEndings": [
+        "LF",
+        "CRLF"
+      ],
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "nativeWorkflows": "native-workflows.json",
+  "sourceHashes": "source-hashes.json",
+  "foregroundSoak": "foreground-soak.json (failed visibility acceptance; not a completed foreground soak)",
+  "backgroundSoak": {
+    "report": "background-soak.json",
+    "passed": true,
+    "sampledSeconds": 1805.36,
+    "cycles": 153
+  },
+  "installedBundle": "installed-bundle.json",
+  "installedNativeSmoke": "installed-native-smoke.json"
+}
