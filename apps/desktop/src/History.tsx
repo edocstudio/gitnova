@@ -18,7 +18,7 @@ import { stashLanes, stashTitle, historyItems, graphLabelsByCommit, ROW_HEIGHT, 
 import { Icon } from './Icons';
 import { BranchTrackingBadge } from './BranchTrackingBadge';
 export const WORKING = 'working';
-export type GraphIntent = { oid: string; x: number; y: number; refName?: string; quick: boolean; action?: 'push' | 'fetch' | 'pull'; pipeline?: GraphCiLink; workflows?: GraphCiLink[]; requests?:OpenBranchRequest[]; requestKind?:'PR'|'MR'; requestProjectId?:string };
+export type GraphIntent = { oid: string; x: number; y: number; refName?: string; quick: boolean; action?: 'push' | 'fetch' | 'pull' | 'createBranch'; pipeline?: GraphCiLink; workflows?: GraphCiLink[]; requests?:OpenBranchRequest[]; requestKind?:'PR'|'MR'; requestProjectId?:string };
 export type GraphSession = { page: GraphPage; rows: GraphRow[]; selected: string | null; scroll: number; base: number; revision?: number; notice?: string; anchor?: string; anchorOffset?: number };
 const colors = ['#4b91ff', '#54ced7', '#b17cff', '#f4b64d', '#46c88d', '#ef779a'].map((value,index)=>`var(--graph-${index}, ${value})`);
 const color = (lane: number) => colors[lane % colors.length];

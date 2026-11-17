@@ -987,6 +987,10 @@ impl Application {
                     receipt.recovery=Some("The amendment may have completed. Inspect HEAD, index, hook output and the original recovery ref before retrying. No reset, push or automatic rollback was attempted.".into());
                 } else if remote_partial && kind == "delete_remote_branch" {
                     receipt.recovery=Some("The remote branch may already be deleted. Inspect the live destination, cached tracking ref and saved recovery ref before retrying. Local branches were not selected for deletion; no automatic retry or rollback was attempted.".into());
+                } else if remote_partial && error.code == "git_submodule_unpublished" {
+                    receipt.recovery=Some("Inspect the child commits and parent destination. Publish the child branch explicitly, then review the parent push again. No recursive push or automatic retry was attempted.".into());
+                } else if remote_partial && error.code == "git_redirect" {
+                    receipt.recovery=Some("Inspect the configured clone URL and current Git state before retrying. No redirect was followed and no automatic retry or remote URL change was attempted.".into());
                 } else if remote_partial && kind == "push_branch" && error.code == "git_auth" {
                     receipt.recovery=Some("Authentication did not complete. Check the matching account in Settings and inspect the destination before retrying. No automatic retry was attempted.".into());
                 } else if remote_partial && kind == "push_branch" {

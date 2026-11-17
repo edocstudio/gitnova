@@ -107,7 +107,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
    self.send_response(401);self.send_header('WWW-Authenticate','Basic realm="fixture"');self.send_header('Content-Length','0');self.end_headers();return
   with (root/'authenticated').open('a') as f:f.write('ok\n')
   if self.path.startswith('/redirect.git'):
-   self.send_response(302);self.send_header('Location',f'https://localhost:{self.server.server_port}/outside.git/info/refs?service=git-upload-pack');self.send_header('Content-Length','0');self.end_headers();return
+   self.send_response(301);self.send_header('Location',f'https://localhost:{self.server.server_port}/outside.git/info/refs?service=git-upload-pack');self.send_header('Content-Length','0');self.end_headers();return
   if self.path.startswith('/outside.git'):
    (root/'leaked').write_text('unexpected authenticated redirect');self.send_response(403);self.send_header('Content-Length','0');self.end_headers();return
   if (root/'reject-chunked').exists() and chunked:
@@ -292,8 +292,11 @@ print(server.server_port,flush=True);server.serve_forever()
     );
     let redirect = PushRequest {
         remote: "redirect".into(),
-        ..request
+        ..buffered
     };
-    assert!(GitCli.preview_push(root, &redirect).is_err());
+    assert_eq!(
+        GitCli.preview_push(root, &redirect).unwrap_err().code,
+        "git_redirect"
+    );
     assert!(!root.join("leaked").exists());
 }

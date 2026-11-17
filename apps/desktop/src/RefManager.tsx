@@ -2,10 +2,10 @@ import {RemoteSetup} from './RemoteSetup';
 import { t } from './i18n';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, errorMessage } from './api';
-import type { BranchTracking, GitRef, OperationReceipt, PushPreview, RefOperation, RefOperationPreview, RemoteBranches } from './contracts';
+import type { BranchTracking, GitRef, NativePath, Submodule, OperationReceipt, PushPreview, RefOperation, RefOperationPreview, RemoteBranches } from './contracts';
 type Mode = 'actions' | 'rename' | 'upstream' | 'push' | 'review';
-export function RefManager({ onConfigureRemote, initialRemote, initialDestination, initialMode = 'actions', tracking, selectedRef, membershipId, blocked, onBack, onBusyChange, onDone, onClose, onFailure }: {
-  onConfigureRemote?:()=>void; initialRemote?: string; initialDestination?: string; initialMode?: 'actions' | 'push' | 'delete'; tracking?: BranchTracking; selectedRef: GitRef; membershipId: string; blocked: boolean; onBack: () => void; onBusyChange: (busy: boolean) => void;
+export function RefManager({ onOpenRelated, onConfigureRemote, initialRemote, initialDestination, initialMode = 'actions', tracking, selectedRef, membershipId, blocked, onBack, onBusyChange, onDone, onClose, onFailure }: {
+  onOpenRelated?:(path:NativePath)=>void; onConfigureRemote?:()=>void; initialRemote?: string; initialDestination?: string; initialMode?: 'actions' | 'push' | 'delete'; tracking?: BranchTracking; selectedRef: GitRef; membershipId: string; blocked: boolean; onBack: () => void; onBusyChange: (busy: boolean) => void;
   onDone: (receipt: OperationReceipt) => Promise<void>; onClose: () => void; onFailure: (id: string, message: string) => void;
 }) {
   const tag = selectedRef.name.startsWith('refs/tags/'); const name = selectedRef.name.replace(/^refs\/(heads|tags)\//, '');
@@ -13,6 +13,20 @@ export function RefManager({ onConfigureRemote, initialRemote, initialDestinatio
   const [newName, setNewName] = useState(name); const [remote, setRemote] = useState(initialRemote ?? tracking?.pushRemote ?? tracking?.remote ?? ''); const [destination, setDestination] = useState(initialDestination ?? tracking?.pushBranch ?? (tracking?.pushRemote ? '' : tracking?.remoteBranch ?? name)); const [setUpstream, setSetUpstream] = useState(false);
   const [listing, setListing] = useState<RemoteBranches>({ remotes: [], branches: [] }); const [error, setError] = useState(''); const [loading, setLoading] = useState(false); const [writing, setWriting] = useState(false);
   const [settingUp,setSettingUp]=useState(false);
+  const [unpublishedChild, setUnpublishedChild] = useState(false);
+  const [children, setChildren] = useState<Submodule[]>([]);
+  const [childrenError, setChildrenError] = useState('');
+  const [readingChildren, setReadingChildren] = useState(false);
+  useEffect(() => {
+    if (!unpublishedChild) return;
+    let cancelled = false;
+    setReadingChildren(true); setChildren([]); setChildrenError('');
+    void api.submodules(membershipId).then(values => {
+      if (!cancelled) setChildren(values.filter(value => value.initialized && !value.inspectionError));
+    }).catch(error => { if (!cancelled) setChildrenError(errorMessage(error)); })
+      .finally(() => { if (!cancelled) setReadingChildren(false); });
+    return () => { cancelled = true; };
+  }, [membershipId, unpublishedChild]);
   const [bufferedHttps,setBufferedHttps]=useState(false);
   const [compatibilityOpen,setCompatibilityOpen]=useState(false);
   const [readingRemotes, setReadingRemotes] = useState(!tag);
@@ -49,13 +63,13 @@ export function RefManager({ onConfigureRemote, initialRemote, initialDestinatio
   };
   const apply = async () => {
     if (locked || inFlight.current || (!refReview && !pushReview) || refReview?.blockedReason || pushReview?.blockedReason) return;
-    inFlight.current = true; setWriting(true); onBusyChange(true); setError('');
-    try { const receipt = pushReview ? await api.pushBranch(membershipId, pushReview.request, pushReview.token) : await api.applyRefOperation(membershipId, refReview!.action, refReview!.token); await onDone(receipt); if (receipt.status === 'succeeded') onClose(); else { if(pushReview&&/HTTP 400|error: 400|returned error: 400/i.test(receipt.summary)){setCompatibilityOpen(true);setError(t("The HTTPS upload was rejected with HTTP 400. Inspect the remote before retrying. Buffered upload may help if chunked transfer was rejected; it does not bypass permissions or branch rules."));} setRefReview(null); setPushReview(null); setMode(editMode); } }
+    inFlight.current = true; setWriting(true); onBusyChange(true); setError(''); setUnpublishedChild(false);
+    try { const receipt = pushReview ? await api.pushBranch(membershipId, pushReview.request, pushReview.token) : await api.applyRefOperation(membershipId, refReview!.action, refReview!.token); await onDone(receipt); if (receipt.status === 'succeeded') onClose(); else { if (pushReview && receipt.summary.startsWith('Push stopped because a submodule commit has not been published.')) { setUnpublishedChild(true); setError(receipt.summary); } if(pushReview&&/HTTP 400|error: 400|returned error: 400/i.test(receipt.summary)){setCompatibilityOpen(true);setError(t("The HTTPS upload was rejected with HTTP 400. Inspect the remote before retrying. Buffered upload may help if chunked transfer was rejected; it does not bypass permissions or branch rules."));} setRefReview(null); setPushReview(null); setMode(editMode); } }
     catch (e) { onFailure(membershipId, errorMessage(e)); setRefReview(null); setPushReview(null); setMode(editMode); }
     finally { inFlight.current = false; setWriting(false); onBusyChange(false); }
   };
   const label = refReview?.action.kind === 'renameBranch' ? t("Rename branch") : refReview?.action.kind === 'deleteBranch' ? t("Delete local branch") : refReview?.action.kind === 'deleteTag' ? t("Delete local tag") : refReview?.action.kind === 'setUpstream' ? t("Set upstream") : t("Remove upstream");
-  const chooseMode = (next: Mode) => { setMode(next); setError(''); setRefReview(null); setPushReview(null); };
+  const chooseMode = (next: Mode) => { setMode(next); setError(''); setUnpublishedChild(false); setRefReview(null); setPushReview(null); };
   return <div ref={root} className="ref-manager" aria-label={t("Manage {0} {1}", [tag ? t("tag") : t("branch"), name])}>
     <div className="ref-manager-heading"><strong>{tag ? t("Tag") : t("Local branch")} · {name}</strong><code>{selectedRef.oid.slice(0, 12)}</code></div>
     {readingRemotes && (mode === 'push' || mode === 'upstream') && <p role="status" className="loading-status">{t('Reading configured remotes…')}</p>}
@@ -91,6 +105,12 @@ mode === 'actions' ? <div className="ref-manager-options">
         <div className="graph-action-footer"><button disabled={writing} onClick={() => chooseMode('push')}>{t("Back")}</button><button className="primary" disabled={locked || Boolean(pushReview.blockedReason)} onClick={() => void apply()}>{writing ? t("Pushing…") : t("Push reviewed branch")}</button></div>
       </div>}
     </>}
+    {unpublishedChild && <div className="notice" role="status">
+      <p>{t("Review and publish the submodule first. Detached HEAD is normal for a submodule checkout, but new commits need a branch before publication. Return here afterward and review the parent push again.")}</p>
+      {readingChildren && <p className="loading-status">{t("Discovering submodules and linked worktrees…")}</p>}
+      {childrenError && <p>{t(childrenError)}</p>}
+      {onOpenRelated && children.map(child => <button key={child.relationId} disabled={locked} onClick={() => onOpenRelated(child.path)}>{t("Open submodule")} · {child.relativePath.display}</button>)}
+    </div>}
     {writing && <p role="status" className="loading-status">{t("Git operation in progress…")}</p>}{error && <div className="inline-error" role="alert">{t(error)}</div>}
   </div>;
 }

@@ -147,6 +147,15 @@ pub(crate) fn transport_error(code: &str, message: String) -> AppError {
         || message.contains("Invalid username or token")
     {
         AppError::new("git_auth", "Git authentication failed. Reconnect the matching host account in Settings, or check Git credentials/SSH. The account needs repository access and permission for this operation.")
+    } else if message.contains("submodule paths contain changes that can")
+        && message.contains("not be found on any remote")
+    {
+        AppError::new("git_submodule_unpublished", "Push stopped because a submodule commit has not been published. Open the submodule, create a branch at its current commit if HEAD is detached, then review and push that branch before retrying the parent push.")
+    } else if ["301", "302", "303", "307", "308"]
+        .iter()
+        .any(|status| message.contains(&format!("returned error: {status}")))
+    {
+        AppError::new("git_redirect", "The Git server redirected this repository URL. Check the repository's exact HTTPS clone URL (including .git when required) and update its remote URL. GitNova did not follow the redirect because credentials must stay with the selected repository.")
     } else {
         AppError::new(code, message)
     }
@@ -320,5 +329,38 @@ mod windows_path_tests {
             "//host/share/GitNova.exe"
         );
         assert!(helper_value(Path::new(r"C:\user's folder\GitNova.exe")).contains(r"'\''"));
+    }
+}
+
+#[cfg(test)]
+mod transport_error_tests {
+    use super::transport_error;
+
+    #[test]
+    fn unpublished_children_have_actionable_errors_without_remote_details() {
+        let error = transport_error("git_push", "The following submodule paths contain changes that can\nnot be found on any remote:\n  libs/child\nfatal: Aborting.".into());
+        assert_eq!(error.code, "git_submodule_unpublished");
+        assert!(error.message.contains("HEAD is detached"));
+        assert!(!error.message.contains("libs/child"));
+    }
+
+    #[test]
+    fn redirects_are_distinct_from_authentication_and_other_transport_failures() {
+        for status in [301, 302, 303, 307, 308] {
+            let error = transport_error(
+                "git_fetch",
+                format!("fatal: The requested URL returned error: {status}"),
+            );
+            assert_eq!(error.code, "git_redirect");
+            assert!(error.message.contains("exact HTTPS clone URL"));
+        }
+        assert_eq!(
+            transport_error("git_fetch", "returned error: 403".into()).code,
+            "git_auth"
+        );
+        assert_eq!(
+            transport_error("git_fetch", "returned error: 500".into()).code,
+            "git_fetch"
+        );
     }
 }

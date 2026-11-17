@@ -2447,3 +2447,31 @@ test('rapid working-file selections keep the final diff and coalesce replaced na
  await testInfo.attach('working-selection-performance.json',{body:JSON.stringify({samples,scope:'Chromium real Rust core; gated first read, not native WebView or uncontrolled input'}),contentType:'application/json'});
  if(process.env.GITNOVA_WORKING_PERF_OUTPUT)writeFileSync(process.env.GITNOVA_WORKING_PERF_OUTPUT,JSON.stringify({samples},null,2));
 });
+
+
+test('parent push guides publication of a detached submodule without recursive writes', async ({ page }) => {
+  test.setTimeout(240000);
+  const parent=join(folder,'publish-parent'), source=join(folder,'publish-source'), childRemote=join(folder,'publish-child.git'), parentRemote=join(folder,'publish-parent.git');
+  mkdirSync(source); git(source,['init','-b','main']); writeFileSync(join(source,'child.txt'),'first\n'); git(source,['add','.']); git(source,['commit','-m','First child']);
+  const first=git(source,['rev-parse','HEAD']); git(folder,['init','--bare',childRemote]); git(source,['remote','add','origin',childRemote]); git(source,['push','origin','main']); git(childRemote,['symbolic-ref','HEAD','refs/heads/main']);
+  mkdirSync(parent); git(parent,['init','-b','main']); git(parent,['-c','protocol.file.allow=always','submodule','add',childRemote,'child']); git(parent,['commit','-am','Track child']);
+  git(folder,['init','--bare',parentRemote]); git(parent,['remote','add','origin',parentRemote]); git(parent,['push','-u','origin','main']); const before=git(parent,['rev-parse','HEAD']);
+  const child=join(parent,'child'); git(child,['switch','--detach']); writeFileSync(join(child,'child.txt'),'unpublished\n'); git(child,['commit','-am','Saved child work']); const tip=git(child,['rev-parse','HEAD']);
+  git(parent,['add','child']); git(parent,['commit','-m','Record saved child']); const parentTip=git(parent,['rev-parse','HEAD']);
+  await connectRealCore(page,join(folder,'publish-child-state.json')); await page.goto('/');
+  await page.getByLabel('Add an existing repository').fill(parent); await page.getByRole('button',{name:'Open',exact:true}).click();
+  await expect(page.locator('.push-current')).toBeEnabled(); await page.locator('.push-current').click();
+  await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await page.getByRole('button',{name:'Push reviewed branch',exact:true}).click();
+  const openChild=page.getByRole('button',{name:'Open submodule · child',exact:true}); await expect(openChild).toBeEnabled({timeout:45000});
+  expect(git(parentRemote,['rev-parse','main'])).toBe(before); expect(git(childRemote,['rev-parse','main'])).toBe(first);
+  await openChild.click(); await expect(page.locator('.branch-current')).toContainText('Detached'); await expect(page.locator('.push-current')).toBeEnabled(); await page.locator('.push-current').click();
+  await expect(page.locator('.graph-actions')).toContainText('HEAD is detached. Create a branch');
+  await page.getByLabel('New branch name',{exact:true}).fill('saved/child'); await page.getByRole('button',{name:'Review branch',exact:true}).click();
+  await page.getByRole('button',{name:'Create & open saved/child',exact:true}).click(); await expect(page.locator('.graph-actions')).toHaveCount(0,{timeout:45000});
+  expect(git(child,['branch','--show-current'])).toBe('saved/child'); expect(git(child,['rev-parse','HEAD'])).toBe(tip);
+  await expect(page.locator('.push-current')).toBeEnabled(); await page.locator('.push-current').click(); await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await page.getByRole('button',{name:'Push reviewed branch',exact:true}).click(); await expect(page.locator('.ref-manager')).toHaveCount(0,{timeout:45000});
+  expect(git(childRemote,['rev-parse','saved/child'])).toBe(tip); expect(git(childRemote,['rev-parse','main'])).toBe(first); expect(git(parentRemote,['rev-parse','main'])).toBe(before);
+  await page.keyboard.press('Control+o'); await page.getByLabel('Add an existing repository').fill(parent); await page.getByRole('button',{name:'Open',exact:true}).click(); await expect(page.locator('.branch-current')).toContainText('main');
+  await expect(page.locator('.push-current')).toBeEnabled(); await page.locator('.push-current').click(); await page.getByRole('button',{name:'Check destination & review',exact:true}).click(); await page.getByRole('button',{name:'Push reviewed branch',exact:true}).click(); await expect(page.locator('.ref-manager')).toHaveCount(0,{timeout:45000});
+  expect(git(parentRemote,['rev-parse','main'])).toBe(parentTip); expect(git(parent,['status','--porcelain'])).toBe('');
+});
