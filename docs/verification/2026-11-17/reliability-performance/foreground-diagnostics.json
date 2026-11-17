@@ -1,0 +1,9 @@
+{
+  "consoleFlags": [
+    {
+      "kCGSSessionOnConsoleKey": true
+    }
+  ],
+  "processes": 0,
+  "scope": "Read-only diagnostics after foreground soak lost WebView visibility; no session or display settings changed."
+}

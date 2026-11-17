@@ -146,34 +146,52 @@ fn migration_preserves_files_index_refs_upstream_other_remotes_and_records_recov
 }
 
 #[test]
-fn separate_push_urls_and_multiple_endpoints_keep_reviewed_order() {
+fn multiple_endpoints_require_explicit_reduction_to_one_push_destination() {
     let (dir, app, id) = fixture();
     let root = dir.path();
-    let request = RemoteEndpointRequest {
-        name: "origin".into(),
-        urls: vec![
-            "https://new.example/a.git".into(),
-            "ssh://git@mirror.example/a.git".into(),
+    git(
+        root,
+        &[
+            "config",
+            "--add",
+            "remote.origin.url",
+            "https://old-mirror.example/a.git",
         ],
-        push_urls: vec![
-            "ssh://git@write.example/a.git".into(),
-            "ssh://git@backup.example/a.git".into(),
-        ],
-    };
+    );
     let settings = app.remote_endpoint(&id, "origin").unwrap();
+    assert_eq!(settings.request.urls.len(), 2);
+    let original = fs::read(root.join(".git/config")).unwrap();
+    let mut request = changed();
+    request.urls.push("https://second.example/a.git".into());
+    assert_eq!(
+        app.preview_remote_endpoint(&id, &request, &settings.token)
+            .unwrap_err()
+            .code,
+        "remote_config"
+    );
+    request = changed();
+    request.push_urls = vec![
+        "ssh://git@write.example/a.git".into(),
+        "ssh://git@backup.example/a.git".into(),
+    ];
+    assert!(app
+        .preview_remote_endpoint(&id, &request, &settings.token)
+        .is_err());
+    assert_eq!(fs::read(root.join(".git/config")).unwrap(), original);
+    request.push_urls.pop();
     let preview = app
         .preview_remote_endpoint(&id, &request, &settings.token)
         .unwrap();
+    assert_eq!(preview.previous.request.urls.len(), 2);
     assert_eq!(
         app.change_remote_endpoint(&id, &request, &settings.token, &preview.token)
             .unwrap()
             .status,
         "succeeded"
     );
-    assert_eq!(app.remote_endpoint(&id, "origin").unwrap().request, request);
     assert_eq!(
         git(root, &["remote", "get-url", "--push", "--all", "origin"]),
-        request.push_urls.join("\n")
+        request.push_urls[0]
     );
 }
 

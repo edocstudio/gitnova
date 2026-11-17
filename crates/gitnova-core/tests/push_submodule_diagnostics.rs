@@ -187,3 +187,70 @@ fn missing_checkout_is_labelled_unknown_without_initializing_it() {
     assert!(report.issues.iter().all(|issue| !issue.can_open));
     assert!(!child.exists());
 }
+
+#[test]
+fn multiple_historical_child_oids_share_one_object_batch_and_reachability_walk() {
+    let f = fixture();
+    let preview = f.app.preview_push(&f.id, &f.request).unwrap();
+    let children = f.app.submodules(&f.id).unwrap();
+    let (report, metrics) = gitnova_core::measure_git(|| {
+        gitnova_git::GitCli.push_submodule_report(&f.parent, &preview, &children)
+    });
+    let report = report.unwrap();
+    assert_eq!(report.issues.len(), 1);
+    assert_eq!(report.issues[0].oid, f.old);
+    assert_eq!(metrics.commands.get("cat-file"), Some(&1));
+    assert_eq!(metrics.commands.get("rev-list"), Some(&1));
+}
+
+#[test]
+fn bounded_child_walk_keeps_unobserved_objects_unknown() {
+    use std::io::Write;
+    use std::process::Stdio;
+    let fixture = fixture();
+    let child = fixture.parent.join("dpfunction");
+    let mut import = Command::new("git")
+        .arg("-C")
+        .arg(&child)
+        .args(["fast-import", "--quiet"])
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stream = String::new();
+    for index in 0..10_010 {
+        stream.push_str(&format!("commit refs/heads/long\ncommitter Fixture <fixture@example.invalid> {} +0000\ndata 5\nlong\n", 2_000_000_000 + index));
+        if index == 0 {
+            stream.push_str(&format!("from {}\n", fixture.current));
+        }
+        stream.push('\n');
+    }
+    import
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(stream.as_bytes())
+        .unwrap();
+    assert!(import.wait().unwrap().success());
+    git(&child, &["checkout", "long"]);
+    git(&fixture.parent, &["add", "dpfunction"]);
+    git(&fixture.parent, &["commit", "-m", "Record long child"]);
+    let mut request = fixture.request.clone();
+    request.oid = git(&fixture.parent, &["rev-parse", "HEAD"]);
+    let preview = fixture.app.preview_push(&fixture.id, &request).unwrap();
+    let report = preview.submodule_report.unwrap();
+    assert!(!report.complete);
+    let historical = report
+        .issues
+        .iter()
+        .find(|issue| issue.oid == fixture.old)
+        .unwrap();
+    assert!(historical.can_open && historical.object_available);
+    assert_eq!(
+        historical.evidence,
+        gitnova_domain::PushSubmoduleEvidence::Unknown
+    );
+    assert!(report
+        .issues
+        .iter()
+        .any(|issue| issue.evidence == gitnova_domain::PushSubmoduleEvidence::Missing));
+}

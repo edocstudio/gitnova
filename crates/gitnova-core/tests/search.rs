@@ -141,13 +141,19 @@ fn all_scopes_search_real_messages_authors_emails_sha_and_navigation_is_readonly
     let index = fs::read(first.join(".git/index")).unwrap();
     let objects = object_files(&first.join(".git/objects"));
     let selected_before = id(&app);
-    let focus = app
-        .focus_commit(
+    let (focus, metrics) = gitnova_core::measure_git(|| {
+        app.focus_commit(
             &request(&app, "x", "current", vec![]).workspace_id,
             &first_id,
             &first_oid,
         )
-        .unwrap();
+        .unwrap()
+    });
+    assert_eq!(
+        metrics.commands.get("log"),
+        Some(&1),
+        "Focus should reuse its metadata traversal"
+    );
     assert_eq!(focus.page.rows[focus.selected_index].commit.oid, first_oid);
     assert_eq!(id(&app), selected_before);
     assert_eq!(selected_before, second_id);

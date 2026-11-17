@@ -337,3 +337,15 @@ branch creation and publication already exist. Never substitute the child's
 current HEAD, change URLs automatically, follow credential redirects, publish
 recursively, or replay a failed parent operation. Explicit recheck refreshes the
 preview. Incomplete/unknown inspection must remain labelled.
+
+## Reliability and parent Push recovery
+
+A child publication step needs one contextual Return to parent Push button beside
+its existing repository context, because the repository picker cannot restore the
+parent's typed destination/upstream/upload draft. It selects the registered
+parent and restores inputs only; destination inspection and Push confirmation
+remain separate. Do not retain or reuse a prior write token. Editor refresh
+failure reuses the existing editor status/actions with Retry refresh; it must
+never repeat a successful file write. Multiple remote URLs remain readable for
+explicit reduction, while new endpoint edits require one fetch destination and
+at most one separate push destination to match the supported Push workflow.
