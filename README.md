@@ -168,9 +168,10 @@ For macOS development diagnostics, `npm run build:local` still produces `target/
 | Platform | Current validation |
 | --- | --- |
 | **macOS · Apple Silicon** | Local development, debug packaging and targeted native smoke checks have been exercised. |
-| **Windows x64 / Linux x64** | Native desktop CI, OS credential stores and release-profile installer builds are configured. Hosted-run and manual native acceptance remain to be verified; see [platform setup and limits](docs/platforms.md). |
+| **Windows x64** | 1.3.1 full Windows CI, credential-store checks and installed NSIS startup/reinstall/uninstall passed; [verified installer handoff](docs/verification/2026-11-18/windows-installer/README.md). Unsigned; manual/provider acceptance remains separate. |
+| **Linux x64** | Native desktop CI, OS credential store and release-profile installer builds are configured. Hosted-run and manual native acceptance remain separate; see [platform setup and limits](docs/platforms.md). |
 
-The [checks workflow](.github/workflows/ci.yml) defines the repository's CI jobs; it is not a claim that a hosted run has passed. GitNova does not yet ship public release installers.
+The [checks workflow](.github/workflows/ci.yml) defines the repository's CI jobs. Check the exact source and artifact evidence for each package. The Windows 1.3.1 handoff has not been published as a public download.
 
 Git operations can encounter conflicts, configured hooks/filters, interrupted processes or external repository changes. Recovery references, snapshots and receipts have explicit bounds. Review the [workflow and recovery limits](docs/implementation.md#current-limits-and-next-work) before relying on them for important work.
 

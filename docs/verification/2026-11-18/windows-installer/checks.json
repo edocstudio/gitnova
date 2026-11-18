@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "version": "1.3.1",
+  "sourceCommit": "734d36405fa446e55471cb8ee3e945c02f4afb46",
+  "runId": 44339604949,
+  "workflowRunUrl": "https://github.com/edocstudio/gitnova/actions/runs/44339604949",
+  "windowsCore": {
+    "jobId": 134925906245,
+    "passed": 473,
+    "failed": 0,
+    "ignored": 2,
+    "first": "2026-11-18T15:47:32.5541946Z",
+    "last": "2026-11-18T16:45:50.3330549Z"
+  },
+  "frontend": {
+    "passed": 109,
+    "files": 26
+  },
+  "nativeWindows": {
+    "passed": 8
+  },
+  "browser": {
+    "passed": 172,
+    "shards": [
+      {
+        "jobId": 134925906312,
+        "passed": 43
+      },
+      {
+        "jobId": 134925905879,
+        "passed": 43
+      },
+      {
+        "jobId": 134925906256,
+        "passed": 43
+      },
+      {
+        "jobId": 134925906260,
+        "passed": 43
+      }
+    ]
+  },
+  "allRequiredWindowsJobsPassed": true,
+  "installerLifecyclePassed": true,
+  "localArchiveAndInstallerChecksumsPassed": true,
+  "publicationGatePassed": false,
+  "documentationCompletedDate": "2026-11-19"
+}

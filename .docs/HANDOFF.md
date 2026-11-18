@@ -1,71 +1,53 @@
 # GitNova session handoff
 
-Updated: 2026-11-18 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+Updated: 2026-11-19 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-User requested a Windows `.exe` to hand to gitnova-web for public downloads.
-Prepare an actual release-profile Windows x64 NSIS installer and exact metadata;
-website publication remains separate. Current preparation version: **1.3.1**.
+Completed the requested real Windows `.exe` handoff for gitnova-web.
+Windows 10/11 x64 / MSVC / per-user NSIS **1.3.1** is built and verified.
+Local macOS app remains 1.3.0; it was not rebuilt or replaced.
 
-- Branch `build/windows-installer`, base main `81a67ab` (PR #64). Workspace rename
-  and diff authors are now merged. Local Mac app remains 1.3.0; do not rebuild it.
-- Initial main CI run 44311189519 was in progress with no Windows artifact. Earlier
-  Windows run 44247547861 exposed stale UI selectors, slow native-read waits,
-  refresh polling in a count assertion and Windows worktree separator assertions.
-- Harness fixes retain expected states; Windows expect/default budgets 45/180s,
-  one Playwright worker. Normal user behavior is unchanged; isolated smoke startup is corrected below. Source is bumped 1.3.1
-  with regenerated local inventory; Windows jobs regenerate their target inventory.
-- Added `windows_only` reusable CI input and `windows-installer` release scope:
-  full Windows core + all four native/browser shards + credential-store + actual
-  NSIS install/installed smoke/reinstall/uninstall, then checked handoff assembly.
-  Default full CI is unchanged; no publication or signing gate is declared passed.
-- `prepare-windows-handoff.mjs` rejects tampered bytes, wrong source/version/target,
-  missing native/lifecycle evidence and unsupported publication/signature claims.
-  It emits `.exe`, SHA256SUMS, original evidence and null-public-URL metadata for
-  gitnova-web. Existing website files / old published versions are untouched.
-- Local checks: five integrity tests, workflow YAML parse and three affected
-  macOS real-core browser cases passed. Windows acceptance is not yet passed.
-- First preparation source `af7209f0d5b2090ea7191f255f696ee6cb118ed1` was pushed;
-  https://github.com/edocstudio/gitnova/actions/runs/44319555944 passed all four
-  browser shards and built NSIS, but installed smoke failed `unknown path`.
-  Core job 134854590427 was still running at this checkpoint. Do not distribute
-  that run as a verified installer. Windows attribution reported 56 unresolved.
-- Corrected eager user-data directory resolution when a validated smoke catalog
-  exists, and create all redirected smoke profile folders before native launch.
-  Formatter, smoke JS syntax and all 11 local desktop tests passed.
-- Second candidate source `995a2d5a7056ec92ad32b39d4da3f7ac616a85a1`:
-  https://github.com/edocstudio/gitnova/actions/runs/44329598401
-  Installed startup/native catalog/real Git/single-instance acceptance passed.
-  The smoke driver then failed removing its temporary profile with Windows
-  `EPERM`, so lifecycle/overall handoff is NOT passed. Packaging job 134891202957;
-  core job 134891202353 and browser shard 2 job 134891202960 were still running.
-- Added bounded Node recursive cleanup retries (20, 100ms linear backoff, about
-  21 seconds maximum) for transient Windows locks after app shutdown. Persistent
-  cleanup errors still fail. JavaScript syntax and diff checks passed; no compiled
-  Rust/UI changes beyond the already-tested startup fix in the preceding commit.
-  Committed/pushed source `6f9d8d09b22e7a1c08b6e02a5ac0214d03c07af0`.
-  Latest candidate: https://github.com/edocstudio/gitnova/actions/runs/44337962235
-  Packaging job 134920207097, core 134920206519, other shards 134920207022,
-  134920206934, 134920206467. Second run cancelled after cleanup failure to free
-  branch concurrency; its remaining core/shard 2 results are incomplete.
-  Follow the latest run through every gate and local archive/PE/hash verification.
-  Final artifact name: gitnova-windows-handoff-6f9d8d09b22e7a1c08b6e02a5ac0214d03c07af0.
-  /tmp/gitnova-windows-verify-download.py is prepared for this exact source/run.
-  No local runner is active. No Mac app rebuild, merge, release publication or
-  website deployment.
-- Core throughput follow-up: prior successful Windows job 134610046069 ran
-  06:21:15–07:47:28 UTC (about 86 minutes, 469 passed), near the 90-minute cap.
-  Windows core now uses two test threads (within AGENTS limits) and a 120-minute
-  cap; all other OS/core and desktop worker settings are unchanged. Workflow YAML
-  and diff checks passed. Commit/push this last CI adjustment, dispatch from the
-  new exact source, cancel only obsolete task run 44337962235 for branch
-  concurrency, then follow through actual handoff retrieval. No test is skipped.
+- Branch `build/windows-installer`, base main `81a67ab` (PR #64).
+- Installer source `734d36405fa446e55471cb8ee3e945c02f4afb46` was committed/pushed.
+  Full Windows run https://github.com/edocstudio/gitnova/actions/runs/44339604949
+  passed core, all four native/browser shards, credential store, actual installed
+  native startup/IPC/real Git/single-instance, reinstall/uninstall and handoff.
+  Core: 473 passed, two existing ignored (OS credential test verified separately);
+  browser: 172 workflows; frontend: 109; Windows IPC/PTY: eight.
+- Actual file:
+  `target/windows-handoff/1.3.1-734d364/GitNova_1.3.1_x64-setup.exe`
+  Bytes 5695521; SHA-256
+  `d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6`.
+  Folder includes SHA256SUMS, WINDOWS-DOWNLOAD.md and exact handoff/evidence JSON.
+  GitHub artifact 14448103720, named
+  `gitnova-windows-handoff-734d36405fa446e55471cb8ee3e945c02f4afb46`.
+  Local archive digest, PE/bytes/hash/source/version and every checksum passed.
+  Final documentation commits are separate from this immutable build source.
+- Earlier runs exposed Windows selectors/waits/clock/path assertions, eager
+  fixture startup path resolution, and transient WebView profile cleanup locks.
+  Corrected without skipping tests or weakening Git guards. Windows core uses
+  two threads/120-minute cap because prior successful baseline used 86 minutes.
+  Detailed provenance, original failures and final evidence are in the task report.
+  Do not rerun completed suites just to reconstruct context.
+- Local validation: five handoff integrity tests; 11 combined script tests plus
+  one existing Linux GPG skip; both workflow YAML parses; three affected real-core
+  browser cases; formatter; 11 desktop native tests; smoke JS syntax; diff checks.
+- No local runner or task-owned CI run is active. Failed/obsolete runs 44319555944,
+  44329598401 and 44337962235 are closed; do not restart them.
+- Next step belongs to website/publication work only if requested: review the
+  candidate and existing attribution scope, publish the exact installer/checksum
+  under a matching version tag, verify anonymous URLs, then update gitnova-web
+  following its docs/download-publication.md. Public URL fields are currently null.
+  No tag, public release, merge or website deployment occurred in this task.
+  Preserve unrelated gitnova-web work and its older published macOS/Linux assets.
+- The installer is unsigned. Windows inventory has 56 unresolved license entries
+  and auditComplete=false; no completed audit/manual GUI/provider acceptance or
+  prior-version migration is claimed.
 - [Task report](../docs/verification/2026-11-18/windows-installer/README.md) records
-  provenance and limits. Native CI / long foreground soak from prior tasks remain
-  separate. No local test runner is left active at this checkpoint.
+  exact deliverables/checks/limits. Prior long foreground soak remains separate.
 
 ## Start a new session
 

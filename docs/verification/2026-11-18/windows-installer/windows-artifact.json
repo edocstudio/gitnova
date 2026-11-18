@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-alpha-artifact",
+  "buildProfile": "release",
+  "version": "1.3.1",
+  "sourceCommit": "734d36405fa446e55471cb8ee3e945c02f4afb46",
+  "target": "x86_64-pc-windows-msvc",
+  "lockfiles": {
+    "cargo": "5d94559068361097d37e7b7011f197f917000b6aeac8dd5af6837622c3c920fa",
+    "npm": "02d20f272a98746ea9846e364818ee8a149165fd5eeff9300eb04c56282f1345"
+  },
+  "artifact": "GitNova_1.3.1_x64-setup.exe",
+  "bytes": 5695521,
+  "sha256": "d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6",
+  "platform": "win32",
+  "arch": "x64",
+  "installedAcceptance": {
+    "schemaVersion": 1,
+    "kind": "gitnova-installed-acceptance",
+    "version": "1.3.1",
+    "passed": true,
+    "platform": "win32",
+    "arch": "x64",
+    "artifact": "GitNova_1.3.1_x64-setup.exe",
+    "artifactSha256": "d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6",
+    "installedBinarySha256": "83133ffddfd458674ceb823a91ee8924ece49d5ce075b65227a17c0bfb4fe2c3",
+    "checks": [
+      "embedded-ui",
+      "native-catalog-ipc",
+      "real-git-graph-ipc",
+      "single-instance",
+      "fixture-head-and-working-tree-preserved"
+    ],
+    "scope": "Startup and native IPC smoke only; full browser workflows, OS credentials and manual GUI acceptance are separate."
+  },
+  "attribution": {
+    "resourcesChecked": 5,
+    "auditComplete": false,
+    "unresolved": 56
+  },
+  "signing": "unsigned; no trusted platform signature is asserted",
+  "publicationGatePassed": false,
+  "blockers": [
+    "Native manual GUI acceptance for this exact artifact remains required.",
+    "Trusted signing/notarization is not configured.",
+    "Target-specific shipped dependency/asset license review remains required; bundled evidence is not an audit."
+  ],
+  "limits": [
+    "Hashes provide integrity, not publisher authenticity.",
+    "This manifest does not upload, install, sign or publish anything."
+  ]
+}
