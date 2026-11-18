@@ -4,6 +4,17 @@ Updated: 2026-11-19 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Line authors styling
+
+On branch `fix/diff-line-author-contrast`, the inline author button now uses the
+theme accent for the name, muted text for time, and a compact bordered surface.
+Both diff layouts share the same button and keep hover, keyboard focus and commit
+details. The existing real-Git Playwright case passed for both layouts, keyboard
+activation and Thai labels. The minimum text contrast against the button's
+normal and interaction backgrounds is 4.91:1 in dark mode and 7.37:1 in light mode.
+This is a source change; no app bundle was built. The Windows handoff below is
+from its separate branch/build.
+
 ## Current request and checkout
 
 Completed the requested real Windows `.exe` handoff for gitnova-web.

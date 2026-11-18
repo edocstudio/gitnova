@@ -62,7 +62,11 @@ function PatchCode({ file, mode, before, after, hunks, editAnchor, authorScope }
     const value=authors.lookup(line,side);
     if(!value)return <span className="line-author-missing" title={t(authors.reading?'Reading line authors…':'Line author unavailable for this range.')}> ···</span>;
     const open=(anchor:HTMLButtonElement)=>setSelectedAuthor({value,anchor});
-    return <button type="button" className="line-author" aria-label={t('Line {0}: {1}, {2}',[side==='before'?line.old!:line.next!,value.commit.author,relativeAuthorTime(value.commit.timestamp)])} onPointerEnter={event=>{if(dismissedAuthor.current!==event.currentTarget)open(event.currentTarget);}} onPointerLeave={event=>{if(dismissedAuthor.current===event.currentTarget)dismissedAuthor.current=null;}} onClick={event=>{event.stopPropagation();dismissedAuthor.current=null;open(event.currentTarget);}}>{value.commit.author}, {relativeAuthorTime(value.commit.timestamp)}</button>;
+    return <button type="button" className="line-author" aria-label={t('Line {0}: {1}, {2}',[side==='before'?line.old!:line.next!,value.commit.author,relativeAuthorTime(value.commit.timestamp)])} onPointerEnter={event=>{if(dismissedAuthor.current!==event.currentTarget)open(event.currentTarget);}} onPointerLeave={event=>{if(dismissedAuthor.current===event.currentTarget)dismissedAuthor.current=null;}} onClick={event=>{event.stopPropagation();dismissedAuthor.current=null;open(event.currentTarget);}}>
+      <span className="line-author-name">{value.commit.author}</span>
+      <span aria-hidden="true"> · </span>
+      <span>{relativeAuthorTime(value.commit.timestamp)}</span>
+    </button>;
   };
   useLayoutEffect(()=>{
     const first=Math.floor(scroll/LINE_HEIGHT),last=Math.ceil((scroll+height)/LINE_HEIGHT);
