@@ -21,8 +21,8 @@
   "coreDesktopAllTargetClippy": "passed with warnings denied",
   "formatter": "passed",
   "versionScript": "1 passed",
-  "releaseBuild": "pending app closure",
-  "installedVersionAtLastCheck": "1.2.0",
+  "releaseBuild": "passed",
+  "installedVersionAtLastCheck": "1.3.0",
   "sourceSha256": {
     "Cargo.lock": "a4a66e5aecd981c7ce43a6f3ed223e543894e2b5337b03d3252bbf8025e73758",
     "Cargo.toml": "b8c90e0748b05d2f80cf0e0eea193f9ed1c8744b8ff4dd1c84616fa1e6e62e8f",
@@ -43,5 +43,8 @@
     "crates/gitnova-core/tests/investigation.rs": "b04d788a174df6c0772f9f68246242fca7d2c4d1f4d4f9edad51de38984c1abc",
     "crates/gitnova-git/src/history_blame.rs": "d2baf2ad90eb681bc93824c5a20a2229a6c9d1da93f97ad8107e6bf0de7c8b6e",
     "crates/gitnova-git/src/investigation.rs": "cd156dd59d18df3a288992ed73e10ad9282230e64a054938b6486a0e5d8c60cf"
-  }
+  },
+  "installedBundle": "installed-bundle.json",
+  "installedNativeSmoke": "installed-native-smoke.json",
+  "featureCommit": "af51c80"
 }

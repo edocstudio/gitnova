@@ -70,12 +70,26 @@ is kept with the existing diff layout preference.
 
 ![Original commit details from an author annotation](line-author-details.png)
 
-## Packaging status
+## Local delivery
 
-Source version is **1.3.0**. Installed Desktop app remains **1.2.0** at this
-checkpoint. It was running at the last process check and the user has been asked
-to close it. Release build, replacement installation and installed startup smoke
-are pending; this report does not claim 1.3.0 is installed yet. Do not overwrite a
-running app. Native physical GUI acceptance, earlier native CI / foreground soak
-and the existing license audit remain separate open scopes. No push/public release
-or company provider access was performed.
+The user confirmed closing GitNova; fresh process checks before building and
+replacement found it closed. Release build **passed**, including the TypeScript
+check and production frontend assets. Source hashes still match the verified
+feature checkpoint `af51c80`; completed feature suites were not repeated.
+
+Installed **1.3.0** at `Desktop/GitNova.app`, replacing 1.2.0 and retaining the old
+app in a temporary backup. [Bundle evidence](installed-bundle.json) confirms
+source/built/installed versions, matching executable SHA-256, strict deep ad-hoc
+signature, embedded UI and all five attribution resources. Existing inventory
+status is unchanged: audit incomplete, 67 unresolved entries. No dependency
+upgrade or trusted-signing/notarization claim is made.
+
+[Installed native smoke](installed-native-smoke.json) passed startup, native catalog
+and real temporary Git graph IPC, duplicate-launch window reuse, and unchanged
+fixture HEAD/worktree. It validates startup/IPC, not physical native GUI acceptance
+of each author annotation. The local archive is
+`target/alpha-evidence/GitNova-1.3.0-macos-arm64.zip` (ignored build output).
+
+Earlier native CI / uninterrupted foreground soak and the existing license audit
+remain separate open scopes. No push/public release, owner catalog, company
+credentials or real repository was used by these acceptance checks.

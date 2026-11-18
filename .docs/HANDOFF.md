@@ -29,15 +29,17 @@ patch viewer, with optional inline authors and original commit detail tooltips.
   10 (one new immutable-commit test); core + desktop all-target Clippy. Browser
   flows: 3 new + 2 existing history/diff/editor regressions passed. Final targeted
   three-case rerun after tooltip geometry refinement passed; screenshots captured.
-- GitNova 1.2.0 was running at last process check. User was asked to close it via
-  async input. Do not package/install while it remains open or treat elapsed time
-  as confirmation. Screenshots/report and implementation are ready. Formatter
-  and version-script tests passed. Source changes and this handoff are committed
-  on the feature branch; obtain the SHA from Git. Build/install 1.3.0 with backup
-  and installed smoke remain pending app closure. No push/public release.
-- [Feature report and source hashes](../docs/verification/2026-11-18/diff-line-authors/README.md)
-  record completed checks and the pending installation honestly. No active test
-  runner remains; do not rerun completed suites to resume packaging.
+- Feature implementation commit: `af51c80`. User then confirmed closing GitNova;
+  fresh process checks before build and installation found it closed.
+- Delivered **1.3.0** at `Desktop/GitNova.app`, replacing 1.2.0 with a temporary
+  backup. Release build, source/built/installed versions, executable SHA-256,
+  strict deep ad-hoc signature, embedded UI and all five attribution resources
+  passed. Installed startup/catalog/real Git graph IPC/single-instance smoke
+  passed on disposable fixtures; this is not physical native GUI acceptance.
+- [Feature report and delivery evidence](../docs/verification/2026-11-18/diff-line-authors/README.md)
+  include matching source hashes and installed evidence. This handoff belongs to
+  the delivery commit on the feature branch; obtain its SHA from Git. Work is
+  complete; no task-owned build/test/native process remains. No push/public release.
 - Old native CI / uninterrupted foreground soak acceptance are separate and remain
   open; do not restart them for this feature. Provider credentials are not involved.
 
