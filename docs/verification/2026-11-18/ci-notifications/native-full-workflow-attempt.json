@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "reviewed-child-publication-and-parent-return",
+    "reviewed-endpoint-migration",
+    "distant-diff-editor-reveal-and-save"
+  ],
+  "error": "Error: Timeout: two native CI actions",
+  "kind": "workflows-failed",
+  "visibility": "hidden",
+  "remainingNativeProcesses": 0,
+  "scope": "Read-only diagnostics after the full fixture reached CI while hidden; no session/display settings changed."
+}

@@ -1,30 +1,56 @@
 # GitNova session handoff
 
-Updated: 2026-11-17 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
-first. This is a repository checkpoint, not a substitute for the latest user
-request or live Git/process state. Files are kept in English for reuse by coding
-agents; communicate with this user in Thai.
+Updated: 2026-11-18 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+first. This checkpoint supplements the latest user request and live Git/process
+state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-The user requested persistent instructions and a handoff so a new AI/LLM session
-can continue without reconstructing the conversation. This documentation task
-adds a startup/update protocol to `AGENTS.md` and this file. It does not change
-application behavior, deliver a new app version, or start the remaining soak.
-The requested protocol/checkpoint files are complete. Documentation verification:
-`git diff --check` and all 14 local Markdown links passed; runtime suites/builds
-were not rerun for these documentation-only changes. Await the next user request
-after the documentation commit rather than automatically starting item 7.
+The user approved implementing in-app CI notifications after discussing a manual
+GitLab pipeline screenshot. First scope: active repository's current HEAD/branch,
+header bell with an outstanding-action count and a small popover; required,
+optional and unknown manual evidence; open commit/provider pipeline; deduplicate
+refreshes, retain qualified partial/error evidence and clear changed scopes.
+No OS notifications, workspace-wide watch or provider execution/approval in-app.
 
-- Documentation branch: `docs/agent-session-handoff`.
-- Branch base: `6f536c8` on `main`, merge of PR #61.
-- Latest application change: `72b93d0e4ea0e975f513d284cbadd1ee43a0ae92`
-  (`fix(desktop): improve recovery and bound editor and push diagnostics`).
-- Source version at this checkpoint: **1.0.20**. The task began with a clean tree.
-- Obtain the documentation commit SHA from `git log`; do not assume this branch
-  remains active or that later sessions still have a clean checkout.
-- No build, app launch or long-running probe was started for this documentation
-  task. Recheck live processes before a later native run.
+- Work branch: `feat/ci-action-notifications`, from `a8ae64e` on `main` (PR #62).
+- Source version advanced from 1.0.20 to **1.0.21** for this app delivery.
+- Previous app work `72b93d0` was merged through PR #61; persistent handoff work
+  `acf7753` was merged through PR #62. Do not recreate either feature set.
+- Delivered **1.0.21** to `Desktop/GitNova.app`; source/built/installed versions
+  and binary SHA-256 match. Strict deep ad-hoc signature, embedded UI, five
+  attribution resources and installed native startup/IPC/single-instance smoke
+  passed. The previous 1.0.20 app is retained in a task-owned temporary backup.
+- New browser flows passed 4/4; existing CI/MR regressions passed 2/2. Frontend
+  units passed 103/25 files (seven new classification cases); hosting passed 41
+  with one deliberately ignored isolated credential-store roundtrip. Core CI
+  integrations passed 2; desktop Rust tests passed 11. TypeScript/build, formatter
+  and all-target Clippy passed (desktop rerun after fixture changes).
+- **Visible native CI acceptance remains open.** The focused runner stopped
+  before CI checks because its WebView stayed hidden. An earlier browser-style
+  native invoke stub was invalid (Tauri makes it non-writable); the runner now
+  uses typed synthetic CI through real native IPC, gated by explicit acceptance
+  flags and a validated private fixture catalog. Do not describe the failed
+  attempts as passes or relaunch hidden probes repeatedly. Default native
+  workflows remain the old Push/endpoint/editor flow; use `--ci-only true` for CI.
+- Detailed behavior, screenshot, structured checks, failed native evidence and
+  installed smoke are in the [1.0.21 report](../docs/verification/2026-11-18/ci-notifications/README.md).
+- Implementation and local delivery are complete. This handoff is included in
+  the feature commit on the named branch; obtain its SHA from Git. No source push or public
+  app release is authorized. No test/build/native process is left running.
+- Next optional verification: run the focused CI native workflow in a session
+  where the WebView remains visible, then actual provider/credential acceptance.
+  This does not restart the older seven-item effort or its 30-minute soak.
+- Relevant new files: `apps/desktop/src/{CiNotifications.tsx,useCiActions.ts,
+  ci-actions.ts,ci-actions.test.ts}`. `PipelineJob.allow_failure` is a nullable
+  bool; missing data never implies required approval. UI is English/Thai.
+- CI detail reads reuse the existing serialized `readCi`/`pipelines` path and
+  bounded native cache. Poll interval is 60 seconds while visible, explicit
+  refresh is throttled, and in-flight results are invalidated on scope/config
+  changes. Lists survive graph scrolling; reading does not resolve provider work.
+- This task does not resume the old foreground soak in item 7 below. New app
+  features are tested with disposable repos and simulated provider HTTP/CI
+  responses; no real company CI job is started, approved or retried.
 
 ## Start a new session
 

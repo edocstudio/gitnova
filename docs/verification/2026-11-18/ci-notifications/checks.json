@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "version": "1.0.21",
+  "branch": "feat/ci-action-notifications",
+  "base": "a8ae64e",
+  "checks": [
+    {
+      "name": "frontend-unit",
+      "passed": true,
+      "tests": 103,
+      "files": 25,
+      "newCiClassificationTests": 7
+    },
+    {
+      "name": "hosting",
+      "passed": true,
+      "tests": 41,
+      "ignored": 1,
+      "limit": "Unlocked isolated credential-store roundtrip deliberately ignored."
+    },
+    {
+      "name": "core-ci_connections-and-pipelines",
+      "passed": true,
+      "tests": 2
+    },
+    {
+      "name": "new-ci-browser-workflows",
+      "passed": true,
+      "tests": 4,
+      "limit": "Provider/CI transport simulated; real Rust core and disposable Git identity/navigation."
+    },
+    {
+      "name": "existing-ci-and-mr-browser-regressions",
+      "passed": true,
+      "tests": 2
+    },
+    {
+      "name": "desktop-unit",
+      "passed": true,
+      "tests": 11
+    },
+    {
+      "name": "typescript-production-build",
+      "passed": true
+    },
+    {
+      "name": "cargo-fmt",
+      "passed": true
+    },
+    {
+      "name": "workspace-all-target-clippy",
+      "passed": true,
+      "warnings": "denied",
+      "note": "Desktop all-target Clippy rerun after native fixture changes also passed."
+    },
+    {
+      "name": "visible-native-ci-workflow",
+      "passed": false,
+      "report": "native-ci-workflow.json",
+      "limit": "WebView remained hidden before CI actions could be tested."
+    },
+    {
+      "name": "final-release-build",
+      "passed": true
+    },
+    {
+      "name": "installed-bundle",
+      "passed": true,
+      "report": "installed-bundle.json"
+    },
+    {
+      "name": "installed-native-startup-smoke",
+      "passed": true,
+      "report": "installed-native-smoke.json",
+      "limit": "Startup/IPC and single-instance only; visible native CI acceptance remains open."
+    }
+  ],
+  "sourceSha256": {
+    "Cargo.lock": "3e652f6e6e2c5e48f45135754902e9a8ac7c14d10b614e78f912ea0af9ce1b01",
+    "Cargo.toml": "28b824262c8831d466d0bd6676592ce6a2c574f5e7e55682cc2e031f7669adde",
+    "apps/desktop/e2e/graph.spec.ts": "b7e1bcfd1e903c14ba5ab3d456495e14eb6faff8550a24454e909c5bfc8e0b75",
+    "apps/desktop/package-lock.json": "de23107c9843e560e6886e2ef9cf1c3c05743a45797b0c11361be2bbe81e6ba1",
+    "apps/desktop/package.json": "53ac1b3740865206cb64e34991f9106f56455ea45f7f1c839a11fb835f5f2efc",
+    "apps/desktop/scripts/native-workflows-driver.js": "b30c5457fc0c1b22b9b98a0dbd5d6c1fc193c0c0c46222455aafaf775e5110b6",
+    "apps/desktop/scripts/native-workflows.mjs": "ef7819534380cec6d76d57f162b711d885e8fb1863115caf0e0ff57afe777376",
+    "apps/desktop/src-tauri/src/main.rs": "9f730b1fd785af7a6d19b54b9c548065baf0297b109c20bda7d6a9bbd6316404",
+    "apps/desktop/src-tauri/src/native_ci.rs": "420e127444db2cbd1c3d3b63f17b93e9c6a4117376de5a077ff9080d7a92d19e",
+    "apps/desktop/src-tauri/tauri.conf.json": "3f48d62dfb862f0705cd2ab0659055ca443a57c0bba49f48b08ef3ffa3ed5d16",
+    "apps/desktop/src/App.tsx": "3cddff11cb5711e201b0dbef6a5431be99c758d12efd6c1139bf8b64bb676850",
+    "apps/desktop/src/CiNotifications.tsx": "9d7d845be0e45762f767d2019433e155b34865de02100c823ac00be7ecff4b17",
+    "apps/desktop/src/Icons.tsx": "ed8229169daeacdbae761560c1fb21fe7da56a308bb57f3ee009ba4df4d7309b",
+    "apps/desktop/src/ci-actions.test.ts": "ae6aa9b98b027ae61142aad0fdb332940b3b23fcf441a3bb7b1be0f476635c66",
+    "apps/desktop/src/ci-actions.ts": "57dfb965a74403f628129414ea03dae6599717cec6e64eed2a8b32275e5c5311",
+    "apps/desktop/src/contracts.ts": "0a842a9f4cf48156b52953cb8a903a97373f1a065e03ac18eab375e696a0ee25",
+    "apps/desktop/src/locales/en.json": "0eca31b38720b1ff61a298160648da35dbe8df9167813909b0b2698fc613d02a",
+    "apps/desktop/src/locales/th.json": "cd4732691f708f95a0ce5a0ca771089f9491e1a3bdbf8adf038a4b6ad6916c91",
+    "apps/desktop/src/styles.css": "662c9821c4d61fd9d221d4acc95bf379911443873dbc00b58f8713055e072b24",
+    "apps/desktop/src/useCiActions.ts": "b1e031d19fb39373daad4ea7a7ca2f9746b9f837fc56cd5b9432c4722a7f78f3",
+    "crates/gitnova-domain/src/lib.rs": "20f9ac5dba90b7385ae0fc0a316dea8df4e859c9abdc36e7ab2ca274deebe5b7",
+    "crates/gitnova-hosting/src/lib.rs": "ec284b9101bdb618f477cae33a765d1096cb9bf0d990724169bb1be23a6830d4"
+  }
+}

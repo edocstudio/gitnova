@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
-type Name = 'undo' | 'redo' | 'pull' | 'push' | 'pullRequest' | 'terminal' | 'settings' | 'trash' | 'search' | 'tag' | 'remote' | 'branch' | 'chevron' | 'refresh' | 'folder' | 'check' | 'close' | 'plus' | 'arrow' | 'file' | 'commit' | 'layers' | 'lock' | 'back' | 'star' | 'copy' | 'panel';
+type Name = 'bell' | 'undo' | 'redo' | 'pull' | 'push' | 'pullRequest' | 'terminal' | 'settings' | 'trash' | 'search' | 'tag' | 'remote' | 'branch' | 'chevron' | 'refresh' | 'folder' | 'check' | 'close' | 'plus' | 'arrow' | 'file' | 'commit' | 'layers' | 'lock' | 'back' | 'star' | 'copy' | 'panel';
 const paths: Record<Name, React.ReactNode> = {
+  bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></>,
   undo: <path d="M3 10h10a7 7 0 0 1 0 14M3 10l6-6M3 10l6 6" transform="translate(0 -3)"/>,
   redo: <path d="M21 10H11a7 7 0 0 0 0 14M21 10l-6-6M21 10l-6 6" transform="translate(0 -3)"/>,
   pull: <><path d="M12 3v12m-5-5 5 5 5-5M4 21h16"/></>,

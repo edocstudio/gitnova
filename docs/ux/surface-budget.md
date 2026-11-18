@@ -349,3 +349,21 @@ failure reuses the existing editor status/actions with Retry refresh; it must
 never repeat a successful file write. Multiple remote URLs remain readable for
 explicit reduction, while new endpoint edits require one fetch destination and
 at most one separate push destination to match the supported Push workflow.
+
+
+## Current-HEAD CI actions
+
+A manual/blocked CI action can be missed when its graph row scrolls off screen.
+A compact bell in the existing header exposes an outstanding-action count and a
+transient popover for the active repository's current HEAD/branch. It does not add
+a sidebar or notification history. Selecting an item reuses graph/inspector
+navigation or opens the validated pipeline in the provider. The graph badge stays
+in place. Opening the list does not resolve provider work or execute a job.
+
+This first scope is GitLab only and current HEAD, not every historical manual job
+or all workspace repositories. Job details use the existing bounded, serialized
+CI reader, with one visible-window polling loop independent of graph scrolling.
+No OS notification permission, provider mutation or persistent preference is
+introduced. Required, optional and unknown manual evidence stay distinct. Failed
+or partial reads preserve qualified cached evidence rather than claiming that
+all waiting actions have completed.

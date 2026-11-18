@@ -1,0 +1,8 @@
+{
+  "checks": [],
+  "error": "Error: Timeout: two native CI actions",
+  "kind": "workflows-failed",
+  "visibility": "hidden",
+  "remainingNativeProcesses": 0,
+  "rootCause": "Local Tauri core.js defines invoke as non-writable/non-configurable. Browser-style assignment did not replace native CI reads; native logs showed real CI connection resolution returning None."
+}

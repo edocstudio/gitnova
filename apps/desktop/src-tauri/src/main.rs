@@ -2,6 +2,7 @@
 mod acceptance;
 mod browser;
 mod command_slots;
+mod native_ci;
 mod terminal;
 use gitnova_core::Application;
 use gitnova_ipc::*;
@@ -52,6 +53,9 @@ fn native_soak_report(sample: serde_json::Value) -> Result<(), AppError> {
     }
     let state = native_smoke_state()?
         .ok_or_else(|| AppError::new("soak", "Isolated smoke state required"))?;
+    if sample.get("kind").and_then(serde_json::Value::as_str) == Some("ci-fixture-resolved") {
+        native_ci::resolve()?;
+    }
     let bytes = serde_json::to_vec(&sample).map_err(|e| AppError::new("soak", e.to_string()))?;
     if bytes.len() > 16384 {
         return Err(AppError::new("soak", "Sample exceeds its telemetry budget"));
@@ -1195,7 +1199,11 @@ async fn ci_connection(
     profiles: Vec<HostProfile>,
 ) -> Result<Option<HostingSelection>, AppError> {
     run_background(state, move |a| {
-        a.ci_connection(&membership_id, &oid, &profiles)
+        if native_ci::enabled() {
+            native_ci::connection(a, &membership_id, &oid, &profiles)
+        } else {
+            a.ci_connection(&membership_id, &oid, &profiles)
+        }
     })
     .await
 }
@@ -1259,7 +1267,14 @@ async fn ci_summary(
     membership_id: String,
     selection: HostingSelection,
 ) -> Result<PipelineSnapshot, AppError> {
-    run_background(state, move |a| a.ci_summary(&membership_id, &selection)).await
+    run_background(state, move |a| {
+        if native_ci::enabled() {
+            native_ci::snapshot(a, &membership_id, &selection, true)
+        } else {
+            a.ci_summary(&membership_id, &selection)
+        }
+    })
+    .await
 }
 #[tauri::command]
 async fn pipelines(
@@ -1269,7 +1284,11 @@ async fn pipelines(
     refresh: bool,
 ) -> Result<PipelineSnapshot, AppError> {
     run_background(state, move |a| {
-        a.pipelines(&membership_id, &selection, refresh)
+        if native_ci::enabled() {
+            native_ci::snapshot(a, &membership_id, &selection, false)
+        } else {
+            a.pipelines(&membership_id, &selection, refresh)
+        }
     })
     .await
 }
@@ -1752,7 +1771,8 @@ fn main() {
                     let _ = window.set_focus();
                     include_str!("../../scripts/native-workflows-driver.js")
                 } else { include_str!("../../scripts/native-perf-driver.js") };
-                let _ = window.eval(script);
+                let ci_only = std::env::var_os("GITNOVA_NATIVE_CI_WORKFLOW").as_deref() == Some(std::ffi::OsStr::new("1"));
+                let _ = window.eval(format!("window.__gitnovaCiOnly={ci_only};\n{script}"));
             }
             if native_smoke()
                 && (cfg!(debug_assertions) || std::env::var_os("GITNOVA_PERF").as_deref() == Some(std::ffi::OsStr::new("1")))
