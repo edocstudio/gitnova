@@ -1,47 +1,53 @@
 # GitNova session handoff
 
-Updated: 2026-11-18 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+Updated: 2026-11-19 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-User requested author and relative time beside diff code, similar to line blame.
-Implemented **1.3.0** as a backward-compatible feature in the existing committed
-patch viewer, with optional inline authors and original commit detail tooltips.
+Completed the requested real Windows `.exe` handoff for gitnova-web.
+Windows 10/11 x64 / MSVC / per-user NSIS **1.3.1** is built and verified.
+Local macOS app remains 1.3.0; it was not rebuilt or replaced.
 
-- Branch: `feat/diff-line-authors`, base `1b7ff43` (workspace rename 1.2.0). The
-  checkout was still on that feature branch; do not discard its parent commit or
-  assume workspace rename is merged. Earlier CI work is in main via PR #63.
-- Source: `diff-authors.ts`, `useDiffAuthors.ts`, `LineAuthorDetails.tsx`,
-  `CommitDiffDock.tsx`, `api.diffLineAuthors`. Reuse native investigate_history;
-  only blame now also accepts a validated full SHA-1/SHA-256 commit ID, with
-  revision expressions rejected. Other history modes keep ref-only rules.
-- Before = first parent, After = selected full commit; unified removal uses
-  Before and context/addition uses After. Root/deleted files read the content side.
-  No working/stash/merge authorship is fabricated. Exact revision, membership,
-  filename encoding and code content guard each displayed line's metadata.
-- One active + one latest pending author batch; 250 ms debounce, max four
-  200-line ranges per batch, max eight cached pages per patch; abort stale work,
-  stop pending reads while hidden, no polling. Failures and shallow/partial
-  evidence remain explicit; retry clears the current patch cache.
-- Passed: TypeScript; frontend 109/26 files (six new pure tests); core investigation
-  10 (one new immutable-commit test); core + desktop all-target Clippy. Browser
-  flows: 3 new + 2 existing history/diff/editor regressions passed. Final targeted
-  three-case rerun after tooltip geometry refinement passed; screenshots captured.
-- Feature implementation commit: `af51c80`. User then confirmed closing GitNova;
-  fresh process checks before build and installation found it closed.
-- Delivered **1.3.0** at `Desktop/GitNova.app`, replacing 1.2.0 with a temporary
-  backup. Release build, source/built/installed versions, executable SHA-256,
-  strict deep ad-hoc signature, embedded UI and all five attribution resources
-  passed. Installed startup/catalog/real Git graph IPC/single-instance smoke
-  passed on disposable fixtures; this is not physical native GUI acceptance.
-- [Feature report and delivery evidence](../docs/verification/2026-11-18/diff-line-authors/README.md)
-  include matching source hashes and installed evidence. This handoff belongs to
-  the delivery commit on the feature branch; obtain its SHA from Git. Work is
-  complete; no task-owned build/test/native process remains. No push/public release.
-- Old native CI / uninterrupted foreground soak acceptance are separate and remain
-  open; do not restart them for this feature. Provider credentials are not involved.
+- Branch `build/windows-installer`, base main `81a67ab` (PR #64).
+- Installer source `734d36405fa446e55471cb8ee3e945c02f4afb46` was committed/pushed.
+  Full Windows run https://github.com/edocstudio/gitnova/actions/runs/44339604949
+  passed core, all four native/browser shards, credential store, actual installed
+  native startup/IPC/real Git/single-instance, reinstall/uninstall and handoff.
+  Core: 473 passed, two existing ignored (OS credential test verified separately);
+  browser: 172 workflows; frontend: 109; Windows IPC/PTY: eight.
+- Actual file:
+  `target/windows-handoff/1.3.1-734d364/GitNova_1.3.1_x64-setup.exe`
+  Bytes 5695521; SHA-256
+  `d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6`.
+  Folder includes SHA256SUMS, WINDOWS-DOWNLOAD.md and exact handoff/evidence JSON.
+  GitHub artifact 14448103720, named
+  `gitnova-windows-handoff-734d36405fa446e55471cb8ee3e945c02f4afb46`.
+  Local archive digest, PE/bytes/hash/source/version and every checksum passed.
+  Final documentation commits are separate from this immutable build source.
+- Earlier runs exposed Windows selectors/waits/clock/path assertions, eager
+  fixture startup path resolution, and transient WebView profile cleanup locks.
+  Corrected without skipping tests or weakening Git guards. Windows core uses
+  two threads/120-minute cap because prior successful baseline used 86 minutes.
+  Detailed provenance, original failures and final evidence are in the task report.
+  Do not rerun completed suites just to reconstruct context.
+- Local validation: five handoff integrity tests; 11 combined script tests plus
+  one existing Linux GPG skip; both workflow YAML parses; three affected real-core
+  browser cases; formatter; 11 desktop native tests; smoke JS syntax; diff checks.
+- No local runner or task-owned CI run is active. Failed/obsolete runs 44319555944,
+  44329598401 and 44337962235 are closed; do not restart them.
+- Next step belongs to website/publication work only if requested: review the
+  candidate and existing attribution scope, publish the exact installer/checksum
+  under a matching version tag, verify anonymous URLs, then update gitnova-web
+  following its docs/download-publication.md. Public URL fields are currently null.
+  No tag, public release, merge or website deployment occurred in this task.
+  Preserve unrelated gitnova-web work and its older published macOS/Linux assets.
+- The installer is unsigned. Windows inventory has 56 unresolved license entries
+  and auditComplete=false; no completed audit/manual GUI/provider acceptance or
+  prior-version migration is claimed.
+- [Task report](../docs/verification/2026-11-18/windows-installer/README.md) records
+  exact deliverables/checks/limits. Prior long foreground soak remains separate.
 
 ## Start a new session
 

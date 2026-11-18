@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       validation_scope:
-        description: Full release validation, or focused Windows diagnostics without release assembly
+        description: Full release validation, Windows diagnostics, or a fully checked Windows installer handoff
         type: choice
-        options: [full, windows-regressions]
+        options: [full, windows-regressions, windows-installer]
         default: full
       sign_linux:
         description: Sign Linux packages with the owner-configured GPG key
@@ -26,6 +26,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
     with:
       release_profile: true
+      windows_only: ${{ inputs.validation_scope == 'windows-installer' }}
   windows-regressions:
     if: ${{ inputs.validation_scope == 'windows-regressions' }}
     name: Targeted Windows checks (not release approval)
@@ -71,8 +72,30 @@ jobs:
           name: windows-regression-test-results
           if-no-files-found: ignore
           path: apps/desktop/test-results/
+  windows-handoff:
+    if: ${{ inputs.validation_scope == 'windows-installer' }}
+    needs: native-checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@v4
+        with:
+          name: gitnova-native-windows-latest
+          path: windows-candidate
+      - name: Verify exact Windows installer and prepare website handoff
+        run: node apps/desktop/scripts/prepare-windows-handoff.mjs windows-candidate windows-output
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gitnova-windows-handoff-${{ github.sha }}
+          if-no-files-found: error
+          path: windows-output/
+      - name: Record handoff scope
+        run: echo 'Windows installer verified after all Windows core/native/browser shards. No release published and no website deployed.' >> "$GITHUB_STEP_SUMMARY"
   assemble:
-    if: ${{ inputs.validation_scope != 'windows-regressions' }}
+    if: ${{ inputs.validation_scope == 'full' }}
     needs: native-checks
     runs-on: ubuntu-24.04
     environment: release-signing

@@ -1,0 +1,98 @@
+{
+  "version": "1.3.1",
+  "sourceCommit": "734d36405fa446e55471cb8ee3e945c02f4afb46",
+  "runId": 44339604949,
+  "workflowRunUrl": "https://github.com/edocstudio/gitnova/actions/runs/44339604949",
+  "githubArtifactId": 14448103720,
+  "githubArtifactName": "gitnova-windows-handoff-734d36405fa446e55471cb8ee3e945c02f4afb46",
+  "archiveSha256": "04fc193ea0b933fbea7b9607a8bd3906b8225b34a2dc2e8bf00c71ad923a823a",
+  "asset": {
+    "file": "GitNova_1.3.1_x64-setup.exe",
+    "platform": "Windows",
+    "arch": "x64",
+    "target": "x86_64-pc-windows-msvc",
+    "version": "1.3.1",
+    "bytes": 5695521,
+    "sha256": "d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6",
+    "signing": "unsigned",
+    "url": null,
+    "checksumUrl": null
+  },
+  "artifactLocation": "target/windows-handoff/1.3.1-734d364/GitNova_1.3.1_x64-setup.exe",
+  "peBootstrapMachine": "0x14c",
+  "checkedFiles": [
+    "GitNova_1.3.1_x64-setup.exe",
+    "WINDOWS-DOWNLOAD.md",
+    "windows-artifact.json",
+    "windows-handoff.json",
+    "windows-lifecycle.json"
+  ],
+  "windowsGates": [
+    {
+      "name": "native-checks / core (windows-latest)",
+      "passed": true
+    },
+    {
+      "name": "windows-handoff",
+      "passed": true
+    },
+    {
+      "name": "native-checks / desktop (windows-latest, shard 1/4)",
+      "passed": true
+    },
+    {
+      "name": "native-checks / desktop (windows-latest, shard 2/4)",
+      "passed": true
+    },
+    {
+      "name": "native-checks / desktop (windows-latest, shard 3/4)",
+      "passed": true
+    },
+    {
+      "name": "native-checks / desktop (windows-latest, shard 4/4)",
+      "passed": true
+    }
+  ],
+  "nativeAcceptance": {
+    "schemaVersion": 1,
+    "kind": "gitnova-installed-acceptance",
+    "version": "1.3.1",
+    "passed": true,
+    "platform": "win32",
+    "arch": "x64",
+    "artifact": "GitNova_1.3.1_x64-setup.exe",
+    "artifactSha256": "d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6",
+    "installedBinarySha256": "83133ffddfd458674ceb823a91ee8924ece49d5ce075b65227a17c0bfb4fe2c3",
+    "checks": [
+      "embedded-ui",
+      "native-catalog-ipc",
+      "real-git-graph-ipc",
+      "single-instance",
+      "fixture-head-and-working-tree-preserved"
+    ],
+    "scope": "Startup and native IPC smoke only; full browser workflows, OS credentials and manual GUI acceptance are separate."
+  },
+  "installerLifecycle": {
+    "schemaVersion": 1,
+    "checks": [
+      "nsis-install",
+      "installed-native-acceptance",
+      "same-version-reinstall",
+      "nsis-uninstall"
+    ],
+    "artifactSha256": "d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6",
+    "passed": true,
+    "kind": "gitnova-installer-lifecycle",
+    "limitations": [
+      "Previous-version migration and manual GUI acceptance are not covered."
+    ],
+    "artifact": "GitNova_1.3.1_x64-setup.exe"
+  },
+  "attribution": {
+    "resourcesChecked": 5,
+    "auditComplete": false,
+    "unresolved": 56
+  },
+  "publicationGatePassed": false,
+  "scope": "Full Windows CI and installer lifecycle passed. Local archive/PE/bytes/checksums verified. Unsigned candidate; no public release, site deployment or full manual GUI acceptance claim."
+}

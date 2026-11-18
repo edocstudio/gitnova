@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.3.0-4c9aff?style=flat-square" alt="Version: 1.3.0" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.3.1-4c9aff?style=flat-square" alt="Version: 1.3.1" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -41,7 +41,7 @@
 
 ## Features
 
-The following workflows are implemented in version 1.3.0. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.3.1. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -163,14 +163,15 @@ For macOS development diagnostics, `npm run build:local` still produces `target/
 
 ## Project status
 
-**GitNova 1.3.0** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.3.1** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |
 | **macOS · Apple Silicon** | Local development, debug packaging and targeted native smoke checks have been exercised. |
-| **Windows x64 / Linux x64** | Native desktop CI, OS credential stores and release-profile installer builds are configured. Hosted-run and manual native acceptance remain to be verified; see [platform setup and limits](docs/platforms.md). |
+| **Windows x64** | 1.3.1 full Windows CI, credential-store checks and installed NSIS startup/reinstall/uninstall passed; [verified installer handoff](docs/verification/2026-11-18/windows-installer/README.md). Unsigned; manual/provider acceptance remains separate. |
+| **Linux x64** | Native desktop CI, OS credential store and release-profile installer builds are configured. Hosted-run and manual native acceptance remain separate; see [platform setup and limits](docs/platforms.md). |
 
-The [checks workflow](.github/workflows/ci.yml) defines the repository's CI jobs; it is not a claim that a hosted run has passed. GitNova does not yet ship public release installers.
+The [checks workflow](.github/workflows/ci.yml) defines the repository's CI jobs. Check the exact source and artifact evidence for each package. The Windows 1.3.1 handoff has not been published as a public download.
 
 Git operations can encounter conflicts, configured hooks/filters, interrupted processes or external repository changes. Recovery references, snapshots and receipts have explicit bounds. Review the [workflow and recovery limits](docs/implementation.md#current-limits-and-next-work) before relying on them for important work.
 

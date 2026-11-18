@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "checks": [
+    "nsis-install",
+    "installed-native-acceptance",
+    "same-version-reinstall",
+    "nsis-uninstall"
+  ],
+  "artifactSha256": "d57f808fc1ee89a94b6ee94291a2d39a2611291ebedd2b59413cf1acd19708e6",
+  "passed": true,
+  "kind": "gitnova-installer-lifecycle",
+  "limitations": [
+    "Previous-version migration and manual GUI acceptance are not covered."
+  ],
+  "artifact": "GitNova_1.3.1_x64-setup.exe"
+}

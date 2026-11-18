@@ -34,6 +34,8 @@ if(add.error) throw new Error(add.error.message);
 const log=join(fixture,'native.log');const fd=openSync(log,'a',0o600);
 const isolatedHome=join(fixture,'home');mkdirSync(isolatedHome);
 const launchEnv={...env,HOME:isolatedHome,USERPROFILE:isolatedHome,XDG_CONFIG_HOME:join(isolatedHome,'config'),XDG_DATA_HOME:join(isolatedHome,'data'),XDG_CACHE_HOME:join(isolatedHome,'cache'),APPDATA:join(isolatedHome,'AppData','Roaming'),LOCALAPPDATA:join(isolatedHome,'AppData','Local'),GITNOVA_NATIVE_SMOKE:'1',GITNOVA_SMOKE_STATE:state};
+// Windows known-folder resolution requires the isolated profile folders to exist.
+for(const key of ["XDG_CONFIG_HOME","XDG_DATA_HOME","XDG_CACHE_HOME","APPDATA","LOCALAPPDATA"])mkdirSync(launchEnv[key],{recursive:true});
 let first;let second;let passed=false;let launchError;
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const marker=async name=>{const end=Date.now()+30000;while(Date.now()<end){if(launchError)throw launchError;if(first.exitCode!==null||first.signalCode!==null) throw new Error(`Native app exited before ${name} (exit=${first.exitCode}, signal=${first.signalCode})`);if(readFileSync(log,'utf8').includes(`GITNOVA_NATIVE_SMOKE:${name}`))return;await wait(100);}throw new Error(`Timed out waiting for ${name}`);};
@@ -54,6 +56,6 @@ try {
   // This log belongs only to the synthetic catalog and contains no owner data.
   if(!passed)console.error(readFileSync(log,'utf8').slice(-16000));
   const stopped=[first,second].every(child=>!child||child.exitCode!==null||child.signalCode!==null);
-  if(passed && stopped)rmSync(fixture,{recursive:true,force:true});else console.error(`Native smoke fixture retained for inspection: ${fixture}`);
+  if(passed && stopped)rmSync(fixture,{recursive:true,force:true,maxRetries:20,retryDelay:100});else console.error(`Native smoke fixture retained for inspection: ${fixture}`);
   if(!stopped){if(options['--report'])rmSync(resolve(options['--report']),{force:true});throw new Error('Native acceptance processes did not stop; successful evidence was removed.');}
 }

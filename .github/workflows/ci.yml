@@ -7,18 +7,22 @@ on:
       release_profile:
         type: boolean
         default: false
+      windows_only:
+        description: Run the full Windows checks and installer lifecycle without other OS jobs
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   core:
-    timeout-minutes: 90
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 120 || 90 }}
     env:
       CARGO_BUILD_JOBS: 2
-      RUST_TEST_THREADS: 1
+      RUST_TEST_THREADS: ${{ matrix.os == 'windows-latest' && 2 || 1 }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: ${{ fromJSON(inputs.windows_only && '["windows-latest"]' || '["ubuntu-latest","macos-latest","windows-latest"]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +42,7 @@ jobs:
       - run: cargo clippy --workspace --exclude gitnova-desktop --all-targets --locked -- -D warnings
       - run: cargo test --workspace --exclude gitnova-desktop --locked --no-fail-fast
   desktop:
+    if: ${{ !inputs.windows_only }}
     runs-on: macos-latest
     timeout-minutes: 90
     env:
@@ -122,12 +127,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { os: ubuntu-24.04, shard: 1, shards: 1, package: true }
-          - { os: windows-latest, shard: 1, shards: 4, package: true }
-          - { os: windows-latest, shard: 2, shards: 4, package: false }
-          - { os: windows-latest, shard: 3, shards: 4, package: false }
-          - { os: windows-latest, shard: 4, shards: 4, package: false }
+        include: >-
+          ${{ fromJSON(inputs.windows_only &&
+          '[{"os":"windows-latest","shard":1,"shards":4,"package":true},{"os":"windows-latest","shard":2,"shards":4,"package":false},{"os":"windows-latest","shard":3,"shards":4,"package":false},{"os":"windows-latest","shard":4,"shards":4,"package":false}]' ||
+          '[{"os":"ubuntu-24.04","shard":1,"shards":1,"package":true},{"os":"windows-latest","shard":1,"shards":4,"package":true},{"os":"windows-latest","shard":2,"shards":4,"package":false},{"os":"windows-latest","shard":3,"shards":4,"package":false},{"os":"windows-latest","shard":4,"shards":4,"package":false}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     env:
