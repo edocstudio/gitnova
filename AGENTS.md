@@ -42,11 +42,14 @@ Run only one build/test runner at a time. Cargo compilation defaults to two jobs
 
 User direction, 2026-11-17: after completing requested code changes, commit the task changes on a descriptive branch and report the branch name, commit SHA, commit message/comment and verification result. Preserve unrelated existing edits outside the task commit.
 
-User direction, 2026-11-09: each delivered app update must advance the patch
-version. Use apps/desktop/scripts/set-version.mjs to synchronize metadata,
-regenerate attribution inventory, and verify the installed bundle's version
-matches the source before reporting delivery. Do not reuse the previous version
-for a newly delivered fix.
+User correction, 2026-11-18 (supersedes patch-only delivery guidance): use
+Semantic Versioning for delivered app updates. Increment patch for compatible
+bug fixes, minor for backward-compatible new features (reset patch to zero), and
+major for backward-incompatible changes (reset minor and patch to zero). The CI
+notifications feature is 1.1.0. Every new app delivery must advance the version;
+do not reuse the previous version. Use apps/desktop/scripts/set-version.mjs to
+synchronize metadata, regenerate attribution inventory, and verify the installed
+bundle's version matches the source before reporting delivery.
 
 User direction, 2026-10-28: persistent application/workspace/repository settings belong in the header Settings dialog, with explicit scope. Do not add connection forms or preferences to commit details. Keep Git action inputs and reviewed write confirmations in their existing graph context.
 

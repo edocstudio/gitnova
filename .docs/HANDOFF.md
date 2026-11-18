@@ -1,30 +1,36 @@
 # GitNova session handoff
 
-Updated: 2026-11-17 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
-first. This is a repository checkpoint, not a substitute for the latest user
-request or live Git/process state. Files are kept in English for reuse by coding
-agents; communicate with this user in Thai.
+Updated: 2026-11-18 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+first. This checkpoint supplements the latest user request and live Git/process
+state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-The user requested persistent instructions and a handoff so a new AI/LLM session
-can continue without reconstructing the conversation. This documentation task
-adds a startup/update protocol to `AGENTS.md` and this file. It does not change
-application behavior, deliver a new app version, or start the remaining soak.
-The requested protocol/checkpoint files are complete. Documentation verification:
-`git diff --check` and all 14 local Markdown links passed; runtime suites/builds
-were not rerun for these documentation-only changes. Await the next user request
-after the documentation commit rather than automatically starting item 7.
+The user corrected the CI notifications release to **1.1.0** because it adds a
+backward-compatible feature. Version policy in `AGENTS.md` now selects patch,
+minor or major by change type, replacing the prior patch-only rule.
 
-- Documentation branch: `docs/agent-session-handoff`.
-- Branch base: `6f536c8` on `main`, merge of PR #61.
-- Latest application change: `72b93d0e4ea0e975f513d284cbadd1ee43a0ae92`
-  (`fix(desktop): improve recovery and bound editor and push diagnostics`).
-- Source version at this checkpoint: **1.0.20**. The task began with a clean tree.
-- Obtain the documentation commit SHA from `git log`; do not assume this branch
-  remains active or that later sessions still have a clean checkout.
-- No build, app launch or long-running probe was started for this documentation
-  task. Recheck live processes before a later native run.
+- Branch: `feat/ci-action-notifications`. CI feature commit: `ff98420` (base
+  `a8ae64e` on main). This follow-up changes version metadata, policy and delivery
+  evidence only; do not recreate or retest the feature as new implementation.
+- Delivered **1.1.0** to `Desktop/GitNova.app`, replacing 1.0.21. Source/built/installed
+  versions and executable hashes agree. Version tests, release build, strict deep
+  ad-hoc signature, embedded UI, five attribution resources and installed native
+  startup/IPC/single-instance smoke passed. Prior app backed up in a temp folder.
+  See [1.1.0 release report](../docs/verification/2026-11-18/version-1.1.0/README.md).
+- Feature behavior and test results: [CI report](../docs/verification/2026-11-18/ci-notifications/README.md).
+  Frontend units 103/25 files, browser 4 new + 2 regressions, hosting 41 + 1 ignored,
+  core CI integrations 2, desktop units 11; formatter and Clippy passed there.
+- Visible native CI acceptance is still open: WebView stayed hidden before checks.
+  Do not relabel it as passed, repeatedly launch hidden probes, or restart the old
+  30-minute soak for this version-only correction. The focused native CI runner
+  uses `--ci-only true` and isolated typed provider fixtures, not live credentials.
+- Scope remains active repository's current HEAD/branch, GitLab manual/blocked
+  actions, required/optional/unknown evidence and existing commit/provider links.
+  No OS notification or provider execution/approval is implemented.
+- This handoff belongs to the version correction commit; obtain its SHA from Git.
+  Work is complete; no build/test/native process remains. No push or public release
+  authorized. The 1.0.21 report is preserved as historical evidence.
 
 ## Start a new session
 
@@ -151,7 +157,7 @@ and `.python-version` (3.15.2). Verify availability; do not upgrade tools or
 dependencies just to resume. Build/verification commands and resource limits are
 in the linked contributing/implementation guides and root `AGENTS.md`.
 
-For an actual new app delivery, follow the existing patch-version, attribution,
+For an actual new app delivery, follow the semantic-version, attribution,
 closed-app packaging and installed-version verification rules. Documentation-only
 work does not itself deliver a new app or require rebuilding it.
 

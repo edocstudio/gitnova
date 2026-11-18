@@ -1518,7 +1518,7 @@ test('global CI follows real fetch hosts across repositories, ignores late resul
  const repos:string[]=[],oids:string[]=[];for(const [name,url] of [['global-a-one','git@git.a.example:group/one.git'],['global-a-two','ssh://git@git.a.example/group/two.git'],['global-b','https://git.b.example/org/project.git']]){const repo=join(folder,name);mkdirSync(repo);git(repo,['init','-b','main']);git(repo,['commit','--allow-empty','-m',name]);git(repo,['remote','add','origin',url]);repos.push(repo);oids.push(git(repo,['rev-parse','HEAD']));}
  await connectRealCore(page,join(folder,'global-ci-graph.json'));const queries:{origin:string;provider:string;oid:string}[]=[];let running=true,release:(()=>void)|undefined;
  await page.exposeBinding('globalCi',async(_source,args:{selection:{origin:string;provider:string;oid:string}})=>{const s=args.selection;queries.push(s);if(s.oid===oids[1])await new Promise<void>(r=>{release=r;});return {oid:s.oid,origin:s.origin,project:s.provider==='gitlab'?'group/project':'org/project',checkedAt:Math.floor(Date.now()/1000),partial:false,runs:[{id:s.provider==='gitlab'?'40778':s.oid,sha:s.oid,reference:'main',source:s.provider==='gitlab'?'gitlab_pipeline':'provider',status:s.provider==='github'?'failed':running?'running':'success',url:s.provider==='gitlab'?`${s.origin}/group/project/-/pipelines/40778`:`${s.origin}/project/commit/${s.oid}`,jobs:[],jobsPartial:false},...(s.provider==='github'?[{id:'99',displayNumber:1,name:'CI',sha:s.oid,reference:'main',source:'github_actions',status:'failed',url:`${s.origin}/org/project/actions/runs/99`,jobs:[],jobsPartial:false}]:[])]};});
- await page.addInitScript(()=>{localStorage.setItem('gitnova.connections.v1',JSON.stringify([{id:'a',label:'Company A',provider:'gitlab',origin:'https://git.a.example',enabled:true},{id:'b',label:'Company B',provider:'github',origin:'https://git.b.example',enabled:true}]));const w=window as unknown as {__TAURI_INTERNALS__:{invoke:(c:string,a:unknown)=>Promise<unknown>};globalCi:(a:unknown)=>Promise<unknown>};const original=w.__TAURI_INTERNALS__.invoke;w.__TAURI_INTERNALS__.invoke=(c,a)=>c==='ci_summary'?w.globalCi(a):original(c,a);});
+ await page.addInitScript(()=>{localStorage.setItem('gitnova.connections.v1',JSON.stringify([{id:'a',label:'Company A',provider:'gitlab',origin:'https://git.a.example',enabled:true},{id:'b',label:'Company B',provider:'github',origin:'https://git.b.example',enabled:true}]));const w=window as unknown as {__TAURI_INTERNALS__:{invoke:(c:string,a:unknown)=>Promise<unknown>};globalCi:(a:unknown)=>Promise<unknown>};const original=w.__TAURI_INTERNALS__.invoke;w.__TAURI_INTERNALS__.invoke=(c,a)=>c==='ci_summary'?w.globalCi(a):c==='pipelines'?Promise.resolve({oid:(a as {selection:{oid:string}}).selection.oid,origin:(a as {selection:{origin:string}}).selection.origin,project:'group/project',runs:[],partial:false,checkedAt:Date.now()/1000}):original(c,a);});
  await page.clock.install();await page.goto('/');const open=async(repo:string,first=false)=>{if(!first)await page.keyboard.press('Control+o');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();};await open(repos[0],true);await page.clock.fastForward(1000);await expect(page.locator(`#commit-${oids[0]} .commit-ci`)).toContainText('Running · #40778');expect(queries[0].origin).toBe('https://git.a.example');
  await page.evaluate(()=>{const w=window as unknown as {__TAURI_INTERNALS__:{invoke:(c:string,a:unknown)=>Promise<unknown>};openedPipeline:unknown};const invoke=w.__TAURI_INTERNALS__.invoke;w.__TAURI_INTERNALS__.invoke=(c,a)=>{if(c==='open_ci_url'){w.openedPipeline=a;return Promise.resolve();}return invoke(c,a);};});
  const pipelineLink=page.locator(`#commit-${oids[0]} .commit-ci a`);await expect(pipelineLink).toHaveAttribute('href','https://git.a.example/group/project/-/pipelines/40778');await pipelineLink.click();await expect(page.locator('.graph-actions')).toHaveCount(0);expect(await page.evaluate(()=>(window as unknown as {openedPipeline:unknown}).openedPipeline)).toEqual({url:'https://git.a.example/group/project/-/pipelines/40778'});
@@ -2068,7 +2068,7 @@ test('graph shows outgoing and incoming MR badges with explicit direction and re
   await page.exposeBinding('openRequestsFixture',async(_source,command:string,args:any)=>{
     if(command==='open_ci_url'){opened.push(args.url);return null;}
     if(command==='ci_connection')return {remote:'origin',branch:'',oid:args.oid,provider:'gitlab',origin:'https://git.example'};
-    if(command==='ci_summary')return {oid:args.selection.oid,project:'team/project',origin:'https://git.example',runs:[],partial:false,checkedAt:Date.now()/1000};
+    if(command==='ci_summary'||command==='pipelines')return {oid:args.selection.oid,project:'team/project',origin:'https://git.example',runs:[],partial:false,checkedAt:Date.now()/1000};
     reads++;
     const row={number:12,title:'Prepare release',draft:false,url:'https://git.example/team/project/-/merge_requests/12',sourceBranch:'feature/ready',targetBranch:'release',sourceProjectId:'1'};
     return {provider:'gitlab',origin:'https://git.example',project:'team/project',projectId:'1',remote:'origin',requests:[...(requestsOpen?[row]:[]),{...row,number:13,draft:true,url:'https://git.example/team/project/-/merge_requests/13',sourceProjectId:'2',title:'Fork request'}],partial:false,checkedAt:Date.now()/1000};
@@ -2076,7 +2076,7 @@ test('graph shows outgoing and incoming MR badges with explicit direction and re
   await page.addInitScript(()=>{
     localStorage.setItem('gitnova.connections.v1',JSON.stringify([{id:'requests',label:'Test host',provider:'gitlab',origin:'https://git.example',enabled:true}]));
     const w=window as unknown as {openRequestsFixture:(c:string,a:unknown)=>Promise<unknown>;__TAURI_INTERNALS__:{invoke:(c:string,a:unknown)=>Promise<unknown>}};
-    const invoke=w.__TAURI_INTERNALS__.invoke;w.__TAURI_INTERNALS__.invoke=(c,a)=>['branch_requests','ci_connection','ci_summary','open_ci_url'].includes(c)?w.openRequestsFixture(c,a):invoke(c,a);
+    const invoke=w.__TAURI_INTERNALS__.invoke;w.__TAURI_INTERNALS__.invoke=(c,a)=>['branch_requests','ci_connection','ci_summary','pipelines','open_ci_url'].includes(c)?w.openRequestsFixture(c,a):invoke(c,a);
   });
   await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
   const outgoing=page.locator('.branch-request-badge[data-request-direction=outgoing]');await expect(outgoing).toHaveCount(1);await expect(outgoing).toHaveAttribute('title',/feature\/ready → release/);
@@ -2576,4 +2576,104 @@ test('endpoint dialog requires explicit reduction of existing multiple URLs',asy
  const config=readFileSync(join(repo,'.git/config'),'utf8');await connectRealCore(page,join(folder,'endpoint-multiple.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.getByRole('button',{name:'Repository remote',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Edit remote endpoint',exact:true});await expect(dialog.getByLabel('Fetch URLs (one per line)',{exact:true})).toHaveValue('https://old.example.invalid/a.git\nhttps://second.example.invalid/a.git');await expect(dialog).toContainText('GitNova Push supports one destination.');await expect(dialog.getByRole('button',{name:'Review remote change',exact:true})).toBeDisabled();expect(readFileSync(join(repo,'.git/config'),'utf8')).toBe(config);
  await dialog.getByLabel('Fetch URLs (one per line)',{exact:true}).fill('https://new.example.invalid/a.git');await dialog.getByRole('button',{name:'Review remote change',exact:true}).click();await expect(dialog.getByRole('region',{name:'Review remote endpoint',exact:true})).toContainText('https://second.example.invalid/a.git');await dialog.getByRole('button',{name:'Save remote URLs',exact:true}).click();await expect(dialog).toHaveCount(0);expect(git(repo,['remote','get-url','--all','origin'])).toBe('https://new.example.invalid/a.git');
+});
+
+// Provider HTTP is simulated at the CI transport boundary. Repository identity,
+// host matching, graph navigation and file/ref results still use the real core.
+function ciNotificationRepo(name:string,origin='https://notify.example'){
+ const repo=join(folder,name);mkdirSync(repo);git(repo,['init','-b','release']);
+ writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','Notification base']);const base=git(repo,['rev-parse','HEAD']);
+ writeFileSync(join(repo,'file.txt'),'release\n');git(repo,['commit','-am','Notification release']);const oid=git(repo,['rev-parse','HEAD']);git(repo,['remote','add','origin',`${origin}/team/project.git`]);
+ return {repo,base,oid,origin};
+}
+function ciNotificationSnapshot(oid:string,origin:string,options:{id?:string;partial?:boolean;jobsPartial?:boolean;status?:string;jobs?:Array<{id:string;name:string;stage:string;status:string;allowFailure?:boolean|null}>}={}){
+ const id=options.id??'46629';
+ return {oid,origin,project:'team/project',checkedAt:Math.floor(Date.now()/1000),partial:options.partial??false,runs:[{id,sha:oid,reference:'release',source:'push',status:options.status??'manual',url:`${origin}/team/project/-/pipelines/${id}`,jobsPartial:options.jobsPartial??false,jobs:(options.jobs??[{id:'1',name:'deploy production',stage:'deploy',status:'manual',allowFailure:false},{id:'2',name:'preview environment',stage:'deploy',status:'manual',allowFailure:true},{id:'3',name:'legacy manual',stage:'deploy',status:'manual'}]).map(job=>({...job,runner:null,duration:null}))}]};
+}
+async function ciNotificationTransport(page:Page,state:string,profiles:Array<{origin:string}>,read:(command:string,args:any)=>unknown|Promise<unknown>){
+ await connectRealCore(page,state);
+ await page.exposeBinding('notificationCi',async(_source,command:string,args:any)=>read(command,args));
+ await page.addInitScript(profiles=>{
+  localStorage.setItem('gitnova.connections.v1',JSON.stringify(profiles.map((profile,index)=>({id:`notification-${index}`,label:`Fixture ${index}`,provider:'gitlab',origin:profile.origin,enabled:true}))));
+  const w=window as unknown as {notificationCi:(c:string,a:unknown)=>Promise<unknown>;__TAURI_INTERNALS__:{invoke:(c:string,a:unknown)=>Promise<unknown>}};
+  const invoke=w.__TAURI_INTERNALS__.invoke;
+  w.__TAURI_INTERNALS__.invoke=(command,args)=>['pipelines','ci_summary','open_ci_url'].includes(command)?w.notificationCi(command,args):invoke(command,args);
+ },profiles);
+}
+async function openNotificationRepo(page:Page,repo:string,first=true){
+ if(!first)await page.keyboard.press('Control+o');await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+}
+
+test('CI notification bell retains current HEAD actions across graph selection, locale and refresh without duplicates',async({page},testInfo)=>{
+ const fixture=ciNotificationRepo('ci-notification-actions');let reads=0;const opened:string[]=[];const commands:string[]=[];
+ await ciNotificationTransport(page,join(folder,'ci-notification-actions.json'),[fixture],(command,args)=>{
+  commands.push(command);if(command==='open_ci_url'){opened.push(args.url);return null;}
+  if(command==='pipelines')reads++;
+  const value=ciNotificationSnapshot(args.selection.oid,fixture.origin);if(command==='ci_summary')value.runs[0].jobs=[];return value;
+ });
+ await page.goto('/');await openNotificationRepo(page,fixture.repo);
+ const bell=page.locator('.ci-actions-trigger');await expect(bell).toHaveAccessibleName('CI actions (3)');await bell.click();
+ const panel=page.getByRole('region',{name:'CI actions',exact:true});await expect(panel.getByRole('heading',{name:'CI actions',exact:true})).toBeFocused();
+ await expect(panel.locator('.ci-action')).toHaveCount(3);await expect(panel).toContainText('Manual job required');await expect(panel).toContainText('Optional manual job');await expect(panel).toContainText('Blocking requirements are not reported');
+ await page.setViewportSize({width:1024,height:768});expect(await page.locator('.topbar').evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);const box=await panel.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(1024);await page.setViewportSize({width:1360,height:900});
+ await panel.screenshot({path:testInfo.outputPath('ci-actions-required-optional.png')});
+ await panel.getByRole('button',{name:'Refresh CI actions',exact:true}).click();await expect.poll(()=>reads).toBe(2);await expect(panel.locator('.ci-action')).toHaveCount(3);
+ await panel.getByRole('link',{name:'Open pipeline 46629',exact:true}).first().click();expect(opened).toEqual([`${fixture.origin}/team/project/-/pipelines/46629`]);
+ await page.evaluate(async()=>{const {setLocale}=await import('/src/i18n.ts');setLocale('th');});await expect(page.getByRole('region',{name:'งาน CI ที่ต้องตรวจสอบ',exact:true})).toContainText('งาน manual ที่เลือกทำได้');await expect(bell).toHaveAccessibleName('งาน CI ที่ต้องตรวจสอบ (3)');
+ await page.evaluate(async()=>{const {setLocale}=await import('/src/i18n.ts');setLocale('en');});await page.keyboard.press('Escape');await expect(panel).toHaveCount(0);await expect(bell).toBeFocused();
+ await page.locator('.commit-row').filter({hasText:'Notification base'}).click();await page.locator('.history-scroll').evaluate(node=>{node.scrollTop=node.scrollHeight;node.dispatchEvent(new Event('scroll'));});await expect(bell).toHaveAccessibleName('CI actions (3)');
+ await bell.click();await panel.getByRole('button',{name:'View commit',exact:true}).first().click();await expect(panel).toHaveCount(0);await expect(page.getByRole('complementary',{name:'Selected commit',exact:true}).locator('.full-sha')).toHaveText(fixture.oid);
+ expect(git(fixture.repo,['rev-parse','HEAD'])).toBe(fixture.oid);expect(git(fixture.repo,['status','--porcelain'])).toBe('');expect(commands.filter(command=>!['pipelines','ci_summary','open_ci_url'].includes(command))).toEqual([]);
+});
+
+test('CI notifications preserve qualified partial/error evidence and remove actions only after observed resolution',async({page})=>{
+ const fixture=ciNotificationRepo('ci-notification-recovery');let phase:'full'|'partial'|'error'|'resolved'|'new'='full',reads=0;
+ await ciNotificationTransport(page,join(folder,'ci-notification-recovery.json'),[fixture],(command,args)=>{
+  if(command==='open_ci_url')return null;
+  if(command==='ci_summary')return ciNotificationSnapshot(args.selection.oid,fixture.origin,{jobs:[]});
+  reads++;if(phase==='error')throw Error('Provider temporarily unavailable');
+  if(phase==='partial')return ciNotificationSnapshot(args.selection.oid,fixture.origin,{jobsPartial:true,jobs:[{id:'1',name:'deploy production',stage:'deploy',status:'running',allowFailure:false}]});
+  if(phase==='resolved')return ciNotificationSnapshot(args.selection.oid,fixture.origin,{status:'success',jobs:[{id:'1',name:'deploy production',stage:'deploy',status:'success',allowFailure:false},{id:'2',name:'preview environment',stage:'deploy',status:'success',allowFailure:true},{id:'3',name:'legacy manual',stage:'deploy',status:'success'}]});
+  if(phase==='new')return ciNotificationSnapshot(args.selection.oid,fixture.origin,{id:'46630',jobs:[{id:'4',name:'new deploy',stage:'deploy',status:'manual',allowFailure:false}]});
+  return ciNotificationSnapshot(args.selection.oid,fixture.origin);
+ });
+ await page.goto('/');await openNotificationRepo(page,fixture.repo);await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (3)');await page.locator('.ci-actions-trigger').click();const panel=page.getByRole('region',{name:'CI actions',exact:true});
+ const refresh=async()=>{const before=reads;await panel.getByRole('button',{name:'Refresh CI actions',exact:true}).click();await expect.poll(()=>reads).toBe(before+1);await expect(panel.getByRole('button',{name:'Refresh CI actions',exact:true})).toBeEnabled();};
+ phase='partial';await refresh();await expect(panel.locator('.ci-action')).toHaveCount(2);await expect(panel).toContainText('CI action coverage is incomplete.');await expect(panel).toContainText('Cached CI evidence.');await expect(panel).not.toContainText('deploy production');
+ phase='error';await refresh();await expect(panel).toContainText('CI actions unavailable.');await expect(panel.locator('.ci-action')).toHaveCount(2);await expect(panel).not.toContainText('No manual or blocked');
+ phase='new';await refresh();await expect(panel.locator('.ci-action')).toHaveCount(1);await expect(panel).toContainText('new deploy');await expect(panel).not.toContainText('legacy manual');
+ phase='resolved';await refresh();await expect(panel.locator('.ci-action')).toHaveCount(0);await expect(panel).toContainText('No manual or blocked CI actions found');await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (0)');
+});
+
+test('CI notifications stop polling while hidden and clear on HEAD, remote and account changes',async({page})=>{
+ const fixture=ciNotificationRepo('ci-notification-scope');let reads=0;
+ await ciNotificationTransport(page,join(folder,'ci-notification-scope.json'),[fixture],(command,args)=>{
+  if(command==='open_ci_url')return null;if(command==='pipelines')reads++;
+  return ciNotificationSnapshot(args.selection.oid,fixture.origin,{jobs:command==='pipelines'?[{id:'1',name:'deploy production',stage:'deploy',status:'manual',allowFailure:false}]:[]});
+ });
+ await page.clock.install();await page.goto('/');await openNotificationRepo(page,fixture.repo);await page.clock.fastForward(1000);await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (1)');
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});const before=reads;await page.clock.fastForward(180000);expect(reads).toBe(before);
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'));});await page.clock.fastForward(2500);await expect.poll(()=>reads).toBe(before+1);
+ git(fixture.repo,['commit','--allow-empty','-m','New current HEAD']);const head=git(fixture.repo,['rev-parse','HEAD']);await page.locator('.topbar .refresh').click();await expect(page.locator('.commit-row').filter({hasText:'New current HEAD'})).toBeVisible();await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (0)');await page.clock.fastForward(1000);await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (1)');await page.locator('.ci-actions-trigger').click();await expect(page.locator('.ci-actions-context')).toContainText(head.slice(0,8));
+ git(fixture.repo,['remote','set-url','origin','https://unmatched.example/team/project.git']);await page.evaluate(()=>window.dispatchEvent(new Event('gitnova-remotes-changed')));await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (0)');await page.clock.fastForward(1000);await expect(page.getByRole('region',{name:'CI actions',exact:true})).toContainText('No matching GitLab connection');
+ git(fixture.repo,['remote','set-url','origin',`${fixture.origin}/team/project.git`]);await page.evaluate(()=>window.dispatchEvent(new Event('gitnova-remotes-changed')));await page.clock.fastForward(1000);await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (1)');
+ await page.evaluate(()=>{localStorage.setItem('gitnova.connections.v1','[]');window.dispatchEvent(new Event('gitnova-ci-config'));});await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (0)');await expect(page.getByRole('region',{name:'CI actions',exact:true})).toContainText('Manage host connections in Settings.');const stopped=reads;await page.clock.fastForward(180000);expect(reads).toBe(stopped);
+});
+
+test('late CI notification reads cannot cross repositories or restore disconnected account data',async({page})=>{
+ const a=ciNotificationRepo('ci-notification-company-a','https://notify-a.example'),b=ciNotificationRepo('ci-notification-company-b','https://notify-b.example');let release!:()=>void;let held=false,holdB=false,heldB=false;let releaseB:(()=>void)|undefined;const origins:string[]=[];
+ await ciNotificationTransport(page,join(folder,'ci-notification-late.json'),[a,b],async(command,args)=>{
+  if(command==='open_ci_url')return null;
+  if(command==='pipelines'){
+   origins.push(args.selection.origin);
+   if(args.selection.origin===a.origin&&!held){held=true;await new Promise<void>(resolve=>{release=resolve;});}
+   if(args.selection.origin===b.origin&&holdB){heldB=true;await new Promise<void>(resolve=>{releaseB=resolve;});}
+  }
+  return ciNotificationSnapshot(args.selection.oid,args.selection.origin,{jobs:command==='pipelines'?[{id:'1',name:args.selection.origin===a.origin?'Company A deploy':'Company B deploy',stage:'deploy',status:'manual',allowFailure:false}]:[]});
+ });
+ try{
+  await page.goto('/');await openNotificationRepo(page,a.repo);await expect.poll(()=>held).toBe(true);await openNotificationRepo(page,b.repo,false);release();await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (1)');await page.locator('.ci-actions-trigger').click();const panel=page.getByRole('region',{name:'CI actions',exact:true});await expect(panel).toContainText('Company B deploy');await expect(panel).not.toContainText('Company A deploy');await expect(panel.getByRole('link',{name:'Open pipeline 46629',exact:true})).toHaveAttribute('href',`${b.origin}/team/project/-/pipelines/46629`);expect(origins).toContain(b.origin);
+  holdB=true;await panel.getByRole('button',{name:'Refresh CI actions',exact:true}).click();await expect.poll(()=>heldB).toBe(true);
+  await page.evaluate(()=>{localStorage.setItem('gitnova.connections.v1','[]');window.dispatchEvent(new Event('gitnova-ci-config'));});releaseB?.();await expect(panel.locator('.ci-action')).toHaveCount(0);await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (0)');
+ }finally{release?.();releaseB?.();}
 });

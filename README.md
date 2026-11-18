@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.0.20-4c9aff?style=flat-square" alt="Version: 1.0.20" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.1.0-4c9aff?style=flat-square" alt="Version: 1.1.0" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -41,7 +41,7 @@
 
 ## Features
 
-The following workflows are implemented in version 1.0.20. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.1.0. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -55,7 +55,7 @@ The following workflows are implemented in version 1.0.20. Availability does not
 | **Submodules & worktrees** | Inspect branch-specific submodules, open their graphs, initialize/restore recorded versions, review forward updates from configured cached remote branches, and stage pointer changes separately; add submodules from a reviewed source or existing checkout, remove registrations while retaining child files/history, and sync selected child URLs; list, create, open, lock/unlock, repair, reattach moved folders and safely remove supported linked worktrees. |
 | **Search** | Find commits by message, author, email or SHA; investigate literal file/code history and compare branch tips across the current repository, selected repositories or workspace. Investigation coverage is bounded and labelled. |
 | **Tags & collaboration** | Create/publish version tags, copy remote commit links, and create/open GitHub pull requests or GitLab merge requests. |
-| **CI visibility** | Display exact-commit GitLab pipelines and GitHub Actions workflow runs alongside checks/status in the graph, including available run numbers and links. Global host/company connections and optional Jenkins integration live in Settings. |
+| **CI visibility** | Display exact-commit GitLab pipelines and GitHub Actions workflow runs alongside checks/status in the graph, including available run numbers and links. The header bell lists current-HEAD GitLab manual/blocked actions with required, optional or unknown evidence and links to the pipeline. Global host/company connections and optional Jenkins integration live in Settings. |
 | **Languages** | Switch between English and Thai from Settings → General without losing drafts or selection. |
 
 CI evidence is tied to the exact commit and connected host. Jenkins results can appear when reported to that Git host; connecting a Jenkins account does not automatically discover arbitrary jobs.
@@ -163,7 +163,7 @@ For macOS development diagnostics, `npm run build:local` still produces `target/
 
 ## Project status
 
-**GitNova 1.0.20** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.1.0** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |

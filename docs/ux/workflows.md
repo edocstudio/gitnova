@@ -614,3 +614,23 @@ reachability per child. Evidence remains offline and bounded. A missing object,
 changed refs, failed inspection, or exhausted traversal budget is shown as unknown,
 not as verified publication or an instruction to create a branch. A fresh reviewed
 Push still checks the live parent destination and retains Git's submodule guard.
+
+
+## CI actions for the current HEAD
+
+The header bell counts outstanding manual/blocked GitLab actions for the active
+repository's HEAD and checked-out branch. It is an action list, not an unread
+history: reading it does not clear the count. Latest matching pipeline evidence
+replaces older runs; switching HEAD/branch/repository or connection scope resets
+the list. Scrolling the graph or selecting another historical commit does not.
+
+Show repository, branch, pipeline, job/stage, required/optional/unknown evidence,
+last checked time and partial/cached/unavailable status. A missing allow_failure
+field does not imply required approval. Only fresh observed status can resolve
+an observed job; incomplete job pages retain unseen prior jobs as cached evidence.
+Open commit reuses read-only graph navigation, and Open pipeline reuses the
+validated provider link. All provider execution/approval remains on GitLab.
+Poll at most once per minute while visible and not blocked by an application
+operation; explicit refresh remains serialized and bounded. Stop on hide/unmount
+and invalidate stale in-flight results on scope/config changes. Scope is current
+HEAD only, not a workspace watcher or closed-app notification service.

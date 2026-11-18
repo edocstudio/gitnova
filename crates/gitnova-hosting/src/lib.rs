@@ -707,6 +707,7 @@ impl<'a> HostingClient<'a> {
                     .take(50)
                     .map(|job| {
                         Ok(PipelineJob {
+                            allow_failure: job["allow_failure"].as_bool(),
                             id: pipeline_id(job)?,
                             name: bounded_field(job, "name"),
                             stage: bounded_field(job, "stage"),
@@ -1735,7 +1736,8 @@ mod tests {
                 200,
                 json!([
                     {"id":9,"name":"test ไทย","stage":"test","status":"running","runner":{"description":"local runner"},"duration":12.5},
-                    {"id":"10","name":"deploy","stage":"deploy","status":"manual","runner":null,"duration":null}
+                    {"id":"10","name":"deploy","stage":"deploy","status":"manual","allow_failure":false,"runner":null,"duration":null},
+                    {"id":11,"name":"preview","stage":"deploy","status":"manual","allow_failure":true}
                 ]),
             ),
         ]);
@@ -1748,6 +1750,9 @@ mod tests {
             Some("local runner")
         );
         assert_eq!(result.runs[0].jobs[1].status, "manual");
+        assert_eq!(result.runs[0].jobs[0].allow_failure, None);
+        assert_eq!(result.runs[0].jobs[1].allow_failure, Some(false));
+        assert_eq!(result.runs[0].jobs[2].allow_failure, Some(true));
         assert!(!result.partial);
         assert_eq!(result.runs[0].source, "push");
         assert!(!serde_json::to_string(&result)

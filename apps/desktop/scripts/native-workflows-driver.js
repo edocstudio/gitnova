@@ -9,11 +9,32 @@
  const click=async(label,root)=>{(await button(label,root)).click();};
  const input=(node,value)=>{Object.getOwnPropertyDescriptor(node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(node,value);node.dispatchEvent(new Event('input',{bubbles:true}));};
  const report=sample=>invoke('native_soak_report',{sample});const checks=[];
+ const checkCiActions=async(head)=>{
+  // CI boundary fixture: exercise real WKWebView polling/render/navigation without
+  // touching an OS credential or a company provider. Git commands remain native.
+  const connectionKey='gitnova.connections.v1',priorProfiles=localStorage.getItem(connectionKey);
+  try{
+   localStorage.setItem(connectionKey,JSON.stringify([{id:'native-ci',label:'Fixture CI',provider:'gitlab',origin:'https://ci-fixture.example.invalid',enabled:true}]));window.dispatchEvent(new Event('gitnova-ci-config'));
+   const bell=await wait(()=>{const node=document.querySelector('.ci-actions-trigger');return node?.getAttribute('aria-label')==='CI actions (2)'?node:null;},'two native CI actions');bell.click();
+   const ciPanel=await wait(()=>document.querySelector('.ci-actions-popover'),'native CI popover');
+   await wait(()=>ciPanel.textContent.includes('Manual job required')&&ciPanel.textContent.includes('Optional manual job')&&ciPanel.querySelectorAll('.ci-action').length===2,'required and optional CI evidence');
+   if(ciPanel.querySelector('a')?.getAttribute('href')!=='https://ci-fixture.example.invalid/team/project/-/pipelines/46629')throw Error('Incorrect CI destination');
+   await click('View commit',ciPanel);await wait(()=>!document.querySelector('.ci-actions-popover')&&document.querySelector('.commit-inspector .full-sha')?.textContent===head,'CI commit navigation');
+   (await wait(()=>{const node=document.querySelector('.ci-actions-trigger');return node&&!node.disabled?node:null;},'CI bell after navigation')).click();await report({kind:'ci-fixture-resolved'});await click('Refresh CI actions');
+   await wait(()=>document.querySelector('.ci-actions-trigger')?.getAttribute('aria-label')==='CI actions (0)'&&document.querySelector('.ci-actions-popover')?.textContent.includes('No manual or blocked CI actions found'),'resolved CI actions');
+   document.querySelector('.ci-actions-heading button').click();checks.push('ci-actions-required-optional-resolve-and-readonly-navigation');
+  }finally{
+   if(priorProfiles===null)localStorage.removeItem(connectionKey);else localStorage.setItem(connectionKey,priorProfiles);
+   window.dispatchEvent(new Event('gitnova-ci-config'));
+  }
+
+ };
  try{
   await wait(()=>document.querySelector('.commit-row')&&!document.querySelector('.sync-state'),'initial graph');
   await wait(()=>document.visibilityState==='visible','visible native WebView');
   const catalog=await invoke('catalog'),workspace=catalog.workspaces.find(w=>w.id===catalog.activeWorkspaceId),parent=workspace.memberships.find(m=>m.name==='workflow-parent');
   const head=(await invoke('graph_page',{membershipId:parent.id,cursor:null})).rows[0].commit.oid;
+  if(window.__gitnovaCiOnly){await checkCiActions(head);await report({kind:'workflows-complete',checks,visibility:document.visibilityState,head,scope:'Focused visible macOS CI actions DOM flow with simulated CI connection/provider responses; commit navigation and fixture invariants use real native IPC/Git. No live credentials, provider HTTP or physical-screen claim.'});return;}
   await wait(()=>{const b=document.querySelector('.push-current');return b&&!b.disabled?b:null;},'parent Push').then(b=>b.click());
   input(await wait(()=>document.querySelector('#manage-destination'),'parent destination'),'review/native');
   await click('Check destination & review');
@@ -34,6 +55,6 @@
   await click('Edit file');const editor=await wait(()=>document.querySelector('.working-file-editor textarea'),'editable file');
   await wait(()=>document.activeElement===editor&&editor.value.slice(editor.selectionStart).startsWith('setting_5102: "native change"'),'diff caret reveal');
   input(editor,editor.value.replace('native change','native corrected'));await click('Save working file');await wait(()=>!document.querySelector('.working-file-editor'),'file saved');checks.push('distant-diff-editor-reveal-and-save');
-  await report({kind:'workflows-complete',checks,visibility:document.visibilityState,head,scope:'Visible macOS WebView DOM actions through native IPC and real disposable Git repositories; no physical-screen or credential acceptance claim.'});
+  await report({kind:'workflows-complete',checks,visibility:document.visibilityState,head,scope:'Visible macOS WebView DOM actions through native IPC and real disposable Git repositories; no physical-screen acceptance claim. CI flow is separate (--ci-only true).'});
  }catch(error){await report({kind:'workflows-failed',checks,error:String(error).slice(0,300),visibility:document.visibilityState});}
 })();

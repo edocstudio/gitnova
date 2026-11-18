@@ -1,0 +1,10 @@
+{
+  "checks": [],
+  "error": "Error: Timeout: visible native WebView",
+  "kind": "workflows-failed",
+  "visibility": "hidden",
+  "passed": false,
+  "version": "1.0.21",
+  "remainingNativeProcesses": 0,
+  "scope": "CI-only packaged WebView attempt with Rust-side synthetic provider data. WebView remained hidden before CI checks could start; native CI behavior is not certified by this attempt."
+}

@@ -9,7 +9,9 @@ import { once } from 'node:events';
 const project=resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workspace=resolve(project,'../..');
 const args=process.argv.slice(2),options={};
-for(let i=0;i<args.length;i+=2){if(!['--executable','--bridge','--report','--artifact'].includes(args[i])||!args[i+1]||options[args[i]])throw new Error('Use --executable, --bridge, --report and --artifact with one value each.');options[args[i]]=args[i+1];}
+for(let i=0;i<args.length;i+=2){if(!['--executable','--bridge','--report','--artifact','--ci-only'].includes(args[i])||!args[i+1]||options[args[i]])throw new Error('Use --executable, --bridge, --report and --artifact with one value each.');options[args[i]]=args[i+1];}
+if(options['--ci-only']&&options['--ci-only']!=='true')throw new Error('--ci-only must be true when supplied.');
+const ciOnly=options['--ci-only']==='true';
 const explicit=!!options['--executable']&&!!options['--bridge'];
 if((args.length&&!explicit)||!!options['--report']!==!!options['--artifact'])throw new Error('Pass both executable/bridge; report and artifact must also be paired.');
 if(process.platform!=='darwin'&&!explicit)throw new Error('Pass installed native executable and bridge on this platform.');
@@ -35,7 +37,7 @@ const child=join(repo,'child');identity(child);git(child,['switch','--detach']);
 const state=join(fixture,'state.json');const add=JSON.parse(execFileSync(bridge,[state],{input:JSON.stringify({command:'add_repository',args:{path:repo}}),encoding:'utf8',timeout:30000}));if(add.error)throw new Error(add.error.message);
 const log=join(fixture,'native.log');const fd=openSync(log,'a',0o600);
 const isolatedHome=join(fixture,'home');mkdirSync(isolatedHome);
-const launchEnv={...env,HOME:isolatedHome,USERPROFILE:isolatedHome,XDG_CONFIG_HOME:join(isolatedHome,'config'),XDG_DATA_HOME:join(isolatedHome,'data'),XDG_CACHE_HOME:join(isolatedHome,'cache'),APPDATA:join(isolatedHome,'AppData','Roaming'),LOCALAPPDATA:join(isolatedHome,'AppData','Local'),GITNOVA_NATIVE_SMOKE:'1',GITNOVA_PERF:'1',GITNOVA_NATIVE_WORKFLOWS:'1',GITNOVA_NATIVE_SOAK_FOREGROUND:'1',GITNOVA_SMOKE_STATE:state};
+const launchEnv={...env,HOME:isolatedHome,USERPROFILE:isolatedHome,XDG_CONFIG_HOME:join(isolatedHome,'config'),XDG_DATA_HOME:join(isolatedHome,'data'),XDG_CACHE_HOME:join(isolatedHome,'cache'),APPDATA:join(isolatedHome,'AppData','Roaming'),LOCALAPPDATA:join(isolatedHome,'AppData','Local'),GITNOVA_NATIVE_SMOKE:'1',GITNOVA_PERF:'1',GITNOVA_NATIVE_WORKFLOWS:'1',GITNOVA_NATIVE_CI_WORKFLOW:ciOnly?'1':'0',GITNOVA_NATIVE_SOAK_FOREGROUND:'1',GITNOVA_SMOKE_STATE:state};
 let first;let passed=false;let launchError;
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const marker=async name=>{const end=Date.now()+30000;while(Date.now()<end){if(launchError)throw launchError;if(first.exitCode!==null||first.signalCode!==null) throw new Error(`Native app exited before ${name} (exit=${first.exitCode}, signal=${first.signalCode})`);if(readFileSync(log,'utf8').includes(`GITNOVA_NATIVE_SMOKE:${name}`))return;await wait(100);}throw new Error(`Timed out waiting for ${name}`);};
@@ -52,14 +54,20 @@ try {
   }
   if(!result||result.kind!=='workflows-complete')throw new Error(JSON.stringify(result??{error:'Native workflow timeout'}));
   if(result.visibility!=='visible')throw new Error('WebView was not visible at completion');
+  if(ciOnly){
+    if(git(childRemote,['rev-parse','main'])!==childBase||git(parentRemote,['rev-parse','main'])!==base||git(repo,['remote','get-url','origin'])!==parentRemote||git(repo,['rev-parse','HEAD'])!==head||git(repo,['write-tree'])!==index||git(child,['rev-parse','HEAD'])!==childTip||git(child,['branch','--show-current'])!=='')throw new Error('Read-only CI workflow changed fixture identity or Git state');
+    const expected='# shifted\n'.repeat(150)+lines.join('\n')+'\n';if(readFileSync(join(repo,'settings.yaml'),'utf8')!==expected||git(repo,['status','--porcelain'])!=='M settings.yaml'||git(child,['status','--porcelain'])!=='')throw new Error('CI workflow changed fixture content');
+    if(git(childRemote,['for-each-ref','--format=%(refname)'])!=='refs/heads/main'||git(parentRemote,['for-each-ref','--format=%(refname)'])!=='refs/heads/main'||git(child,['for-each-ref','--format=%(refname)','refs/heads/'])!=='refs/heads/main')throw new Error('CI workflow published or created an unexpected ref');
+  }else{
   if(git(childRemote,['rev-parse','review/native-child'])!==childTip||git(childRemote,['rev-parse','main'])!==childBase)throw new Error('Incorrect child publication');
   if(git(parentRemote,['rev-parse','review/native'])!==head||git(parentRemote,['rev-parse','main'])!==base)throw new Error('Incorrect parent publication');
   if(git(repo,['remote','get-url','origin'])!==movedRemote||git(repo,['rev-parse','HEAD'])!==head||git(repo,['write-tree'])!==index)throw new Error('Endpoint or history/index invariant failed');
   if(git(movedRemote,['for-each-ref'])!==''||git(child,['status','--porcelain'])!=='')throw new Error('Unexpected endpoint publication or child worktree edits');
   if(git(repo,['status','--porcelain'])!=='M settings.yaml')throw new Error('Unexpected parent working changes');
   const expected='# shifted\n'.repeat(150)+lines.join('\n').replace('native change','native corrected')+'\n';if(readFileSync(join(repo,'settings.yaml'),'utf8')!==expected)throw new Error('Editor did not save expected content');
+  }
   if(options['--report'])writeFileSync(resolve(options['--report']),JSON.stringify({...result,schemaVersion:1,kind:'gitnova-native-workflows',version,passed:true,platform:process.platform,arch:process.arch,artifact:basename(options['--artifact']),artifactSha256:hash(resolve(options['--artifact'])),installedBinarySha256:hash(executable),checks:[...result.checks,'fixture-remote-refs-content-index-and-head-verified']},null,2)+'\n');
-  passed=true;console.log('PASS: visible native WebView → reviewed child/parent Push, endpoint migration and distant diff editor save.');
+  passed=true;console.log('PASS: visible native workflow completed; provider CI data simulated, real Git invariants preserved.');
 } finally {
   await stop(first);closeSync(fd);
   // This log belongs only to the synthetic catalog and contains no owner data.

@@ -1253,6 +1253,8 @@ pub struct AmendOriginal {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PipelineJob {
+    #[serde(default)]
+    pub allow_failure: Option<bool>,
     pub id: String,
     pub name: String,
     pub stage: String,
