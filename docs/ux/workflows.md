@@ -645,3 +645,21 @@ more than 80 Unicode scalar values are rejected; surrounding whitespace is trimm
 A save failure keeps the draft with an inline error for retry. A single bounded,
 workspace-scoped draft survives closing the picker to change the application
 language in Settings. This edit does not rename a repository folder or Git ref.
+
+## Authors beside committed diff lines
+
+Select a commit/file, then enable Line authors beside the diff layout controls.
+Each available annotation shows the line's last author and relative authored time.
+Hover, click or keyboard-activate it for subject, exact authored date, commit ID,
+original filename/line and the revision being inspected. Escape dismisses details;
+scrolling or changing selection removes the old tooltip. The view toggle is kept
+with the existing diff layout preferences, and starts disabled.
+
+Before reads the selected commit's first parent; After reads the selected commit.
+Unified removed lines use Before; added/context lines use After. Root and deleted
+files read only the side with content. Mutable working, stash and merge previews
+keep their existing behavior and do not fabricate commit authorship for edits.
+Native blame follows rename heuristics; copied/moved-line detection is not enabled.
+The current bounded reader supports regular UTF-8 files up to 1 MiB, losslessly
+represented filenames, and lines up to 1,000,000. Ignore-revs configuration and
+unavailable/partial/shallow evidence are reported. A retry is explicit.

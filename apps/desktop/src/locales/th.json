@@ -2438,5 +2438,20 @@
   "Save workspace name": "บันทึกชื่อเวิร์กสเปซ",
   "Workspace renamed.": "เปลี่ยนชื่อเวิร์กสเปซแล้ว",
   "Workspace name must contain 1–80 characters": "ชื่อเวิร์กสเปซต้องมี 1–80 ตัวอักษร",
-  "Unknown workspace": "ไม่พบเวิร์กสเปซนี้"
+  "Unknown workspace": "ไม่พบเวิร์กสเปซนี้",
+  "Line authors": "คนแก้แต่ละบรรทัด",
+  "Reading line authors…": "กำลังอ่านคนแก้แต่ละบรรทัด…",
+  "Line author unavailable for this range.": "ไม่มีข้อมูลคนแก้สำหรับช่วงบรรทัดนี้",
+  "Line {0}: {1}, {2}": "บรรทัด {0}: {1}, {2}",
+  "Line authors refer to committed snapshots. Hover or activate an author for commit details.": "แสดงคนแก้จากไฟล์ใน commit ชี้หรือกดที่ชื่อเพื่อดูรายละเอียด commit",
+  "Line authors are unavailable for this filename encoding.": "ไม่รองรับข้อมูลคนแก้สำหรับการเข้ารหัสชื่อไฟล์นี้",
+  "Some line history is incomplete or outside the visible range budget.": "ประวัติบางบรรทัดไม่ครบหรืออยู่นอกช่วงที่อ่านได้ในมุมมองนี้",
+  "Retry line authors": "ลองอ่านคนแก้อีกครั้ง",
+  "Line authorship details": "รายละเอียดคนแก้บรรทัด",
+  "Authored {0}": "เขียนเมื่อ {0}",
+  "Original line {0} in {1}": "บรรทัดต้นทาง {0} ใน {1}",
+  "Before revision {0}": "ฝั่งก่อนแก้ revision {0}",
+  "After revision {0}": "ฝั่งหลังแก้ revision {0}",
+  "Line history is incomplete; boundary attribution may change when more history is available.": "ประวัติบรรทัดไม่ครบ ข้อมูลที่ขอบประวัติอาจเปลี่ยนเมื่อมีประวัติเพิ่ม",
+  "Line author evidence did not match this diff.": "ข้อมูลคนแก้บรรทัดไม่ตรงกับ diff นี้"
 }

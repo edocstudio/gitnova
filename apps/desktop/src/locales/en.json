@@ -2438,5 +2438,20 @@
   "Save workspace name": "Save workspace name",
   "Workspace renamed.": "Workspace renamed.",
   "Workspace name must contain 1–80 characters": "Workspace name must contain 1–80 characters",
-  "Unknown workspace": "Unknown workspace"
+  "Unknown workspace": "Unknown workspace",
+  "Line authors": "Line authors",
+  "Reading line authors…": "Reading line authors…",
+  "Line author unavailable for this range.": "Line author unavailable for this range.",
+  "Line {0}: {1}, {2}": "Line {0}: {1}, {2}",
+  "Line authors refer to committed snapshots. Hover or activate an author for commit details.": "Line authors refer to committed snapshots. Hover or activate an author for commit details.",
+  "Line authors are unavailable for this filename encoding.": "Line authors are unavailable for this filename encoding.",
+  "Some line history is incomplete or outside the visible range budget.": "Some line history is incomplete or outside the visible range budget.",
+  "Retry line authors": "Retry line authors",
+  "Line authorship details": "Line authorship details",
+  "Authored {0}": "Authored {0}",
+  "Original line {0} in {1}": "Original line {0} in {1}",
+  "Before revision {0}": "Before revision {0}",
+  "After revision {0}": "After revision {0}",
+  "Line history is incomplete; boundary attribution may change when more history is available.": "Line history is incomplete; boundary attribution may change when more history is available.",
+  "Line author evidence did not match this diff.": "Line author evidence did not match this diff."
 }

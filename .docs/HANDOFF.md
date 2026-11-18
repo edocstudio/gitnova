@@ -6,34 +6,40 @@ state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-The user requested changing the workspace's display name in the picker, including
-`code` → `Code`. Implemented inline Rename workspace / Save / Cancel beside the
-existing dropdown. New backward-compatible feature version: **1.2.0**.
+User requested author and relative time beside diff code, similar to line blame.
+Implemented **1.3.0** as a backward-compatible feature in the existing committed
+patch viewer, with optional inline authors and original commit detail tooltips.
 
-- Branch: `feat/workspace-rename`, from main `d475a4d` (PR #63). Previous CI/version
-  work is merged; do not recreate it. Existing semantic-version policy applies.
-- Rename updates only the catalog label by workspace ID. Identity, memberships,
-  selected repository, paths and Git state stay intact. Case-only and Unicode
-  names work, whitespace is trimmed and names require 1–80 Unicode scalar values.
-- New entry points: `WorkspaceSelector.tsx`, `api.renameWorkspace`, native command
-  `rename_workspace`, `Application::rename_workspace` and real-core UI bridge.
-  Save failures preserve the draft; the atomic store prevents partial publication.
-  One bounded workspace-scoped draft survives picker close / Settings language
-  changes. English/Thai labels, Enter/Save, Escape/Cancel and return focus included.
-- Passed: TypeScript, frontend units 103/25 files, core rename integrations 3,
-  desktop all-target Clippy with warnings denied, browser rename 2 + existing
-  workspace/history/diff regression 1. Final browser run passed all three.
-- Delivered **1.2.0** at `Desktop/GitNova.app`, replacing 1.1.0. Release build,
-  version-script test, source/built/installed versions and hashes, strict deep
-  ad-hoc signature, embedded UI/five attribution resources and installed native
-  startup/IPC/single-instance smoke passed. Previous app backed up in a temp folder.
-  No task-owned build/test/native process remains. This handoff is included in
-  the feature commit; obtain its SHA from Git. No required implementation remains.
-- [New report](../docs/verification/2026-11-18/workspace-rename/README.md) records
-  this delivery. No push/public release or real repository Git writes authorized.
-- Previous visible native CI and 30-minute foreground soak acceptance remain
-  separate open items; do not rerun them for this rename feature. Tests use
-  disposable catalogs/repositories and no live company provider credentials.
+- Branch: `feat/diff-line-authors`, base `1b7ff43` (workspace rename 1.2.0). The
+  checkout was still on that feature branch; do not discard its parent commit or
+  assume workspace rename is merged. Earlier CI work is in main via PR #63.
+- Source: `diff-authors.ts`, `useDiffAuthors.ts`, `LineAuthorDetails.tsx`,
+  `CommitDiffDock.tsx`, `api.diffLineAuthors`. Reuse native investigate_history;
+  only blame now also accepts a validated full SHA-1/SHA-256 commit ID, with
+  revision expressions rejected. Other history modes keep ref-only rules.
+- Before = first parent, After = selected full commit; unified removal uses
+  Before and context/addition uses After. Root/deleted files read the content side.
+  No working/stash/merge authorship is fabricated. Exact revision, membership,
+  filename encoding and code content guard each displayed line's metadata.
+- One active + one latest pending author batch; 250 ms debounce, max four
+  200-line ranges per batch, max eight cached pages per patch; abort stale work,
+  stop pending reads while hidden, no polling. Failures and shallow/partial
+  evidence remain explicit; retry clears the current patch cache.
+- Passed: TypeScript; frontend 109/26 files (six new pure tests); core investigation
+  10 (one new immutable-commit test); core + desktop all-target Clippy. Browser
+  flows: 3 new + 2 existing history/diff/editor regressions passed. Final targeted
+  three-case rerun after tooltip geometry refinement passed; screenshots captured.
+- GitNova 1.2.0 was running at last process check. User was asked to close it via
+  async input. Do not package/install while it remains open or treat elapsed time
+  as confirmation. Screenshots/report and implementation are ready. Formatter
+  and version-script tests passed. Source changes and this handoff are committed
+  on the feature branch; obtain the SHA from Git. Build/install 1.3.0 with backup
+  and installed smoke remain pending app closure. No push/public release.
+- [Feature report and source hashes](../docs/verification/2026-11-18/diff-line-authors/README.md)
+  record completed checks and the pending installation honestly. No active test
+  runner remains; do not rerun completed suites to resume packaging.
+- Old native CI / uninterrupted foreground soak acceptance are separate and remain
+  open; do not restart them for this feature. Provider credentials are not involved.
 
 ## Start a new session
 

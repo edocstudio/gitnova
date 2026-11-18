@@ -487,3 +487,31 @@ fn package_comparison_matches_committed_names_and_reports_ambiguous_repositories
     assert!(row.locations.is_empty());
     assert!(row.issue.as_deref().unwrap().contains("not resolved"));
 }
+
+#[test]
+fn exact_commit_blame_preserves_snapshot_and_rejects_revision_expressions() {
+    let t = tempfile::tempdir().unwrap();
+    let root = repo(t.path(), "exact-blame");
+    let base = git(&root, &["rev-parse", "main"]);
+    let tip = git(&root, &["rev-parse", "HEAD"]);
+    let app = Application::new(t.path().join("state/catalog.json")).unwrap();
+    app.add_repository(&root).unwrap();
+    let before = snapshot(&root);
+    let mut r = request(&app, "blame");
+    r.selection.scope = "current".into();
+    r.source = base.clone();
+    let old = app.investigate_history(&r).unwrap();
+    assert!(!old.partial);
+    assert_eq!(old.evidence[0].source_oid.as_deref(), Some(base.as_str()));
+    assert_eq!(old.evidence[0].line_attribution.len(), 1);
+    r.source = tip.clone();
+    let new = app.investigate_history(&r).unwrap();
+    assert!(!new.partial);
+    assert_eq!(new.evidence[0].source_oid.as_deref(), Some(tip.as_str()));
+    assert_eq!(new.evidence[0].line_attribution.len(), 2);
+    for invalid in [format!("{tip}^"), "HEAD~1".into(), "--all".into()] {
+        r.source = invalid;
+        assert!(app.investigate_history(&r).is_err());
+    }
+    assert_eq!(snapshot(&root), before);
+}

@@ -1,3 +1,8 @@
+import {useDiffAuthors} from './useDiffAuthors';
+import {relativeAuthorTime} from './diff-authors';
+import type {AuthorScope,AuthorSide} from './diff-authors';
+import {LineAuthorDetails} from './LineAuthorDetails';
+import type {SelectedLineAuthor} from './LineAuthorDetails';
 import type {FileDrafts} from './WorkingFileEditor';
 import {diffEditAnchor} from './edit-location';
 import type {EditAnchor} from './edit-location';
@@ -23,14 +28,16 @@ function MergeEditor({ editor }: { editor: NonNullable<DockPatch['editor']> }) {
 }
 type Mode = 'split' | 'unified';
 const LINE_HEIGHT = 24;
-function DiffCell({ line, side, action }: { action?:React.ReactNode; line: DiffLine | null; side: 'left' | 'right' }) {
+function DiffCell({ line, side, action, author }: { author?:React.ReactNode; action?:React.ReactNode; line: DiffLine | null; side: 'left' | 'right' }) {
   return <div className={`split-cell ${line?.kind ?? 'empty'}`}>
     <span className="dock-line-number">{line ? side === 'left' ? line.old : line.next : ''}</span>
     <span className="dock-line-sign">{line?.kind === 'add' ? '+' : line?.kind === 'remove' ? '−' : ''}</span>
-    <code>{line?.text || ' '}</code>{action}
+    <code>{line?.text || ' '}{author}</code>{action}
   </div>;
 }
-function PatchCode({ file, mode, before, after, hunks, editAnchor }: { editAnchor:RefObject<{file:PatchFile;anchor:EditAnchor|null}|null>; hunks?:HunkControls; file: PatchFile; mode: Mode; before: string; after: string }) {
+function PatchCode({ file, mode, before, after, hunks, editAnchor, authorScope }: { authorScope:AuthorScope|null; editAnchor:RefObject<{file:PatchFile;anchor:EditAnchor|null}|null>; hunks?:HunkControls; file: PatchFile; mode: Mode; before: string; after: string }) {
+  const [selectedAuthor,setSelectedAuthor]=useState<SelectedLineAuthor|null>(null);
+  const dismissedAuthor=useRef<HTMLButtonElement|null>(null);
   const region = useRef<HTMLDivElement>(null);
   const left = useRef<HTMLDivElement>(null); const right = useRef<HTMLDivElement>(null); const unified = useRef<HTMLDivElement>(null);
   const [scroll, setScroll] = useState(0); const [height, setHeight] = useState(300);
@@ -41,12 +48,22 @@ function PatchCode({ file, mode, before, after, hunks, editAnchor }: { editAncho
   const widths = useMemo(() => {
     const width = (line: DiffLine | null) => patchTextWidth(line?.text??'');
     const result = { left: 82, right: 82 };
-    for (const pair of pairs) { result.left = Math.max(result.left, Math.ceil(width(pair.left) + 82)); result.right = Math.max(result.right, Math.ceil(width(pair.right) + 82)); }
+    for (const pair of pairs) { result.left = Math.max(result.left, Math.ceil(width(pair.left) + 82 + (authorScope?284:0))); result.right = Math.max(result.right, Math.ceil(width(pair.right) + 82 + (authorScope?284:0))); }
     return result;
-  }, [pairs]);
+  }, [pairs,Boolean(authorScope)]);
   const count = mode === 'split' ? pairs.length : file.lines.length;
   const start = Math.max(0, Math.min(count, Math.floor(scroll / LINE_HEIGHT) - 8));
   const end = Math.min(count, Math.ceil((scroll + height) / LINE_HEIGHT) + 8);
+  const visibleAuthors=useMemo(()=>mode==='split'?pairs.slice(start,end).flatMap(pair=>[...(pair.left?[{side:'before' as const,line:pair.left}]:[]),...(pair.right?[{side:'after' as const,line:pair.right}]:[])]):file.lines.slice(start,end).map(line=>({side:line.kind==='remove'?'before' as const:'after' as const,line})),[file.lines,pairs,mode,start,end]);
+  const authors=useDiffAuthors(authorScope,visibleAuthors);
+  useEffect(()=>{setSelectedAuthor(null);dismissedAuthor.current=null;},[file,mode,scroll,Boolean(authorScope)]);
+  const author=(line:DiffLine|null,side:AuthorSide)=>{
+    if(!authorScope||!line||line.kind==='hunk'||line.kind==='meta')return null;
+    const value=authors.lookup(line,side);
+    if(!value)return <span className="line-author-missing" title={t(authors.reading?'Reading line authors…':'Line author unavailable for this range.')}> ···</span>;
+    const open=(anchor:HTMLButtonElement)=>setSelectedAuthor({value,anchor});
+    return <button type="button" className="line-author" aria-label={t('Line {0}: {1}, {2}',[side==='before'?line.old!:line.next!,value.commit.author,relativeAuthorTime(value.commit.timestamp)])} onPointerEnter={event=>{if(dismissedAuthor.current!==event.currentTarget)open(event.currentTarget);}} onPointerLeave={event=>{if(dismissedAuthor.current===event.currentTarget)dismissedAuthor.current=null;}} onClick={event=>{event.stopPropagation();dismissedAuthor.current=null;open(event.currentTarget);}}>{value.commit.author}, {relativeAuthorTime(value.commit.timestamp)}</button>;
+  };
   useLayoutEffect(()=>{
     const first=Math.floor(scroll/LINE_HEIGHT),last=Math.ceil((scroll+height)/LINE_HEIGHT);
     const visible=mode==='split'?pairs.slice(first,last).flatMap(pair=>[pair.right,pair.left].filter((line):line is DiffLine=>line!==null)):file.lines.slice(first,last);
@@ -59,24 +76,27 @@ function PatchCode({ file, mode, before, after, hunks, editAnchor }: { editAncho
     const node = region.current; if (!node) return;
     const measure = () => setHeight(mode === 'split' ? Math.max(left.current?.clientHeight ?? 0, right.current?.clientHeight ?? 0) : unified.current?.clientHeight ?? 0);
     const observer = new ResizeObserver(measure); observer.observe(node); measure(); return () => observer.disconnect();
-  }, [mode]);
+  }, [mode,Boolean(authorScope)]);
   const synchronize = (node: HTMLDivElement, side: 'left' | 'right') => {
     const other = side === 'left' ? right.current : left.current;
     if (other && Math.abs(other.scrollTop - node.scrollTop) > .5) other.scrollTop = node.scrollTop;
     setScroll(node.scrollTop);
   };
   return <div ref={region} className={`patch-viewport ${mode}`} role="region" aria-label={mode === 'split' ? t("Side-by-side patch") : t("Unified patch")}>
+    {authorScope&&<div className="line-authors-status" role="status"><span>{t(authors.reading?'Reading line authors…':'Line authors refer to committed snapshots. Hover or activate an author for commit details.')}</span>{authors.unsupported&&<span>{t('Line authors are unavailable for this filename encoding.')}</span>}{authors.partial&&<span>{t('Some line history is incomplete or outside the visible range budget.')}</span>}{authors.issues.map(issue=><span className="notice" key={issue}>{t(issue)}</span>)}{authors.issues.length>0&&<button onClick={authors.retry}>{t('Retry line authors')}</button>}</div>}
+    {selectedAuthor&&authorScope&&<LineAuthorDetails selected={selectedAuthor} onClose={keyboard=>{if(keyboard)dismissedAuthor.current=selectedAuthor?.anchor??null;setSelectedAuthor(null);}}/>}
     {mode === 'split' ? <>
       <div className="split-labels"><span>{t("Before")}<code>{before}</code></span><span>{t("After")}<code>{after}</code></span></div>
       <div className="split-panes">{(['left', 'right'] as const).map(side => <div key={side} ref={side === 'left' ? left : right} className={`split-pane-scroll ${side}`} role="region" aria-label={side === 'left' ? t("Before code") : t("After code")} tabIndex={0} onScroll={event => synchronize(event.currentTarget, side)}>
-        <div className="split-pane-content" style={{ minWidth: `max(100%, ${widths[side]}px)` }}><div style={{ height: start * LINE_HEIGHT }} />{pairs.slice(start, end).map((pair, i) => <div className="split-code-row" key={start + i} style={{ height: LINE_HEIGHT }}><DiffCell line={side === 'left' ? pair.left : pair.right} side={side} action={side==='right'?action(pair.right):undefined} /></div>)}<div style={{ height: (count - end) * LINE_HEIGHT }} /></div>
+        <div className="split-pane-content" style={{ minWidth: `max(100%, ${widths[side]}px)` }}><div style={{ height: start * LINE_HEIGHT }} />{pairs.slice(start, end).map((pair, i) => <div className="split-code-row" key={start + i} style={{ height: LINE_HEIGHT }}><DiffCell line={side === 'left' ? pair.left : pair.right} side={side} author={author(side==='left'?pair.left:pair.right,side==='left'?'before':'after')} action={side==='right'?action(pair.right):undefined} /></div>)}<div style={{ height: (count - end) * LINE_HEIGHT }} /></div>
       </div>)}</div>
-    </> : <div ref={unified} className="dock-code-scroll unified" tabIndex={0} onScroll={event => setScroll(event.currentTarget.scrollTop)}><div className="dock-code-content"><div style={{ height: start * LINE_HEIGHT }} />{file.lines.slice(start, end).map((line, i) => <div key={start + i} className={`dock-unified-row ${line.kind}`} style={{ height: LINE_HEIGHT }}><span className="dock-line-number">{line.old}</span><span className="dock-line-number">{line.next}</span><span className="dock-line-sign">{line.kind === 'add' ? '+' : line.kind === 'remove' ? '−' : ''}</span><code>{line.text || ' '}</code>{action(line)}</div>)}<div style={{ height: (count - end) * LINE_HEIGHT }} /></div></div>}
+    </> : <div ref={unified} className="dock-code-scroll unified" tabIndex={0} onScroll={event => setScroll(event.currentTarget.scrollTop)}><div className="dock-code-content"><div style={{ height: start * LINE_HEIGHT }} />{file.lines.slice(start, end).map((line, i) => <div key={start + i} className={`dock-unified-row ${line.kind}`} style={{ height: LINE_HEIGHT }}><span className="dock-line-number">{line.old}</span><span className="dock-line-number">{line.next}</span><span className="dock-line-sign">{line.kind === 'add' ? '+' : line.kind === 'remove' ? '−' : ''}</span><code>{line.text || ' '}{author(line,line.kind==='remove'?'before':'after')}</code>{action(line)}</div>)}<div style={{ height: (count - end) * LINE_HEIGHT }} /></div></div>}
     {!count && <div className="quiet-state">{t("No text lines in this patch.")}</div>}
   </div>;
 }
 
-export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFileSaved, membershipId, preferredPath, detail = null, source = null, busy, collapsed, onToggle, size, onResize }: { fileDrafts?:FileDrafts; editBlocked?:boolean; onEditBusy?:(busy:boolean)=>void; onFileSaved?:()=>Promise<void>; membershipId?: string; preferredPath?: string; detail?: CommitDetail | null; source?: DockPatch | null; busy: boolean; collapsed: boolean; onToggle: () => void; size: number | null; onResize: (height: number) => void }) {
+export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFileSaved, membershipId, workspaceId, preferredPath, detail = null, source = null, busy, collapsed, onToggle, size, onResize }: { fileDrafts?:FileDrafts; editBlocked?:boolean; onEditBusy?:(busy:boolean)=>void; onFileSaved?:()=>Promise<void>; membershipId?: string; workspaceId?:string; preferredPath?: string; detail?: CommitDetail | null; source?: DockPatch | null; busy: boolean; collapsed: boolean; onToggle: () => void; size: number | null; onResize: (height: number) => void }) {
+  const [showAuthors,setShowAuthors]=useState(()=>{try{return localStorage.getItem('gitnova.diffLineAuthors')==='true';}catch{return false;}});
   const [historical, setHistorical] = useState<{key: string; diff: string; truncated: boolean} | null>(null);
   const [patchError, setPatchError] = useState('');
   const [editing,setEditing]=useState<{path:NativePath;anchor:EditAnchor|null}|null>(null);
@@ -133,11 +153,11 @@ export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFi
       onPointerMove={event => { if (drag.current) resize(drag.current.height + drag.current.y - event.clientY); }}
       onPointerUp={event => { drag.current = null; event.currentTarget.releasePointerCapture(event.pointerId); }} onLostPointerCapture={() => { drag.current = null; }} />}
     <div className="dock-toolbar"><div className="dock-title"><Icon name="file" size={15} /><strong>{editing?t("Edit file"):source?.title ?? t("Changes")}</strong>{!busy && <span className="count-badge">{editing?1:source ? files.length : manifest.length}</span>}<span className="dock-comparison">{t(editing?'Current working file':source?.comparison ?? detail?.comparison ?? '')}</span></div>
-      <div className="dock-actions">{!editing&&!collapsed&&!source&&historicalFile&&membershipId&&fileDrafts&&<button disabled={busy||editBlocked||Boolean(editing)} onClick={()=>setEditing({path:historicalFile.path,anchor:file?(editAnchor.current?.file===file?editAnchor.current.anchor:diffEditAnchor(file,[])):null})}>{t(fileDrafts.has(JSON.stringify([membershipId,historicalFile.path.encoding,historicalFile.path.hex]))?'Resume file edit':'Edit file')}</button>}{!editing && !collapsed && !source?.editor && <div className="view-switch" role="group" aria-label={t("Diff layout")}><button aria-pressed={mode === 'split'} onClick={() => changeMode('split')}>{t("Side by side")}</button><button aria-pressed={mode === 'unified'} onClick={() => changeMode('unified')}>{t("Unified")}</button></div>}<button className="icon-button dock-collapse" aria-label={collapsed ? t("Expand diff") : t("Collapse diff")} aria-expanded={!collapsed} onClick={onToggle}><Icon name="chevron" size={17} /></button></div>
+      <div className="dock-actions">{!editing&&!collapsed&&!source&&membershipId&&workspaceId&&<button aria-pressed={showAuthors} onClick={()=>{const value=!showAuthors;setShowAuthors(value);try{localStorage.setItem('gitnova.diffLineAuthors',String(value));}catch{/* Optional view preference. */}}}>{t('Line authors')}</button>}{!editing&&!collapsed&&!source&&historicalFile&&membershipId&&fileDrafts&&<button disabled={busy||editBlocked||Boolean(editing)} onClick={()=>setEditing({path:historicalFile.path,anchor:file?(editAnchor.current?.file===file?editAnchor.current.anchor:diffEditAnchor(file,[])):null})}>{t(fileDrafts.has(JSON.stringify([membershipId,historicalFile.path.encoding,historicalFile.path.hex]))?'Resume file edit':'Edit file')}</button>}{!editing && !collapsed && !source?.editor && <div className="view-switch" role="group" aria-label={t("Diff layout")}><button aria-pressed={mode === 'split'} onClick={() => changeMode('split')}>{t("Side by side")}</button><button aria-pressed={mode === 'unified'} onClick={() => changeMode('unified')}>{t("Unified")}</button></div>}<button className="icon-button dock-collapse" aria-label={collapsed ? t("Expand diff") : t("Collapse diff")} aria-expanded={!collapsed} onClick={onToggle}><Icon name="chevron" size={17} /></button></div>
     </div>
     <div className="dock-content" hidden={collapsed}>{source?.truncated && <div className="notice">{source.truncationMessage??t("This patch exceeds the preview budget and is incomplete. Open the full diff in Git before approving a commit.")}</div>}{!source && historical?.truncated && <div className="notice">{t("This file’s patch exceeds the preview budget. Some code is not shown.")}</div>}{patchError && <div className="inline-error" role="alert">{patchError}</div>}
       {busy ? <div className="loading-status quiet-state" role="status">{t("Reading changes…")}</div> : <div className={`dock-body ${source ? 'single-file' : ''}`}>{!source && <nav className="dock-files virtual-dock-nav" aria-label={t("Changed files")}><VirtualFileRows items={manifest} itemKey={entry=>entry.path.hex} selection={historicalFile?.path.hex??null} rowHeight={44} className="dock-file-scroll" empty={<div className="quiet-state">{t("No changed files in this comparison.")}</div>}>{(entry, i) => <button key={entry.path.hex} aria-pressed={i === fileIndex} className={i === fileIndex ? 'active' : ''} onClick={() => {setEditing(null);setFileIndex(i);}} title={entry.path.display}><Icon name="file" size={15} /><span className="dock-file-path">{entry.path.display}</span><span className="patch-stats"><span className="added">{entry.additions === null ? t("Binary") : `+${entry.additions}`}</span><span className="removed">{entry.deletions === null ? '' : `−${entry.deletions}`}</span></span></button>}</VirtualFileRows></nav>}
-        <div className="dock-patch"><Suspense fallback={<div className="quiet-state" role="status">{t("Loading…")}</div>}>{editing&&membershipId&&fileDrafts&&onEditBusy&&onFileSaved?<WorkingFileEditor key={`${membershipId}:${editing.path.hex}`} membershipId={membershipId} path={editing.path} anchor={editing.anchor} drafts={fileDrafts} blocked={editBlocked} onBusyChange={onEditBusy} onSaved={onFileSaved} onClose={()=>setEditing(null)}/>:patchLoading ? <div className="quiet-state" role="status">{t("Reading file patch…")}</div> : source?.editor ? source.editor.incoming!==undefined?<ConflictResolver key={source.selectedPath?.hex} editor={source.editor}/>:<MergeEditor editor={source.editor} /> : file ? <><div className="dock-file-heading"><Icon name="file" size={15} /><code title={file.name}>{file.name}</code><span className="patch-stats"><span className="added">{!source && historicalFile?.additions === null ? t("Binary") : `+${!source ? historicalFile?.additions ?? file.additions : file.additions}`}</span><span className="removed">{!source && historicalFile?.deletions === null ? '' : `−${!source ? historicalFile?.deletions ?? file.deletions : file.deletions}`}</span></span></div>{file.metadata.length > 0 && <div className="patch-meta">{file.metadata.join(' · ')}</div>}<PatchCode key={file.name} editAnchor={editAnchor} hunks={source?.hunks} file={file} mode={mode} before={source?.before ?? detail?.commit.parents[0]?.slice(0, 8) ?? t("Empty tree")} after={source?.after ?? detail?.commit.oid.slice(0, 8) ?? ''} /></> : <div className="quiet-state"><Icon name="commit" size={24} /><p>{source ? source.emptyMessage ?? (unmatched ? t('The selected path could not be matched to this patch. No other file is shown. Refresh and review again.') : t('Select a file from Working changes to inspect its diff.')) : t("This commit has no text patch against the selected comparison.")}</p></div>}</Suspense></div>
+        <div className="dock-patch"><Suspense fallback={<div className="quiet-state" role="status">{t("Loading…")}</div>}>{editing&&membershipId&&fileDrafts&&onEditBusy&&onFileSaved?<WorkingFileEditor key={`${membershipId}:${editing.path.hex}`} membershipId={membershipId} path={editing.path} anchor={editing.anchor} drafts={fileDrafts} blocked={editBlocked} onBusyChange={onEditBusy} onSaved={onFileSaved} onClose={()=>setEditing(null)}/>:patchLoading ? <div className="quiet-state" role="status">{t("Reading file patch…")}</div> : source?.editor ? source.editor.incoming!==undefined?<ConflictResolver key={source.selectedPath?.hex} editor={source.editor}/>:<MergeEditor editor={source.editor} /> : file ? <><div className="dock-file-heading"><Icon name="file" size={15} /><code title={file.name}>{file.name}</code><span className="patch-stats"><span className="added">{!source && historicalFile?.additions === null ? t("Binary") : `+${!source ? historicalFile?.additions ?? file.additions : file.additions}`}</span><span className="removed">{!source && historicalFile?.deletions === null ? '' : `−${!source ? historicalFile?.deletions ?? file.deletions : file.deletions}`}</span></span></div>{file.metadata.length > 0 && <div className="patch-meta">{file.metadata.join(' · ')}</div>}<PatchCode key={file.name} authorScope={showAuthors&&!source&&membershipId&&workspaceId&&detail&&historicalFile?{workspaceId,membershipId,beforeOid:detail.commit.parents[0]??null,afterOid:detail.commit.oid,path:historicalFile.path}:null} editAnchor={editAnchor} hunks={source?.hunks} file={file} mode={mode} before={source?.before ?? detail?.commit.parents[0]?.slice(0, 8) ?? t("Empty tree")} after={source?.after ?? detail?.commit.oid.slice(0, 8) ?? ''} /></> : <div className="quiet-state"><Icon name="commit" size={24} /><p>{source ? source.emptyMessage ?? (unmatched ? t('The selected path could not be matched to this patch. No other file is shown. Refresh and review again.') : t('Select a file from Working changes to inspect its diff.')) : t("This commit has no text patch against the selected comparison.")}</p></div>}</Suspense></div>
       </div>}
     </div>
   </section>;
