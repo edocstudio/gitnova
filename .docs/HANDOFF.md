@@ -36,10 +36,20 @@ website publication remains separate. Current preparation version: **1.3.1**.
 - Corrected eager user-data directory resolution when a validated smoke catalog
   exists, and create all redirected smoke profile folders before native launch.
   Formatter, smoke JS syntax and all 11 local desktop tests passed.
-  Finish them, commit/push the correction with `[skip ci]`, dispatch a fresh
-  `windows-installer` candidate and follow all gates through local download/hash
-  verification. No merge/public release or website deployment is authorized by
-  this native preparation step. No Mac app rebuild/installation is requested.
+- Second candidate source `995a2d5a7056ec92ad32b39d4da3f7ac616a85a1`:
+  https://github.com/edocstudio/gitnova/actions/runs/44329598401
+  Installed startup/native catalog/real Git/single-instance acceptance passed.
+  The smoke driver then failed removing its temporary profile with Windows
+  `EPERM`, so lifecycle/overall handoff is NOT passed. Packaging job 134891202957;
+  core job 134891202353 and browser shard 2 job 134891202960 were still running.
+- Added bounded Node recursive cleanup retries (20, 100ms linear backoff, about
+  21 seconds maximum) for transient Windows locks after app shutdown. Persistent
+  cleanup errors still fail. JavaScript syntax and diff checks passed; no compiled
+  Rust/UI changes beyond the already-tested startup fix in the preceding commit.
+  Commit/push this cleanup correction, dispatch a fresh Windows candidate and
+  cancel only the obsolete task run to release branch concurrency if necessary.
+  Follow every gate through local archive/PE/hash verification. No local runner
+  is active. No Mac app rebuild, merge, release publication or website deployment.
 - [Task report](../docs/verification/2026-11-18/windows-installer/README.md) records
   provenance and limits. Native CI / long foreground soak from prior tasks remain
   separate. No local test runner is left active at this checkpoint.

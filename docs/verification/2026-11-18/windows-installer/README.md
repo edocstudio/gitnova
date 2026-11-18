@@ -56,12 +56,28 @@ the smoke driver creates all redirected profile directories before launch. Norma
 user catalog resolution and fixture validation remain unchanged. A fresh candidate
 must pass the full Windows workflow; no failed artifact is delivered or published.
 
+## Second Windows candidate result
+
+Formatter, smoke JS syntax and all 11 local native desktop tests passed.
+Correction source `995a2d5a7056ec92ad32b39d4da3f7ac616a85a1` was committed and
+pushed. [Run 44329598401](https://github.com/edocstudio/gitnova/actions/runs/44329598401)
+successfully installed and launched the candidate: native catalog IPC, real Git
+graph, single-instance reuse and preserved fixture state passed. The driver then
+failed with `EPERM` while deleting its temporary profile after process exit. The
+overall installer lifecycle and handoff did not pass. The first run had been
+cancelled after its known startup failure to release branch concurrency; its
+remaining core result is incomplete, not passed.
+
+Cleanup now uses bounded Node recursive removal retries for transient Windows
+WebView/profile file locks: 20 retries with 100ms linear backoff (about 21 seconds
+total). Persistent errors still fail, and failed fixtures remain available for
+inspection. This correction changes only the smoke driver. JavaScript syntax and
+diff checks passed; no additional Rust/UI compilation is needed locally.
+
 ## Next step
 
-Local formatter, smoke JS syntax and all 11 native desktop tests passed.
-Commit the startup correction with `[skip ci]`, push
-the task branch and dispatch a new exact-source Windows installer candidate.
-Track the previous core job separately for diagnostics. Download the successful
-handoff only after all Windows jobs and installer lifecycle pass, then verify its
-archive digest, PE executable, metadata and checksums locally. No tag, public
-release or website deployment is part of this preparation.
+Commit/push the cleanup correction and dispatch a fresh Windows candidate.
+Download the successful handoff only after all Windows jobs and installer
+lifecycle pass, then verify its archive digest, PE executable, metadata and
+checksums locally. No tag, public release or website deployment is part of this
+preparation.

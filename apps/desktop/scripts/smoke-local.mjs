@@ -56,6 +56,6 @@ try {
   // This log belongs only to the synthetic catalog and contains no owner data.
   if(!passed)console.error(readFileSync(log,'utf8').slice(-16000));
   const stopped=[first,second].every(child=>!child||child.exitCode!==null||child.signalCode!==null);
-  if(passed && stopped)rmSync(fixture,{recursive:true,force:true});else console.error(`Native smoke fixture retained for inspection: ${fixture}`);
+  if(passed && stopped)rmSync(fixture,{recursive:true,force:true,maxRetries:20,retryDelay:100});else console.error(`Native smoke fixture retained for inspection: ${fixture}`);
   if(!stopped){if(options['--report'])rmSync(resolve(options['--report']),{force:true});throw new Error('Native acceptance processes did not stop; successful evidence was removed.');}
 }
