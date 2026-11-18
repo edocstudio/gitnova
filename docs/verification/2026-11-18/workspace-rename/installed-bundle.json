@@ -1,0 +1,15 @@
+{
+  "version": "1.2.0",
+  "previousVersion": "1.1.0",
+  "installedLocation": "Desktop/GitNova.app",
+  "builtBinarySha256": "e2a98ca01c9ff256585a662e1f26cdbc9ad49ed6849c0e59f9e693a7dc6a82eb",
+  "installedBinarySha256": "e2a98ca01c9ff256585a662e1f26cdbc9ad49ed6849c0e59f9e693a7dc6a82eb",
+  "signature": "strict deep ad-hoc verification passed",
+  "embeddedBundle": "GitNova 1.2.0: embedded UI assets verified; no dev server or workspace opened; native-smoke=disabled; native-acceptance=enabled.",
+  "attribution": {
+    "resourcesChecked": 5,
+    "auditComplete": false,
+    "unresolved": 67
+  },
+  "scope": "Local installation only; previous app retained in a temporary backup. No owner catalog or real repository opened."
+}

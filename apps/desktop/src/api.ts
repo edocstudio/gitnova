@@ -51,6 +51,11 @@ export const api = {
   repositoryIdentitySettings:(membershipId:string)=>call<import('./contracts').RepositoryIdentitySettings>('repository_identity_settings',{membershipId}),
   setRepositoryCommitIdentity:(membershipId:string,identity:import('./contracts').GitCommitIdentity,token:string)=>call<void>('set_repository_commit_identity',{membershipId,identity,token}),
   commitIdentity:(membershipId:string)=>call<import('./contracts').CommitIdentityContext>('commit_identity',{membershipId}),
+  diffLineAuthors: (requests: import('./contracts').InvestigationRequest[], signal: AbortSignal) => selectionReads.run('diff-line-authors', async()=>{
+    const pages:import('./contracts').InvestigationPage[]=[];
+    for(const request of requests){if(signal.aborted)throw new DOMException('Diff changed','AbortError');pages.push(await call<import('./contracts').InvestigationPage>('investigate_history',{request}));}
+    return pages;
+  },signal),
   investigateHistory: (request: import('./contracts').InvestigationRequest) => call<import('./contracts').InvestigationPage>('investigate_history', {request}),
   previewInit: (request: import('./contracts').InitRequest) => call<import('./contracts').InitPreview>('preview_init', {request}),
   initRepository: (request: import('./contracts').InitRequest, token: string) => call<Catalog>('init_repository', {request, token}),
@@ -155,6 +160,7 @@ export const api = {
   catalog: () => call<Catalog>('catalog'),
   add: (path: string) => call<Catalog>('add_repository', { path }),
   createWorkspace: (name: string) => call<Catalog>('create_workspace', { name }),
+  renameWorkspace: (workspaceId: string, name: string) => call<Catalog>('rename_workspace', { workspaceId, name }),
   switchWorkspace: (workspaceId: string) => call<Catalog>('switch_workspace', { workspaceId }),
   select: (membershipId: string) => call<Catalog>('select_repository', { membershipId }),
   pin: (membershipId: string) => call<Catalog>('pin_repository', { membershipId }),

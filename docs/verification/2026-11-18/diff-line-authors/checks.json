@@ -1,0 +1,50 @@
+{
+  "version": "1.3.0",
+  "branch": "feat/diff-line-authors",
+  "base": "1b7ff43",
+  "frontendUnit": {
+    "passed": 109,
+    "files": 26,
+    "newTests": 6
+  },
+  "coreInvestigation": {
+    "passed": 10,
+    "newExactCommitTest": 1
+  },
+  "browser": {
+    "newPassed": 3,
+    "existingDiffEditorPassed": 2,
+    "finalGeometryRerun": 3,
+    "boundary": "emulated Tauri IPC; real Rust core/Git on disposable fixtures"
+  },
+  "typescript": "passed",
+  "coreDesktopAllTargetClippy": "passed with warnings denied",
+  "formatter": "passed",
+  "versionScript": "1 passed",
+  "releaseBuild": "passed",
+  "installedVersionAtLastCheck": "1.3.0",
+  "sourceSha256": {
+    "Cargo.lock": "a4a66e5aecd981c7ce43a6f3ed223e543894e2b5337b03d3252bbf8025e73758",
+    "Cargo.toml": "b8c90e0748b05d2f80cf0e0eea193f9ed1c8744b8ff4dd1c84616fa1e6e62e8f",
+    "apps/desktop/e2e/graph.spec.ts": "c789b594c4c3d66d342137a595a51eafe89f562fe4e89497c791ac1db8f20319",
+    "apps/desktop/package-lock.json": "2bee5f621c7215ab4d8dacf39cecddd376e34b193a675d511e086fc7e5199ca6",
+    "apps/desktop/package.json": "4edadb5cce653f3c3986594f629752b1ca0c44aa46dab5cf973ab4dec0e3c12e",
+    "apps/desktop/src-tauri/tauri.conf.json": "a967551876302f4d8979ab33948898a47b6bf43ca327d5e5654b138d8a4a75c5",
+    "apps/desktop/src/App.tsx": "e6d05df45cb3b577f7ea507dc81351e9a053bad84fad6eda6c5bd00130d69448",
+    "apps/desktop/src/CommitDiffDock.tsx": "cb2626d5688958f7de5595480d01323fede3b7ca1f38f85dbed433397d2f2122",
+    "apps/desktop/src/LineAuthorDetails.tsx": "141f074dc80d26dbee3d6ab7fd093fb8da38794aa7adbea1c70b9203d7b1e847",
+    "apps/desktop/src/api.ts": "f2cb24dc0a7344ee51782037ab4704b45d06650294cce417bd0eb0e391c1ec8b",
+    "apps/desktop/src/diff-authors.test.ts": "24df9ddafdc60e203d595266826e4d69048145b721e1825e0abcc2b88f1b20d7",
+    "apps/desktop/src/diff-authors.ts": "f81c20ae185464c329d4d448232e12f46b105081b6ecacf9b4cdedd023a4060f",
+    "apps/desktop/src/locales/en.json": "d265fe315d0eba42dfc82664838457d427b1f126e7bec2d907fee80083b07191",
+    "apps/desktop/src/locales/th.json": "197b9b71954142dc64f8c458cef949257fd68af00edef65cd0083b36239a87ad",
+    "apps/desktop/src/styles.css": "203246445d465d621ac2adb19d6819463d99c2f887db15fbfd1fbfd81ac59532",
+    "apps/desktop/src/useDiffAuthors.ts": "1d32c9a16bf67fcf80317eacac9832a43c420825514b941735b60171f8ed912e",
+    "crates/gitnova-core/tests/investigation.rs": "b04d788a174df6c0772f9f68246242fca7d2c4d1f4d4f9edad51de38984c1abc",
+    "crates/gitnova-git/src/history_blame.rs": "d2baf2ad90eb681bc93824c5a20a2229a6c9d1da93f97ad8107e6bf0de7c8b6e",
+    "crates/gitnova-git/src/investigation.rs": "cd156dd59d18df3a288992ed73e10ad9282230e64a054938b6486a0e5d8c60cf"
+  },
+  "installedBundle": "installed-bundle.json",
+  "installedNativeSmoke": "installed-native-smoke.json",
+  "featureCommit": "af51c80"
+}

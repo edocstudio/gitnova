@@ -63,11 +63,16 @@ impl GitCli {
                 "Configured blame ignore files require inspection with Git.",
             ));
         }
-        let reference = self.investigation_ref(if r.source.is_empty() {
+        let source = if r.source.is_empty() {
             "HEAD"
         } else {
             &r.source
-        })?;
+        };
+        let reference = if validate_oid(source).is_ok() {
+            source.to_owned()
+        } else {
+            self.investigation_ref(source)?
+        };
         let revision = self
             .text(
                 root,

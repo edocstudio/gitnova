@@ -6,31 +6,42 @@ state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-The user corrected the CI notifications release to **1.1.0** because it adds a
-backward-compatible feature. Version policy in `AGENTS.md` now selects patch,
-minor or major by change type, replacing the prior patch-only rule.
+User requested author and relative time beside diff code, similar to line blame.
+Implemented **1.3.0** as a backward-compatible feature in the existing committed
+patch viewer, with optional inline authors and original commit detail tooltips.
 
-- Branch: `feat/ci-action-notifications`. CI feature commit: `ff98420` (base
-  `a8ae64e` on main). This follow-up changes version metadata, policy and delivery
-  evidence only; do not recreate or retest the feature as new implementation.
-- Delivered **1.1.0** to `Desktop/GitNova.app`, replacing 1.0.21. Source/built/installed
-  versions and executable hashes agree. Version tests, release build, strict deep
-  ad-hoc signature, embedded UI, five attribution resources and installed native
-  startup/IPC/single-instance smoke passed. Prior app backed up in a temp folder.
-  See [1.1.0 release report](../docs/verification/2026-11-18/version-1.1.0/README.md).
-- Feature behavior and test results: [CI report](../docs/verification/2026-11-18/ci-notifications/README.md).
-  Frontend units 103/25 files, browser 4 new + 2 regressions, hosting 41 + 1 ignored,
-  core CI integrations 2, desktop units 11; formatter and Clippy passed there.
-- Visible native CI acceptance is still open: WebView stayed hidden before checks.
-  Do not relabel it as passed, repeatedly launch hidden probes, or restart the old
-  30-minute soak for this version-only correction. The focused native CI runner
-  uses `--ci-only true` and isolated typed provider fixtures, not live credentials.
-- Scope remains active repository's current HEAD/branch, GitLab manual/blocked
-  actions, required/optional/unknown evidence and existing commit/provider links.
-  No OS notification or provider execution/approval is implemented.
-- This handoff belongs to the version correction commit; obtain its SHA from Git.
-  Work is complete; no build/test/native process remains. No push or public release
-  authorized. The 1.0.21 report is preserved as historical evidence.
+- Branch: `feat/diff-line-authors`, base `1b7ff43` (workspace rename 1.2.0). The
+  checkout was still on that feature branch; do not discard its parent commit or
+  assume workspace rename is merged. Earlier CI work is in main via PR #63.
+- Source: `diff-authors.ts`, `useDiffAuthors.ts`, `LineAuthorDetails.tsx`,
+  `CommitDiffDock.tsx`, `api.diffLineAuthors`. Reuse native investigate_history;
+  only blame now also accepts a validated full SHA-1/SHA-256 commit ID, with
+  revision expressions rejected. Other history modes keep ref-only rules.
+- Before = first parent, After = selected full commit; unified removal uses
+  Before and context/addition uses After. Root/deleted files read the content side.
+  No working/stash/merge authorship is fabricated. Exact revision, membership,
+  filename encoding and code content guard each displayed line's metadata.
+- One active + one latest pending author batch; 250 ms debounce, max four
+  200-line ranges per batch, max eight cached pages per patch; abort stale work,
+  stop pending reads while hidden, no polling. Failures and shallow/partial
+  evidence remain explicit; retry clears the current patch cache.
+- Passed: TypeScript; frontend 109/26 files (six new pure tests); core investigation
+  10 (one new immutable-commit test); core + desktop all-target Clippy. Browser
+  flows: 3 new + 2 existing history/diff/editor regressions passed. Final targeted
+  three-case rerun after tooltip geometry refinement passed; screenshots captured.
+- Feature implementation commit: `af51c80`. User then confirmed closing GitNova;
+  fresh process checks before build and installation found it closed.
+- Delivered **1.3.0** at `Desktop/GitNova.app`, replacing 1.2.0 with a temporary
+  backup. Release build, source/built/installed versions, executable SHA-256,
+  strict deep ad-hoc signature, embedded UI and all five attribution resources
+  passed. Installed startup/catalog/real Git graph IPC/single-instance smoke
+  passed on disposable fixtures; this is not physical native GUI acceptance.
+- [Feature report and delivery evidence](../docs/verification/2026-11-18/diff-line-authors/README.md)
+  include matching source hashes and installed evidence. This handoff belongs to
+  the delivery commit on the feature branch; obtain its SHA from Git. Work is
+  complete; no task-owned build/test/native process remains. No push/public release.
+- Old native CI / uninterrupted foreground soak acceptance are separate and remain
+  open; do not restart them for this feature. Provider credentials are not involved.
 
 ## Start a new session
 

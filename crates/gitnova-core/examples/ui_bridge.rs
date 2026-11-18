@@ -494,6 +494,7 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
         "recent_clones" => json!(app.recent_clones(&s("workspaceId")?)?),
         "add_repository" => json!(app.add_repository(&PathBuf::from(s("path")?))?),
         "create_workspace" => json!(app.create_workspace(&s("name")?)?),
+        "rename_workspace" => json!(app.rename_workspace(&s("workspaceId")?, &s("name")?)?),
         "update_membership" => {
             json!(app.update_membership(&s("membershipId")?, &s("name")?, &s("path")?)?)
         }

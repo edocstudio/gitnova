@@ -367,3 +367,31 @@ No OS notification permission, provider mutation or persistent preference is
 introduced. Required, optional and unknown manual evidence stay distinct. Failed
 or partial reads preserve qualified cached evidence rather than claiming that
 all waiting actions have completed.
+
+## Workspace rename in the existing picker (1.2.0)
+
+Workspace names are local catalog labels, independent of repository paths and Git
+refs. Add one Rename workspace control beside the existing workspace selector.
+Edit the current name inline with Save/Cancel; no new screen, dialog or settings
+navigation is needed for this direct request from the workspace picker. Preserve
+workspace ID, active selection, membership order, repository identity and drafts.
+Case-only changes are valid. Failures retain the typed name and show an inline
+error; the catalog changes only after durable storage succeeds. Enter saves and
+Escape cancels the edit before it closes the picker. Scope is the selected workspace.
+
+## Line authors in the existing committed diff (1.3.0)
+
+Add a Line authors view toggle next to the current diff layout controls. Optional
+inline author/relative-time annotations share each existing virtual code row;
+hover, click or keyboard activation exposes read-only commit details in a small
+original tooltip. No extra sidebar, screen or navigation is needed. Before uses
+the selected commit's first parent; After uses the selected commit itself. Unified
+removed lines use Before, added/context lines use After. Working/merge/stash
+previews do not claim committed authorship for unsaved text.
+
+Reuse the existing bounded native investigation/blame reader. Read only requested
+visible ranges after a debounce, with one active and one replaceable pending read
+batch, at most four 200-line ranges per batch and eight cached pages in the active
+patch. Scope by workspace, membership, full revision, exact path and side. Cancel
+superseded selection work; ignore stale results and do not poll. Preserve partial,
+shallow and unavailable evidence. Missing commit metadata is never guessed.

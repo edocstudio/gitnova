@@ -116,6 +116,25 @@ impl Application {
         })?;
         self.catalog()
     }
+    pub fn rename_workspace(&self, workspace_id: &str, name: &str) -> Result<Catalog> {
+        let name = name.trim();
+        if name.is_empty() || name.chars().count() > 80 {
+            return Err(AppError::new(
+                "workspace",
+                "Workspace name must contain 1–80 characters",
+            ));
+        }
+        self.update(|catalog| {
+            let workspace = catalog
+                .workspaces
+                .iter_mut()
+                .find(|workspace| workspace.id == workspace_id)
+                .ok_or_else(|| AppError::new("workspace", "Unknown workspace"))?;
+            workspace.name = name.into();
+            Ok(())
+        })?;
+        self.catalog()
+    }
     pub fn switch_workspace(&self, workspace_id: &str) -> Result<Catalog> {
         self.update(|c| {
             if !c.workspaces.iter().any(|w| w.id == workspace_id) {

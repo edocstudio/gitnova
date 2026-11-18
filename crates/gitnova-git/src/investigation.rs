@@ -50,11 +50,15 @@ impl GitCli {
                         "Follow history requires one exact file path and no code phrase.",
                     ));
                 }
-                self.investigation_ref(if r.source.is_empty() {
-                    "HEAD"
-                } else {
-                    &r.source
-                })?;
+                // Diff attribution addresses an immutable local commit, never a
+                // revision expression. Other investigation modes retain ref-only scope.
+                if r.mode != "blame" || validate_oid(&r.source).is_err() {
+                    self.investigation_ref(if r.source.is_empty() {
+                        "HEAD"
+                    } else {
+                        &r.source
+                    })?;
+                }
             }
         } else {
             for value in [&r.source, &r.target] {

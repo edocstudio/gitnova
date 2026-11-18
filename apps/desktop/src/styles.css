@@ -996,3 +996,18 @@ main { display: flex; flex: 1; min-height: 0; }
 .ci-action-links { display:flex;align-items:center;gap:14px;margin-top:10px; }
 .ci-action-links a { color:var(--accent); }
 .ci-action-warning { position:absolute;bottom:-3px;left:-3px;min-width:13px;border-radius:7px;background:#d7a94d;color:#101920;font-size:10px;font-weight:700; }
+
+.workspace-selector-row { display: flex; gap: 8px; align-items: center; }
+.workspace-selector-row select { flex: 1; min-width: 0; }
+.workspace-selector-row button { flex: none; font-size: 11px; }
+.workspace-rename { margin-top: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.workspace-rename input { width: 100%; }
+.workspace-rename-buttons { display: flex; gap: 8px; margin-top: 10px; }
+
+.line-author { display: inline-block; vertical-align: top; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0 0 0 24px; padding: 0; height: 24px; border: 0; border-radius: 2px; background: transparent; color: var(--ink-8b9eb3,#8b9eb3); font: 11px/24px "SFMono-Regular",Consolas,monospace; user-select: none; }
+.line-author:hover,.line-author:focus-visible { color: var(--ink-bbd0e1,#bbd0e1); text-decoration: underline; background: #ffffff08; }
+.line-author-missing { margin-left: 24px; color: var(--ink-8b9eb3,#8b9eb3); user-select: none; }
+.line-authors-status { flex: none; padding: 5px 10px; display: flex; gap: 8px; flex-wrap: wrap; font-size: 10px; color: var(--ink-8b9eb3,#8b9eb3); border-bottom: 1px solid var(--line); }
+.line-authors-status button { padding: 1px 5px; font-size: 10px; }
+.line-author-details { position: fixed; z-index: 1000; max-height: min(240px,calc(100vh - 24px)); overflow: auto; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-1c2630,#1c2630); box-shadow: 0 10px 35px #0007; color: var(--ink-bbd0e1,#bbd0e1); font-size: 12px; overflow-wrap: anywhere; }
+.line-author-details p { margin: 7px 0; }.line-author-details code,.line-author-details small { font-size: 10px; color: var(--ink-8b9eb3,#8b9eb3); }.line-author-subject { font-weight: 600; white-space: pre-wrap; }

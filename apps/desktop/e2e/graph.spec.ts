@@ -2677,3 +2677,66 @@ test('late CI notification reads cannot cross repositories or restore disconnect
   await page.evaluate(()=>{localStorage.setItem('gitnova.connections.v1','[]');window.dispatchEvent(new Event('gitnova-ci-config'));});releaseB?.();await expect(panel.locator('.ci-action')).toHaveCount(0);await expect(page.locator('.ci-actions-trigger')).toHaveAccessibleName('CI actions (0)');
  }finally{release?.();releaseB?.();}
 });
+
+
+test('workspace rename preserves identity and selection across case changes, cancel, locale and restart',async({page},testInfo)=>{
+ const state=join(folder,'workspace-rename.json');await connectRealCore(page,state);await page.goto('/');
+ await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();await expect(page.locator('.commit-row').first()).toBeVisible();
+ await page.keyboard.press('Control+o');const picker=page.locator('.picker-menu');const before=JSON.parse(readFileSync(state,'utf8')) as Catalog;
+ const active=before.workspaces.find(w=>w.id===before.activeWorkspaceId)!;const renamed=active.name===active.name.toUpperCase()?active.name.toLowerCase():active.name.toUpperCase();
+ await picker.getByRole('button',{name:'Rename workspace',exact:true}).click();const name=picker.getByLabel('Workspace name',{exact:true});await expect(name).toBeFocused();await name.fill('   ');await expect(picker.getByRole('button',{name:'Save workspace name',exact:true})).toBeDisabled();
+ await name.fill('Cancelled name');await name.press('Escape');await expect(name).toHaveCount(0);await expect(picker).toBeVisible();await expect(picker.getByRole('button',{name:'Rename workspace',exact:true})).toBeFocused();
+ await picker.getByRole('button',{name:'Rename workspace',exact:true}).click();await name.fill(renamed);await picker.locator('.workspace-selector').screenshot({path:testInfo.outputPath('workspace-rename.png')});await name.press('Enter');await expect(picker.locator('.workspace-selector').getByRole('status')).toHaveText('Workspace renamed.');await expect(picker.getByRole('button',{name:'Rename workspace',exact:true})).toBeFocused();await expect(picker.locator('#workspace option:checked')).toHaveText(renamed);
+ const after=JSON.parse(readFileSync(state,'utf8')) as Catalog;const expected=structuredClone(before);expected.workspaces.find(w=>w.id===active.id)!.name=renamed;expect(after).toEqual(expected);
+ await page.reload();await expect(page.locator('.commit-row').first()).toBeVisible();await page.keyboard.press('Control+o');await expect(picker.locator('#workspace option:checked')).toHaveText(renamed);
+ await picker.getByRole('button',{name:'Rename workspace',exact:true}).click();await name.fill('โค้ด');await changeLanguageThroughSettings(page,'th');await expect(picker.getByLabel('ชื่อเวิร์กสเปซ',{exact:true})).toHaveValue('โค้ด');await picker.getByRole('button',{name:'บันทึกชื่อเวิร์กสเปซ',exact:true}).click();await expect(picker.locator('.workspace-selector').getByRole('status')).toHaveText('เปลี่ยนชื่อเวิร์กสเปซแล้ว');expect(JSON.parse(readFileSync(state,'utf8')).workspaces.find((w:{id:string})=>w.id===active.id).selectedId).toBe(active.selectedId);
+});
+
+test('workspace rename keeps the draft and prior label when persistence fails and retries once',async({page})=>{
+ const state=join(folder,'workspace-rename-failure.json');let attempts=0;
+ await connectRealCore(page,state,(command)=>{if(command==='rename_workspace'&&attempts++===0)throw Error('Simulated catalog write failure');});await page.goto('/');
+ await page.getByLabel('Add an existing repository').fill(repository);await page.getByRole('button',{name:'Open',exact:true}).click();await expect(page.locator('.commit-row').first()).toBeVisible();await page.keyboard.press('Control+o');const picker=page.locator('.picker-menu');const original=await picker.locator('#workspace option:checked').textContent();
+ await picker.getByRole('button',{name:'Rename workspace',exact:true}).click();const name=picker.getByLabel('Workspace name',{exact:true});await name.fill('Code');await picker.getByRole('button',{name:'Save workspace name',exact:true}).click();await expect(picker.getByRole('alert')).toContainText('Simulated catalog write failure');await expect(name).toHaveValue('Code');await expect(picker.locator('#workspace option:checked')).toHaveText(original!);
+ await picker.getByRole('button',{name:'Save workspace name',exact:true}).click();await expect(picker.locator('.workspace-selector').getByRole('status')).toHaveText('Workspace renamed.');expect(attempts).toBe(2);
+});
+
+
+function diffAuthorsRepo(name:string){
+ const repo=join(folder,name);mkdirSync(repo);git(repo,['init','-b','main']);
+ writeFileSync(join(repo,'code.ts'),'const unchanged = 1;\nconst prior = true;\nconst tail = 3;\n');git(repo,['add','.']);git(repo,['-c','user.name=Alice Origin','commit','-m','Original author evidence','--date=2024-05-07T09:49:00+07:00']);const before=git(repo,['rev-parse','HEAD']);
+ writeFileSync(join(repo,'code.ts'),'const unchanged = 1;\nconst updated = true;\nconst tail = 3;\n');git(repo,['-c','user.name=ittipon.b','commit','-am','Update author evidence','--date=2025-05-07T09:49:00+07:00']);const after=git(repo,['rev-parse','HEAD']);return {repo,before,after};
+}
+test('diff line authors show exact before and after identities in both layouts and accessible commit details',async({page},testInfo)=>{
+ const fixture=diffAuthorsRepo('diff-line-authors');let reads=0;
+ await connectRealCore(page,join(folder,'diff-line-authors.json'),command=>{if(command==='investigate_history')reads++;});await page.goto('/');await page.getByLabel('Add an existing repository').fill(fixture.repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.locator('.commit-row').filter({hasText:'Update author evidence'}).click();await expect(page.locator('.patch-viewport')).toBeVisible();await expect(page.locator('.line-author')).toHaveCount(0);expect(reads).toBe(0);
+ await page.getByRole('button',{name:'Line authors',exact:true}).click();const before=page.getByRole('region',{name:'Before code',exact:true}),after=page.getByRole('region',{name:'After code',exact:true});
+ await expect(before.locator('.split-cell.remove .line-author')).toContainText('Alice Origin');await expect(after.locator('.split-cell.add .line-author')).toContainText('ittipon.b');await expect(after.locator('.split-cell.context .line-author').first()).toContainText('Alice Origin');expect(reads).toBe(2);
+ await after.locator('.split-cell.add .line-author').hover();const tooltip=page.getByRole('tooltip',{name:'Line authorship details',exact:true});await expect(tooltip).toContainText('Update author evidence');await expect(tooltip).toContainText(fixture.after.slice(0,12));await expect(tooltip).toContainText('2025');const authorBox=await after.locator('.split-cell.add .line-author').boundingBox(),tipBox=await tooltip.boundingBox();expect(Math.min(Math.abs(tipBox!.y-(authorBox!.y+authorBox!.height)),Math.abs(authorBox!.y-(tipBox!.y+tipBox!.height)))).toBeLessThanOrEqual(12);await tooltip.screenshot({path:testInfo.outputPath('line-author-details.png')});await page.keyboard.press('Escape');await expect(tooltip).toHaveCount(0);
+ await page.getByRole('button',{name:'Unified',exact:true}).click();await expect(page.locator('.dock-unified-row.remove .line-author')).toContainText('Alice Origin');await expect(page.locator('.dock-unified-row.add .line-author')).toContainText('ittipon.b');expect(reads).toBe(2);
+ await page.locator('.dock-unified-row.add .line-author').focus();await page.keyboard.press('Enter');await expect(tooltip).toContainText('After revision');await page.keyboard.press('Escape');await expect(page.locator('.dock-unified-row.add .line-author')).toBeFocused();
+ await page.locator('.dock-patch').screenshot({path:testInfo.outputPath('diff-line-authors.png')});
+ await page.evaluate(async()=>{const {setLocale}=await import('/src/i18n.ts');setLocale('th');});await expect(page.getByRole('button',{name:'คนแก้แต่ละบรรทัด',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.locator('.dock-unified-row.add .line-author')).toContainText(/เดือน|ปี/);
+ await page.getByRole('button',{name:'คนแก้แต่ละบรรทัด',exact:true}).click();await expect(page.locator('.line-author')).toHaveCount(0);expect(git(fixture.repo,['rev-parse','HEAD'])).toBe(fixture.after);expect(git(fixture.repo,['status','--porcelain'])).toBe('');
+});
+
+test('diff line authors report unavailable blame, retry safely and refresh scope on root commit selection',async({page})=>{
+ const fixture=diffAuthorsRepo('diff-line-authors-recovery');git(fixture.repo,['config','blame.ignoreRevsFile','missing-fixture-ignore']);
+ await connectRealCore(page,join(folder,'diff-line-authors-recovery.json'));await page.goto('/');await page.getByLabel('Add an existing repository').fill(fixture.repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator('.commit-row').filter({hasText:'Update author evidence'}).click();await expect(page.locator('.patch-viewport')).toBeVisible();await page.getByRole('button',{name:'Line authors',exact:true}).click();
+ await expect(page.locator('.line-authors-status')).toContainText('Configured blame ignore files');await expect(page.locator('.line-author')).toHaveCount(0);git(fixture.repo,['config','--unset-all','blame.ignoreRevsFile']);await page.getByRole('button',{name:'Retry line authors',exact:true}).click();await expect(page.locator('.split-cell.add .line-author')).toContainText('ittipon.b');
+ await page.locator('.commit-row').filter({hasText:'Original author evidence'}).click();await expect(page.locator('.split-cell.add .line-author').first()).toContainText('Alice Origin');await expect(page.locator('.line-author').filter({hasText:'ittipon.b'})).toHaveCount(0);expect(git(fixture.repo,['rev-parse','HEAD'])).toBe(fixture.after);expect(git(fixture.repo,['status','--porcelain'])).toBe('');
+});
+
+
+test('diff line authors discard an in-flight previous commit and cancel its remaining batch',async({page})=>{
+ const fixture=diffAuthorsRepo('diff-line-authors-late');let held=false,release:(()=>void)|undefined;const sources:string[]=[];
+ await connectRealCore(page,join(folder,'diff-line-authors-late.json'),async(command,args)=>{
+  if(command!=='investigate_history')return;const request=(args as {request:{source:string}}).request;sources.push(request.source);
+  if(!held){held=true;await new Promise<void>(resolve=>{release=resolve;});}
+ });
+ try{
+  await page.goto('/');await page.getByLabel('Add an existing repository').fill(fixture.repo);await page.getByRole('button',{name:'Open',exact:true}).click();await page.locator('.commit-row').filter({hasText:'Update author evidence'}).click();await expect(page.locator('.patch-viewport')).toBeVisible();await page.getByRole('button',{name:'Line authors',exact:true}).click();await expect.poll(()=>held).toBe(true);
+  await page.locator('.commit-row').filter({hasText:'Original author evidence'}).click();await expect(page.locator('.commit-row.selected')).toContainText('Original author evidence');release?.();
+  await expect(page.locator('.split-cell.add .line-author').first()).toContainText('Alice Origin');await expect(page.locator('.line-author').filter({hasText:'ittipon.b'})).toHaveCount(0);expect(sources).not.toContain(fixture.after);expect(git(fixture.repo,['rev-parse','HEAD'])).toBe(fixture.after);
+ }finally{release?.();}
+});
