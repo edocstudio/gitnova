@@ -15,10 +15,10 @@ permissions:
   contents: read
 jobs:
   core:
-    timeout-minutes: 90
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 120 || 90 }}
     env:
       CARGO_BUILD_JOBS: 2
-      RUST_TEST_THREADS: 1
+      RUST_TEST_THREADS: ${{ matrix.os == 'windows-latest' && 2 || 1 }}
     strategy:
       fail-fast: false
       matrix:

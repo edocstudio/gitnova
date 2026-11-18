@@ -46,10 +46,23 @@ website publication remains separate. Current preparation version: **1.3.1**.
   21 seconds maximum) for transient Windows locks after app shutdown. Persistent
   cleanup errors still fail. JavaScript syntax and diff checks passed; no compiled
   Rust/UI changes beyond the already-tested startup fix in the preceding commit.
-  Commit/push this cleanup correction, dispatch a fresh Windows candidate and
-  cancel only the obsolete task run to release branch concurrency if necessary.
-  Follow every gate through local archive/PE/hash verification. No local runner
-  is active. No Mac app rebuild, merge, release publication or website deployment.
+  Committed/pushed source `6f9d8d09b22e7a1c08b6e02a5ac0214d03c07af0`.
+  Latest candidate: https://github.com/edocstudio/gitnova/actions/runs/44337962235
+  Packaging job 134920207097, core 134920206519, other shards 134920207022,
+  134920206934, 134920206467. Second run cancelled after cleanup failure to free
+  branch concurrency; its remaining core/shard 2 results are incomplete.
+  Follow the latest run through every gate and local archive/PE/hash verification.
+  Final artifact name: gitnova-windows-handoff-6f9d8d09b22e7a1c08b6e02a5ac0214d03c07af0.
+  /tmp/gitnova-windows-verify-download.py is prepared for this exact source/run.
+  No local runner is active. No Mac app rebuild, merge, release publication or
+  website deployment.
+- Core throughput follow-up: prior successful Windows job 134610046069 ran
+  06:21:15–07:47:28 UTC (about 86 minutes, 469 passed), near the 90-minute cap.
+  Windows core now uses two test threads (within AGENTS limits) and a 120-minute
+  cap; all other OS/core and desktop worker settings are unchanged. Workflow YAML
+  and diff checks passed. Commit/push this last CI adjustment, dispatch from the
+  new exact source, cancel only obsolete task run 44337962235 for branch
+  concurrency, then follow through actual handoff retrieval. No test is skipped.
 - [Task report](../docs/verification/2026-11-18/windows-installer/README.md) records
   provenance and limits. Native CI / long foreground soak from prior tasks remain
   separate. No local test runner is left active at this checkpoint.

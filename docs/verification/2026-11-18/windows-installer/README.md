@@ -76,8 +76,20 @@ diff checks passed; no additional Rust/UI compilation is needed locally.
 
 ## Next step
 
-Commit/push the cleanup correction and dispatch a fresh Windows candidate.
+Cleanup correction `6f9d8d09b22e7a1c08b6e02a5ac0214d03c07af0` is committed/pushed.
+[Latest candidate run 44337962235](https://github.com/edocstudio/gitnova/actions/runs/44337962235)
+is running all Windows gates. The second run was cancelled after its known
+cleanup failure; remaining core/shard 2 results are incomplete, not passed.
 Download the successful handoff only after all Windows jobs and installer
 lifecycle pass, then verify its archive digest, PE executable, metadata and
 checksums locally. No tag, public release or website deployment is part of this
 preparation.
+
+## Windows core job budget
+
+Prior successful core job 134610046069 ran from 06:21:15 to 07:47:28 UTC
+(about 86 minutes, 469 passed), close to its 90-minute cap. Windows core now
+uses two test threads within the repository limit and a 120-minute cap. Other
+platform/core and desktop worker settings are unchanged; every test remains.
+Workflow YAML and diff checks passed. This CI-only adjustment requires the final
+candidate run to use the new exact source commit.
