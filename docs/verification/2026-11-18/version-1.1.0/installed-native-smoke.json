@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "gitnova-installed-acceptance",
+  "version": "1.1.0",
+  "passed": true,
+  "platform": "darwin",
+  "arch": "arm64",
+  "artifact": "GitNova-1.1.0-macos-arm64.zip",
+  "artifactSha256": "8d949600708ed2b1ff8112eb1d34a39821a7a5c508d45da0100d2dcedbb850a5",
+  "installedBinarySha256": "83e2e60e6119d36d16d626ab0c0b22fde587c3dcec173379de254b8f2eab707b",
+  "checks": [
+    "embedded-ui",
+    "native-catalog-ipc",
+    "real-git-graph-ipc",
+    "single-instance",
+    "fixture-head-and-working-tree-preserved"
+  ],
+  "scope": "Startup and native IPC smoke only; full browser workflows, OS credentials and manual GUI acceptance are separate."
+}

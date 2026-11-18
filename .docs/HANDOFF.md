@@ -6,51 +6,31 @@ state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-The user approved implementing in-app CI notifications after discussing a manual
-GitLab pipeline screenshot. First scope: active repository's current HEAD/branch,
-header bell with an outstanding-action count and a small popover; required,
-optional and unknown manual evidence; open commit/provider pipeline; deduplicate
-refreshes, retain qualified partial/error evidence and clear changed scopes.
-No OS notifications, workspace-wide watch or provider execution/approval in-app.
+The user corrected the CI notifications release to **1.1.0** because it adds a
+backward-compatible feature. Version policy in `AGENTS.md` now selects patch,
+minor or major by change type, replacing the prior patch-only rule.
 
-- Work branch: `feat/ci-action-notifications`, from `a8ae64e` on `main` (PR #62).
-- Source version advanced from 1.0.20 to **1.0.21** for this app delivery.
-- Previous app work `72b93d0` was merged through PR #61; persistent handoff work
-  `acf7753` was merged through PR #62. Do not recreate either feature set.
-- Delivered **1.0.21** to `Desktop/GitNova.app`; source/built/installed versions
-  and binary SHA-256 match. Strict deep ad-hoc signature, embedded UI, five
-  attribution resources and installed native startup/IPC/single-instance smoke
-  passed. The previous 1.0.20 app is retained in a task-owned temporary backup.
-- New browser flows passed 4/4; existing CI/MR regressions passed 2/2. Frontend
-  units passed 103/25 files (seven new classification cases); hosting passed 41
-  with one deliberately ignored isolated credential-store roundtrip. Core CI
-  integrations passed 2; desktop Rust tests passed 11. TypeScript/build, formatter
-  and all-target Clippy passed (desktop rerun after fixture changes).
-- **Visible native CI acceptance remains open.** The focused runner stopped
-  before CI checks because its WebView stayed hidden. An earlier browser-style
-  native invoke stub was invalid (Tauri makes it non-writable); the runner now
-  uses typed synthetic CI through real native IPC, gated by explicit acceptance
-  flags and a validated private fixture catalog. Do not describe the failed
-  attempts as passes or relaunch hidden probes repeatedly. Default native
-  workflows remain the old Push/endpoint/editor flow; use `--ci-only true` for CI.
-- Detailed behavior, screenshot, structured checks, failed native evidence and
-  installed smoke are in the [1.0.21 report](../docs/verification/2026-11-18/ci-notifications/README.md).
-- Implementation and local delivery are complete. This handoff is included in
-  the feature commit on the named branch; obtain its SHA from Git. No source push or public
-  app release is authorized. No test/build/native process is left running.
-- Next optional verification: run the focused CI native workflow in a session
-  where the WebView remains visible, then actual provider/credential acceptance.
-  This does not restart the older seven-item effort or its 30-minute soak.
-- Relevant new files: `apps/desktop/src/{CiNotifications.tsx,useCiActions.ts,
-  ci-actions.ts,ci-actions.test.ts}`. `PipelineJob.allow_failure` is a nullable
-  bool; missing data never implies required approval. UI is English/Thai.
-- CI detail reads reuse the existing serialized `readCi`/`pipelines` path and
-  bounded native cache. Poll interval is 60 seconds while visible, explicit
-  refresh is throttled, and in-flight results are invalidated on scope/config
-  changes. Lists survive graph scrolling; reading does not resolve provider work.
-- This task does not resume the old foreground soak in item 7 below. New app
-  features are tested with disposable repos and simulated provider HTTP/CI
-  responses; no real company CI job is started, approved or retried.
+- Branch: `feat/ci-action-notifications`. CI feature commit: `ff98420` (base
+  `a8ae64e` on main). This follow-up changes version metadata, policy and delivery
+  evidence only; do not recreate or retest the feature as new implementation.
+- Delivered **1.1.0** to `Desktop/GitNova.app`, replacing 1.0.21. Source/built/installed
+  versions and executable hashes agree. Version tests, release build, strict deep
+  ad-hoc signature, embedded UI, five attribution resources and installed native
+  startup/IPC/single-instance smoke passed. Prior app backed up in a temp folder.
+  See [1.1.0 release report](../docs/verification/2026-11-18/version-1.1.0/README.md).
+- Feature behavior and test results: [CI report](../docs/verification/2026-11-18/ci-notifications/README.md).
+  Frontend units 103/25 files, browser 4 new + 2 regressions, hosting 41 + 1 ignored,
+  core CI integrations 2, desktop units 11; formatter and Clippy passed there.
+- Visible native CI acceptance is still open: WebView stayed hidden before checks.
+  Do not relabel it as passed, repeatedly launch hidden probes, or restart the old
+  30-minute soak for this version-only correction. The focused native CI runner
+  uses `--ci-only true` and isolated typed provider fixtures, not live credentials.
+- Scope remains active repository's current HEAD/branch, GitLab manual/blocked
+  actions, required/optional/unknown evidence and existing commit/provider links.
+  No OS notification or provider execution/approval is implemented.
+- This handoff belongs to the version correction commit; obtain its SHA from Git.
+  Work is complete; no build/test/native process remains. No push or public release
+  authorized. The 1.0.21 report is preserved as historical evidence.
 
 ## Start a new session
 
@@ -177,7 +157,7 @@ and `.python-version` (3.15.2). Verify availability; do not upgrade tools or
 dependencies just to resume. Build/verification commands and resource limits are
 in the linked contributing/implementation guides and root `AGENTS.md`.
 
-For an actual new app delivery, follow the existing patch-version, attribution,
+For an actual new app delivery, follow the semantic-version, attribution,
 closed-app packaging and installed-version verification rules. Documentation-only
 work does not itself deliver a new app or require rebuilding it.
 
