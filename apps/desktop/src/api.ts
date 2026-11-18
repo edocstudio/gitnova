@@ -155,6 +155,7 @@ export const api = {
   catalog: () => call<Catalog>('catalog'),
   add: (path: string) => call<Catalog>('add_repository', { path }),
   createWorkspace: (name: string) => call<Catalog>('create_workspace', { name }),
+  renameWorkspace: (workspaceId: string, name: string) => call<Catalog>('rename_workspace', { workspaceId, name }),
   switchWorkspace: (workspaceId: string) => call<Catalog>('switch_workspace', { workspaceId }),
   select: (membershipId: string) => call<Catalog>('select_repository', { membershipId }),
   pin: (membershipId: string) => call<Catalog>('pin_repository', { membershipId }),

@@ -367,3 +367,14 @@ No OS notification permission, provider mutation or persistent preference is
 introduced. Required, optional and unknown manual evidence stay distinct. Failed
 or partial reads preserve qualified cached evidence rather than claiming that
 all waiting actions have completed.
+
+## Workspace rename in the existing picker (1.2.0)
+
+Workspace names are local catalog labels, independent of repository paths and Git
+refs. Add one Rename workspace control beside the existing workspace selector.
+Edit the current name inline with Save/Cancel; no new screen, dialog or settings
+navigation is needed for this direct request from the workspace picker. Preserve
+workspace ID, active selection, membership order, repository identity and drafts.
+Case-only changes are valid. Failures retain the typed name and show an inline
+error; the catalog changes only after durable storage succeeds. Enter saves and
+Escape cancels the edit before it closes the picker. Scope is the selected workspace.

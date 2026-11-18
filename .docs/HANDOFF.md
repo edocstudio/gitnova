@@ -6,31 +6,34 @@ state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-The user corrected the CI notifications release to **1.1.0** because it adds a
-backward-compatible feature. Version policy in `AGENTS.md` now selects patch,
-minor or major by change type, replacing the prior patch-only rule.
+The user requested changing the workspace's display name in the picker, including
+`code` → `Code`. Implemented inline Rename workspace / Save / Cancel beside the
+existing dropdown. New backward-compatible feature version: **1.2.0**.
 
-- Branch: `feat/ci-action-notifications`. CI feature commit: `ff98420` (base
-  `a8ae64e` on main). This follow-up changes version metadata, policy and delivery
-  evidence only; do not recreate or retest the feature as new implementation.
-- Delivered **1.1.0** to `Desktop/GitNova.app`, replacing 1.0.21. Source/built/installed
-  versions and executable hashes agree. Version tests, release build, strict deep
-  ad-hoc signature, embedded UI, five attribution resources and installed native
-  startup/IPC/single-instance smoke passed. Prior app backed up in a temp folder.
-  See [1.1.0 release report](../docs/verification/2026-11-18/version-1.1.0/README.md).
-- Feature behavior and test results: [CI report](../docs/verification/2026-11-18/ci-notifications/README.md).
-  Frontend units 103/25 files, browser 4 new + 2 regressions, hosting 41 + 1 ignored,
-  core CI integrations 2, desktop units 11; formatter and Clippy passed there.
-- Visible native CI acceptance is still open: WebView stayed hidden before checks.
-  Do not relabel it as passed, repeatedly launch hidden probes, or restart the old
-  30-minute soak for this version-only correction. The focused native CI runner
-  uses `--ci-only true` and isolated typed provider fixtures, not live credentials.
-- Scope remains active repository's current HEAD/branch, GitLab manual/blocked
-  actions, required/optional/unknown evidence and existing commit/provider links.
-  No OS notification or provider execution/approval is implemented.
-- This handoff belongs to the version correction commit; obtain its SHA from Git.
-  Work is complete; no build/test/native process remains. No push or public release
-  authorized. The 1.0.21 report is preserved as historical evidence.
+- Branch: `feat/workspace-rename`, from main `d475a4d` (PR #63). Previous CI/version
+  work is merged; do not recreate it. Existing semantic-version policy applies.
+- Rename updates only the catalog label by workspace ID. Identity, memberships,
+  selected repository, paths and Git state stay intact. Case-only and Unicode
+  names work, whitespace is trimmed and names require 1–80 Unicode scalar values.
+- New entry points: `WorkspaceSelector.tsx`, `api.renameWorkspace`, native command
+  `rename_workspace`, `Application::rename_workspace` and real-core UI bridge.
+  Save failures preserve the draft; the atomic store prevents partial publication.
+  One bounded workspace-scoped draft survives picker close / Settings language
+  changes. English/Thai labels, Enter/Save, Escape/Cancel and return focus included.
+- Passed: TypeScript, frontend units 103/25 files, core rename integrations 3,
+  desktop all-target Clippy with warnings denied, browser rename 2 + existing
+  workspace/history/diff regression 1. Final browser run passed all three.
+- Delivered **1.2.0** at `Desktop/GitNova.app`, replacing 1.1.0. Release build,
+  version-script test, source/built/installed versions and hashes, strict deep
+  ad-hoc signature, embedded UI/five attribution resources and installed native
+  startup/IPC/single-instance smoke passed. Previous app backed up in a temp folder.
+  No task-owned build/test/native process remains. This handoff is included in
+  the feature commit; obtain its SHA from Git. No required implementation remains.
+- [New report](../docs/verification/2026-11-18/workspace-rename/README.md) records
+  this delivery. No push/public release or real repository Git writes authorized.
+- Previous visible native CI and 30-minute foreground soak acceptance remain
+  separate open items; do not rerun them for this rename feature. Tests use
+  disposable catalogs/repositories and no live company provider credentials.
 
 ## Start a new session
 

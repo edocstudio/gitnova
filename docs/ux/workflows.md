@@ -634,3 +634,14 @@ Poll at most once per minute while visible and not blocked by an application
 operation; explicit refresh remains serialized and bounded. Stop on hide/unmount
 and invalidate stale in-flight results on scope/config changes. Scope is current
 HEAD only, not a workspace watcher or closed-app notification service.
+
+## Rename a workspace
+
+In the workspace picker, use Rename workspace beside the selected workspace.
+Edit its local display name, then Save workspace name or Cancel. Enter saves;
+Escape cancels the edit first. The workspace identity and selected repository are
+preserved, and only a successful durable catalog write updates the name. Blank or
+more than 80 Unicode scalar values are rejected; surrounding whitespace is trimmed.
+A save failure keeps the draft with an inline error for retry. A single bounded,
+workspace-scoped draft survives closing the picker to change the application
+language in Settings. This edit does not rename a repository folder or Git ref.

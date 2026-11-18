@@ -2431,5 +2431,12 @@
   "View commit": "View commit",
   "Open pipeline {0}": "Open pipeline {0}",
   "Open pipeline": "Open pipeline",
-  "Could not open this commit. Refresh the repository and try again.": "Could not open this commit. Refresh the repository and try again."
+  "Could not open this commit. Refresh the repository and try again.": "Could not open this commit. Refresh the repository and try again.",
+  "Rename workspace": "Rename workspace",
+  "Workspace name": "Workspace name",
+  "Saving workspace…": "Saving workspace…",
+  "Save workspace name": "Save workspace name",
+  "Workspace renamed.": "Workspace renamed.",
+  "Workspace name must contain 1–80 characters": "Workspace name must contain 1–80 characters",
+  "Unknown workspace": "Unknown workspace"
 }

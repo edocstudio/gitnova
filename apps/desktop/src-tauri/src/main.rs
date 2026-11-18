@@ -513,6 +513,14 @@ async fn create_workspace(state: State<'_>, name: String) -> Result<Catalog, App
     run(state, move |a| a.create_workspace(&name)).await
 }
 #[tauri::command]
+async fn rename_workspace(
+    state: State<'_>,
+    workspace_id: String,
+    name: String,
+) -> Result<Catalog, AppError> {
+    run(state, move |a| a.rename_workspace(&workspace_id, &name)).await
+}
+#[tauri::command]
 async fn switch_workspace(state: State<'_>, workspace_id: String) -> Result<Catalog, AppError> {
     run(state, move |a| a.switch_workspace(&workspace_id)).await
 }
@@ -1591,6 +1599,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         recent_clones,
         add_repository,
         create_workspace,
+        rename_workspace,
         update_membership,
         remove_membership,
         switch_workspace,

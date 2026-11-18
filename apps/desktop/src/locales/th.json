@@ -2431,5 +2431,12 @@
   "View commit": "ดู commit",
   "Open pipeline {0}": "เปิด pipeline {0}",
   "Open pipeline": "เปิด pipeline",
-  "Could not open this commit. Refresh the repository and try again.": "เปิด commit นี้ไม่สำเร็จ โปรดรีเฟรช repository แล้วลองอีกครั้ง"
+  "Could not open this commit. Refresh the repository and try again.": "เปิด commit นี้ไม่สำเร็จ โปรดรีเฟรช repository แล้วลองอีกครั้ง",
+  "Rename workspace": "เปลี่ยนชื่อเวิร์กสเปซ",
+  "Workspace name": "ชื่อเวิร์กสเปซ",
+  "Saving workspace…": "กำลังบันทึกเวิร์กสเปซ…",
+  "Save workspace name": "บันทึกชื่อเวิร์กสเปซ",
+  "Workspace renamed.": "เปลี่ยนชื่อเวิร์กสเปซแล้ว",
+  "Workspace name must contain 1–80 characters": "ชื่อเวิร์กสเปซต้องมี 1–80 ตัวอักษร",
+  "Unknown workspace": "ไม่พบเวิร์กสเปซนี้"
 }

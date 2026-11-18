@@ -1,0 +1,38 @@
+{
+  "version": "1.2.0",
+  "branch": "feat/workspace-rename",
+  "base": "d475a4d",
+  "frontendUnit": {
+    "passed": 103,
+    "files": 25
+  },
+  "coreRenameIntegration": {
+    "passed": 3
+  },
+  "browser": {
+    "renamePassed": 2,
+    "existingWorkspaceHistoryDiffPassed": 1,
+    "transport": "emulated Tauri; real Rust core and disposable Git catalogs"
+  },
+  "typescript": "passed",
+  "formatter": "passed",
+  "desktopAllTargetClippy": "passed with warnings denied",
+  "versionScriptTests": "1 passed",
+  "releaseBuild": "passed",
+  "installedSmoke": "installed-native-smoke.json",
+  "installedBundle": "installed-bundle.json",
+  "sourceSha256": {
+    "apps/desktop/src/WorkspaceSelector.tsx": "8f63d94f979ad861b231ec4b6f4871bde7b8dfab58163d2ccdf3e42e920e0449",
+    "apps/desktop/src/App.tsx": "71dd306f8eafb43f76fda24a1385f840cff7534b6ef9d2882f91dfa039c2a404",
+    "apps/desktop/src/api.ts": "e28c9c6ac85d10d119452303c7c48dc36eb376f8334ea913599ccb0ba99603c4",
+    "apps/desktop/src/styles.css": "1eec788c23a59c65f45b5be4b9a297dbf43c2e28f5acd98fe5d72703e4d49817",
+    "apps/desktop/src/locales/en.json": "bf0f4aa0851ff874fd0333cde92611304a5fbb4f381dad81d4a4fd8a7feb4f11",
+    "apps/desktop/src/locales/th.json": "90d75bb4dfd3c8ec4edae09d1ad22d0c9bfd40344dc9673422aebd5edff33db2",
+    "apps/desktop/src-tauri/src/main.rs": "b1fa73d3b52932929b5c0f2362ac8ccf232cbcaed80c9ebe129570e684e819b2",
+    "crates/gitnova-core/src/lib.rs": "dabb8b87c886e569dcbeb8f91bb1010407a07b01789274fc1f1098ad3be2b220",
+    "crates/gitnova-core/examples/ui_bridge.rs": "7037fdf9fd45c366b6725a61c7a92638756aa35de4f9286f71c2a8ad54617e1d",
+    "crates/gitnova-core/tests/workspace_rename.rs": "966f5c4001b9a98331eea142872b754ded61f810cab24dac79fb6dc98b119e1e",
+    "apps/desktop/e2e/graph.spec.ts": "cb6a6209eb303ecd0417220f5b1d9279d34dbc088453014ab54cac876339cae7"
+  },
+  "limits": "Installed native smoke verifies startup/IPC and single-instance, not manual physical-GUI rename acceptance. Earlier native CI and foreground soak limits remain open."
+}
