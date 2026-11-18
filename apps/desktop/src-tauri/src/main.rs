@@ -1814,8 +1814,10 @@ fn main() {
             }
         })
         .setup(|app| {
-            let file =
-                native_smoke_state()?.unwrap_or(app.path().app_data_dir()?.join("workspaces.json"));
+            let file = match native_smoke_state()? {
+                Some(file) => file,
+                None => app.path().app_data_dir()?.join("workspaces.json"),
+            };
             app.manage(Arc::new(Application::new(file)?));
             Ok(())
         })

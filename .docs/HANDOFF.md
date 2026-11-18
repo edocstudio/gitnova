@@ -16,7 +16,7 @@ website publication remains separate. Current preparation version: **1.3.1**.
   Windows run 44247547861 exposed stale UI selectors, slow native-read waits,
   refresh polling in a count assertion and Windows worktree separator assertions.
 - Harness fixes retain expected states; Windows expect/default budgets 45/180s,
-  one Playwright worker. No product runtime logic changed. Source is bumped 1.3.1
+  one Playwright worker. Normal user behavior is unchanged; isolated smoke startup is corrected below. Source is bumped 1.3.1
   with regenerated local inventory; Windows jobs regenerate their target inventory.
 - Added `windows_only` reusable CI input and `windows-installer` release scope:
   full Windows core + all four native/browser shards + credential-store + actual
@@ -28,12 +28,18 @@ website publication remains separate. Current preparation version: **1.3.1**.
   gitnova-web. Existing website files / old published versions are untouched.
 - Local checks: five integrity tests, workflow YAML parse and three affected
   macOS real-core browser cases passed. Windows acceptance is not yet passed.
-- Next: push the reviewed commit with `[skip ci]` to avoid duplicate cross-platform
-  jobs, then explicitly dispatch existing release-candidate.yml on this branch
-  with validation_scope=windows-installer, sign_linux=false, draft_tag empty.
-  Follow all Windows jobs, fix actual failures, retrieve the successful handoff,
-  verify hashes locally and update this report/checkpoint. No merge/public release
-  or website deployment authorized by this native preparation step.
+- First preparation source `af7209f0d5b2090ea7191f255f696ee6cb118ed1` was pushed;
+  https://github.com/edocstudio/gitnova/actions/runs/44319555944 passed all four
+  browser shards and built NSIS, but installed smoke failed `unknown path`.
+  Core job 134854590427 was still running at this checkpoint. Do not distribute
+  that run as a verified installer. Windows attribution reported 56 unresolved.
+- Corrected eager user-data directory resolution when a validated smoke catalog
+  exists, and create all redirected smoke profile folders before native launch.
+  Formatter, smoke JS syntax and all 11 local desktop tests passed.
+  Finish them, commit/push the correction with `[skip ci]`, dispatch a fresh
+  `windows-installer` candidate and follow all gates through local download/hash
+  verification. No merge/public release or website deployment is authorized by
+  this native preparation step. No Mac app rebuild/installation is requested.
 - [Task report](../docs/verification/2026-11-18/windows-installer/README.md) records
   provenance and limits. Native CI / long foreground soak from prior tasks remain
   separate. No local test runner is left active at this checkpoint.

@@ -6,7 +6,8 @@ base main `81a67ab2aac3d387e09dfa6a84a0222348211785`.
 The user requested a real Windows `.exe` for a separate gitnova-web publication.
 Target is Windows 10/11 x64, release-profile MSVC / per-user NSIS. macOS's local
 1.3.0 app is not rebuilt or replaced by this task; the new Windows candidate is
-1.3.1. No application runtime logic has changed in this preparation.
+1.3.1. Normal user startup is unchanged. The isolated native acceptance startup now
+resolves the user data directory only when no validated fixture catalog is used.
 
 ## Why a new candidate run
 
@@ -39,11 +40,28 @@ four-platform release assembly remain available.
   This is harness verification, not Windows native acceptance.
 - Windows runner results, actual artifact hashes and download handoff are pending.
 
+## First Windows candidate result
+
+Source `af7209f0d5b2090ea7191f255f696ee6cb118ed1` was pushed and dispatched in
+[run 44319555944](https://github.com/edocstudio/gitnova/actions/runs/44319555944).
+All four Windows browser shards passed. NSIS successfully built the 1.3.1 x64
+installer and verified its five attribution resources (56 unresolved inventory
+entries). Installed startup then failed with `setup hook: unknown path` before
+the native catalog marker. This run is not a passing installer handoff.
+
+The isolated smoke profile supplied a validated fixture catalog, but eager
+`unwrap_or` still resolved Windows user application data. Its redirected profile
+folders had not been created. Startup now selects the fixture catalog lazily and
+the smoke driver creates all redirected profile directories before launch. Normal
+user catalog resolution and fixture validation remain unchanged. A fresh candidate
+must pass the full Windows workflow; no failed artifact is delivered or published.
+
 ## Next step
 
-Commit the reviewed branch with `[skip ci]` to avoid launching a duplicate full
-cross-platform run, push it, and explicitly dispatch `release-candidate.yml` at
-that exact branch with `validation_scope=windows-installer`, `sign_linux=false`
-and an empty draft tag. This still runs every Windows check. No tag, public release
-or website deployment is part of this step. The GitHub connector lacks workflow
-dispatch, so the authenticated GitHub CLI is used only for that missing operation.
+Local formatter, smoke JS syntax and all 11 native desktop tests passed.
+Commit the startup correction with `[skip ci]`, push
+the task branch and dispatch a new exact-source Windows installer candidate.
+Track the previous core job separately for diagnostics. Download the successful
+handoff only after all Windows jobs and installer lifecycle pass, then verify its
+archive digest, PE executable, metadata and checksums locally. No tag, public
+release or website deployment is part of this preparation.
