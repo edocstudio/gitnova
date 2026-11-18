@@ -6,42 +6,37 @@ state. Communicate with this user in Thai.
 
 ## Current request and checkout
 
-User requested author and relative time beside diff code, similar to line blame.
-Implemented **1.3.0** as a backward-compatible feature in the existing committed
-patch viewer, with optional inline authors and original commit detail tooltips.
+User requested a Windows `.exe` to hand to gitnova-web for public downloads.
+Prepare an actual release-profile Windows x64 NSIS installer and exact metadata;
+website publication remains separate. Current preparation version: **1.3.1**.
 
-- Branch: `feat/diff-line-authors`, base `1b7ff43` (workspace rename 1.2.0). The
-  checkout was still on that feature branch; do not discard its parent commit or
-  assume workspace rename is merged. Earlier CI work is in main via PR #63.
-- Source: `diff-authors.ts`, `useDiffAuthors.ts`, `LineAuthorDetails.tsx`,
-  `CommitDiffDock.tsx`, `api.diffLineAuthors`. Reuse native investigate_history;
-  only blame now also accepts a validated full SHA-1/SHA-256 commit ID, with
-  revision expressions rejected. Other history modes keep ref-only rules.
-- Before = first parent, After = selected full commit; unified removal uses
-  Before and context/addition uses After. Root/deleted files read the content side.
-  No working/stash/merge authorship is fabricated. Exact revision, membership,
-  filename encoding and code content guard each displayed line's metadata.
-- One active + one latest pending author batch; 250 ms debounce, max four
-  200-line ranges per batch, max eight cached pages per patch; abort stale work,
-  stop pending reads while hidden, no polling. Failures and shallow/partial
-  evidence remain explicit; retry clears the current patch cache.
-- Passed: TypeScript; frontend 109/26 files (six new pure tests); core investigation
-  10 (one new immutable-commit test); core + desktop all-target Clippy. Browser
-  flows: 3 new + 2 existing history/diff/editor regressions passed. Final targeted
-  three-case rerun after tooltip geometry refinement passed; screenshots captured.
-- Feature implementation commit: `af51c80`. User then confirmed closing GitNova;
-  fresh process checks before build and installation found it closed.
-- Delivered **1.3.0** at `Desktop/GitNova.app`, replacing 1.2.0 with a temporary
-  backup. Release build, source/built/installed versions, executable SHA-256,
-  strict deep ad-hoc signature, embedded UI and all five attribution resources
-  passed. Installed startup/catalog/real Git graph IPC/single-instance smoke
-  passed on disposable fixtures; this is not physical native GUI acceptance.
-- [Feature report and delivery evidence](../docs/verification/2026-11-18/diff-line-authors/README.md)
-  include matching source hashes and installed evidence. This handoff belongs to
-  the delivery commit on the feature branch; obtain its SHA from Git. Work is
-  complete; no task-owned build/test/native process remains. No push/public release.
-- Old native CI / uninterrupted foreground soak acceptance are separate and remain
-  open; do not restart them for this feature. Provider credentials are not involved.
+- Branch `build/windows-installer`, base main `81a67ab` (PR #64). Workspace rename
+  and diff authors are now merged. Local Mac app remains 1.3.0; do not rebuild it.
+- Initial main CI run 44311189519 was in progress with no Windows artifact. Earlier
+  Windows run 44247547861 exposed stale UI selectors, slow native-read waits,
+  refresh polling in a count assertion and Windows worktree separator assertions.
+- Harness fixes retain expected states; Windows expect/default budgets 45/180s,
+  one Playwright worker. No product runtime logic changed. Source is bumped 1.3.1
+  with regenerated local inventory; Windows jobs regenerate their target inventory.
+- Added `windows_only` reusable CI input and `windows-installer` release scope:
+  full Windows core + all four native/browser shards + credential-store + actual
+  NSIS install/installed smoke/reinstall/uninstall, then checked handoff assembly.
+  Default full CI is unchanged; no publication or signing gate is declared passed.
+- `prepare-windows-handoff.mjs` rejects tampered bytes, wrong source/version/target,
+  missing native/lifecycle evidence and unsupported publication/signature claims.
+  It emits `.exe`, SHA256SUMS, original evidence and null-public-URL metadata for
+  gitnova-web. Existing website files / old published versions are untouched.
+- Local checks: five integrity tests, workflow YAML parse and three affected
+  macOS real-core browser cases passed. Windows acceptance is not yet passed.
+- Next: push the reviewed commit with `[skip ci]` to avoid duplicate cross-platform
+  jobs, then explicitly dispatch existing release-candidate.yml on this branch
+  with validation_scope=windows-installer, sign_linux=false, draft_tag empty.
+  Follow all Windows jobs, fix actual failures, retrieve the successful handoff,
+  verify hashes locally and update this report/checkpoint. No merge/public release
+  or website deployment authorized by this native preparation step.
+- [Task report](../docs/verification/2026-11-18/windows-installer/README.md) records
+  provenance and limits. Native CI / long foreground soak from prior tasks remain
+  separate. No local test runner is left active at this checkpoint.
 
 ## Start a new session
 

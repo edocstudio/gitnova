@@ -73,3 +73,20 @@ The installers are **unsigned**. Windows may display SmartScreen warnings. There
 - No account or private project data is needed for native credential-store tests. CI uses isolated synthetic entries and removes them afterward. Native account dialogs require manual acceptance; provider HTTP contracts use local fixtures.
 
 The full current-feature acceptance map is tracked in [platform parity](platform-parity.md). A passing installer build alone is insufficient.
+
+## Windows-only installer handoff
+
+The `release candidate` workflow accepts `validation_scope: windows-installer`.
+It runs the full Windows core job, all four Windows browser/native shards, the
+Windows credential-store check and NSIS install/reinstall/uninstall acceptance.
+Mac/Linux jobs are omitted for this focused request; the normal default remains
+all platforms. The handoff job requires the entire Windows reusable workflow to
+succeed and never creates a tag, GitHub Release or website deployment.
+
+Download `gitnova-windows-handoff-<source SHA>` only from that successful run.
+It includes the actual `.exe`, SHA256SUMS, native/lifecycle evidence and a Windows
+handoff manifest with exact source/version/size/hash. Its URL fields remain null
+until real public asset URLs have been published and anonymously verified. Keep
+unsigned publisher warnings and the original incomplete audit/manual acceptance
+scope when passing it to `gitnova-web`; do not expose expiring Actions URLs as
+public installer links. Cross-platform packages are independently versioned facts.
