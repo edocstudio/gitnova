@@ -154,6 +154,81 @@ fn default_branch_and_stale_remote_review_cannot_delete() {
     assert_eq!(e.code, "stale_preview");
     assert_eq!(git(&f.remote, &["rev-parse", "feature/cleanup"]), newer);
 }
+#[test]
+fn refresh_stale_label_updates_one_tracking_ref_and_clears_it_when_absent() {
+    let f = fixture();
+    let r = request(&f);
+    let reference = "refs/remotes/origin/feature/cleanup";
+    let tree = git(&f.remote, &["rev-parse", "main^{tree}"]);
+    let newer = git(
+        &f.remote,
+        &[
+            "-c",
+            "user.name=Remote Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit-tree",
+            &tree,
+            "-p",
+            &f.oid,
+            "-m",
+            "Remote-only update",
+        ],
+    );
+    git(
+        &f.remote,
+        &["update-ref", "refs/heads/feature/cleanup", &newer],
+    );
+    git(&f.remote, &["update-ref", "refs/heads/unrelated", &newer]);
+    git(&f.remote, &["tag", "remote-tag", &newer]);
+    fs::write(f.root.join("file.txt"), "work in progress").unwrap();
+    let index = fs::read(f.root.join(".git/index")).unwrap();
+    let fetch_head = fs::read(f.root.join(".git/FETCH_HEAD")).unwrap();
+
+    let moved = f.app.preview_remote_delete(&f.id, &r).unwrap_err();
+    assert!(moved.message.contains("different commit"));
+    assert_eq!(git(&f.root, &["rev-parse", reference]), f.oid);
+    let out = f.app.refresh_remote_delete_tracking(&f.id, &r).unwrap();
+    assert_eq!(out.status, "succeeded", "{out:?}");
+    assert_eq!(git(&f.root, &["rev-parse", reference]), newer);
+    assert_eq!(git(&f.remote, &["rev-parse", "feature/cleanup"]), newer);
+    assert!(!exists(&f.root, "refs/remotes/origin/unrelated"));
+    assert!(!exists(&f.root, "refs/tags/remote-tag"));
+
+    git(
+        &f.remote,
+        &["update-ref", "-d", "refs/heads/feature/cleanup"],
+    );
+    let latest = RemoteDeleteRequest {
+        oid: newer.clone(),
+        ..r.clone()
+    };
+    let missing = f.app.preview_remote_delete(&f.id, &latest).unwrap_err();
+    assert!(missing.message.contains("no longer exists"));
+    let stale = f.app.refresh_remote_delete_tracking(&f.id, &r).unwrap();
+    assert_ne!(stale.status, "succeeded");
+    assert_eq!(git(&f.root, &["rev-parse", reference]), newer);
+    let out = f
+        .app
+        .refresh_remote_delete_tracking(&f.id, &latest)
+        .unwrap();
+    assert_eq!(out.status, "succeeded", "{out:?}");
+    assert!(!exists(&f.root, reference));
+    assert_eq!(git(&f.root, &["rev-parse", "feature/cleanup"]), f.oid);
+    assert_eq!(git(&f.root, &["rev-parse", "HEAD"]), f.oid);
+    assert_eq!(fs::read(f.root.join(".git/index")).unwrap(), index);
+    assert_eq!(
+        fs::read(f.root.join(".git/FETCH_HEAD")).unwrap(),
+        fetch_head
+    );
+    assert_eq!(
+        fs::read(f.root.join("file.txt")).unwrap(),
+        b"work in progress"
+    );
+    assert!(exists(&f.remote, "refs/heads/unrelated"));
+}
 #[cfg(unix)]
 #[test]
 fn exact_remote_lease_refuses_a_change_from_the_pre_push_hook() {

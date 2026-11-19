@@ -1397,6 +1397,46 @@ for(const provider of ['github','gitlab'] as const)test(`provider transport UI $
  await open();await panel.getByLabel('Target branch (merge into)',{exact:true}).fill('release');await panel.getByRole('button',{name:'Review request',exact:true}).click();await expect(panel).toContainText('An open request already exists: #17');await panel.getByRole('button',{name:'Open existing request',exact:true}).click();await expect(panel).toContainText('Existing request opened · #17');expect(postCount).toBe(1);expect(git(repo,['rev-parse','HEAD'])).toBe(oid);expect(git(repo,['branch','--show-current'])).toBe('feature/demo');
 });
 
+test('stale remote deletion review refreshes only the selected graph label', async ({page}) => {
+  test.setTimeout(180000);
+  const {repo, bare, tip} = await managementFixture(page, 'stale-remote-delete');
+  const branch = 'refs/heads/feature/manage';
+  const tracking = 'refs/remotes/origin/feature/manage';
+  git(repo, ['push', 'origin', 'feature/manage']);
+  git(repo, ['fetch', 'origin']);
+  await page.getByRole('button', {name: 'Refresh', exact: true}).click();
+  const badge = page.locator(`[data-ref-name="${tracking}"]`);
+  await expect(page.getByRole('button', {name: 'Refresh', exact: true})).toBeEnabled();
+
+  const older = git(bare, ['rev-parse', 'main']);
+  expect(older).not.toBe(tip);
+  git(bare, ['update-ref', branch, older]);
+  const openReview = async (oid: string) => {
+    await page.locator(`button#commit-${oid}`).click({button: 'right'});
+    await page.getByRole('menuitem', {name: 'Delete remote branch origin/feature/manage…', exact: true}).click();
+  };
+  const deletion = page.getByLabel('Delete remote branch', {exact: true});
+  const refresh = deletion.getByRole('button', {name: 'Refresh branch label', exact: true});
+  await openReview(tip);
+  await expect(deletion.getByRole('alert')).toContainText('different commit');
+  await expect(deletion.getByRole('button', {name: 'Delete remote branch', exact: true})).toHaveCount(0);
+  expect(git(repo, ['rev-parse', tracking])).toBe(tip);
+  await refresh.click();
+  await expect(deletion).toHaveCount(0, {timeout: 45000});
+  await expect(page.locator(`button#commit-${older}`).locator(badge)).toBeVisible();
+  expect(git(bare, ['rev-parse', branch])).toBe(older);
+
+  git(bare, ['update-ref', '-d', branch]);
+  await openReview(older);
+  await expect(deletion.getByRole('alert')).toContainText('no longer exists');
+  await refresh.click();
+  await expect(deletion).toHaveCount(0, {timeout: 45000});
+  await expect(badge).toHaveCount(0);
+  expect(git(repo, ['for-each-ref', '--format=%(refname)', tracking])).toBe('');
+  expect(git(repo, ['rev-parse', 'feature/manage'])).toBe(tip);
+  expect(git(repo, ['diff', '--', 'file.txt'])).toContain('uncommitted work stays');
+});
+
 test('graph branch deletion exposes separate local and remote reviews and keeps local work', async ({page},testInfo)=>{
  test.setTimeout(180000);const {repo,bare,tip,panel}=await managementFixture(page,'delete-graph');
  git(bare,['symbolic-ref','HEAD','refs/heads/main']);git(repo,['push','origin','feature/manage']);git(repo,['fetch','origin']);

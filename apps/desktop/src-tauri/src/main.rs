@@ -1013,6 +1013,17 @@ async fn preview_remote_delete(
     .await
 }
 #[tauri::command]
+async fn refresh_remote_delete_tracking(
+    state: State<'_>,
+    membership_id: String,
+    request: RemoteDeleteRequest,
+) -> Result<OperationReceipt, AppError> {
+    run(state, move |a| {
+        a.refresh_remote_delete_tracking(&membership_id, &request)
+    })
+    .await
+}
+#[tauri::command]
 async fn delete_remote_branch(
     state: State<'_>,
     membership_id: String,
@@ -1512,6 +1523,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         preview_merge_action,
         apply_merge_action,
         preview_remote_delete,
+        refresh_remote_delete_tracking,
         delete_remote_branch,
         preview_ref_operation,
         apply_ref_operation,

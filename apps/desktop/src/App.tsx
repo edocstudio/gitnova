@@ -278,7 +278,7 @@ export function App() {
     finally { recordPerformance({kind:'refresh',name:'post-write-refresh',milliseconds:performance.now()-refreshStarted}); }
     if (activeId.current === selectedId && ['merge_release','merge_resolve','undo_commit'].includes(receipt.kind) && receipt.status === 'succeeded') { selectCommit(WORKING); }
     else if (activeId.current === selectedId && receipt.merge && receipt.merge.phase !== 'none') { selectCommit(WORKING); }
-    else if (activeId.current === selectedId && receipt.status === 'succeeded' && receipt.kind !== 'fetch_remote' && receipt.headAfter) {
+    else if (activeId.current === selectedId && receipt.status === 'succeeded' && !['fetch_remote', 'refresh_remote_delete_tracking'].includes(receipt.kind) && receipt.headAfter) {
       setSessions(old => old[selectedId] ? { ...old, [selectedId]: { ...old[selectedId], selected: receipt.kind.startsWith('merge_') ? receipt.headAfter : receipt.planned ? graphIntent?.oid ?? receipt.headAfter : receipt.graphAction?.kind === 'createTag' ? graphIntent?.oid ?? receipt.headAfter : receipt.headAfter } } : old);
     }
   };

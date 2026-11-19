@@ -173,7 +173,12 @@ use an exact expected remote OID for server-side compare-and-delete. Keep cached
 tracking refs untouched when fetch/push destinations differ; custom fetch mappings
 require separate inspection and block deletion here. Unknown
 network outcomes require inspection before retry; server protections remain in
-force. No combined/batch deletion or new permanent navigation is introduced.
+force. If the server branch moved or disappeared, the existing deletion review
+offers a refresh of that one cached label. When fetch and push share the same
+destination and standard mapping, it fetches the new tip or clears the absent
+branch's local tracking ref. It preserves local branches and tags. A moved
+branch must be selected and reviewed again before it can be deleted. No
+combined/batch deletion or new permanent navigation is introduced.
 
 ### Hosted request direction
 

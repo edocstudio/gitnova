@@ -10,6 +10,27 @@ The user requires a version bump and a new installed macOS `.app` for every
 GitNova code change. The durable instructions and completion checks are in
 [AGENTS.md](../AGENTS.md#persistent-settings). This note was documentation only.
 
+## Refresh a stale remote branch label
+
+Branch `fix/refresh-stale-remote-branch` (base `4f570b0`) fixes the remote
+deletion review when the selected graph label is stale. Normal Fetch is
+intentionally non-pruning. The review distinguishes a moved branch from an
+absent branch and offers Refresh branch label for that tracking ref when fetch
+and push share the same destination and a standard mapping. The scoped refresh
+fetches objects for a changed tip or clears a verified absent tracking ref.
+It compares the selected local OID before writing and preserves local branches,
+tags, staging and working files. Deletion still needs a fresh review and an
+exact server-side lease. The user's remote was not used for testing.
+
+Seven Rust remote deletion integrations and two Playwright workflows passed
+on disposable Git repositories. The new browser scenario passed after
+targeting the graph row when local and remote refs share a badge. TypeScript,
+formatting and diff checks passed. GitNova 1.3.4 is installed at
+`Desktop/GitNova.app`. The staged bundle passed native startup, catalog,
+real Git and single-instance checks. The installed copy passed signature and
+embedded UI checks and matches the built binary. Installed binary SHA-256:
+`56b69e7b3080c55cf7665b9a533c8c4d22e98b124862a301e9a9b9485571141c`. The previous app is retained in a hidden Desktop backup.
+
 ## Remove saved stash from the graph
 
 Branch `fix/stash-graph-removal` (base `55f9353`) adds a right-click and
