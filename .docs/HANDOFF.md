@@ -12,14 +12,21 @@ Both diff layouts share the same button and keep hover, keyboard focus and commi
 details. The existing real-Git Playwright case passed for both layouts, keyboard
 activation and Thai labels. The minimum text contrast against the button's
 normal and interaction backgrounds is 4.91:1 in dark mode and 7.37:1 in light mode.
-This is a source change; no app bundle was built. The Windows handoff below is
-from its separate branch/build.
+The macOS Apple Silicon release build is installed as 1.3.2 at
+`Desktop/GitNova.app`, replacing 1.3.0 with the old copy retained in a hidden
+Desktop backup folder. The staged bundle passed the native startup, catalog,
+real Git and duplicate window smoke checks using a disposable fixture. The
+installed bundle passed strict ad-hoc signature verification, matching binary
+bytes and embedded UI verification. Installed binary SHA-256:
+`b21139338163d02afdc215e6b308092d483e692ab09f48c3400ee3c0f04881e7`.
+This was a local macOS delivery on the styling branch. The Windows handoff below
+is the earlier 1.3.1 build.
 
 ## Current request and checkout
 
 Completed the requested real Windows `.exe` handoff for gitnova-web.
 Windows 10/11 x64 / MSVC / per-user NSIS **1.3.1** is built and verified.
-Local macOS app remains 1.3.0; it was not rebuilt or replaced.
+The Windows task left the macOS app at 1.3.0 at the time.
 
 - Branch `build/windows-installer`, base main `81a67ab` (PR #64).
 - Installer source `734d36405fa446e55471cb8ee3e945c02f4afb46` was committed/pushed.
