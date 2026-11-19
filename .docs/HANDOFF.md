@@ -24,10 +24,13 @@ still stop the write.
 All 18 Rust stash integration tests, three Playwright cases, TypeScript,
 formatting and diff checks passed. The macOS 1.3.3 release bundle at
 `target/release/bundle/macos/GitNova.app` passed signature and embedded UI checks.
-Install is pending because the 1.3.2 desktop app reopened before replacement.
-After it closes, run `/tmp/gitnova-install-1.3.3.sh` from the repository root.
-It smoke-tests the staged bundle with a disposable repository, retains the old
-app on the Desktop and verifies the installed copy. No build runner is active.
+Installed 1.3.3 at `Desktop/GitNova.app`. The staged bundle passed native
+startup, catalog, real Git and single-instance smoke checks with a disposable
+repository. The installed copy passed strict ad-hoc signature verification and
+embedded UI verification, and exactly matches the built binary. Its SHA-256 is
+`2ae42798ab33d3ee24dbe86de7b22ebfccf13f9d715bb647b1bb6517843e0b85`.
+The previous 1.3.2 app remains in the hidden Desktop backup
+`.gitnova-update.nQjvvdB5/GitNova-1.3.2.app`. No build runner is active.
 
 ## Line authors styling
 
