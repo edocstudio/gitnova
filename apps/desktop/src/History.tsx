@@ -11,6 +11,7 @@ import {ciStatusLabel} from './ci-requests';
 import type {GraphCiValue,GraphCiLink} from './ci-requests';
 import {useGraphCi} from './useGraphCi';
 import { t } from './i18n';
+import { createPortal } from 'react-dom';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { StashList, MergeState, GraphPage, GraphRow } from './contracts';
@@ -55,12 +56,34 @@ function GraphMark({ row, width, naturalWidth, head, labelled, savedLanes }: { r
     <circle className={row.commit.parents.length > 1 ? 'merge-node' : 'commit-node'} cx={x(row.lane)} cy={middle} r={row.commit.parents.length > 1 ? 5 : 4} fill={row.commit.parents.length > 1 ? 'var(--graph-node-bg, #101a23)' : color(row.color)} stroke={color(row.color)} />
   </svg>;
 }
-export function History({ membershipId, focusOid, onFocused, ciBadges, submodules, stashes, stashError, mergeState, session, onStash, onPop, stashBusy, onSelect, onScroll, onNavigate, onMore, busy, onAction }: { membershipId:string; focusOid?:string; onFocused?:()=>void; ciBadges?:Record<string,string>; submodules?: ReactNode; onStash: () => void; onPop: () => void; stashBusy: boolean; stashes?: StashList; stashError?: string; mergeState?: MergeState; onAction: (intent: GraphIntent) => void; session: GraphSession; onSelect: (oid: string) => void; onNavigate?: () => void; onScroll: (top: number, anchor: string, offset: number) => void; onMore: () => void; busy: boolean }) {
+export function History({ membershipId, focusOid, onFocused, ciBadges, submodules, stashes, stashError, mergeState, session, onStash, onPop, onDropStash, stashBusy, onSelect, onScroll, onNavigate, onMore, busy, onAction }: { membershipId:string; focusOid?:string; onFocused?:()=>void; ciBadges?:Record<string,string>; submodules?: ReactNode; onStash: () => void; onPop: () => void; onDropStash: (id: string) => void; stashBusy: boolean; stashes?: StashList; stashError?: string; mergeState?: MergeState; onAction: (intent: GraphIntent) => void; session: GraphSession; onSelect: (oid: string) => void; onNavigate?: () => void; onScroll: (top: number, anchor: string, offset: number) => void; onMore: () => void; busy: boolean }) {
   // Relative dates still advance when equal poll observations skip rerenders.
   // Repaint only the visible rows once a minute; keep graph geometry memoized.
   const [,setMinute]=useState(0);
   useEffect(()=>{const tick=()=>{if(!document.hidden)setMinute(n=>n+1);};const timer=window.setInterval(tick,60000);document.addEventListener('visibilitychange',tick);return()=>{window.clearInterval(timer);document.removeEventListener('visibilitychange',tick);};},[]);
   const items = useMemo(() => historyItems(session.rows, stashes?.entries ?? []), [session.rows, stashes]);
+  const [stashMenu, setStashMenu] = useState<{ id: string; x: number; y: number } | null>(null);
+  const stashMenuButton = useRef<HTMLButtonElement>(null);
+  const openStashMenu = (id: string, x: number, y: number) => {
+    if (stashBusy) return;
+    setStashMenu({id, x, y});
+  };
+  useEffect(() => {
+    if (!stashMenu) return;
+    stashMenuButton.current?.focus();
+    const close = () => setStashMenu(null);
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      close();
+      document.getElementById(`commit-${stashMenu.id}`)?.focus({preventScroll: true});
+    };
+    window.addEventListener('pointerdown', close);
+    window.addEventListener('keydown', escape);
+    return () => {
+      window.removeEventListener('pointerdown', close);
+      window.removeEventListener('keydown', escape);
+    };
+  }, [stashMenu]);
   const tracking = useMemo(() => new Map((session.page.tracking ?? []).map(value => [value.branch, value])), [session.page.tracking]);
   const viewport = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLDivElement>(null);
@@ -116,13 +139,25 @@ export function History({ membershipId, focusOid, onFocused, ciBadges, submodule
     {stashes?.more && <div className="notice compact">{t('Showing the latest 200 stashes. Inspect older entries with Git.')}</div>}
     {session.notice && <div className="notice compact" role="status">{t(session.notice)}</div>}
     {session.base > 0 && <div className="notice compact">{t("Showing older history from commit")} {session.base + 1}{t(". Refresh to return to the latest commits.")}</div>}
-    <div className="history-scroll" onWheel={onNavigate} onTouchStart={onNavigate} onPointerDown={onNavigate} ref={viewport} aria-label={t("Commit history")} onScroll={event => { const top = event.currentTarget.scrollTop; if (heading.current) heading.current.scrollLeft = event.currentTarget.scrollLeft; setScroll(top); const item = items[Math.floor(top / ROW_HEIGHT)]; onScroll(top, item?.id ?? '', top % ROW_HEIGHT); }}>
+    <div className="history-scroll" onWheel={onNavigate} onTouchStart={onNavigate} onPointerDown={onNavigate} ref={viewport} aria-label={t("Commit history")} onScroll={event => { if (stashMenu) setStashMenu(null); const top = event.currentTarget.scrollTop; if (heading.current) heading.current.scrollLeft = event.currentTarget.scrollLeft; setScroll(top); const item = items[Math.floor(top / ROW_HEIGHT)]; onScroll(top, item?.id ?? '', top % ROW_HEIGHT); }}>
       <div className="history-content"><div style={{ height: range.start * ROW_HEIGHT }} />
         {items.slice(range.start, range.end).map((item, local) => {
           const index = range.start + local;
           if (item.stash) {
             const entry = item.stash; const lane = savedGeometry.byEntry.get(item.id) ?? savedGeometry.gitLanes; const sx = 18 + lane * laneStep; const baseLanes = item.base ? savedGeometry.byBase.get(item.base.commit.oid) ?? [] : [];
-            return <button key={item.id} id={`commit-${item.id}`} data-base-oid={entry.baseOid ?? ''} className={`commit-row stash-graph-row ${session.selected === item.id ? 'selected' : ''}`} style={{ height: ROW_HEIGHT }} aria-pressed={session.selected === item.id} tabIndex={session.selected === item.id || (!selectionVisible && index === 0) ? 0 : -1} onClick={() => onSelect(item.id)} onContextMenu={event => { event.preventDefault(); onSelect(item.id); }} onKeyDown={event => { const next = event.key === 'ArrowDown' ? index + 1 : event.key === 'ArrowUp' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : null; if (next !== null) { event.preventDefault(); choose(next); } }}>
+            return <button key={item.id} id={`commit-${item.id}`} data-base-oid={entry.baseOid ?? ''} className={`commit-row stash-graph-row ${session.selected === item.id ? 'selected' : ''}`} style={{ height: ROW_HEIGHT }} aria-pressed={session.selected === item.id} tabIndex={session.selected === item.id || (!selectionVisible && index === 0) ? 0 : -1} onClick={() => onSelect(item.id)} onContextMenu={event => {
+              event.preventDefault();
+              const box = event.currentTarget.getBoundingClientRect();
+              const keyboard = event.clientX === 0 && event.clientY === 0;
+              openStashMenu(item.id, keyboard ? box.left + 8 : event.clientX, keyboard ? box.bottom : event.clientY);
+            }} onKeyDown={event => {
+              if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+                event.preventDefault();
+                const box = event.currentTarget.getBoundingClientRect();
+                openStashMenu(item.id, box.left + 8, box.bottom);
+                return;
+              }
+              const next = event.key === 'ArrowDown' ? index + 1 : event.key === 'ArrowUp' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : null; if (next !== null) { event.preventDefault(); choose(next); } }}>
               <span className="graph-refs"><span className="graph-ref stash"><Icon name="layers" size={12}/>{`stash@{${entry.index}}`}</span></span>
               <svg className="graph-mark stash-mark" aria-hidden="true" width={laneWidth} height={ROW_HEIGHT} data-stash-lane={lane} data-git-lanes={savedGeometry.gitLanes}>{item.base?.incoming.map(stroke => <path key={stroke.lane} d={`M${18 + stroke.lane * laneStep},0 V${ROW_HEIGHT}`} stroke={color(stroke.color)}/>)}{baseLanes.filter(value => value < lane).map(value => <path key={`carry-${value}`} d={`M${18 + value * laneStep},0 V36`} stroke="var(--graph-stash, #e5b35c)" strokeDasharray="3 3"/>)}{item.base && <path d={`M${sx},18 V36`} stroke="var(--graph-stash, #e5b35c)" strokeDasharray="3 3"/>}<rect x={sx - 5} y={13} width={10} height={10} rx={2} fill="var(--panel)" stroke="var(--graph-stash, #e5b35c)"/></svg>
               <span className="commit-description" title={entry.message}><span className="subject">{stashTitle(entry.message)}</span><span className="head-label">{t('Saved work')}</span></span><span className="commit-ci" aria-hidden="true">—</span><span className="author" title={entry.baseOid ?? ''}>{item.base ? t('Base {0}', [entry.baseOid?.slice(0, 8)]) : t('Base outside loaded history')}</span><span className="commit-date">{date(entry.timestamp)}</span>
@@ -151,5 +186,14 @@ export function History({ membershipId, focusOid, onFocused, ciBadges, submodule
       {!session.rows.length && <div className="quiet-state"><Icon name="commit" size={26} /><h2>{t("No commits yet")}</h2><p>{t("Stage your first files from Working changes.")}</p></div>}
       {!!session.rows.length && !session.page.next && <p className="history-end"><span />{t("Beginning of available history")}<span /></p>}
     </div>
+    {stashMenu && !stashBusy && items.some(item => item.stash && item.id === stashMenu.id)
+      && createPortal(<div className="working-file-menu" role="menu" aria-label={t('Stash actions')}
+        style={{left: Math.max(8, Math.min(stashMenu.x, window.innerWidth - 228)), top: Math.max(8, Math.min(stashMenu.y, window.innerHeight - 60))}}
+        onPointerDown={event => event.stopPropagation()}>
+        <button ref={stashMenuButton} className="danger-action" role="menuitem" onClick={() => {
+          onDropStash(stashMenu.id);
+          setStashMenu(null);
+        }}>{t('Remove saved stash…')}</button>
+      </div>, document.body)}
   </div>;
 }

@@ -886,6 +886,7 @@ impl Application {
                     }),
                     "pull_current" => "Current branch pulled by fast-forward; local commits preserved".into(),
                     "fetch_remote" => "Remote branches fetched; local files and branches preserved".into(),
+                    "refresh_remote_delete_tracking" => "Selected remote branch label refreshed".into(),
                     "switch_remote_branch" => "Local tracking branch ready; fetched changes integrated by fast-forward and local commits preserved".into(),
                     "switch_branch" => format!(
                         "Switched to {}",
@@ -1699,6 +1700,17 @@ impl Application {
     ) -> Result<RemoteDeletePreview> {
         self.git
             .preview_remote_delete(&self.path(membership_id)?, request)
+    }
+    pub fn refresh_remote_delete_tracking(
+        &self,
+        membership_id: &str,
+        request: &RemoteDeleteRequest,
+    ) -> Result<OperationReceipt> {
+        self.execute_write(
+            membership_id,
+            "refresh_remote_delete_tracking",
+            |git, path| git.refresh_remote_delete_tracking(path, request),
+        )
     }
     pub fn delete_remote_branch(
         &self,

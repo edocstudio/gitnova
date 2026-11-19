@@ -113,11 +113,13 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.apply_graph_action(&s("membershipId")?, &action, &s("token")?)?)
             }
         }
-        "preview_remote_delete" | "delete_remote_branch" => {
+        "preview_remote_delete" | "refresh_remote_delete_tracking" | "delete_remote_branch" => {
             let request = serde_json::from_value(args["request"].clone())
                 .map_err(|e| AppError::new("remote_delete_blocked", format!("{e}")))?;
             if command == "preview_remote_delete" {
                 json!(app.preview_remote_delete(&s("membershipId")?, &request)?)
+            } else if command == "refresh_remote_delete_tracking" {
+                json!(app.refresh_remote_delete_tracking(&s("membershipId")?, &request)?)
             } else {
                 json!(app.delete_remote_branch(&s("membershipId")?, &request, &s("token")?)?)
             }

@@ -52,10 +52,62 @@ fn write(git: &GitCli, root: &Path, args: &[&str]) -> Result<()> {
     native.extend(args.iter().map(OsString::from));
     run_stash_write(root, &native)
 }
+#[derive(PartialEq, Eq)]
 struct Metadata {
     tip: Vec<u8>,
     log: Vec<u8>,
     root: PathBuf,
+    loose: bool,
+    packed: Option<Vec<u8>>,
+}
+impl Metadata {
+    fn snapshot(&self) -> String {
+        let mut digest = Sha256::new();
+        digest.update([u8::from(self.loose)]);
+        for bytes in [
+            self.tip.as_slice(),
+            self.log.as_slice(),
+            self.packed.as_deref().unwrap_or(&[]),
+        ] {
+            digest.update((bytes.len() as u64).to_le_bytes());
+            digest.update(bytes);
+        }
+        format!("{:x}", digest.finalize())
+    }
+}
+fn optional_bytes(path: &Path, limit: usize) -> Result<Option<Vec<u8>>> {
+    match fs::symlink_metadata(path) {
+        Ok(_) => bytes(path, limit).map(Some),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e.into()),
+    }
+}
+fn packed_stash_record(packed: &[u8]) -> Result<Option<(std::ops::Range<usize>, &[u8])>> {
+    let mut found = None;
+    let mut offset = 0;
+    for line in packed.split_inclusive(|b| *b == b'\n') {
+        if let Some(oid) = line.strip_suffix(b" refs/stash\n") {
+            let end = offset + line.len();
+            if found.is_some()
+                || !matches!(oid.len(), 40 | 64)
+                || !oid.iter().all(u8::is_ascii_hexdigit)
+                || packed.get(end) == Some(&b'^')
+            {
+                return Err(AppError::new(
+                    "stash_blocked",
+                    "Packed stash refs require inspection with Git before Pop/Drop.",
+                ));
+            }
+            found = Some((offset..end, oid));
+        } else if line.ends_with(b" refs/stash") {
+            return Err(AppError::new(
+                "stash_blocked",
+                "Packed stash refs require inspection with Git before Pop/Drop.",
+            ));
+        }
+        offset += line.len();
+    }
+    Ok(found)
 }
 impl GitCli {
     pub fn stashes(&self, root: &Path) -> Result<StashList> {
@@ -115,7 +167,7 @@ impl GitCli {
         entries.truncate(200);
         Ok(StashList { entries, more })
     }
-    fn stash_metadata(&self, root: &Path) -> Result<Metadata> {
+    fn stash_metadata(&self, root: &Path, kind: &StashKind) -> Result<Metadata> {
         let d = self.discover(root)?;
         if self
             .optional_text(root, &["config", "--get", "extensions.refStorage"])?
@@ -135,19 +187,25 @@ impl GitCli {
                 ));
             }
         }
-        let tip=bytes(&d.common_dir.join("refs/stash"),256).map_err(|_|AppError::new("stash_blocked","Pop/Drop require a loose stash ref and complete local reflog. Inspect packed or missing metadata with Git."))?;
+        let loose_tip = optional_bytes(&d.common_dir.join("refs/stash"), 256)?;
+        let loose = loose_tip.is_some();
         let log = bytes(&d.common_dir.join("logs/refs/stash"), 2 * 1024 * 1024)?;
-        let packed = d.common_dir.join("packed-refs");
-        if packed.exists()
-            && bytes(&packed, 8 * 1024 * 1024)?
-                .split(|b| *b == b'\n')
-                .any(|l| l.ends_with(b" refs/stash"))
-        {
+        let packed = optional_bytes(&d.common_dir.join("packed-refs"), 8 * 1024 * 1024)?;
+        let packed_oid = packed
+            .as_deref()
+            .map(packed_stash_record)
+            .transpose()?
+            .flatten()
+            .map(|(_, oid)| oid);
+        if packed_oid.is_some() && *kind != StashKind::Drop {
             return Err(AppError::new(
                 "stash_blocked",
                 "Packed stash refs require inspection with Git before Pop/Drop.",
             ));
         }
+        let tip = loose_tip.or_else(|| packed_oid.map(|oid| [oid, b"\n"].concat()))
+            .ok_or_else(|| AppError::new("stash_blocked", "Pop/Drop require a loose stash ref and complete local reflog. Inspect packed or missing metadata with Git."))?;
+        let packed = if packed_oid.is_some() { packed } else { None };
         let hook = self.text(
             root,
             &["rev-parse", "--git-path", "hooks/reference-transaction"],
@@ -178,6 +236,8 @@ impl GitCli {
             tip,
             log,
             root: d.common_dir,
+            loose,
+            packed,
         })
     }
     pub fn preview_stash(&self, root: &Path, request: &StashRequest) -> Result<StashPreview> {
@@ -224,24 +284,28 @@ impl GitCli {
         if changes.status.head.is_none() {
             blocked = Some("Create the first commit before using stashes.".into());
         }
-        if changes.files.iter().any(|f| f.blocked_reason.is_some()) {
+        if request.kind != StashKind::Drop
+            && changes.files.iter().any(|f| f.blocked_reason.is_some())
+        {
             blocked=Some("Resolve conflicts and review submodule/nested repository changes before using stash writes.".into());
         }
-        let flags = self
-            .read(
-                root,
-                &["ls-files".as_ref(), "-v".as_ref(), "-z".as_ref()],
-                4 * 1024 * 1024,
-            )?
-            .bytes;
-        if flags.split(|b| *b == 0).any(|r| {
-            r.first()
-                .is_some_and(|b| b.is_ascii_lowercase() || *b == b'S')
-        }) {
-            blocked = Some(
-                "Hidden index entries require inspection with Git before using stash writes."
-                    .into(),
-            );
+        if request.kind != StashKind::Drop {
+            let flags = self
+                .read(
+                    root,
+                    &["ls-files".as_ref(), "-v".as_ref(), "-z".as_ref()],
+                    4 * 1024 * 1024,
+                )?
+                .bytes;
+            if flags.split(|b| *b == 0).any(|r| {
+                r.first()
+                    .is_some_and(|b| b.is_ascii_lowercase() || *b == b'S')
+            }) {
+                blocked = Some(
+                    "Hidden index entries require inspection with Git before using stash writes."
+                        .into(),
+                );
+            }
         }
         let mut files = BTreeMap::new();
         let mut diff = String::new();
@@ -364,50 +428,52 @@ impl GitCli {
                     files.insert(file.path.hex.clone(), file.path);
                 }
             }
-            let mut versions = vec![
-                (Some(detail.commit.parents[0].as_str()), entry.oid.as_str()),
-                (
-                    Some(detail.commit.parents[0].as_str()),
-                    detail.commit.parents[1].as_str(),
-                ),
-            ];
-            if let Some(third) = detail.commit.parents.get(2) {
-                versions.push((None, third.as_str()));
-            }
-            for (base, tip) in versions {
-                let mut args: Vec<&OsStr> = vec![
-                    "diff-tree".as_ref(),
-                    "--root".as_ref(),
-                    "--no-commit-id".as_ref(),
-                    "--no-ext-diff".as_ref(),
-                    "--no-textconv".as_ref(),
-                    "--no-renames".as_ref(),
-                    "--raw".as_ref(),
-                    "-r".as_ref(),
-                    "-z".as_ref(),
+            if request.kind != StashKind::Drop {
+                let mut versions = vec![
+                    (Some(detail.commit.parents[0].as_str()), entry.oid.as_str()),
+                    (
+                        Some(detail.commit.parents[0].as_str()),
+                        detail.commit.parents[1].as_str(),
+                    ),
                 ];
-                if let Some(base) = base {
-                    args.push(base.as_ref());
+                if let Some(third) = detail.commit.parents.get(2) {
+                    versions.push((None, third.as_str()));
                 }
-                args.push(OsStr::new(tip));
-                args.push(OsStr::new("--"));
-                let raw = self.read(root, &args, 4 * 1024 * 1024)?.bytes;
-                if raw.split(|b| *b == 0).any(|r| {
-                    r.starts_with(b":160000 ")
-                        || r.starts_with(b":") && r.get(8..14) == Some(b"160000")
-                }) {
-                    blocked = Some(
+                for (base, tip) in versions {
+                    let mut args: Vec<&OsStr> = vec![
+                        "diff-tree".as_ref(),
+                        "--root".as_ref(),
+                        "--no-commit-id".as_ref(),
+                        "--no-ext-diff".as_ref(),
+                        "--no-textconv".as_ref(),
+                        "--no-renames".as_ref(),
+                        "--raw".as_ref(),
+                        "-r".as_ref(),
+                        "-z".as_ref(),
+                    ];
+                    if let Some(base) = base {
+                        args.push(base.as_ref());
+                    }
+                    args.push(OsStr::new(tip));
+                    args.push(OsStr::new("--"));
+                    let raw = self.read(root, &args, 4 * 1024 * 1024)?.bytes;
+                    if raw.split(|b| *b == 0).any(|r| {
+                        r.starts_with(b":160000 ")
+                            || r.starts_with(b":") && r.get(8..14) == Some(b"160000")
+                    }) {
+                        blocked = Some(
                         "Stashes that change submodule pointers require separate review with Git."
                             .into(),
                     );
+                    }
                 }
             }
             if request.kind != StashKind::Drop && changes.status.dirty {
                 blocked=Some("Stash or commit current work before applying saved work. The working tree must be clean.".into());
             }
             if matches!(request.kind, StashKind::Pop | StashKind::Drop) {
-                match self.stash_metadata(root) {
-                    Ok(m) => metadata_hash = Some(hash(&[m.tip, m.log].concat())),
+                match self.stash_metadata(root, &request.kind) {
+                    Ok(m) => metadata_hash = Some(m.snapshot()),
                     Err(e) => blocked = Some(e.message),
                 };
                 if list.more {
@@ -708,10 +774,8 @@ impl GitCli {
             .as_deref()
             .ok_or_else(|| AppError::new("stash_request", "Missing stash identity."))?;
         let removal = if matches!(request.kind, StashKind::Pop | StashKind::Drop) {
-            let metadata = self.stash_metadata(root)?;
-            if Some(hash(&[metadata.tip.clone(), metadata.log.clone()].concat()))
-                != preview.stash_snapshot
-            {
+            let metadata = self.stash_metadata(root, &request.kind)?;
+            if Some(metadata.snapshot()) != preview.stash_snapshot {
                 return Err(AppError::new(
                     "stale_preview",
                     "Stash metadata changed before applying. Review again.",
@@ -787,6 +851,11 @@ impl GitCli {
             file.write_all(content)?;
             file.sync_all()?;
         }
+        if let Some(packed) = &before.packed {
+            let mut file = fs::File::create(archive.join("original-packed-refs"))?;
+            file.write_all(packed)?;
+            file.sync_all()?;
+        }
         if let Some(tip) = &tip {
             let mut file = fs::File::create(archive.join("proposed-ref"))?;
             file.write_all(tip)?;
@@ -794,22 +863,43 @@ impl GitCli {
         }
         #[cfg(unix)]
         fs::File::open(&archive)?.sync_all()?;
-        let _packed_lock = MetadataLock::new(before.root.join("packed-refs.lock"))?;
+        let packed_path = before.root.join("packed-refs");
+        let ref_path = before.root.join("refs/stash");
+        let log_path = before.root.join("logs/refs/stash");
+        let mut packed_lock = MetadataLock::new(before.root.join("packed-refs.lock"))?;
         let mut ref_lock = MetadataLock::new(before.root.join("refs/stash.lock"))?;
         let mut log_lock = MetadataLock::new(before.root.join("logs/refs/stash.lock"))?;
-        let now = self.stash_metadata(root)?;
-        if now.tip != before.tip || now.log != before.log {
+        if self.stash_metadata(root, &preview.request.kind)? != before {
             return Err(AppError::new("stash_partial","Stash metadata changed before removal. The stash and recovery snapshot were retained."));
         }
-        ref_lock.preserve_permissions(&before.root.join("refs/stash"))?;
-        log_lock.preserve_permissions(&before.root.join("logs/refs/stash"))?;
+        if before.loose {
+            ref_lock.preserve_permissions(&ref_path)?;
+        }
+        log_lock.preserve_permissions(&log_path)?;
+        let remove_packed = tip.is_none() && before.packed.is_some();
+        if let (true, Some(packed)) = (remove_packed, &before.packed) {
+            let Some((record, _)) = packed_stash_record(packed)? else {
+                return Err(AppError::new(
+                    "stash_partial",
+                    "Packed stash record changed before removal.",
+                ));
+            };
+            packed_lock.preserve_permissions(&packed_path)?;
+            packed_lock.prepare(&[&packed[..record.start], &packed[record.end..]].concat())?;
+        }
         ref_lock.prepare(tip.as_deref().unwrap_or(&[]))?;
         log_lock.prepare(&log)?;
-        log_lock.publish(&before.root.join("logs/refs/stash"))?;
+        log_lock.publish(&log_path)?;
         if tip.is_some() {
-            ref_lock.publish(&before.root.join("refs/stash"))?;
+            ref_lock.publish(&ref_path)?;
         } else {
-            fs::remove_file(before.root.join("refs/stash"))?;
+            // Keep packed-refs locked until the loose ref can no longer be repacked.
+            if before.loose {
+                fs::remove_file(&ref_path)?;
+            }
+            if remove_packed {
+                packed_lock.publish(&packed_path)?;
+            }
         }
         Ok(())
     }

@@ -76,6 +76,7 @@ export const api = {
   previewAmend: (membershipId:string,request:AmendRequest)=>call<AmendPreview>('preview_amend',{membershipId,request}),
   amendCommit: (membershipId:string,request:AmendRequest,token:string,acknowledgeRewrite:boolean)=>call<OperationReceipt>('amend_commit',{membershipId,request,token,acknowledgeRewrite}),
   previewRemoteDelete: (membershipId: string, request: RemoteDeleteRequest) => call<RemoteDeletePreview>('preview_remote_delete', { membershipId, request }),
+  refreshRemoteDeleteTracking: (membershipId: string, request: RemoteDeleteRequest) => call<OperationReceipt>('refresh_remote_delete_tracking', { membershipId, request }),
   deleteRemoteBranch: (membershipId: string, request: RemoteDeleteRequest, token: string) => call<OperationReceipt>('delete_remote_branch', { membershipId, request, token }),
   previewClone: (request: CloneRequest) => call<ClonePreview>('preview_clone', { request }),
   cloneRepository: (request: CloneRequest, token: string, onProgress?: (event: WorkProgress) => void) => callProgress<CloneOutcome>('clone_repository', { request, token }, onProgress),

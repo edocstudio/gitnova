@@ -10,6 +10,49 @@ The user requires a version bump and a new installed macOS `.app` for every
 GitNova code change. The durable instructions and completion checks are in
 [AGENTS.md](../AGENTS.md#persistent-settings). This note was documentation only.
 
+## Refresh a stale remote branch label
+
+Branch `fix/refresh-stale-remote-branch` (base `4f570b0`) fixes the remote
+deletion review when the selected graph label is stale. Normal Fetch is
+intentionally non-pruning. The review distinguishes a moved branch from an
+absent branch and offers Refresh branch label for that tracking ref when fetch
+and push share the same destination and a standard mapping. The scoped refresh
+fetches objects for a changed tip or clears a verified absent tracking ref.
+It compares the selected local OID before writing and preserves local branches,
+tags, staging and working files. Deletion still needs a fresh review and an
+exact server-side lease. The user's remote was not used for testing.
+
+Seven Rust remote deletion integrations and two Playwright workflows passed
+on disposable Git repositories. The new browser scenario passed after
+targeting the graph row when local and remote refs share a badge. TypeScript,
+formatting and diff checks passed. GitNova 1.3.4 is installed at
+`Desktop/GitNova.app`. The staged bundle passed native startup, catalog,
+real Git and single-instance checks. The installed copy passed signature and
+embedded UI checks and matches the built binary. Installed binary SHA-256:
+`56b69e7b3080c55cf7665b9a533c8c4d22e98b124862a301e9a9b9485571141c`. The previous app is retained in a hidden Desktop backup.
+
+## Remove saved stash from the graph
+
+Branch `fix/stash-graph-removal` (base `55f9353`) adds a right-click and
+Shift+F10 removal action that opens the existing stash review for the selected
+record. Removal is also visible above the restore review's file list. Drop
+keeps its recovery ref and preserves working files and staging. The files
+backend supports a packed stash tip with a matching reflog for Drop and retains
+other packed refs. Pop with a packed stash continues to offer Apply separately.
+Unsupported storage, reference-transaction hooks and inconsistent metadata
+still stop the write.
+
+All 18 Rust stash integration tests, three Playwright cases, TypeScript,
+formatting and diff checks passed. The macOS 1.3.3 release bundle at
+`target/release/bundle/macos/GitNova.app` passed signature and embedded UI checks.
+Installed 1.3.3 at `Desktop/GitNova.app`. The staged bundle passed native
+startup, catalog, real Git and single-instance smoke checks with a disposable
+repository. The installed copy passed strict ad-hoc signature verification and
+embedded UI verification, and exactly matches the built binary. Its SHA-256 is
+`2ae42798ab33d3ee24dbe86de7b22ebfccf13f9d715bb647b1bb6517843e0b85`.
+The previous 1.3.2 app remains in the hidden Desktop backup
+`.gitnova-update.nQjvvdB5/GitNova-1.3.2.app`. No build runner is active.
+
 ## Line authors styling
 
 On branch `fix/diff-line-author-contrast`, the inline author button now uses the

@@ -11,7 +11,7 @@ const request = (kind: StashKind, entry: Pick<StashEntry, 'oid' | 'index'> | nul
 const popRemovalBlocked = (reason: string) => /Pop\/Drop|Packed stash refs|Reference-transaction hooks|stash metadata|reflog disagree/.test(reason);
 export function StashControls({ operationState, initialKind, initialEntry, membershipId, changes, disabled, onBusyChange, onOperation, onFailure, onRefresh, onDiffChange, onClose }: {
   operationState?: MergeState;
-  initialKind?: 'push' | 'pop'; initialEntry?: Pick<StashEntry, 'oid' | 'index'>; membershipId: string; changes: WorkingChanges | null; disabled: boolean; onBusyChange: (value: boolean) => void; onOperation: (receipt: OperationReceipt) => void; onFailure: (id: string, message: string) => void; onRefresh: () => Promise<void>; onDiffChange: (value: WorkingDiff) => void; onClose: () => void;
+  initialKind?: 'push' | 'pop' | 'drop'; initialEntry?: Pick<StashEntry, 'oid' | 'index'>; membershipId: string; changes: WorkingChanges | null; disabled: boolean; onBusyChange: (value: boolean) => void; onOperation: (receipt: OperationReceipt) => void; onFailure: (id: string, message: string) => void; onRefresh: () => Promise<void>; onDiffChange: (value: WorkingDiff) => void; onClose: () => void;
 }) {
   const locale = useLocale(); const root = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<StashList | null>(null); const [preview, setPreview] = useState<StashPreview | null>(null);
@@ -38,7 +38,7 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
       if (cancelled) return;
       if (initialEntry || initialKind === 'pop') {
         const entry = initialEntry ? value.entries.find(item => item.oid === initialEntry.oid && item.index === initialEntry.index) : value.entries[0];
-        if (entry) void inspect(request('pop', entry)); else setError('This saved entry changed. Select it again from the graph or stash list.');
+        if (entry) void inspect(request(initialKind === 'drop' ? 'drop' : 'pop', entry)); else setError('This saved entry changed. Select it again from the graph or stash list.');
       } else if (initialKind === 'push') void inspect(request('push', null));
     }).catch(e => { if (!cancelled) setError(errorMessage(e)); });
     return () => { cancelled = true; mounted.current = false; sequence.current++; };
@@ -67,6 +67,7 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
   useEffect(() => { if (preview && !loading) requestAnimationFrame(() => root.current?.querySelector<HTMLButtonElement>('.stash-confirm')?.focus()); }, [preview?.request.id, loading]);
   const apply = async () => {
     if (!preview || preview.blockedReason || disabled || loading || inFlight.current) return;
+    if (preview.request.kind === 'drop' && previewContext !== contextRef.current) return;
     inFlight.current = true; setBusy(true); onBusyChange(true); setError('');
     try {
       const receipt = await api.applyStash(membershipId, preview.request, preview.token); onOperation(receipt); setPreview(null); setFile(null);
@@ -82,7 +83,12 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
   const operationLabel = operationState?.operation === 'cherryPick' ? t('Cherry-pick') : operationState?.operation === 'revert' ? t('Revert') : t('Merge');
   const settingsChanged = Boolean(push && preview && (preview.request.message !== message || preview.request.includeUntracked !== includeUntracked));
   const label = push ? t('Stash on {0}', [branch]) : drop ? t('Remove saved stash') : preview?.request.kind === 'apply' ? t('Apply on {0}', [branch]) : t('Pop on {0}', [branch]);
-  const updateKind = (kind: StashKind) => { if (preview) { const next = { ...preview.request, kind, id: '' }; setPreview({ ...preview, request: next }); void inspect(next); } };
+  const updateKind = (kind: StashKind) => {
+    if (!preview) return;
+    const next = { ...preview.request, kind, id: '' };
+    if (kind !== 'drop') setPreview({ ...preview, request: next });
+    void inspect(next, kind === 'drop');
+  };
   const updateIndex = (restoreIndex: boolean) => { if (preview) { const next = { ...preview.request, restoreIndex, id: '' }; setPreview({ ...preview, request: next }); void inspect(next); } };
   return <div ref={root} className="stash-controls">
     {error && <div className="inline-error" role="alert">{t(error)}{failedRequest?.kind === 'pop' && popRemovalBlocked(error) && <div className="stash-secondary"><button disabled={busy || loading || disabled} onClick={() => void inspect({ ...failedRequest, kind: 'apply', id: '' })}>{t('Restore and keep stash')}</button></div>}</div>}
@@ -97,18 +103,18 @@ export function StashControls({ operationState, initialKind, initialEntry, membe
     {preview && <div className="stash-preview">
       <div className="stash-destination"><small>{push ? t('Save current changes from') : drop ? t('Remove saved work') : t('Restore saved changes onto')}</small><strong>{drop ? `stash@{${preview.request.index}}` : branch}</strong>{selectedEntry && <p title={selectedEntry.message}><code>{`stash@{${selectedEntry.index}}`}</code> · {stashTitle(selectedEntry.message)}</p>}<small>{t('{0} files', [preview.files.length])}</small></div>
       <p>{push ? t('Save these changes so you can switch branches. New files are included unless you turn them off below.') : drop ? t('Remove this saved entry without changing working files. Its commit is retained by the recovery ref.') : preview.request.kind === 'apply' ? t('Restore onto this branch and keep the saved stash.') : t('Restore onto this branch, then remove the stash if successful.')}</p>
-      {preview.request.kind !== 'push' && needsWorkPreparation(preview.blockedReason) && <WorkPreparation key={preview.request.oid} membershipId={membershipId} disabled={disabled || busy} onBusyChange={value => { inFlight.current = value; setBusy(value); onBusyChange(value); }} onDone={async receipt => { onOperation(receipt); await onRefresh(); }} onFailure={onFailure} onReady={() => { const original = preview.request; void reload().then(value => { const entry = value.entries.find(item => item.oid === original.oid); if (!entry) throw new Error('This saved entry changed. Select it again from the graph or stash list.'); return inspect({...original, index: entry.index, id: ''}); }).catch(e => setError(errorMessage(e))); }}/>}
+      {!push && !drop && needsWorkPreparation(preview.blockedReason) && <WorkPreparation key={preview.request.oid} membershipId={membershipId} disabled={disabled || busy} onBusyChange={value => { inFlight.current = value; setBusy(value); onBusyChange(value); }} onDone={async receipt => { onOperation(receipt); await onRefresh(); }} onFailure={onFailure} onReady={() => { const original = preview.request; void reload().then(value => { const entry = value.entries.find(item => item.oid === original.oid); if (!entry) throw new Error('This saved entry changed. Select it again from the graph or stash list.'); return inspect({...original, index: entry.index, id: ''}); }).catch(e => setError(errorMessage(e))); }}/>}
       {preview.blockedReason && <div className="notice" role="status">{ownedOperationBlocked ? t('{0} is still active on {1}, even with zero changed files. Finish or abort it before restoring saved work.', [operationLabel, branch]) : t(preview.blockedReason)}<div className="stash-secondary">{preview.request.kind === 'pop' && popRemovalBlocked(preview.blockedReason) ? <button disabled={busy || disabled || loading} onClick={() => updateKind('apply')}>{t('Restore and keep stash')}</button> : <button disabled={busy || disabled} onClick={onClose}>{ownedOperationBlocked ? t('Review pending {0}', [operationLabel]) : t('Review working changes')}</button>}</div></div>}
+      {!push && !drop && <button className="danger-action" disabled={busy || disabled || loading} onClick={() => updateKind('drop')}>{t('Remove saved stash…')}</button>}
       {(preview.truncated||preview.indexTruncated)&&<p className="hint">{t('The complete file list is included. Code loads per file; large files may have a partial preview. No files are excluded because of the code preview limit.')}</p>}
       <div className="stash-review-files" aria-label={t('Stash files')}>{preview.files.map(path => <button key={path.hex} aria-pressed={file?.hex === path.hex} onClick={() => setFile(path)}><Icon name="file" size={14}/><span>{path.display}</span></button>)}</div>
-      <div className="graph-action-footer"><button disabled={busy} onClick={onClose}>{t('Cancel')}</button><button className={`stash-confirm ${drop ? 'danger-action' : 'primary'}`} disabled={busy || disabled || loading || patchLoading || Boolean(activePatchError) || Boolean(preview.blockedReason && !settingsChanged)} onClick={() => { if (settingsChanged) void inspect(request('push', null, message, includeUntracked)); else void apply(); }}>{busy ? t('Applying…') : settingsChanged ? t('Review updates') : label}</button></div>
+      <div className="graph-action-footer"><button disabled={busy} onClick={onClose}>{t('Cancel')}</button><button className={`stash-confirm ${drop ? 'danger-action' : 'primary'}`} disabled={busy || disabled || loading || (!drop && (patchLoading || Boolean(activePatchError))) || (drop && previewContext !== context) || Boolean(preview.blockedReason && !settingsChanged)} onClick={() => { if (settingsChanged) void inspect(request('push', null, message, includeUntracked)); else void apply(); }}>{busy ? t('Applying…') : settingsChanged ? t('Review updates') : label}</button></div>
       <details className="stash-options"><summary>{t('Options and recovery')}</summary>
         {push && <><label htmlFor="stash-message">{t('Stash message')} <span>{t('optional')}</span></label><input id="stash-message" value={message} maxLength={256} disabled={busy || disabled || loading} onChange={event => setMessage(event.target.value)} /><label className="ref-checkbox"><input type="checkbox" checked={includeUntracked} disabled={busy || disabled || loading} onChange={event => setIncludeUntracked(event.target.checked)}/>{t('Include untracked files')}</label></>}
         {!push && !drop && <><label className="ref-checkbox"><input type="checkbox" checked={preview.request.kind === 'apply'} disabled={busy || disabled || loading} onChange={event => updateKind(event.target.checked ? 'apply' : 'pop')}/>{t('Keep the stash after restoring')}</label><label className="ref-checkbox"><input type="checkbox" checked={preview.request.restoreIndex} disabled={busy || disabled || loading} onChange={event => updateIndex(event.target.checked)}/>{t('Restore the saved staging state')}</label></>}
         <div className="view-switch" role="group" aria-label={t('Saved comparison')}><button aria-pressed={!indexView} onClick={() => setIndexView(false)}>{t('Saved working tree')}</button><button aria-pressed={indexView} onClick={() => setIndexView(true)}>{t('Saved index')}</button></div>
-        {!push && !drop && <button className="danger-action" disabled={busy || disabled || loading} onClick={() => updateKind('drop')}>{t('Remove saved stash…')}</button>}
         {selectedEntry && <p>{selectedEntry.message}<br/><code>{`stash@{${selectedEntry.index}}`} · {selectedEntry.oid}</code></p>}
-        <p>{t('Review shows the captured delta. Applying to this checkout may produce conflicts; configured filters or hooks can run.')}</p><small>{t('Recovery ref')}</small><code className="recovery-ref">{preview.recoveryRef}</code>
+        {!drop && <p>{t('Review shows the captured delta. Applying to this checkout may produce conflicts; configured filters or hooks can run.')}</p>}<small>{t('Recovery ref')}</small><code className="recovery-ref">{preview.recoveryRef}</code>
       </details>
     </div>}
   </div>;

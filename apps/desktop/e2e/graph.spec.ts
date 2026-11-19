@@ -805,7 +805,30 @@ test('stash advanced options retain saved staging, apply/drop and composer draft
   const panel = page.locator('.stash-controls');
   const save = async () => { await page.locator('.working-stash-actions').getByRole('button', { name: 'Stash…', exact: true }).click(); await expect(panel.getByRole('button', { name: 'Stash on main', exact: true })).toBeEnabled({timeout:45000}); await expect(panel.locator('.stash-review-files')).toContainText('new ภาษาไทย.txt'); await panel.getByText('Options and recovery', { exact: true }).click(); await panel.getByRole('button', { name: 'Saved index', exact: true }).click(); await expect(page.getByRole('region', { name: 'After code', exact: true })).toContainText('staged version'); await panel.getByRole('button', { name: 'Saved working tree', exact: true }).click(); await expect(page.getByRole('region', { name: 'After code', exact: true })).toContainText('working version'); await page.screenshot({ path: testInfo.outputPath('stash-capture-review.png') }); await panel.getByRole('button', { name: 'Stash on main', exact: true }).click(); await expect(panel).toHaveCount(0, { timeout: 45000 }); await expect(page.getByLabel('Summary', { exact: true })).toHaveValue('Keep my commit draft'); };
   await save(); expect(git(repo, ['status', '--porcelain'])).toBe(''); await page.locator('.stash-graph-row').click(); await panel.getByText('Options and recovery', { exact: true }).click(); await panel.getByLabel('Keep the stash after restoring', { exact: true }).check(); await expect(panel.getByRole('button', { name: 'Apply on main', exact: true })).toBeEnabled({timeout:45000}); await panel.getByLabel('Restore the saved staging state', { exact: true }).check(); await panel.getByRole('button', { name: 'Apply on main', exact: true }).click(); await expect(panel).toHaveCount(0, { timeout: 45000 }); expect(git(repo, ['show', ':file.txt'])).toBe('staged version'); expect(readFileSync(join(repo, 'file.txt'), 'utf8')).toBe('working version\n');
-  await page.locator('.stash-graph-row').click(); await panel.getByText('Options and recovery', { exact: true }).click(); await panel.getByRole('button', { name: 'Remove saved stash…', exact: true }).click(); await expect(panel.getByRole('button', { name: 'Remove saved stash', exact: true })).toBeEnabled({timeout:45000}); const recovery = await panel.locator('.recovery-ref').innerText(); await panel.getByRole('button', { name: 'Remove saved stash', exact: true }).click(); await expect(panel).toHaveCount(0, { timeout: 45000 }); expect(git(repo, ['cat-file', '-t', recovery])).toBe('commit'); expect(readFileSync(join(repo, 'file.txt'), 'utf8')).toBe('working version\n');
+  // Opening the menu and reviewing Drop must leave the saved entry untouched.
+  const stashRow = page.locator('.stash-graph-row');
+  await stashRow.focus();
+  await page.keyboard.press('Shift+F10');
+  const menu = page.getByRole('menu', { name: 'Stash actions' });
+  await expect(menu.getByRole('menuitem')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(stashRow).toBeFocused();
+
+  const stashOid = git(repo, ['rev-parse', 'refs/stash']);
+  const indexBeforeDrop = readFileSync(join(repo, '.git/index'));
+  await stashRow.click({ button: 'right' });
+  await menu.getByRole('menuitem', { name: 'Remove saved stash…', exact: true }).click();
+  const confirmDrop = panel.getByRole('button', { name: 'Remove saved stash', exact: true });
+  await expect(confirmDrop).toBeEnabled({ timeout: 45000 });
+  expect(git(repo, ['rev-parse', 'refs/stash'])).toBe(stashOid);
+  await panel.getByText('Options and recovery', { exact: true }).click();
+  const recovery = await panel.locator('.recovery-ref').innerText();
+  await confirmDrop.click();
+  await expect(panel).toHaveCount(0, { timeout: 45000 });
+  expect(git(repo, ['stash', 'list'])).toBe('');
+  expect(git(repo, ['rev-parse', recovery])).toBe(stashOid);
+  expect(readFileSync(join(repo, '.git/index'))).toEqual(indexBeforeDrop);
+  expect(readFileSync(join(repo, 'file.txt'), 'utf8')).toBe('working version\n');
   await save(); await page.locator('.working-stash-actions').getByRole('button', { name: 'Pop…', exact: true }).click(); await panel.getByText('Options and recovery', { exact: true }).click(); await panel.getByLabel('Restore the saved staging state', { exact: true }).check(); await panel.getByRole('button', { name: 'Pop on main', exact: true }).click(); await expect(panel).toHaveCount(0, { timeout: 45000 }); expect(git(repo, ['stash', 'list'])).toBe(''); expect(git(repo, ['rev-parse', 'HEAD'])).toBe(head); expect(git(repo, ['show', ':file.txt'])).toBe('staged version'); await expect(page.getByLabel('Summary', { exact: true })).toHaveValue('Keep my commit draft');
 });
 
@@ -1372,6 +1395,46 @@ for(const provider of ['github','gitlab'] as const)test(`provider transport UI $
  }
  await expect(panel).toContainText('team/project:feature/demo → team/project:release');await expect(panel.locator('input[type=password]')).toHaveCount(0);expect(postCount).toBe(0);await page.screenshot({path:testInfo.outputPath(`hosting-${provider}-review.png`)});await panel.getByRole('button',{name:provider==='github'?'Create pull request':'Create merge request',exact:true}).click();await expect(panel).toContainText('Request created · #17');await expect(panel).toContainText('Description from GitNova');expect(postCount).toBe(1);await panel.getByRole('button',{name:'Close',exact:true}).click();
  await open();await panel.getByLabel('Target branch (merge into)',{exact:true}).fill('release');await panel.getByRole('button',{name:'Review request',exact:true}).click();await expect(panel).toContainText('An open request already exists: #17');await panel.getByRole('button',{name:'Open existing request',exact:true}).click();await expect(panel).toContainText('Existing request opened · #17');expect(postCount).toBe(1);expect(git(repo,['rev-parse','HEAD'])).toBe(oid);expect(git(repo,['branch','--show-current'])).toBe('feature/demo');
+});
+
+test('stale remote deletion review refreshes only the selected graph label', async ({page}) => {
+  test.setTimeout(180000);
+  const {repo, bare, tip} = await managementFixture(page, 'stale-remote-delete');
+  const branch = 'refs/heads/feature/manage';
+  const tracking = 'refs/remotes/origin/feature/manage';
+  git(repo, ['push', 'origin', 'feature/manage']);
+  git(repo, ['fetch', 'origin']);
+  await page.getByRole('button', {name: 'Refresh', exact: true}).click();
+  const badge = page.locator(`[data-ref-name="${tracking}"]`);
+  await expect(page.getByRole('button', {name: 'Refresh', exact: true})).toBeEnabled();
+
+  const older = git(bare, ['rev-parse', 'main']);
+  expect(older).not.toBe(tip);
+  git(bare, ['update-ref', branch, older]);
+  const openReview = async (oid: string) => {
+    await page.locator(`button#commit-${oid}`).click({button: 'right'});
+    await page.getByRole('menuitem', {name: 'Delete remote branch origin/feature/manage…', exact: true}).click();
+  };
+  const deletion = page.getByLabel('Delete remote branch', {exact: true});
+  const refresh = deletion.getByRole('button', {name: 'Refresh branch label', exact: true});
+  await openReview(tip);
+  await expect(deletion.getByRole('alert')).toContainText('different commit');
+  await expect(deletion.getByRole('button', {name: 'Delete remote branch', exact: true})).toHaveCount(0);
+  expect(git(repo, ['rev-parse', tracking])).toBe(tip);
+  await refresh.click();
+  await expect(deletion).toHaveCount(0, {timeout: 45000});
+  await expect(page.locator(`button#commit-${older}`).locator(badge)).toBeVisible();
+  expect(git(bare, ['rev-parse', branch])).toBe(older);
+
+  git(bare, ['update-ref', '-d', branch]);
+  await openReview(older);
+  await expect(deletion.getByRole('alert')).toContainText('no longer exists');
+  await refresh.click();
+  await expect(deletion).toHaveCount(0, {timeout: 45000});
+  await expect(badge).toHaveCount(0);
+  expect(git(repo, ['for-each-ref', '--format=%(refname)', tracking])).toBe('');
+  expect(git(repo, ['rev-parse', 'feature/manage'])).toBe(tip);
+  expect(git(repo, ['diff', '--', 'file.txt'])).toContain('uncommitted work stays');
 });
 
 test('graph branch deletion exposes separate local and remote reviews and keeps local work', async ({page},testInfo)=>{
