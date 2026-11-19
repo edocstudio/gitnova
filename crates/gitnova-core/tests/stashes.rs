@@ -305,7 +305,7 @@ fn preview_does_not_run_helpers_and_drop_respects_reference_hook_policy() {
     assert_eq!(app.stashes(&id).unwrap().entries.len(), 1);
 }
 #[test]
-fn packed_stash_refs_stay_blocked_and_large_previews_are_bounded_read_only() {
+fn large_stash_previews_are_bounded_read_only() {
     let (_t, app, root, id) = setup();
     fs::write(root.join("file.txt"), "line\n".repeat(120000)).unwrap();
     let head = git(&root, &["rev-parse", "HEAD"]);
@@ -320,21 +320,48 @@ fn packed_stash_refs_stay_blocked_and_large_previews_are_bounded_read_only() {
     assert_eq!(fs::read(root.join(".git/index")).unwrap(), index);
     assert_eq!(git(&root, &["rev-parse", "HEAD"]), head);
     assert!(app.stashes(&id).unwrap().entries.is_empty());
-    fs::write(root.join("file.txt"), "small\n").unwrap();
-    apply(&app, &id, &review(&app, &id, request(StashKind::Push)));
+}
+
+#[test]
+fn drop_removes_packed_stash_entries_and_keeps_work_and_unrelated_refs() {
+    let (_t, app, root, id) = setup();
+    let head = git(&root, &["rev-parse", "HEAD"]);
+    for value in ["older", "newer"] {
+        fs::write(root.join("file.txt"), value).unwrap();
+        git(&root, &["stash", "push", "-m", value]);
+    }
+    let newer = selected(&app, &id, 0, StashKind::Drop).oid.unwrap();
+    let older = selected(&app, &id, 1, StashKind::Drop).oid.unwrap();
+    git(&root, &["tag", "keep-packed"]);
     git(&root, &["pack-refs", "--all"]);
-    let p = review(&app, &id, selected(&app, &id, 0, StashKind::Drop));
+    assert!(!root.join(".git/refs/stash").exists());
+    let pop = review(&app, &id, selected(&app, &id, 0, StashKind::Pop));
+    assert!(pop.blocked_reason.unwrap().contains("Packed stash refs"));
+
+    fs::write(root.join("file.txt"), "staged").unwrap();
+    git(&root, &["add", "file.txt"]);
+    fs::write(root.join("file.txt"), "unstaged").unwrap();
+    git(&root, &["update-index", "--assume-unchanged", "file.txt"]);
+    let index = fs::read(root.join(".git/index")).unwrap();
+    let drop_older = review(&app, &id, selected(&app, &id, 1, StashKind::Drop));
     assert!(
-        p.blocked_reason
-            .as_deref()
-            .unwrap()
-            .contains("loose stash ref")
-            || p.blocked_reason
-                .as_deref()
-                .unwrap()
-                .contains("Packed stash")
+        drop_older.blocked_reason.is_none(),
+        "{:?}",
+        drop_older.blocked_reason
     );
+    apply(&app, &id, &drop_older);
     assert_eq!(app.stashes(&id).unwrap().entries.len(), 1);
+    assert_eq!(git(&root, &["rev-parse", "refs/stash"]), newer);
+    assert_eq!(git(&root, &["rev-parse", &drop_older.recovery_ref]), older);
+
+    let drop_newer = review(&app, &id, selected(&app, &id, 0, StashKind::Drop));
+    apply(&app, &id, &drop_newer);
+    assert!(app.stashes(&id).unwrap().entries.is_empty());
+    assert_eq!(git(&root, &["rev-parse", &drop_newer.recovery_ref]), newer);
+    assert_eq!(git(&root, &["rev-parse", "keep-packed"]), head);
+    assert_eq!(git(&root, &["rev-parse", "HEAD"]), head);
+    assert_eq!(fs::read(root.join(".git/index")).unwrap(), index);
+    assert_eq!(fs::read(root.join("file.txt")).unwrap(), b"unstaged");
 }
 #[test]
 fn ignored_collisions_and_deleted_index_paths_never_discard_local_contents() {

@@ -10,6 +10,25 @@ The user requires a version bump and a new installed macOS `.app` for every
 GitNova code change. The durable instructions and completion checks are in
 [AGENTS.md](../AGENTS.md#persistent-settings). This note was documentation only.
 
+## Remove saved stash from the graph
+
+Branch `fix/stash-graph-removal` (base `55f9353`) adds a right-click and
+Shift+F10 removal action that opens the existing stash review for the selected
+record. Removal is also visible above the restore review's file list. Drop
+keeps its recovery ref and preserves working files and staging. The files
+backend supports a packed stash tip with a matching reflog for Drop and retains
+other packed refs. Pop with a packed stash continues to offer Apply separately.
+Unsupported storage, reference-transaction hooks and inconsistent metadata
+still stop the write.
+
+All 18 Rust stash integration tests, three Playwright cases, TypeScript,
+formatting and diff checks passed. The macOS 1.3.3 release bundle at
+`target/release/bundle/macos/GitNova.app` passed signature and embedded UI checks.
+Install is pending because the 1.3.2 desktop app reopened before replacement.
+After it closes, run `/tmp/gitnova-install-1.3.3.sh` from the repository root.
+It smoke-tests the staged bundle with a disposable repository, retains the old
+app on the Desktop and verifies the installed copy. No build runner is active.
+
 ## Line authors styling
 
 On branch `fix/diff-line-author-contrast`, the inline author button now uses the

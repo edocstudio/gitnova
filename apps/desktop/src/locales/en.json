@@ -745,6 +745,7 @@
   "Saved changes → Current branch": "Saved changes → Current branch",
   "Choose saved work in the graph or save your current changes.": "Choose saved work in the graph or save your current changes.",
   "Stash on {0}": "Stash on {0}",
+  "Stash actions": "Stash actions",
   "Remove saved stash": "Remove saved stash",
   "Apply on {0}": "Apply on {0}",
   "Pop on {0}": "Pop on {0}",

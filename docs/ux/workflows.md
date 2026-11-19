@@ -91,6 +91,12 @@ The context status distinguishes an operation pending/incomplete from a clean wo
 
 ## Direct Stash/Pop
 
+Right-click a saved graph row (or use Shift+F10), then choose Remove saved stash
+to review that entry in the existing stash inspector. The same action is visible
+in the restore review above the file list. Confirmation removes only the selected
+stash from the list and keeps its recovery ref. Its recorded object and stash
+position are checked again before removal. Working files and staging stay in place.
+
 Use the two current-work actions beside Working changes. Stash opens a compact scope review; Pop directly reviews the latest saved entry on the current branch. An older graph stash opens its own Pop review. No Apply/Pop/Drop mode selection is required for the normal path. Keep the destination branch prominent and place index/recovery choices under optional details. Completion returns to the actual working files; preserve drafts and conflict guidance. Stash glyphs reserve lanes beyond every real Git lane, including incoming/outgoing strokes. See ADR 0016.
 
 Zero changed files does not mean an active merge has ended. After discarding a merge result, Pop remains protected until the user explicitly finishes or reviews/confirms abort. The stash inspector's existing recovery action names the owned pending operation and leads to its current Working changes inspector. After a known Discard result, an empty pending operation emphasizes existing abort review; a legitimate no-ff merge with zero net file changes instead keeps reviewed Finish primary because it still records both parents. Do not automatically abort, delete Git markers, close an active session or replay Pop. Revalidate open stash previews on changes to the live checkout/operation context, retaining the selected file and saved comparison; only an explicit new confirmation writes to the current destination.

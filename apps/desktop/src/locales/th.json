@@ -745,6 +745,7 @@
   "Saved changes → Current branch": "งานที่เก็บไว้ → branch ปัจจุบัน",
   "Choose saved work in the graph or save your current changes.": "เลือกงานที่เก็บไว้ในกราฟ หรือเก็บการเปลี่ยนแปลงปัจจุบัน",
   "Stash on {0}": "เก็บงานจาก {0}",
+  "Stash actions": "จัดการ stash",
   "Remove saved stash": "ลบ stash ที่เก็บไว้",
   "Apply on {0}": "นำกลับลง {0} และเก็บ stash ไว้",
   "Pop on {0}": "นำ stash กลับลง {0}",
