@@ -18,6 +18,12 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             .ok_or_else(|| AppError::new("test", format!("Missing {key}")))
     };
     let value = match command {
+        "promote_selected_files" => {
+            let action = serde_json::from_value(args["action"].clone())
+                .map_err(|e| AppError::new("promotion", e.to_string()))?;
+            json!(app.promotion(&s("membershipId")?, action)?)
+        }
+
         "preview_stale_lock" => json!(app.preview_stale_lock(&s("membershipId")?)?),
         "recover_stale_lock" => json!(app.recover_stale_lock(&s("membershipId")?, &s("token")?)?),
         "recorded_activity" => json!(app.recorded_activity(&s("membershipId")?)?),

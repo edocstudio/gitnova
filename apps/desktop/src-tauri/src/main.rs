@@ -1002,6 +1002,14 @@ async fn apply_graph_action(
     .await
 }
 #[tauri::command]
+async fn promote_selected_files(
+    state: State<'_>,
+    membership_id: String,
+    action: gitnova_core::promotion_ui::PromotionAction,
+) -> Result<gitnova_core::promotion_ui::PromotionResult, AppError> {
+    run(state, move |a| a.promotion(&membership_id, action)).await
+}
+#[tauri::command]
 async fn preview_remote_delete(
     state: State<'_>,
     membership_id: String,
@@ -1522,6 +1530,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         merge_file,
         preview_merge_action,
         apply_merge_action,
+        promote_selected_files,
         preview_remote_delete,
         refresh_remote_delete_tracking,
         delete_remote_branch,

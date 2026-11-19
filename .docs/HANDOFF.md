@@ -10,6 +10,29 @@ The user requires a version bump and a new installed macOS `.app` for every
 GitNova code change. The durable instructions and completion checks are in
 [AGENTS.md](../AGENTS.md#persistent-settings). This note was documentation only.
 
+## Promote selected files from Changes
+
+Branch `feat/promote-selected-files-ui` (base `c199551`) adds a dialog from the
+existing Changes dock and preselects the focused file. Choose remote source and
+target, review branch and exact files. The dialog shows a bounded colored diff,
+pinned tips, actions and identity. A matching selection reports a no-op.
+It uses the isolated promotion engine from Nova CLI and validates the same
+fetch/push destination. Once the preview is approved, publication repeats the
+review and uses the existing create-only lease. Provider scope is matched via
+Settings → Connections. The published branch remains visible in the dialog
+with its recovery directory while PR/MR review and creation run as separate
+actions. No live project or provider account was used in testing.
+
+The browser scenario passed with real Git fixtures for preselection, no-op,
+exact patch, explicit publication and preservation of checkout/index. The CLI
+integration passed. Hosting fixture suite passed 41 cases with the existing
+OS credential-store round-trip ignored. TypeScript, formatting and diff checks
+passed. Built and installed macOS 1.4.0 at `Desktop/GitNova.app`. The staged
+bundle passed native startup, catalog, real Git and single-instance checks.
+Installed version, strict signature, binary match and embedded UI verified.
+Installed binary SHA-256 `e7e95759ef62bfb5cb8974104814173ae92e838a9c5575a0ec932aea4f4cc64f`. Previous 1.3.4 app retained in a hidden
+Desktop backup.
+
 ## Refresh a stale remote branch label
 
 Branch `fix/refresh-stale-remote-branch` (base `4f570b0`) fixes the remote

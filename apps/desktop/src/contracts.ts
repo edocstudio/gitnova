@@ -112,6 +112,19 @@ export interface HostedRequest {id:string;number:number;title:string;body:string
 export interface HostingPreview {request:HostingRequest;context:HostingContext;sourceProjectId:string;targetProjectId:string;sourceOid:string|null;targetOid:string|null;existing:HostedRequest|null;needsPush:boolean;blockedReason:string|null;token:string}
 export interface HostingOutcome {receipt:OperationReceipt;changeRequest:HostedRequest|null;created:boolean}
 
+export interface PromotionOptions {
+  request: {remote: string; source: string; target: string; branch: string; files: string[]; allowDeletions: boolean};
+  title: string; body: string; createRequest: boolean; profiles: HostProfile[];
+}
+export interface PromotionReview {
+  token: string; sourceOid: string; targetOid: string; destination: string; identity: GitCommitIdentity;
+  files: {path: string; action: 'add' | 'replace' | 'delete'}[];
+  patch: {diff: string; truncated: boolean}; hosting: HostingContext | null; hostingError: string | null;
+}
+export interface PublishedPromotion {
+  remote: string; branch: string; target: string; oid: string; targetOid: string; recovery: NativePath;
+  hosting: HostingContext | null; title: string; body: string; scope: string;
+}
 export interface RemoteDeleteRequest { remote: string; branch: string; oid: string }
 export interface RemoteDeletePreview { request: RemoteDeleteRequest; destination: string; recoveryRef: string; trackingRef: string | null; trackingOid: string | null; localBranches: string[]; token: string; blockedReason: string | null }
 

@@ -32,6 +32,14 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  previewPromotion: (membershipId: string, options: import('./contracts').PromotionOptions) =>
+    call<import('./contracts').PromotionReview>('promote_selected_files', {membershipId, action: {kind: 'preview', options}}),
+  publishPromotion: (membershipId: string, options: import('./contracts').PromotionOptions, token: string) =>
+    call<import('./contracts').PublishedPromotion>('promote_selected_files', {membershipId, action: {kind: 'publish', options, token}}),
+  reviewPromotionRequest: (membershipId: string, published: import('./contracts').PublishedPromotion) =>
+    call<HostingPreview>('promote_selected_files', {membershipId, action: {kind: 'reviewRequest', published}}),
+  createPromotionRequest: (membershipId: string, published: import('./contracts').PublishedPromotion, token: string) =>
+    call<import('./contracts').HostedRequest>('promote_selected_files', {membershipId, action: {kind: 'createRequest', published, token}}),
   remoteEndpoint:(membershipId:string,name:string)=>call<import('./contracts').RemoteEndpointSettings>('remote_endpoint',{membershipId,name}),
   previewRemoteEndpoint:(membershipId:string,request:import('./contracts').RemoteEndpointRequest,settingsToken:string)=>call<import('./contracts').RemoteEndpointPreview>('preview_remote_endpoint',{membershipId,request,settingsToken}),
   changeRemoteEndpoint:(membershipId:string,request:import('./contracts').RemoteEndpointRequest,settingsToken:string,token:string)=>call<OperationReceipt>('change_remote_endpoint',{membershipId,request,settingsToken,token}),
