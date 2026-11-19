@@ -4,6 +4,12 @@ Updated: 2026-11-19 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Standing delivery preference
+
+The user requires a version bump and a new installed macOS `.app` for every
+GitNova code change. The durable instructions and completion checks are in
+[AGENTS.md](../AGENTS.md#persistent-settings). This note was documentation only.
+
 ## Line authors styling
 
 On branch `fix/diff-line-author-contrast`, the inline author button now uses the
