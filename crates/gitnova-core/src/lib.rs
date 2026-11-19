@@ -26,6 +26,7 @@ pub mod local_analysis;
 mod membership_management;
 mod merge_cleanup;
 pub mod nova_cli;
+pub mod promotion_ui;
 mod remote_graph_tags;
 mod search;
 

@@ -1,14 +1,17 @@
 # Workflow clarity across GitNova
 
-## Selected-file CLI promotion
+## Promote selected files
 
-Use the existing repository Terminal and `nova promote`, rather than adding a
-navigation item or another panel. This workflow is described in [Nova CLI](../cli.md).
-Show source and destination commits, selected file actions, identity and the new
-review branch before confirmation. Preserve the user's checkout/index by building
-the candidate in an isolated bare repository. Confirm publication separately from
-request creation and retain recovery evidence across partial failure. A successful
-request is a URL for review, not a completed merge.
+The Changes dock supplies the files and opens a review from the existing graph
+context. Promotion needs source, destination and file selections for a separate
+remote comparison, so use a focused dialog instead of mixing those inputs with
+the historical diff or adding permanent navigation. Preselect the focused file.
+Show the pinned commits, complete file actions, diff and committer before
+publication. A selection that already matches the destination ends with an
+informational result. Present branch publication and PR/MR creation as separate
+confirmations. Match provider accounts already saved in Settings → Connections.
+Keep the user's checkout and index in place through the isolated Git engine
+shared with [Nova CLI](../cli.md).
 
 Product direction, 2026-10-25: make every GitNova workflow clear, ordered and consistent. Apply this rule to future workflows, using original interactions and visual assets.
 

@@ -1,5 +1,10 @@
 # Nova CLI: promote selected files
 
+For the desktop workflow, open a commit's Changes and choose **Promote selected
+files…**. Review the file snapshots first, then confirm branch publication and
+PR/MR creation separately. The dialog uses the same isolated promotion engine
+as the CLI.
+
 Open GitNova's existing **Terminal**, then run `nova --help`. The session supplies
 the command without changing your shell startup files. For a standalone build,
 run `cargo build -p gitnova-core --bin nova`; use `target/debug/nova` (`nova.exe`

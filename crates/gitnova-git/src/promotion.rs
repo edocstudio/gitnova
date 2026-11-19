@@ -1,6 +1,8 @@
 //! Selected file snapshots in an isolated bare repository; never checks out user files.
 use crate::{clone::validate_clone_source, working::run_fetch, GitCli, RepositoryReader};
 use gitnova_domain::{AppError, GitCommitIdentity, NativePath, Result};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeSet,
     ffi::OsStr,
@@ -9,7 +11,8 @@ use std::{
 use tempfile::TempDir;
 
 const LIMIT: usize = 2 * 1024 * 1024;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PromotionRequest {
     pub remote: String,
     pub source: String,
@@ -18,10 +21,11 @@ pub struct PromotionRequest {
     pub files: Vec<String>,
     pub allow_deletions: bool,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SelectedFile {
     pub path: String,
     pub action: &'static str,
+    #[serde(skip)]
     entry: String,
 }
 pub struct Promotion {
@@ -35,6 +39,12 @@ pub struct Promotion {
     pub identity: GitCommitIdentity,
     pub diff_stat: String,
 }
+pub fn promotion_stamp(scope: &impl Serialize) -> Result<String> {
+    let bytes =
+        serde_json::to_vec(scope).map_err(|_| error("Could not encode promotion review."))?;
+    Ok(format!("{:x}", Sha256::digest(bytes)))
+}
+
 fn error(message: impl Into<String>) -> AppError {
     AppError::new("promotion", message)
 }
@@ -101,6 +111,17 @@ fn entry(root: &Path, oid: &str, path: &str) -> Result<Option<String>> {
     Ok(Some(metadata.to_owned()))
 }
 impl GitCli {
+    pub fn promotion_destination(&self, root: &Path, remote: &str) -> Result<String> {
+        let url = validate_clone_source(&self.push_destination(root, remote)?)?;
+        let fetch_url = self.text(root, &["remote", "get-url", "--all", "--", remote])?;
+        if fetch_url.lines().count() != 1 || validate_clone_source(fetch_url.trim_end())? != url {
+            return Err(error(
+                "Source and push destinations differ. Choose one explicit remote repository.",
+            ));
+        }
+        Ok(url)
+    }
+
     pub fn prepare_promotion(&self, root: &Path, request: PromotionRequest) -> Result<Promotion> {
         self.prepare_promotion_with_identity(root, request, None)
     }
@@ -145,14 +166,7 @@ impl GitCli {
                 return Err(error("Use unique, portable exact file paths; submodule layout changes require separate review."));
             }
         }
-        let url = self.push_destination(&original, &request.remote)?;
-        let url = validate_clone_source(&url)?;
-        let fetch_url = self.text(&original, &["remote", "get-url", "--", &request.remote])?;
-        if validate_clone_source(fetch_url.trim_end())? != url {
-            return Err(error(
-                "Source and push destinations differ. Choose one explicit remote repository.",
-            ));
-        }
+        let url = self.promotion_destination(&original, &request.remote)?;
         let identity = match identity {
             Some(identity) => identity,
             None => self.effective_commit_identity(&original)?,
@@ -194,11 +208,6 @@ impl GitCli {
                 target_ref.into(),
             ],
         )?;
-        if remote_tip(scratch.path(), &url, &request.branch)?.is_some() {
-            return Err(error(
-                "The review branch already exists remotely. Choose a new name.",
-            ));
-        }
         let source_oid = self
             .text(
                 scratch.path(),
@@ -232,11 +241,18 @@ impl GitCli {
             });
         }
         if files.is_empty() {
-            return Err(error(
+            return Err(AppError::new(
+                "promotion_no_changes",
                 "Selected files already match the destination; no request is needed.",
             ));
         }
+        if remote_tip(scratch.path(), &url, &request.branch)?.is_some() {
+            return Err(error(
+                "The review branch already exists remotely. Choose a new name.",
+            ));
+        }
         let mut args = vec![
+            "--literal-pathspecs",
             "diff",
             "--raw",
             "--no-ext-diff",
@@ -269,6 +285,29 @@ impl GitCli {
     }
 }
 impl Promotion {
+    pub fn patch(&self) -> Result<gitnova_domain::HistoricalPatch> {
+        let mut args = vec![
+            OsStr::new("--literal-pathspecs"),
+            OsStr::new("diff-tree"),
+            OsStr::new("--no-commit-id"),
+            OsStr::new("--no-ext-diff"),
+            OsStr::new("--no-textconv"),
+            OsStr::new("--no-renames"),
+            OsStr::new("--no-color"),
+            OsStr::new("-r"),
+            OsStr::new("-p"),
+            OsStr::new(&self.target_oid),
+            OsStr::new(&self.source_oid),
+            OsStr::new("--"),
+        ];
+        args.extend(self.files.iter().map(|file| OsStr::new(&file.path)));
+        let output = GitCli.read_preview(self.scratch.path(), &args, 256 * 1024)?;
+        Ok(gitnova_domain::HistoricalPatch {
+            diff: String::from_utf8_lossy(&output.bytes).into_owned(),
+            truncated: output.truncated,
+        })
+    }
+
     /// Retains the isolated repository before any publication attempt, even on ambiguous failures.
     pub fn publish(
         self,
@@ -278,8 +317,7 @@ impl Promotion {
         if message.trim().is_empty() || message.len() > 65536 || message.contains('\0') {
             return Err(error("Enter a commit message up to 64 KiB."));
         }
-        let current =
-            validate_clone_source(&GitCli.push_destination(&self.original, &self.request.remote)?)?;
+        let current = GitCli.promotion_destination(&self.original, &self.request.remote)?;
         if current != self.url
             || remote_tip(self.scratch.path(), &self.url, &self.request.source)?.as_deref()
                 != Some(&self.source_oid)

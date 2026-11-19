@@ -16,6 +16,19 @@ import type { DiffLine, PatchFile } from './diff';
 import { Icon } from './Icons';
 import { api, errorMessage } from './api';
 import {patchTextWidth} from './patch-text-width';
+const PromotionDialog = lazy(() => import('./PromotionDialog').then(module => ({default: module.PromotionDialog})));
+
+function portablePromotionPath(path: NativePath) {
+  const raw = path.hex.match(/.{2}/g);
+  if (!raw || !['unix', 'windows'].includes(path.encoding)) return '';
+  try {
+    const windows = path.encoding === 'windows';
+    const bytes = Uint8Array.from(raw, pair => Number.parseInt(pair, 16));
+    const name = new TextDecoder(windows ? 'utf-16le' : 'utf-8', {fatal: true, ignoreBOM: true}).decode(bytes);
+    if (!name || name === '.gitmodules' || /[\x00-\x1f\x7f]/.test(name)) return '';
+    return windows ? name.replaceAll('\\', '/') : name.includes('\\') ? '' : name;
+  } catch { return ''; }
+}
 const WorkingFileEditor = lazy(() => import('./WorkingFileEditor').then(module => ({default: module.WorkingFileEditor})));
 const ConflictResolver = lazy(() => import('./ConflictResolver').then(module => ({default: module.ConflictResolver})));
 
@@ -99,7 +112,8 @@ function PatchCode({ file, mode, before, after, hunks, editAnchor, authorScope }
   </div>;
 }
 
-export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFileSaved, membershipId, workspaceId, preferredPath, detail = null, source = null, busy, collapsed, onToggle, size, onResize }: { fileDrafts?:FileDrafts; editBlocked?:boolean; onEditBusy?:(busy:boolean)=>void; onFileSaved?:()=>Promise<void>; membershipId?: string; workspaceId?:string; preferredPath?: string; detail?: CommitDetail | null; source?: DockPatch | null; busy: boolean; collapsed: boolean; onToggle: () => void; size: number | null; onResize: (height: number) => void }) {
+export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFileSaved, membershipId, workspaceId, promotionSource, preferredPath, detail = null, source = null, busy, collapsed, onToggle, size, onResize }: { fileDrafts?:FileDrafts; editBlocked?:boolean; onEditBusy?:(busy:boolean)=>void; onFileSaved?:()=>Promise<void>; membershipId?: string; workspaceId?:string; promotionSource?: string; preferredPath?: string; detail?: CommitDetail | null; source?: DockPatch | null; busy: boolean; collapsed: boolean; onToggle: () => void; size: number | null; onResize: (height: number) => void }) {
+  const [promotion, setPromotion] = useState<{files: string[]; initial: string} | null>(null);
   const [showAuthors,setShowAuthors]=useState(()=>{try{return localStorage.getItem('gitnova.diffLineAuthors')==='true';}catch{return false;}});
   const [historical, setHistorical] = useState<{key: string; diff: string; truncated: boolean} | null>(null);
   const [patchError, setPatchError] = useState('');
@@ -116,6 +130,12 @@ export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFi
     if(index>=0)setFileIndex(index);
   },[preferredPath,detail?.commit.oid]);
   const historicalFile = manifest[Math.min(fileIndex, Math.max(0, manifest.length - 1))];
+  const openPromotion = () => {
+    if (!historicalFile) return;
+    const initial = portablePromotionPath(historicalFile.path);
+    const files = [...new Set([initial, ...manifest.slice(0, 200).map(file => portablePromotionPath(file.path))].filter(Boolean))];
+    setPromotion({files, initial});
+  };
   const patchKey = JSON.stringify([membershipId, detail?.commit.oid, historicalFile?.path.hex]);
   // Large commits use the complete manifest and an exact selected-file patch.
   // Never parse the discarded aggregate preview, a stale file response, or a
@@ -157,12 +177,16 @@ export function CommitDiffDock({ fileDrafts, editBlocked=false, onEditBusy, onFi
       onPointerMove={event => { if (drag.current) resize(drag.current.height + drag.current.y - event.clientY); }}
       onPointerUp={event => { drag.current = null; event.currentTarget.releasePointerCapture(event.pointerId); }} onLostPointerCapture={() => { drag.current = null; }} />}
     <div className="dock-toolbar"><div className="dock-title"><Icon name="file" size={15} /><strong>{editing?t("Edit file"):source?.title ?? t("Changes")}</strong>{!busy && <span className="count-badge">{editing?1:source ? files.length : manifest.length}</span>}<span className="dock-comparison">{t(editing?'Current working file':source?.comparison ?? detail?.comparison ?? '')}</span></div>
-      <div className="dock-actions">{!editing&&!collapsed&&!source&&membershipId&&workspaceId&&<button aria-pressed={showAuthors} onClick={()=>{const value=!showAuthors;setShowAuthors(value);try{localStorage.setItem('gitnova.diffLineAuthors',String(value));}catch{/* Optional view preference. */}}}>{t('Line authors')}</button>}{!editing&&!collapsed&&!source&&historicalFile&&membershipId&&fileDrafts&&<button disabled={busy||editBlocked||Boolean(editing)} onClick={()=>setEditing({path:historicalFile.path,anchor:file?(editAnchor.current?.file===file?editAnchor.current.anchor:diffEditAnchor(file,[])):null})}>{t(fileDrafts.has(JSON.stringify([membershipId,historicalFile.path.encoding,historicalFile.path.hex]))?'Resume file edit':'Edit file')}</button>}{!editing && !collapsed && !source?.editor && <div className="view-switch" role="group" aria-label={t("Diff layout")}><button aria-pressed={mode === 'split'} onClick={() => changeMode('split')}>{t("Side by side")}</button><button aria-pressed={mode === 'unified'} onClick={() => changeMode('unified')}>{t("Unified")}</button></div>}<button className="icon-button dock-collapse" aria-label={collapsed ? t("Expand diff") : t("Collapse diff")} aria-expanded={!collapsed} onClick={onToggle}><Icon name="chevron" size={17} /></button></div>
+      <div className="dock-actions">{promotionSource !== undefined && !editing && !collapsed && !source && historicalFile && membershipId && <button disabled={busy || editBlocked} onClick={openPromotion}>{t('Promote selected files…')}</button>}{!editing&&!collapsed&&!source&&membershipId&&workspaceId&&<button aria-pressed={showAuthors} onClick={()=>{const value=!showAuthors;setShowAuthors(value);try{localStorage.setItem('gitnova.diffLineAuthors',String(value));}catch{/* Optional view preference. */}}}>{t('Line authors')}</button>}{!editing&&!collapsed&&!source&&historicalFile&&membershipId&&fileDrafts&&<button disabled={busy||editBlocked||Boolean(editing)} onClick={()=>setEditing({path:historicalFile.path,anchor:file?(editAnchor.current?.file===file?editAnchor.current.anchor:diffEditAnchor(file,[])):null})}>{t(fileDrafts.has(JSON.stringify([membershipId,historicalFile.path.encoding,historicalFile.path.hex]))?'Resume file edit':'Edit file')}</button>}{!editing && !collapsed && !source?.editor && <div className="view-switch" role="group" aria-label={t("Diff layout")}><button aria-pressed={mode === 'split'} onClick={() => changeMode('split')}>{t("Side by side")}</button><button aria-pressed={mode === 'unified'} onClick={() => changeMode('unified')}>{t("Unified")}</button></div>}<button className="icon-button dock-collapse" aria-label={collapsed ? t("Expand diff") : t("Collapse diff")} aria-expanded={!collapsed} onClick={onToggle}><Icon name="chevron" size={17} /></button></div>
     </div>
     <div className="dock-content" hidden={collapsed}>{source?.truncated && <div className="notice">{source.truncationMessage??t("This patch exceeds the preview budget and is incomplete. Open the full diff in Git before approving a commit.")}</div>}{!source && historical?.truncated && <div className="notice">{t("This file’s patch exceeds the preview budget. Some code is not shown.")}</div>}{patchError && <div className="inline-error" role="alert">{patchError}</div>}
       {busy ? <div className="loading-status quiet-state" role="status">{t("Reading changes…")}</div> : <div className={`dock-body ${source ? 'single-file' : ''}`}>{!source && <nav className="dock-files virtual-dock-nav" aria-label={t("Changed files")}><VirtualFileRows items={manifest} itemKey={entry=>entry.path.hex} selection={historicalFile?.path.hex??null} rowHeight={44} className="dock-file-scroll" empty={<div className="quiet-state">{t("No changed files in this comparison.")}</div>}>{(entry, i) => <button key={entry.path.hex} aria-pressed={i === fileIndex} className={i === fileIndex ? 'active' : ''} onClick={() => {setEditing(null);setFileIndex(i);}} title={entry.path.display}><Icon name="file" size={15} /><span className="dock-file-path">{entry.path.display}</span><span className="patch-stats"><span className="added">{entry.additions === null ? t("Binary") : `+${entry.additions}`}</span><span className="removed">{entry.deletions === null ? '' : `−${entry.deletions}`}</span></span></button>}</VirtualFileRows></nav>}
         <div className="dock-patch"><Suspense fallback={<div className="quiet-state" role="status">{t("Loading…")}</div>}>{editing&&membershipId&&fileDrafts&&onEditBusy&&onFileSaved?<WorkingFileEditor key={`${membershipId}:${editing.path.hex}`} membershipId={membershipId} path={editing.path} anchor={editing.anchor} drafts={fileDrafts} blocked={editBlocked} onBusyChange={onEditBusy} onSaved={onFileSaved} onClose={()=>setEditing(null)}/>:patchLoading ? <div className="quiet-state" role="status">{t("Reading file patch…")}</div> : source?.editor ? source.editor.incoming!==undefined?<ConflictResolver key={source.selectedPath?.hex} editor={source.editor}/>:<MergeEditor editor={source.editor} /> : file ? <><div className="dock-file-heading"><Icon name="file" size={15} /><code title={file.name}>{file.name}</code><span className="patch-stats"><span className="added">{!source && historicalFile?.additions === null ? t("Binary") : `+${!source ? historicalFile?.additions ?? file.additions : file.additions}`}</span><span className="removed">{!source && historicalFile?.deletions === null ? '' : `−${!source ? historicalFile?.deletions ?? file.deletions : file.deletions}`}</span></span></div>{file.metadata.length > 0 && <div className="patch-meta">{file.metadata.join(' · ')}</div>}<PatchCode key={file.name} authorScope={showAuthors&&!source&&membershipId&&workspaceId&&detail&&historicalFile?{workspaceId,membershipId,beforeOid:detail.commit.parents[0]??null,afterOid:detail.commit.oid,path:historicalFile.path}:null} editAnchor={editAnchor} hunks={source?.hunks} file={file} mode={mode} before={source?.before ?? detail?.commit.parents[0]?.slice(0, 8) ?? t("Empty tree")} after={source?.after ?? detail?.commit.oid.slice(0, 8) ?? ''} /></> : <div className="quiet-state"><Icon name="commit" size={24} /><p>{source ? source.emptyMessage ?? (unmatched ? t('The selected path could not be matched to this patch. No other file is shown. Refresh and review again.') : t('Select a file from Working changes to inspect its diff.')) : t("This commit has no text patch against the selected comparison.")}</p></div>}</Suspense></div>
       </div>}
     </div>
+    {promotion && promotionSource !== undefined && membershipId && onEditBusy && <Suspense fallback={<p role="status">{t('Loading…')}</p>}>
+      <PromotionDialog membershipId={membershipId} currentBranch={promotionSource} candidates={promotion.files} initialFile={promotion.initial}
+        onClose={()=>setPromotion(null)} onBusyChange={onEditBusy} />
+    </Suspense>}
   </section>;
 }

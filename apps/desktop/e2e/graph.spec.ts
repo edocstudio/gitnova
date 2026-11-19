@@ -1397,6 +1397,53 @@ for(const provider of ['github','gitlab'] as const)test(`provider transport UI $
  await open();await panel.getByLabel('Target branch (merge into)',{exact:true}).fill('release');await panel.getByRole('button',{name:'Review request',exact:true}).click();await expect(panel).toContainText('An open request already exists: #17');await panel.getByRole('button',{name:'Open existing request',exact:true}).click();await expect(panel).toContainText('Existing request opened · #17');expect(postCount).toBe(1);expect(git(repo,['rev-parse','HEAD'])).toBe(oid);expect(git(repo,['branch','--show-current'])).toBe('feature/demo');
 });
 
+test('promote selected files in Changes previews a no-op and explicitly publishes only the selected file', async ({page}, testInfo) => {
+  test.setTimeout(180000);
+  const {repo, bare, tip, base} = await managementFixture(page, 'promotion-dialog');
+  git(repo, ['push', 'origin', 'feature/manage', 'feature/manage:refs/heads/equal']);
+  git(repo, ['fetch', 'origin']);
+  await page.getByRole('button', {name: 'Refresh', exact: true}).click();
+  await page.locator(`button#commit-${tip}`).click();
+  await page.getByRole('button', {name: 'Promote selected files…', exact: true}).click();
+  const dialog = page.getByRole('dialog', {name: 'Promote selected files'});
+  await expect(dialog.getByRole('checkbox', {name: 'file.txt', exact: true})).toBeChecked();
+  await expect(dialog.getByLabel('Remote', {exact: true})).toHaveValue('origin');
+  await dialog.getByLabel('Source branch', {exact: true}).fill('feature/manage');
+  await dialog.getByLabel('Target branch', {exact: true}).fill('equal');
+  await dialog.getByRole('button', {name: 'Preview promotion', exact: true}).click();
+  await expect(dialog.getByRole('status')).toContainText('Selected files already match the destination', {timeout: 45000});
+  await expect(dialog.getByRole('button', {name: 'Publish review branch', exact: true})).toHaveCount(0);
+  await dialog.getByRole('button', {name: 'Edit selection', exact: true}).click();
+
+  await dialog.getByLabel('Target branch', {exact: true}).fill('main');
+  await dialog.getByLabel('New review branch', {exact: true}).fill('promote/file');
+  await dialog.getByLabel('After publishing', {exact: true}).selectOption('branch');
+  await dialog.getByRole('button', {name: 'Preview promotion', exact: true}).click();
+  await expect(dialog.getByLabel('Promotion diff')).toContainText('+feature', {timeout: 45000});
+  await expect(dialog.getByLabel('Promotion diff')).toContainText('-base');
+  await expect(dialog).toContainText('Replace file');
+  expect(git(bare, ['for-each-ref', '--format=%(refname)', 'refs/heads/promote/file'])).toBe('');
+  const index = readFileSync(join(repo, '.git/index'));
+  await dialog.screenshot({path: testInfo.outputPath('promotion-preview.png')});
+
+  await dialog.getByRole('button', {name: 'Publish review branch', exact: true}).click();
+  const published = page.getByRole('dialog', {name: 'Review branch published'});
+  await expect(published).toBeVisible({timeout: 45000});
+  expect(git(bare, ['show', 'promote/file:file.txt'])).toBe('feature');
+  expect(git(bare, ['rev-parse', 'promote/file^'])).toBe(base);
+  expect(git(bare, ['rev-parse', 'main'])).toBe(base);
+  expect(git(repo, ['rev-parse', 'HEAD'])).toBe(base);
+  expect(readFileSync(join(repo, '.git/index'))).toEqual(index);
+  expect(readFileSync(join(repo, 'file.txt'), 'utf8')).toBe('uncommitted work stays\n');
+  await expect(published.getByRole('button', {name: 'Review request', exact: true})).toHaveCount(0);
+  await published.getByText('Recovery repository', {exact: true}).click();
+  const recovery = await published.locator('.promotion-options code').innerText();
+  expect(recovery).toContain('gitnova-promote-');
+  rmSync(recovery, {recursive: true, force: true});
+  await published.getByRole('button', {name: 'Close', exact: true}).click();
+  await expect(published).toHaveCount(0);
+});
+
 test('stale remote deletion review refreshes only the selected graph label', async ({page}) => {
   test.setTimeout(180000);
   const {repo, bare, tip} = await managementFixture(page, 'stale-remote-delete');
