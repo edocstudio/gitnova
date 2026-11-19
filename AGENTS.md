@@ -42,14 +42,20 @@ Run only one build/test runner at a time. Cargo compilation defaults to two jobs
 
 User direction, 2026-11-17: after completing requested code changes, commit the task changes on a descriptive branch and report the branch name, commit SHA, commit message/comment and verification result. Preserve unrelated existing edits outside the task commit.
 
-User correction, 2026-11-18 (supersedes patch-only delivery guidance): use
-Semantic Versioning for delivered app updates. Increment patch for compatible
-bug fixes, minor for backward-compatible new features (reset patch to zero), and
-major for backward-incompatible changes (reset minor and patch to zero). The CI
-notifications feature is 1.1.0. Every new app delivery must advance the version;
-do not reuse the previous version. Use apps/desktop/scripts/set-version.mjs to
-synchronize metadata, regenerate attribution inventory, and verify the installed
-bundle's version matches the source before reporting delivery.
+User direction, 2026-11-19: every task that changes GitNova code must advance
+the version, build a fresh macOS release `.app` containing the changes, install it
+at `Desktop/GitNova.app`, and verify the installed version before reporting the
+task complete. Apply this to UI, styles and small fixes as well as larger changes.
+Documentation-only work does not require a version bump or build.
+
+Use Semantic Versioning: patch for compatible fixes, minor for backward-compatible
+features, and major for breaking changes. Advance from the current source version
+and check the installed version to avoid reusing or rolling back a delivered
+version. Use `apps/desktop/scripts/set-version.mjs` to synchronize metadata,
+regenerate the native attribution inventory, and run the macOS release build.
+Check that GitNova is closed before packaging and replacing the app. Verify the
+installed bundle's version matches the source and that its embedded UI passes
+verification. Report the installed version with the branch, commit and checks.
 
 User direction, 2026-10-28: persistent application/workspace/repository settings belong in the header Settings dialog, with explicit scope. Do not add connection forms or preferences to commit details. Keep Git action inputs and reviewed write confirmations in their existing graph context.
 
