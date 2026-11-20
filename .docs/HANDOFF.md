@@ -1,6 +1,6 @@
 # GitNova session handoff
 
-Updated: 2026-11-19 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+Updated: 2026-11-20 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
@@ -9,6 +9,26 @@ state. Communicate with this user in Thai.
 The user requires a version bump and a new installed macOS `.app` for every
 GitNova code change. The durable instructions and completion checks are in
 [AGENTS.md](../AGENTS.md#persistent-settings). This note was documentation only.
+
+## Clear labels for remote branches deleted after merge
+
+Branch `fix/prune-deleted-remote-labels` (base `2105061`) fixes a stale
+source-branch badge after GitLab merges a promotion and deletes its source.
+Full Fetch and Auto Fetch check advertised heads for the selected remote
+with a standard fetch mapping. An atomic compare-and-delete clears stale
+remote-tracking refs. Existing local branches, tags, symbolic remote HEADs
+and working files are preserved. Branch-specific Fetch and custom mappings
+retain existing tracking refs. No live GitLab repository was used in testing.
+
+The Rust remote suite passed all 16 cases. Both targeted Playwright flows
+passed with real Git fixtures, including the deleted promotion badge and
+the retained merged commit. Formatting, TypeScript and the release build
+passed. macOS 1.4.1 is installed at `Desktop/GitNova.app`. Native startup,
+catalog, real Git graph, single-instance, strict signature and embedded UI
+checks passed. The installed binary matches the release bundle. SHA-256
+`fdb967cf68f786e26f812adf8927839654394c32482af424b841f3e54f213f1b`.
+The previous 1.4.0 bundle is retained at
+`Desktop/.gitnova-update.rl4vBvcs/GitNova-1.4.0.app`.
 
 ## Promote selected files from Changes
 
@@ -36,8 +56,8 @@ Desktop backup.
 ## Refresh a stale remote branch label
 
 Branch `fix/refresh-stale-remote-branch` (base `4f570b0`) fixes the remote
-deletion review when the selected graph label is stale. Normal Fetch is
-intentionally non-pruning. The review distinguishes a moved branch from an
+deletion review when the selected graph label is stale. At 1.3.4, normal Fetch
+retained stale labels. The review distinguishes a moved branch from an
 absent branch and offers Refresh branch label for that tracking ref when fetch
 and push share the same destination and a standard mapping. The scoped refresh
 fetches objects for a changed tip or clears a verified absent tracking ref.

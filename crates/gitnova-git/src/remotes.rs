@@ -6,6 +6,7 @@ use crate::{
 use gitnova_domain::*;
 use sha2::{Digest, Sha256};
 use std::{
+    collections::HashSet,
     ffi::{OsStr, OsString},
     path::Path,
 };
@@ -42,6 +43,11 @@ impl GitCli {
         background: bool,
     ) -> Result<()> {
         self.validate_remote_selection(path, remote, branch)?;
+        let config = if branch.is_none() {
+            Some(self.config_snapshot(path)?)
+        } else {
+            None
+        };
         let refspec = match branch {
             Some(branch) => format!("+refs/heads/{branch}:refs/remotes/{remote}/{branch}"),
             None => format!("+refs/heads/*:refs/remotes/{remote}/*"),
@@ -100,8 +106,91 @@ impl GitCli {
                 ],
             );
         }
-        run_fetch_with_refspecs(path, &args, refspecs.as_bytes())
+        run_fetch_with_refspecs(path, &args, refspecs.as_bytes())?;
+        if let Some(config) = config {
+            self.prune_missing_remote_branches(path, remote, background, &config)?;
+        }
+        Ok(())
     }
+
+    fn prune_missing_remote_branches(
+        &self,
+        path: &Path,
+        remote: &str,
+        background: bool,
+        config: &[u8],
+    ) -> Result<()> {
+        let mapping = self.optional_text(
+            path,
+            &["config", "--get-all", &format!("remote.{remote}.fetch")],
+        )?;
+        let standard = format!("refs/heads/*:refs/remotes/{remote}/*");
+        if mapping.as_deref().map(|s| s.trim_start_matches('+')) != Some(standard.as_str())
+            || self.config_snapshot(path)? != config
+        {
+            return Ok(());
+        }
+
+        // Use the same ownership rules as the branch picker, including remote
+        // names containing '/' and symbolic refs such as origin/HEAD.
+        let candidates = self
+            .remote_branches(path)?
+            .branches
+            .into_iter()
+            .filter(|branch| branch.remote == remote && branch.name != "HEAD")
+            .collect::<Vec<_>>();
+        if candidates.is_empty() {
+            return Ok(());
+        }
+
+        // Keep tags outside prune scope even during a concurrent local tag
+        // creation. Fetch's explicit tag refspec makes native --prune unsafe.
+        let mut args = vec!["ls-remote", "--refs", "--heads", "--", remote];
+        if background {
+            args.splice(0..0, ["-c", "gitnova.backgroundFetch=true"]);
+        }
+        let output = self.execute_transport(
+            path,
+            &args.iter().map(OsStr::new).collect::<Vec<_>>(),
+            4 * 1024 * 1024,
+            false,
+            "file:http:https:ssh:git",
+        )?;
+        let response = String::from_utf8(output.bytes)
+            .map_err(|_| AppError::new("git_parse", "Invalid remote branch response."))?;
+        let mut live = HashSet::new();
+        for line in response.lines() {
+            let (oid, name) = line
+                .split_once('\t')
+                .and_then(|(oid, name)| Some((oid, name.strip_prefix("refs/heads/")?)))
+                .ok_or_else(|| AppError::new("git_parse", "Invalid remote branch response."))?;
+            crate::validate_oid(oid)?;
+            live.insert(name);
+        }
+        if self.config_snapshot(path)? != config {
+            return Ok(());
+        }
+
+        let mut commands = String::new();
+        for branch in candidates {
+            if !live.contains(branch.name.as_str()) {
+                use std::fmt::Write as _;
+                let _ = writeln!(
+                    commands,
+                    "delete refs/remotes/{remote}/{} {}",
+                    branch.name, branch.oid
+                );
+            }
+        }
+        if !commands.is_empty() {
+            crate::working::run_fetch_prune_transaction(
+                path,
+                &format!("start\n{commands}prepare\ncommit\n"),
+            )?;
+        }
+        Ok(())
+    }
+
     /// Read the fetch destination without requiring a historical commit to be a branch tip.
     pub fn pipeline_remote(&self, path: &Path, remote: &str, oid: &str) -> Result<String> {
         self.validate_remote_selection(path, remote, None)?;

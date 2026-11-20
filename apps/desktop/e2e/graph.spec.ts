@@ -2281,6 +2281,39 @@ test('header Fetch beside Refresh updates remote counts without changing local w
 });
 
 
+test('header Fetch removes a merged source branch label after the server deletes it', async ({ page }) => {
+  const writer = join(folder, 'merged-promotion-writer');
+  const repo = join(folder, 'merged-promotion-local');
+  const source = 'promote/release-to-main';
+  mkdirSync(writer);
+  git(writer, ['init', '-b', 'main']);
+  writeFileSync(join(writer, 'file.txt'), 'base\n');
+  git(writer, ['add', '.']);
+  git(writer, ['commit', '-m', 'Base']);
+  git(writer, ['switch', '-c', source]);
+  writeFileSync(join(writer, 'file.txt'), 'promoted\n');
+  git(writer, ['commit', '-am', 'Promote selected file']);
+  const promoted = git(writer, ['rev-parse', 'HEAD']);
+  git(writer, ['switch', 'main']);
+  git(writer, ['merge', '--no-ff', source]);
+  git(folder, ['clone', writer, repo]);
+
+  await connectRealCore(page, join(folder, 'merged-promotion.json'));
+  await page.goto('/');
+  await page.getByLabel('Add an existing repository').fill(repo);
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
+  const row = page.locator(`#commit-${promoted}`);
+  const label = row.locator(`[data-ref-name="refs/remotes/origin/${source}"]`);
+  await expect(label).toBeVisible();
+  git(writer, ['branch', '-d', source]);
+
+  await page.locator('.topbar .fetch-current').click();
+  await expect(label).toHaveCount(0);
+  await expect(row).toBeVisible();
+  await expect(row).toContainText('Promote selected file');
+});
+
+
 test('push without upstream compares the published branch instead of main and Pull uses that source',async({page},testInfo)=>{
  test.setTimeout(120000);
  const repo=join(folder,'published-sync'),bare=join(folder,'published-sync.git'),writer=join(folder,'published-writer');mkdirSync(repo);git(repo,['init','-b','main']);git(folder,['init','--bare',bare]);writeFileSync(join(repo,'file.txt'),'base\n');git(repo,['add','.']);git(repo,['commit','-m','Base']);git(repo,['remote','add','origin',bare]);git(repo,['push','-u','origin','main']);git(repo,['switch','-c','feature/published']);for(const message of ['Feature one','Feature two'])git(repo,['commit','--allow-empty','-m',message]);const head=git(repo,['rev-parse','HEAD']);
