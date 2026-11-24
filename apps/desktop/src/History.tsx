@@ -17,7 +17,24 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { StashList, MergeState, GraphPage, GraphRow } from './contracts';
 import { stashLanes, stashTitle, historyItems, graphLabelsByCommit, ROW_HEIGHT, windowRange } from './graph-state';
 import { Icon } from './Icons';
+import type { GraphRefLabel } from './graph-state';
 import { BranchTrackingBadge } from './BranchTrackingBadge';
+function TagPublicationBadge({ publication }: { publication: NonNullable<GraphRefLabel['tagPublication']> }) {
+  const { state, remote } = publication;
+  const label = t({
+    published: 'Published on {0}',
+    unpublished: 'Not published on {0}',
+    different: 'A different tag with this name exists on {0}',
+    unknown: 'Tag publication status unavailable',
+  }[state], remote ? [remote] : undefined);
+  return <small className={`tag-publication ${state}`} title={label} data-tag-publication={state}>
+    {state === 'published' || state === 'unpublished'
+      ? <Icon name={state === 'published' ? 'check' : 'push'} size={12} />
+      : <span aria-hidden="true">{state === 'different' ? '!' : '?'}</span>}
+    <span className="visually-hidden">{label}</span>
+  </small>;
+}
+
 export const WORKING = 'working';
 export type GraphIntent = { pushDraft?:import('./contracts').PushRequest; purpose?:'publishSubmodule'; oid: string; x: number; y: number; refName?: string; quick: boolean; action?: 'push' | 'fetch' | 'pull' | 'createBranch'; pipeline?: GraphCiLink; workflows?: GraphCiLink[]; requests?:OpenBranchRequest[]; requestKind?:'PR'|'MR'; requestProjectId?:string };
 export type GraphSession = { page: GraphPage; rows: GraphRow[]; selected: string | null; scroll: number; base: number; revision?: number; notice?: string; anchor?: string; anchorOffset?: number };
@@ -120,8 +137,8 @@ export function History({ membershipId, focusOid, onFocused, ciBadges, submodule
   const laneWidth = columnLayout.values.graph;
   const laneStep=Math.min(24,(laneWidth-24)*24/Math.max(24,savedGeometry.width-24));
   useLayoutEffect(()=>{if(heading.current&&viewport.current)heading.current.scrollLeft=viewport.current.scrollLeft;},[columnLayout.template,columnLayout.minWidth]);
-  const remoteTags=useRemoteGraphTags(membershipId,session.page.fingerprint,stashBusy||busy);
-  const labels = useMemo(() => graphLabelsByCommit(session.page, session.rows,remoteTags.snapshot), [session.page.refs, session.page.status.branch, session.page.status.head, session.rows,remoteTags.snapshot]);
+  const remoteTags=useRemoteGraphTags(membershipId, session.page.fingerprint, stashBusy || busy, session.revision);
+  const labels = useMemo(() => graphLabelsByCommit(session.page, session.rows, remoteTags.snapshot, !remoteTags.error), [session.page.refs, session.page.status.branch, session.page.status.head, session.rows, remoteTags.snapshot, remoteTags.error]);
   const selectionVisible = items.some(item => item.id === session.selected);
   const choose = (index: number) => {
     const item = items[index]; if (!item) return;
@@ -171,7 +188,7 @@ export function History({ membershipId, focusOid, onFocused, ciBadges, submodule
             onClick={event => {const target=(event.target as Element).closest<HTMLElement>('[data-request-numbers]');if(target){const numbers=target.dataset.requestNumbers!.split(',').map(Number);const box=target.getBoundingClientRect();onSelect(row.commit.oid);onAction({oid:row.commit.oid,x:box.left,y:box.bottom,quick:false,requests:requestState.snapshot?.requests.filter(v=>numbers.includes(v.number)),requestKind,requestProjectId:requestState.snapshot?.projectId});return;}onSelect(row.commit.oid);}} onKeyDown={event => { if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) { event.preventDefault(); const box = event.currentTarget.getBoundingClientRect(); onAction({ requests:requestsAt(event.target), requestKind, requestProjectId:requestState.snapshot?.projectId, pipeline: graphCi[row.commit.oid]?.pipeline, workflows:graphCi[row.commit.oid]?.workflows, oid: row.commit.oid, x: box.left + 180, y: box.top, quick: false }); return; } const next = event.key === 'ArrowDown' ? index + 1 : event.key === 'ArrowUp' ? index - 1 : event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : null; if (next !== null) { event.preventDefault(); choose(next); } }}>
             <span className={`graph-refs ${refs.length ? 'has-refs' : ''}`} title={refs.flatMap(ref => ref.fullNames).join('\n')}>
               <span className="ref-stack">{refs.slice(0, 2).map(ref => <span key={ref.fullNames[0]} data-ref-name={ref.remoteTag?undefined:ref.fullNames[0]} data-remote-tag={ref.remoteTag?true:undefined} aria-current={ref.current ? 'true' : undefined} title={ref.current ? t('Checked out branch: {0}', [ref.label]) : [...ref.fullNames,...(ref.tagRemotes??[]).map(remote=>t('Tag on {0}',[remote]))].join('\n')} className={`graph-ref ${ref.kind} ${ref.current ? 'current' : ''}`}>
-                <Icon name={ref.kind === 'tag' ? 'tag' : 'branch'} size={12} /><span>{ref.label}</span>{ref.current && <small className="current-branch-marker" title={t('Checked out branch: {0}', [ref.label])}>HEAD</small>}{Boolean(ref.tagRemotes?.length)&&<small className="remote-tag-source">{ref.tagRemotes?.join(', ')}</small>}{ref.tracked && <Icon name="remote" size={11} />}{ref.fullNames.some(name => name.startsWith('refs/heads/')) && <BranchTrackingBadge value={tracking.get(ref.label)} oid={row.commit.oid}/>}{badge(matchRequests(ref.fullNames).outgoing,false)}{badge(matchRequests(ref.fullNames).incoming,true)}
+                <Icon name={ref.kind === 'tag' ? 'tag' : 'branch'} size={12} /><span>{ref.label}</span>{ref.current && <small className="current-branch-marker" title={t('Checked out branch: {0}', [ref.label])}>HEAD</small>}{Boolean(ref.tagRemotes?.length)&&<small className="remote-tag-source">{ref.tagRemotes?.join(', ')}</small>}{ref.tagPublication && <TagPublicationBadge publication={ref.tagPublication} />}{ref.tracked && <Icon name="remote" size={11} />}{ref.fullNames.some(name => name.startsWith('refs/heads/')) && <BranchTrackingBadge value={tracking.get(ref.label)} oid={row.commit.oid}/>}{badge(matchRequests(ref.fullNames).outgoing,false)}{badge(matchRequests(ref.fullNames).incoming,true)}
               </span>)}</span>{refs.length > 2 && <span className="extra-refs">+{refs.length - 2}</span>}
             </span>
             <GraphMark savedLanes={savedGeometry.byBase.get(row.commit.oid) ?? []} row={row} width={laneWidth} naturalWidth={savedGeometry.width} head={head} labelled={refs.length > 0} />

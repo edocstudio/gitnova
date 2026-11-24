@@ -1684,14 +1684,19 @@ impl Application {
             } else {
                 "push_tag"
             };
-            self.execute_write_detailed(
+            let receipt = self.execute_write_detailed(
                 membership_id,
                 kind,
                 None,
                 None,
                 Some(PlannedOperation::Tag(preview)),
                 |git, path| git.apply_tag(path, request, token),
-            )
+            )?;
+            if kind == "push_tag" {
+                // The remote may have changed without any change to local refs.
+                self.remote_tags_cache.invalidate();
+            }
+            Ok(receipt)
         })
     }
     pub fn preview_remote_delete(

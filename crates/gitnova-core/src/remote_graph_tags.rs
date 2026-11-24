@@ -6,6 +6,11 @@ use moka::sync::Cache;
 use std::{sync::Arc, time::Duration};
 
 pub(super) struct RemoteTagsCache(Cache<String, Arc<Vec<GitRef>>>);
+impl RemoteTagsCache {
+    pub(super) fn invalidate(&self) {
+        self.0.invalidate_all();
+    }
+}
 impl Default for RemoteTagsCache {
     fn default() -> Self {
         Self(
@@ -16,7 +21,11 @@ impl Default for RemoteTagsCache {
                         + refs.capacity() * std::mem::size_of::<GitRef>()
                         + refs
                             .iter()
-                            .map(|r| r.name.capacity() + r.oid.capacity())
+                            .map(|r| {
+                                r.name.capacity()
+                                    + r.oid.capacity()
+                                    + r.object_oid.as_ref().map_or(0, String::capacity)
+                            })
                             .sum::<usize>()
                         + 256)
                         .min(u32::MAX as usize) as u32

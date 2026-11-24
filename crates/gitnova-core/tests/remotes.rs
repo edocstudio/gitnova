@@ -128,6 +128,109 @@ fn fetch_discovers_heads_and_tags_without_writing_local_branches_or_fetch_head()
     assert_eq!(git(&f.repo, &["rev-parse", "refs/tags/not-requested"]), oid);
 }
 #[test]
+fn full_fetch_clears_deleted_remote_branches_without_touching_other_refs_or_work() {
+    for background in [false, true] {
+        let f = fixture();
+        let base = git(&f.repo, &["rev-parse", "HEAD"]);
+        git(&f.writer, &["switch", "-c", "promote/release-to-main"]);
+        let promoted = commit(&f.writer, "promoted.txt", "selected files\n");
+        git(&f.writer, &["tag", "server-removed"]);
+        git(&f.writer, &["switch", "main"]);
+        git(&f.writer, &["merge", "--no-ff", "promote/release-to-main"]);
+        fetch(&f, None);
+        git(&f.repo, &["branch", "promote/release-to-main", &promoted]);
+        git(
+            &f.repo,
+            &["remote", "add", "origin/nested", f.writer.to_str().unwrap()],
+        );
+        git(
+            &f.repo,
+            &["update-ref", "refs/remotes/origin/nested/keep", &base],
+        );
+        git(&f.writer, &["branch", "-d", "promote/release-to-main"]);
+        git(&f.writer, &["tag", "-d", "server-removed"]);
+        fs::write(f.repo.join("file.txt"), "dirty\n").unwrap();
+        let index = fs::read(f.repo.join(".git/index")).unwrap();
+
+        let stale = "refs/remotes/origin/promote/release-to-main";
+        fetch(&f, Some("main"));
+        assert_eq!(git(&f.repo, &["rev-parse", stale]), promoted);
+
+        if background {
+            assert_eq!(f.app.auto_fetch(&f.id).unwrap().as_deref(), Some("origin"));
+        } else {
+            fetch(&f, None);
+        }
+        assert!(git(&f.repo, &["for-each-ref", "--format=%(refname)", stale]).is_empty());
+        assert_eq!(
+            git(
+                &f.repo,
+                &["rev-parse", "refs/heads/promote/release-to-main"]
+            ),
+            promoted
+        );
+        assert_eq!(
+            git(&f.repo, &["rev-parse", "refs/tags/server-removed"]),
+            promoted
+        );
+        assert_eq!(
+            git(&f.repo, &["rev-parse", "refs/remotes/origin/nested/keep"]),
+            base
+        );
+        assert_eq!(
+            git(&f.repo, &["symbolic-ref", "refs/remotes/origin/HEAD"]),
+            "refs/remotes/origin/main"
+        );
+        assert_eq!(git(&f.repo, &["rev-parse", "HEAD"]), base);
+        assert_eq!(fs::read(f.repo.join(".git/index")).unwrap(), index);
+        assert_eq!(
+            fs::read_to_string(f.repo.join("file.txt")).unwrap(),
+            "dirty\n"
+        );
+    }
+}
+
+#[test]
+fn full_fetch_preserves_tracking_refs_with_custom_mappings_and_when_remote_is_unavailable() {
+    let f = fixture();
+    let base = git(&f.repo, &["rev-parse", "HEAD"]);
+    let tracking = "refs/remotes/origin/alias";
+    git(&f.repo, &["update-ref", tracking, &base]);
+    git(
+        &f.repo,
+        &[
+            "config",
+            "--add",
+            "remote.origin.fetch",
+            "+refs/heads/main:refs/remotes/origin/alias",
+        ],
+    );
+    fetch(&f, None);
+    assert_eq!(git(&f.repo, &["rev-parse", tracking]), base);
+
+    git(
+        &f.repo,
+        &[
+            "config",
+            "--replace-all",
+            "remote.origin.fetch",
+            "+refs/heads/*:refs/remotes/origin/*",
+        ],
+    );
+    git(
+        &f.repo,
+        &[
+            "remote",
+            "set-url",
+            "origin",
+            f._dir.path().join("missing").to_str().unwrap(),
+        ],
+    );
+    assert!(f.app.auto_fetch(&f.id).is_err());
+    assert_eq!(git(&f.repo, &["rev-parse", tracking]), base);
+}
+
+#[test]
 fn fetch_preserves_conflicting_local_tags_and_refreshes_branches_and_new_tags() {
     for background in [false, true] {
         let f = fixture();

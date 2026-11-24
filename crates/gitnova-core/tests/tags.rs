@@ -99,7 +99,16 @@ fn annotated_tag_at_non_head_and_publication_preserve_annotation_index_and_other
         oid: f.first.clone(),
         remote: "origin".into(),
     };
+    assert!(f.app.remote_graph_tags(&f.id).unwrap().tags.is_empty());
     assert_eq!(apply(&f, &push).status, "succeeded");
+    let snapshot = f.app.remote_graph_tags(&f.id).unwrap();
+    assert_eq!(snapshot.tags.len(), 1);
+    assert_eq!(snapshot.tags[0].name, "refs/tags/v1.2.0");
+    assert_eq!(snapshot.tags[0].oid, f.first);
+    assert_eq!(
+        snapshot.tags[0].object_oid.as_deref(),
+        Some(object.as_str())
+    );
     assert_eq!(git(&f.remote, &["rev-parse", "refs/tags/v1.2.0"]), object);
     assert_eq!(
         git(&f.remote, &["for-each-ref", "--format=%(refname)"]),

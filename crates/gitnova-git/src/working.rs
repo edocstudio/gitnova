@@ -725,6 +725,21 @@ pub(crate) fn run_ref_transaction(root: &Path, transaction: &str) -> Result<()> 
         Some(transaction.as_bytes()),
     )
 }
+pub(crate) fn run_fetch_prune_transaction(root: &Path, transaction: &str) -> Result<()> {
+    run_git_write(
+        root,
+        &[
+            "-c".into(),
+            "core.hooksPath=".into(),
+            "update-ref".into(),
+            "--no-deref".into(),
+            "--stdin".into(),
+        ],
+        None,
+        Some(""),
+        Some(transaction.as_bytes()),
+    )
+}
 pub(crate) fn run_stash_write(root: &Path, args: &[OsString]) -> Result<()> {
     // Stash consumes no UI pathspecs. Older Git's internal clean uses :/ and breaks under literal-pathspecs.
     run_git_write_with_paths(

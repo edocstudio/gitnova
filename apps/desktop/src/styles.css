@@ -956,6 +956,10 @@ main { display: flex; flex: 1; min-height: 0; }
 
 .commit-history-review label{display:flex;gap:.6rem;align-items:flex-start;margin:1rem 0}.history-recovery-ref{display:block;overflow-wrap:anywhere;margin-top:.5rem}.undo-current,.redo-current{display:inline-flex;align-items:center;gap:.35rem}
 
+.tag-publication { display: inline-flex; justify-content: center; align-items: center; flex: 0 0 12px; line-height: 12px; font-weight: 700; }
+.tag-publication.published { color: var(--ink-7ddbb0, #7ddbb0); }
+.tag-publication.unpublished, .tag-publication.different { color: var(--ink-f0c375, #f0c375); }
+.tag-publication.unknown { color: var(--ink-bed2e5, #bed2e5); }
 .remote-tag-source { flex-shrink:0; font-size:10px; opacity:.85; }
 
 /* The existing footer label is the direct entry point for remote migration. */
