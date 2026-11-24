@@ -3,13 +3,13 @@ import { api, errorMessage } from './api';
 import { t } from './i18n';
 import type { GitRef, OperationReceipt, WorktreeCreatePreview, WorktreeCreateRequest } from './contracts';
 
-export function WorktreeCreateReview({ membershipId, oid, locals, blocked, onBack, onBusyChange, onDone, onClose, onFailure }: {
-  membershipId: string; oid: string; locals: GitRef[]; blocked: boolean; onBack: () => void;
+export function WorktreeCreateReview({ fixedBranch, membershipId, oid, locals, blocked, onBack, onBusyChange, onDone, onClose, onFailure }: {
+  fixedBranch?: string; membershipId: string; oid: string; locals: GitRef[]; blocked: boolean; onBack: () => void;
   onBusyChange: (value: boolean) => void; onDone: (receipt: OperationReceipt) => Promise<void>;
   onClose: () => void; onFailure: (id: string, message: string) => void;
 }) {
   const [mode, setMode] = useState<WorktreeCreateRequest['mode']>('newBranch');
-  const [branch, setBranch] = useState(''); const [destination, setDestination] = useState('');
+  const [branch, setBranch] = useState(fixedBranch ?? ''); const [destination, setDestination] = useState('');
   const [preview, setPreview] = useState<WorktreeCreatePreview | null>(null);
   const [loading, setLoading] = useState(false); const [writing, setWriting] = useState(false); const [error, setError] = useState('');
   const sequence = useRef(0); const inFlight = useRef(false); const confirm = useRef<HTMLButtonElement>(null);
@@ -45,8 +45,8 @@ export function WorktreeCreateReview({ membershipId, oid, locals, blocked, onBac
       {preview.blockedReason ? <p className="notice" role="status">{t(preview.blockedReason)}</p> : <p className="hint">{t('Configured Git hooks and checkout filters can run. No force, reset or automatic stash.')}</p>}
       <div className="graph-action-footer"><button disabled={writing} onClick={() => setPreview(null)}>{t('Back')}</button><button ref={confirm} className="primary" disabled={blocked || writing || !!preview.blockedReason} onClick={() => void apply()}>{writing ? t('Creating worktree…') : t('Create worktree')}</button></div>
     </> : <form onSubmit={event => { event.preventDefault(); void review(); }}>
-      <label htmlFor="worktree-create-mode">{t('Checkout in the new folder')}</label><select id="worktree-create-mode" disabled={loading || writing} value={mode} onChange={e => { setMode(e.target.value as WorktreeCreateRequest['mode']); setBranch(e.target.value === 'existingBranch' ? locals[0]?.name.slice(11) ?? '' : ''); setError(''); }}><option value="newBranch">{t('New branch')}</option><option value="existingBranch" disabled={!locals.length}>{t('Existing local branch at this commit')}</option><option value="detached">{t('Detached HEAD')}</option></select>
-      {mode !== 'detached' && <><label htmlFor="worktree-create-branch">{t('Branch name')}</label>{mode === 'existingBranch' ? <select id="worktree-create-branch" disabled={loading || writing} value={branch} onChange={e => setBranch(e.target.value)}>{locals.map(ref => <option key={ref.name} value={ref.name.slice(11)}>{ref.name.slice(11)}</option>)}</select> : <input id="worktree-create-branch" value={branch} onChange={e => setBranch(e.target.value)} disabled={loading || writing} maxLength={256} autoComplete="off" spellCheck={false} required />}</>}
+      <label htmlFor="worktree-create-mode">{t('Checkout in the new folder')}</label><select id="worktree-create-mode" disabled={!!fixedBranch || loading || writing} value={mode} onChange={e => { setMode(e.target.value as WorktreeCreateRequest['mode']); setBranch(e.target.value === 'existingBranch' ? locals[0]?.name.slice(11) ?? '' : ''); setError(''); }}><option value="newBranch">{t('New branch')}</option><option value="existingBranch" disabled={!locals.length}>{t('Existing local branch at this commit')}</option><option value="detached">{t('Detached HEAD')}</option></select>
+      {mode !== 'detached' && <><label htmlFor="worktree-create-branch">{t('Branch name')}</label>{mode === 'existingBranch' ? <select id="worktree-create-branch" disabled={loading || writing} value={branch} onChange={e => setBranch(e.target.value)}>{locals.map(ref => <option key={ref.name} value={ref.name.slice(11)}>{ref.name.slice(11)}</option>)}</select> : <input id="worktree-create-branch" readOnly={!!fixedBranch} value={branch} onChange={e => setBranch(e.target.value)} disabled={loading || writing} maxLength={256} autoComplete="off" spellCheck={false} required />}</>}
       <label htmlFor="worktree-create-destination">{t('New folder (absolute path)')}</label><input id="worktree-create-destination" value={destination} onChange={e => setDestination(e.target.value)} disabled={loading || writing} maxLength={4096} autoComplete="off" spellCheck={false} placeholder={t('/absolute/path/to/new-worktree')} required />
       <p className="hint">{t('Choose a new folder outside existing repositories. Its parent directory must already exist.')}</p>
       {loading && <p role="status" className="loading-status">{t('Inspecting destination and branch availability…')}</p>}

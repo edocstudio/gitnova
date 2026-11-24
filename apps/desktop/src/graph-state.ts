@@ -36,7 +36,7 @@ export function windowRange(scrollTop: number, viewportHeight: number, count: nu
   return { start, end: Math.min(count, Math.ceil((scrollTop + viewportHeight) / ROW_HEIGHT) + 8) };
 }
 export function refLabels(page: Pick<GraphPage, 'refs'>, oid: string) {
-  return page.refs.filter(ref => ref.oid === oid).map(ref => ref.name.replace(/^refs\/(heads|remotes|tags)\//, ''));
+  return page.refs.filter(ref => ref.oid === oid && !ref.name.startsWith('refs/gitnova/hotfix/')).map(ref => ref.name.replace(/^refs\/(heads|remotes|tags)\//, ''));
 }
 
 type TagPublication = {
@@ -49,7 +49,7 @@ export function graphRefLabels(page: Pick<GraphPage, 'refs' | 'status'>, oid: st
   advertisedTags = new Map(remoteTags?.tags.map(tag => [tag.name, tag])),
   verified = true,
 ): GraphRefLabel[] {
-  const refs = page.refs.filter(ref => ref.oid === oid && !(ref.name.startsWith('refs/remotes/') && ref.name.endsWith('/HEAD')));
+  const refs = page.refs.filter(ref => ref.oid === oid && !ref.name.startsWith('refs/gitnova/hotfix/') && !(ref.name.startsWith('refs/remotes/') && ref.name.endsWith('/HEAD')));
   const local = refs.filter(ref => ref.name.startsWith('refs/heads/'));
   const remotesByBranch = new Map<string, typeof refs>();
   const grouped = new Set<string>();

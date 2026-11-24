@@ -344,6 +344,40 @@ async fn remove_worktree(
     .await
 }
 #[tauri::command]
+async fn hotfix_candidate(
+    state: State<'_>,
+    membership_id: String,
+    request: gitnova_core::hotfix::Request,
+) -> Result<String, AppError> {
+    run(state, move |app| {
+        app.hotfix_candidate(&membership_id, &request)
+    })
+    .await
+}
+#[tauri::command]
+async fn preview_hotfix(
+    state: State<'_>,
+    membership_id: String,
+    request: gitnova_core::hotfix::Request,
+) -> Result<gitnova_core::hotfix::Review, AppError> {
+    run(state, move |app| {
+        app.preview_hotfix(&membership_id, &request)
+    })
+    .await
+}
+#[tauri::command]
+async fn prepare_hotfix(
+    state: State<'_>,
+    membership_id: String,
+    request: gitnova_core::hotfix::Request,
+    expected: gitnova_core::hotfix::Review,
+) -> Result<OperationReceipt, AppError> {
+    run(state, move |app| {
+        app.prepare_hotfix(&membership_id, &request, &expected)
+    })
+    .await
+}
+#[tauri::command]
 async fn preview_create_worktree(
     state: State<'_>,
     membership_id: String,
@@ -1514,6 +1548,9 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         preview_submodule_sync,
         sync_submodule,
         remove_worktree,
+        hotfix_candidate,
+        preview_hotfix,
+        prepare_hotfix,
         preview_create_worktree,
         create_worktree,
         stashes,

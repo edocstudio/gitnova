@@ -32,6 +32,9 @@ function callProgress<T>(command:string,args:Record<string,unknown>,onProgress?:
   return call<T>(command,{...args,onProgress:channel}).finally(()=>{channel.onmessage=()=>{};});
 }
 export const api = {
+  hotfixCandidate: (membershipId: string, request: import('./HotfixReview').HotfixRequest) => call<string>('hotfix_candidate', {membershipId, request}),
+  previewHotfix: (membershipId: string, request: import('./HotfixReview').HotfixRequest) => call<import('./HotfixReview').HotfixPlan>('preview_hotfix', {membershipId, request}),
+  prepareHotfix: (membershipId: string, request: import('./HotfixReview').HotfixRequest, expected: import('./HotfixReview').HotfixPlan) => call<OperationReceipt>('prepare_hotfix', {membershipId, request, expected}),
   previewPromotion: (membershipId: string, options: import('./contracts').PromotionOptions) =>
     call<import('./contracts').PromotionReview>('promote_selected_files', {membershipId, action: {kind: 'preview', options}}),
   publishPromotion: (membershipId: string, options: import('./contracts').PromotionOptions, token: string) =>
