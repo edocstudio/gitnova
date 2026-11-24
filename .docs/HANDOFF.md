@@ -24,11 +24,12 @@ the write without waiting for the normal polling interval.
 
 All 13 graph-state unit tests, 7 Rust tag integrations, and 3 targeted
 Playwright workflows passed. TypeScript, Vite, cargo release compilation,
-formatting and diff checks passed. The Desktop 1.4.1 app was still open.
-The native release script stopped at its close-app check, so no 1.5.0
-bundle has been packaged or installed yet. Once GitNova is closed, rerun
-`npm --prefix apps/desktop run build:release`, then stage and native-smoke
-the signed bundle before replacing `Desktop/GitNova.app`.
+formatting and diff checks passed. GitNova 1.5.0 is installed at
+`Desktop/GitNova.app`. The signed bundle passed embedded UI verification and
+native startup, catalog, real Git graph and single-instance smoke checks.
+The installed binary matches the release bundle. SHA-256
+`5e0278efb6115f2fab0c586ad4f20630f35c7c4299dae1696bd94a5d5f9c9c76`. Previous 1.4.1 bundle retained at
+`Desktop/.gitnova-update.RWMpdriZ/GitNova-1.4.1.app`.
 
 ## Clear labels for remote branches deleted after merge
 
