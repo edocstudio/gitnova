@@ -1,6 +1,6 @@
 # GitNova session handoff
 
-Updated: 2026-11-20 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+Updated: 2026-11-24 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
@@ -9,6 +9,26 @@ state. Communicate with this user in Thai.
 The user requires a version bump and a new installed macOS `.app` for every
 GitNova code change. The durable instructions and completion checks are in
 [AGENTS.md](../AGENTS.md#persistent-settings). This note was documentation only.
+
+## Tag publication symbols
+
+Branch `feat/tag-publication-badges` (base `7e6bfc4`) adds publication
+symbols to graph tag badges. The graph checks its selected fetch remote.
+A tick means the exact tag object matches, the upload arrow means its name
+is absent there, an exclamation mark means a different object has that
+name, and a question mark means the result is unverified. Separate push
+URLs can have a different inventory. Local and advertised annotated tags
+retain their raw tag object IDs alongside the commit used for placement.
+Tag Push invalidates the native inventory, and the graph rereads it after
+the write without waiting for the normal polling interval.
+
+All 13 graph-state unit tests, 7 Rust tag integrations, and 3 targeted
+Playwright workflows passed. TypeScript, Vite, cargo release compilation,
+formatting and diff checks passed. The Desktop 1.4.1 app was still open.
+The native release script stopped at its close-app check, so no 1.5.0
+bundle has been packaged or installed yet. Once GitNova is closed, rerun
+`npm --prefix apps/desktop run build:release`, then stage and native-smoke
+the signed bundle before replacing `Desktop/GitNova.app`.
 
 ## Clear labels for remote branches deleted after merge
 

@@ -47,6 +47,7 @@ impl GitCli {
                 Ok(GitRef {
                     name: name.into(),
                     oid: oid.into(),
+                    object_oid: None,
                 })
             })
             .collect()
@@ -129,9 +130,13 @@ impl GitCli {
         // Annotated tag objects do not identify a graph row; their peeled target does.
         Ok(objects
             .into_iter()
-            .map(|(name, object)| GitRef {
-                oid: peeled.remove(&name).unwrap_or(object),
-                name,
+            .map(|(name, object)| {
+                let oid = peeled.remove(&name).unwrap_or_else(|| object.clone());
+                GitRef {
+                    object_oid: (oid != object).then_some(object),
+                    oid,
+                    name,
+                }
             })
             .collect())
     }

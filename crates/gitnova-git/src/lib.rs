@@ -704,6 +704,8 @@ impl RefReader for GitCli {
                 Ok(GitRef {
                     oid: oid.into(),
                     name: fields[1].into(),
+                    object_oid: (fields[1].starts_with("refs/tags/") && fields[0] != oid)
+                        .then(|| fields[0].into()),
                 })
             })
             .collect()

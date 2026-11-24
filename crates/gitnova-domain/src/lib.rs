@@ -180,6 +180,9 @@ pub struct RepoStatus {
 pub struct GitRef {
     pub name: String,
     pub oid: String,
+    /// Raw object when an annotated tag points to a different graph OID.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub object_oid: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

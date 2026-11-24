@@ -103,8 +103,21 @@ it('decorates remote-only tags at their peeled commit and deduplicates matching 
   expect(labels[1]).toMatchObject({remoteTag:true,tagRemotes:['origin'],fullNames:['origin: refs/tags/0.0.35']});
   expect(labels[2]).toMatchObject({tagRemotes:['origin'],fullNames:['refs/tags/0.0.34']});
   expect(labels[2].remoteTag).toBeUndefined();
-  expect(graphRefLabels(page,'b',remote)).toEqual(graphRefLabels(page,'b'));
+  expect(graphRefLabels(page, 'b', remote)[0].tagPublication).toEqual({ remote: 'origin', state: 'different' });
   const indexed=graphLabelsByCommit(page,[{...row(1),commit:{...row(1).commit,oid:'a'}}],remote);
   expect(indexed.get('a')).toEqual(labels);
-  expect(graphRefLabels(page,'a',{remote:'other',tags:[]})).toEqual(graphRefLabels(page,'a'));
+  expect(graphRefLabels(page, 'a', { remote: 'other', tags: [] })[1].tagPublication)
+    .toEqual({ remote: 'other', state: 'unpublished' });
+  expect(graphRefLabels(page, 'a')[1].tagPublication)
+    .toEqual({ remote: null, state: 'unknown' });
+  expect(graphLabelsByCommit(page, [{ ...row(1), commit: { ...row(1).commit, oid: 'a' } }], remote, false)
+    .get('a')?.[2].tagPublication?.state).toBe('unknown');
+});
+
+it('requires annotated tag objects to match even when the name and commit match', () => {
+  const tag = { name: 'refs/tags/v2', oid: 'commit', objectOid: 'local-object' };
+  const page = { status: { branch: 'main', head: 'commit', dirty: false, changedEntries: 0, bare: false }, refs: [tag] };
+  const remote = { remote: 'origin', tags: [{ ...tag, objectOid: 'remote-object' }] };
+  expect(graphRefLabels(page, 'commit', remote).map(ref => ref.tagPublication?.state)).toEqual(['different']);
+  expect(graphRefLabels(page, 'commit', { ...remote, tags: [tag] })[0].tagPublication?.state).toBe('published');
 });

@@ -6,7 +6,7 @@ type State = {key: string; snapshot: RemoteGraphTags | null; error: boolean};
 
 // Native cache is bounded and keyed by repository identity, fetch URL and refs.
 // Keep network work off the graph load path and stop polling while hidden/busy.
-export function useRemoteGraphTags(id: string, fingerprint: string, paused: boolean) {
+export function useRemoteGraphTags(id: string, fingerprint: string, paused: boolean, revision?: number) {
   const [state, setState] = useState<State>({key: '', snapshot: null, error: false});
   const key = JSON.stringify([id, fingerprint]);
   useEffect(() => {
@@ -41,6 +41,6 @@ export function useRemoteGraphTags(id: string, fingerprint: string, paused: bool
       clearTimeout(timer);
       document.removeEventListener('visibilitychange', visible);
     };
-  }, [id, key, paused]);
+  }, [id, key, paused, revision]);
   return state.key === key ? state : {key, snapshot: null, error: false};
 }
