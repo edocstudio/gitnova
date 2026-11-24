@@ -18,6 +18,19 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             .ok_or_else(|| AppError::new("test", format!("Missing {key}")))
     };
     let value = match command {
+        "preview_hotfix" | "prepare_hotfix" | "hotfix_candidate" => {
+            let request = serde_json::from_value(args["request"].clone())
+                .map_err(|e| AppError::new("hotfix", e.to_string()))?;
+            if command == "hotfix_candidate" {
+                json!(app.hotfix_candidate(&s("membershipId")?, &request)?)
+            } else if command == "preview_hotfix" {
+                json!(app.preview_hotfix(&s("membershipId")?, &request)?)
+            } else {
+                let expected = serde_json::from_value(args["expected"].clone())
+                    .map_err(|e| AppError::new("hotfix", e.to_string()))?;
+                json!(app.prepare_hotfix(&s("membershipId")?, &request, &expected)?)
+            }
+        }
         "promote_selected_files" => {
             let action = serde_json::from_value(args["action"].clone())
                 .map_err(|e| AppError::new("promotion", e.to_string()))?;

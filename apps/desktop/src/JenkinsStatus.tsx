@@ -10,6 +10,10 @@ const storageKey=(id:string)=>`gitnova.ci.jenkins.${id}`;
 function saved(id:string):Config|null{
  try{const v=JSON.parse(localStorage.getItem(storageKey(id))??'null');return v&&['remote','controller','jobUrl','username'].every(k=>typeof v[k]==='string')?v:null;}catch{return null;}
 }
+export function configuredJenkinsJob(membershipId: string, remote: string) {
+ const config = saved(membershipId);
+ return config?.remote === remote ? config.jobUrl : null;
+}
 const cache=new Map<string,JenkinsSnapshot>();
 export function JenkinsStatus({membershipId,oid,onSnapshot}:{membershipId:string;oid:string;onSnapshot:(value:PipelineSnapshot|null,summary?:string)=>void}){
  const [config,setConfig]=useState<Config|null>(()=>saved(membershipId));

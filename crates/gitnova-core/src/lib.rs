@@ -20,6 +20,7 @@ mod commit_identities;
 mod display_cache;
 pub mod git_credentials;
 mod hosting;
+pub mod hotfix;
 mod init;
 mod jenkins;
 pub mod local_analysis;
@@ -860,6 +861,7 @@ impl Application {
                     "push_branch" => receipt.planned.as_ref().map_or_else(|| "Push completed".into(), |planned| if let PlannedOperation::Push(p)=planned {format!("Pushed {} to {}/{} at {}{}",p.request.branch,p.request.remote,p.request.remote_branch,&p.request.oid[..8],if p.request.set_upstream {"; upstream set"}else{""})}else{"Push completed".into()}),
                     "discard_changes" => "Selected changes discarded; original content saved for recovery".into(),
                     "remove_worktree" => "Linked worktree removed; branch and commit retained for recovery".into(),
+                    "prepare_hotfix" => "Local hotfix review branch created".into(),
                     "create_worktree" => "Worktree created; open it from Related repositories".into(),
                     "stash_push" => "Changes saved to stash; saved work is retained for recovery".into(),
                     "stash_apply" => "Stash applied; saved entry retained".into(),

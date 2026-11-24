@@ -4,6 +4,29 @@ Updated: 2026-11-24 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Production hotfix for release-only UAT
+
+Version 1.6.0 on `feat/production-hotfix-workflow`. Right-click the deployed
+local tag and select Production hotfix. Worktree creation, review branches,
+publication actions and tag creation reuse the graph context. Fetch the chosen
+remote before both release requests and check the target SHA again at merge.
+
+The UAT review commit has the hotfix tree, the parked release as first parent
+and the fix as second parent. Local refs under `refs/gitnova/hotfix/` keep the
+checkpoint across sessions and review-branch deletion. After UAT and production
+are confirmed, restoration checks the new tag and fetched release tree and
+applies the production-to-hotfix delta to the parked release with a three-way
+merge. Conflicts retain the checkpoint. Deploy and provider approvals remain
+with the team's pipeline or Jenkins.
+
+Sixteen targeted frontend tests and two Playwright flows with real disposable
+Git repositories passed, including stale previews, deleted review branches,
+candidate validation, dirty work and conflicting restores. Desktop 1.6.0
+passed signature, embedded UI, native graph and single-instance checks.
+Previous bundle: `Desktop/.gitnova-update.6zb2chDt/GitNova-1.5.0.app`.
+Installed binary SHA-256:
+`9fe137a37294b9345d751a6be199519b243999e3041ef8919c48ec6ca89c9c3c`.
+
 ## Standing delivery preference
 
 The user requires a version bump and a new installed macOS `.app` for every
