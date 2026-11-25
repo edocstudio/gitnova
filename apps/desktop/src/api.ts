@@ -134,6 +134,8 @@ export const api = {
   pipelineContext: (membershipId:string,selection:HostingSelection)=>call<HostingContext>('pipeline_context',{membershipId,selection}),
   connectPipeline: (membershipId:string,selection:HostingSelection)=>call<HostingContext>('connect_pipeline',{membershipId,selection,prompt:{message:t('Enter a provider access token. The verified token will be stored in macOS Keychain.'),confirm:t('Connect'),cancel:t('Cancel')}}),
   ciSummary: (membershipId:string,selection:HostingSelection)=>call<PipelineSnapshot>('ci_summary',{membershipId,selection}),
+  productionDeployment: (membershipId: string, selection: HostingSelection) => call<import('./release-evidence').Deployment | null>('release_evidence',{membershipId,selection,production:true}),
+  releasePipeline: (membershipId: string, selection: HostingSelection) => call<import('./contracts').PipelineRun | null>('release_evidence',{membershipId,selection,production:false}),
   pipelines: (membershipId:string,selection:HostingSelection,refresh=false)=>call<PipelineSnapshot>('pipelines',{membershipId,selection,refresh}),
   hostingContext: (membershipId:string,selection:HostingSelection)=>call<HostingContext>('hosting_context',{membershipId,selection}),
   disconnectHosting: (membershipId:string,selection:HostingSelection)=>call<HostingContext>('disconnect_hosting',{membershipId,selection}),

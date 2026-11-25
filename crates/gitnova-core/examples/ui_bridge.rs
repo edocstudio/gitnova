@@ -31,6 +31,17 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.prepare_hotfix(&s("membershipId")?, &request, &expected)?)
             }
         }
+        "release_evidence" => {
+            let selection = serde_json::from_value(args["selection"].clone())
+                .map_err(|e| AppError::new("hosting", e.to_string()))?;
+            app.release_evidence(
+                &s("membershipId")?,
+                &selection,
+                args["production"]
+                    .as_bool()
+                    .ok_or_else(|| AppError::new("hosting", "Missing environment"))?,
+            )?
+        }
         "promote_selected_files" => {
             let action = serde_json::from_value(args["action"].clone())
                 .map_err(|e| AppError::new("promotion", e.to_string()))?;

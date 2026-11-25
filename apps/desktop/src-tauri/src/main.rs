@@ -1338,6 +1338,18 @@ async fn ci_summary(
     .await
 }
 #[tauri::command]
+async fn release_evidence(
+    state: State<'_>,
+    membership_id: String,
+    selection: HostingSelection,
+    production: bool,
+) -> Result<serde_json::Value, AppError> {
+    run_background(state, move |app| {
+        app.release_evidence(&membership_id, &selection, production)
+    })
+    .await
+}
+#[tauri::command]
 async fn pipelines(
     state: State<'_>,
     membership_id: String,
@@ -1596,6 +1608,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         disconnect_jenkins_account,
         pipeline_context,
         connect_pipeline,
+        release_evidence,
         pipelines,
         ci_summary,
         hosting_context,

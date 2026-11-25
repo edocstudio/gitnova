@@ -1069,3 +1069,25 @@ main { display: flex; flex: 1; min-height: 0; }
 .promotion-patch span.add { color: var(--green); }
 .promotion-patch span.remove { color: var(--red); }
 .promotion-patch span.hunk { color: var(--accent); }
+
+.release-nav {display:flex;gap:2px;border-bottom:1px solid var(--line)}
+.release-nav button {border:0;border-radius:0;color:var(--muted)}
+.release-nav button[aria-pressed=true] {color:var(--accent);box-shadow:inset 0 -2px var(--accent)}
+.releases-page {flex:1;overflow:auto;padding:clamp(16px,3vw,42px);background:var(--base)}
+.releases-page header,.release-detail h2 {display:flex;align-items:center;gap:12px}
+.releases-page header>div {margin-right:auto}
+.releases-page h1,.release-detail h2 {margin:0 0 6px}
+.releases-page small {color:var(--muted);display:block}
+.release-layout {display:grid;grid-template-columns:minmax(0,1.8fr) minmax(260px,1fr);gap:18px;margin-top:22px;align-items:start}
+.release-list,.release-detail {border:1px solid var(--line);background:var(--panel);border-radius:8px;overflow:hidden}
+.release-head,.release-row {display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:12px;text-align:left;align-items:center;padding:14px 16px;width:100%;overflow-wrap:anywhere}
+.release-head {color:var(--muted);background:var(--raised)}
+.release-row {border:0;border-top:1px solid var(--line);border-radius:0;min-height:62px}
+.release-row[aria-pressed=true] {background:var(--accent-bg);box-shadow:inset 3px 0 var(--accent)}
+.release-wait {color:var(--ink-f8c16d,#f8c16d)}
+.release-detail {padding:16px 20px}.release-detail section {padding:14px 0;border-top:1px solid var(--line)}
+.release-detail h3 {color:var(--muted);margin:0 0 10px}.release-detail p,.release-detail code {overflow-wrap:anywhere}
+.release-detail button {margin:6px 6px 0 0}.release-detail label {display:grid;margin:8px 0;gap:3px}
+.release-stages {padding:0;list-style:none}.release-stages li {display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}
+.release-list>p {padding:12px 16px}
+@media(max-width:850px){.release-layout {grid-template-columns:1fr}.release-nav button{padding-inline:5px}.releases-page header {flex-wrap:wrap}}

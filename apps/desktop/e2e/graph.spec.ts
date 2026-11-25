@@ -2990,3 +2990,63 @@ test('hotfix restoration stops on conflicting release work and retains its check
   expect(git(repo,['branch','--list','resume-release/*'])).toBe('');
   expect(readFileSync(file,'utf8')).toBe('release edits\n');
 });
+
+test('workspace releases show recorded evidence, persist confirmation and filter pending jobs', async ({page})=>{
+ const repo=join(folder,'release-view-fixture');mkdirSync(repo);git(repo,['init','-b','main']);
+ writeFileSync(join(repo,'file'),'release');git(repo,['add','.']);git(repo,['commit','-m','Release overview']);
+ git(repo,['remote','add','origin','https://example.invalid/team/release-view.git']);
+ const sha=git(repo,['rev-parse','HEAD']);git(repo,['update-ref','refs/remotes/origin/release',sha]);
+ await connectRealCore(page,join(folder,'releases-state.json'));await page.goto('/');
+ await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.getByRole('button',{name:'Releases',exact:true}).click();
+ await expect(page.getByText('No verified deployment')).toBeVisible();
+ await page.getByRole('button',{name:'Record production confirmation'}).click();
+ await page.getByLabel('Deployed version').fill('v1.2.3');await page.getByLabel('Deployed commit SHA').fill(sha);
+ await page.getByLabel('Build or deployment URL').fill('https://ci.example.invalid/job/service/5/');
+ await page.getByLabel('Confirmed by',{exact:true}).fill('Release operator');await page.getByRole('button',{name:'Save confirmation'}).click();
+ await expect(page.locator('.release-row')).toContainText('v1.2.3');
+ await page.getByLabel('Release filter').selectOption('action');await expect(page.getByText('No manual actions found.')).toBeVisible();
+ await page.getByRole('button',{name:'History',exact:true}).click();await page.getByRole('button',{name:'Releases',exact:true}).click();
+ await expect(page.getByText('Confirmed by Release operator',{exact:false})).toBeVisible();
+});
+
+test('release overview isolates repositories and workspaces and opens the reviewed manual job',async({page},testInfo)=>{
+  const state=join(folder,'release-overview-scope.json');
+  await connectRealCore(page,state);await page.goto('/');
+  for(const name of ['control-panel','jupyterhub']){
+    const repo=join(folder,'overview-'+name);
+    mkdirSync(repo);git(repo,['init','-b','main']);
+    writeFileSync(join(repo,'file'),name);git(repo,['add','.']);git(repo,['commit','-m',name]);
+    git(repo,['remote','add','origin','https://gitlab.example.invalid/team/'+name+'.git']);
+    git(repo,['update-ref','refs/remotes/origin/release','HEAD']);
+    if(name==='jupyterhub')await page.locator('.repo-picker').click();
+    await page.getByLabel('Add an existing repository').fill(repo);
+    await page.getByRole('button',{name:'Open',exact:true}).click();
+    await expect(page.locator('.repo-picker')).toContainText(name);
+  }
+  // Supply transport fixtures for the two external services. Memberships, refs,
+  // remote matching and workspace switches still use the native fixture core.
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const {CONNECTIONS_KEY}=await import('/src/connection-store.ts');
+    localStorage.setItem(CONNECTIONS_KEY,JSON.stringify([{id:'fixture',label:'Test GitLab',provider:'gitlab',origin:'https://gitlab.example.invalid',enabled:true}]));
+    const catalog=await api.catalog();
+    const id=catalog.workspaces[0].memberships.find((m:{name:string})=>m.name.endsWith('control-panel')).id;
+    const sha='a'.repeat(40),base='https://gitlab.example.invalid/team/control-panel/-/';
+    api.productionDeployment=async(m:string)=>m===id?{sha,tag:'v2.8.3',id:'184',url:base+'environments/1',finished:'2026-11-22T08:00:00Z'}:null;
+    api.releasePipeline=async(m:string)=>m===id?{sha:'b'.repeat(40),id:'192',url:base+'pipelines/192',reference:'release',source:'push',status:'manual',jobsPartial:false,jobs:[{id:'6',name:'Unit tests',stage:'test',status:'success'},{id:'7',name:'Deploy UAT',stage:'deploy',status:'manual',allowFailure:false}]}:null;
+    api.openCiUrl=async(url:string)=>{sessionStorage.setItem('opened-release-job',url);};
+  });
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const control=page.getByRole('button',{name:/overview-control-panel.*v2.8.3/});
+  await control.click();await expect(page.getByRole('button',{name:'GitLab deployment #184'})).toBeVisible();
+  await page.screenshot({path:testInfo.outputPath('workspace-releases.png')});
+  await page.getByRole('button',{name:'Open manual job'}).click();
+  expect(await page.evaluate(()=>sessionStorage.getItem('opened-release-job'))).toBe('https://gitlab.example.invalid/team/control-panel/-/jobs/7');
+  await page.getByRole('button',{name:/overview-jupyterhub.*Unverified/}).click();
+  await expect(page.getByRole('button',{name:'Open manual job'})).toHaveCount(0);
+  await page.getByLabel('Release filter').selectOption('action');await expect(page.locator('.release-row')).toHaveCount(1);
+  await page.keyboard.press('Control+o');await page.getByLabel('New workspace name').fill('Empty release workspace');
+  await page.getByRole('button',{name:'Create',exact:true}).click();await page.keyboard.press('Escape');
+  await expect(page.getByText('No repositories in this workspace.')).toBeVisible();await expect(page.locator('.release-row')).toHaveCount(0);
+});

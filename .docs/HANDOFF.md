@@ -1,8 +1,24 @@
 # GitNova session handoff
 
-Updated: 2026-11-24 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
+
+## Workspace Releases
+
+Version 1.7.0 on `feat/workspace-release-overview` adds Releases beside History.
+Select a repository to inspect its production evidence and UAT jobs. Needs action
+filters the release pipeline. GitLab production evidence uses the latest
+successful deployment to the environment named `production`. UAT follows the
+latest pipeline on the branch named `release`. Repository-scoped Jenkins jobs
+can be opened and builds are matched to the fetched release SHA. Manual production
+confirmation records a SHA, version, source link, name and timestamp on this device.
+
+Validated with the GitLab HTTP fixture, three localization tests and two
+Playwright workflows covering manual evidence, filtering, direct job links,
+repository selection and workspace isolation. External responses were simulated.
+Installed Desktop 1.7.0 passed native smoke, signature and embedded UI checks.
+The previous app is in `Desktop/.gitnova-update.w3xfbZOa/GitNova-1.6.0.app`.
 
 ## Production hotfix for release-only UAT
 

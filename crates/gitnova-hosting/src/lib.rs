@@ -638,6 +638,92 @@ impl<'a> HostingClient<'a> {
                 .as_secs(),
         })
     }
+    pub fn production_deployment(&self) -> Result<Option<Value>> {
+        if self.context.provider != "gitlab" {
+            return Err(err("Production deployment requires GitLab."));
+        }
+        let path = format!("/projects/{}/deployments", encode(&self.context.project));
+        let rows = self
+            .call(
+                Method::GET,
+                &path,
+                &[
+                    ("environment", "production".into()),
+                    ("status", "success".into()),
+                    ("order_by", "finished_at".into()),
+                    ("sort", "desc".into()),
+                    ("per_page", "1".into()),
+                ],
+                None,
+            )?
+            .ok_or_else(|| err("Deployment history is unavailable."))?;
+        let Some(row) = rows
+            .as_array()
+            .ok_or_else(|| err("Invalid deployment response."))?
+            .first()
+        else {
+            return Ok(None);
+        };
+        let sha = bounded_field(row, "sha");
+        if row["environment"]["name"] != "production"
+            || row["status"] != "success"
+            || !valid_oid(&sha)
+        {
+            return Err(err("Deployment evidence does not match production."));
+        }
+        let job = &row["deployable"];
+        let tag =
+            (job["tag"] == true && job["ref"] == row["ref"]).then(|| bounded_field(row, "ref"));
+        let id = pipeline_id(row)?;
+        let project = self
+            .context
+            .project
+            .split('/')
+            .map(encode)
+            .collect::<Vec<_>>()
+            .join("/");
+        let link = format!(
+            "{}/{project}/-/environments/{}",
+            self.context.origin,
+            pipeline_id(&row["environment"])?
+        );
+        let finished = row["finished_at"].as_str().or(job["finished_at"].as_str());
+        Ok(Some(
+            json!({"id":id,"sha":sha,"tag":tag,"finished":finished,"url":link}),
+        ))
+    }
+    pub fn release_pipeline(&self) -> Result<Option<PipelineRun>> {
+        if self.context.provider != "gitlab" {
+            return Err(err("Release pipeline requires GitLab."));
+        }
+        let project = encode(&self.context.project);
+        let rows = self
+            .call(
+                Method::GET,
+                &format!("/projects/{project}/pipelines"),
+                &[
+                    ("ref", "release".into()),
+                    ("per_page", "1".into()),
+                    ("order_by", "id".into()),
+                    ("sort", "desc".into()),
+                ],
+                None,
+            )?
+            .ok_or_else(|| err("Pipeline history is unavailable."))?;
+        let Some(row) = rows
+            .as_array()
+            .ok_or_else(|| err("Invalid pipeline response."))?
+            .first()
+        else {
+            return Ok(None);
+        };
+        let oid = bounded_field(row, "sha");
+        if !valid_oid(&oid) || row["ref"] != "release" {
+            return Err(err("Pipeline revision did not match release."));
+        }
+        self.gitlab_pipeline_run(&project, row, &oid).map(Some)
+    }
+
     pub fn pipelines(&self, oid: &str) -> Result<PipelineSnapshot> {
         if self.context.provider != "gitlab" || !valid_oid(oid) {
             return Err(err(
@@ -666,62 +752,7 @@ impl<'a> HostingClient<'a> {
             if row["sha"].as_str() != Some(oid) {
                 return Err(err("Pipeline revision did not match the selected commit."));
             }
-            let id = pipeline_id(row)?;
-            let url = row["web_url"]
-                .as_str()
-                .ok_or_else(|| err("Pipeline URL is missing."))?;
-            let parsed = Url::parse(url).map_err(|_| err("Invalid pipeline URL."))?;
-            let origin = Url::parse(&self.context.origin).map_err(|_| err("Invalid host."))?;
-            if url.len() > 4096
-                || parsed.scheme() != "https"
-                || parsed.origin() != origin.origin()
-                || !parsed.username().is_empty()
-                || parsed.password().is_some()
-                || url.contains(&self.credential.token)
-            {
-                return Err(err("Pipeline URL does not match the connected host."));
-            }
-            let jobs = self
-                .call(
-                    Method::GET,
-                    &format!("/projects/{project}/pipelines/{id}/jobs"),
-                    &[("per_page", "51".into())],
-                    None,
-                )?
-                .ok_or_else(|| err("Pipeline jobs are not accessible."))?;
-            let jobs = jobs
-                .as_array()
-                .ok_or_else(|| err("Invalid pipeline jobs response."))?;
-            runs.push(PipelineRun {
-                display_number: None,
-                name: None,
-                id,
-                sha: oid.into(),
-                reference: bounded_field(row, "ref"),
-                source: bounded_field(row, "source"),
-                status: pipeline_status(row),
-                url: url.into(),
-                jobs_partial: jobs.len() > 50,
-                jobs: jobs
-                    .iter()
-                    .take(50)
-                    .map(|job| {
-                        Ok(PipelineJob {
-                            allow_failure: job["allow_failure"].as_bool(),
-                            id: pipeline_id(job)?,
-                            name: bounded_field(job, "name"),
-                            stage: bounded_field(job, "stage"),
-                            status: pipeline_status(job),
-                            runner: job["runner"]["description"]
-                                .as_str()
-                                .map(|s| s.chars().take(256).collect()),
-                            duration: job["duration"]
-                                .as_f64()
-                                .filter(|v| v.is_finite() && *v >= 0.0),
-                        })
-                    })
-                    .collect::<Result<Vec<_>>>()?,
-            });
+            runs.push(self.gitlab_pipeline_run(&project, row, oid)?);
         }
         Ok(PipelineSnapshot {
             oid: oid.into(),
@@ -733,6 +764,64 @@ impl<'a> HostingClient<'a> {
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap_or_default()
                 .as_secs(),
+        })
+    }
+    fn gitlab_pipeline_run(&self, project: &str, row: &Value, oid: &str) -> Result<PipelineRun> {
+        let id = pipeline_id(row)?;
+        let url = row["web_url"]
+            .as_str()
+            .ok_or_else(|| err("Pipeline URL is missing."))?;
+        let parsed = Url::parse(url).map_err(|_| err("Invalid pipeline URL."))?;
+        let origin = Url::parse(&self.context.origin).map_err(|_| err("Invalid host."))?;
+        if url.len() > 4096
+            || parsed.scheme() != "https"
+            || parsed.origin() != origin.origin()
+            || !parsed.username().is_empty()
+            || parsed.password().is_some()
+            || url.contains(&self.credential.token)
+        {
+            return Err(err("Pipeline URL does not match the connected host."));
+        }
+        let jobs = self
+            .call(
+                Method::GET,
+                &format!("/projects/{project}/pipelines/{id}/jobs"),
+                &[("per_page", "51".into())],
+                None,
+            )?
+            .ok_or_else(|| err("Pipeline jobs are not accessible."))?;
+        let jobs = jobs
+            .as_array()
+            .ok_or_else(|| err("Invalid pipeline jobs response."))?;
+        Ok(PipelineRun {
+            display_number: None,
+            name: None,
+            id,
+            sha: oid.into(),
+            reference: bounded_field(row, "ref"),
+            source: bounded_field(row, "source"),
+            status: pipeline_status(row),
+            url: url.into(),
+            jobs_partial: jobs.len() > 50,
+            jobs: jobs
+                .iter()
+                .take(50)
+                .map(|job| {
+                    Ok(PipelineJob {
+                        allow_failure: job["allow_failure"].as_bool(),
+                        id: pipeline_id(job)?,
+                        name: bounded_field(job, "name"),
+                        stage: bounded_field(job, "stage"),
+                        status: pipeline_status(job),
+                        runner: job["runner"]["description"]
+                            .as_str()
+                            .map(|s| s.chars().take(256).collect()),
+                        duration: job["duration"]
+                            .as_f64()
+                            .filter(|v| v.is_finite() && *v >= 0.0),
+                    })
+                })
+                .collect::<Result<Vec<_>>>()?,
         })
     }
     pub fn login(&self) -> Result<String> {
@@ -1620,6 +1709,43 @@ mod tests {
                 .unwrap()
                 .contains("mock-secret"));
         }
+    }
+    #[test]
+    fn workspace_release_evidence_separates_production_and_release_job() {
+        let context = resolve(&selection("gitlab"), "git@gitlab.com:team/project.git").unwrap();
+        let credential = Credential {
+            token: "mock-secret".into(),
+            login: "alice".into(),
+        };
+        let sha = "a".repeat(40);
+        let (base, _, task) = server(vec![
+            (
+                "GET",
+                "/projects/team%2Fproject/deployments?environment=production&status=success",
+                200,
+                json!([{"environment":{"id":3,"name":"production"},"sha":sha,"status":"success","id":42,"ref":"v1","deployable":{"tag":true,"ref":"v1"}}]),
+            ),
+            (
+                "GET",
+                "/projects/team%2Fproject/pipelines?ref=release&per_page=1",
+                200,
+                json!([{"id":7,"sha":sha,"ref":"release","status":"manual","web_url":"https://gitlab.com/team/project/-/pipelines/7"}]),
+            ),
+            (
+                "GET",
+                "/projects/team%2Fproject/pipelines/7/jobs",
+                200,
+                json!([{"id":8,"name":"Deploy UAT","status":"manual","allow_failure":false}]),
+            ),
+        ]);
+        let mut client = HostingClient::new(&context, &credential).unwrap();
+        client.base = base;
+        let production = client.production_deployment().unwrap().unwrap();
+        assert_eq!(production["tag"], "v1");
+        assert_eq!(production["sha"], sha);
+        let pipeline = client.release_pipeline().unwrap().unwrap();
+        assert_eq!(pipeline.jobs[0].id, "8");
+        task.join().unwrap();
     }
     #[test]
     fn gitlab_graph_pipeline_supports_base_path_and_missing_web_url() {

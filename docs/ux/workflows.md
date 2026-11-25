@@ -1,5 +1,9 @@
 # Workflow clarity across GitNova
 
+## Workspace releases
+
+History describes one checkout. Comparing deployed versions and pending release jobs across repositories requires a workspace view. Releases keeps History mounted and reads provider evidence on entry or refresh. The production cell uses a successful deployment on the GitLab environment named `production`, or an explicitly attributed local confirmation. The UAT cell follows the latest pipeline on `release`. Manual jobs open at the provider for review. A Jenkins job link alone does not establish a deployed version.
+
 ## Promote selected files
 
 The Changes dock supplies the files and opens a review from the existing graph
