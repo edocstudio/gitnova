@@ -4,6 +4,20 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Search and pagination in Releases
+
+Version 1.10.0 on `feat/release-search-pagination`. Search matches literal
+repository names across the workspace, ignoring case. Each page shows up to
+five repositories. A serial queue follows the current view. Cached evidence and
+images are reused when revisiting pages until refresh or configuration changes.
+Needs action checks CI across the matching names to find pending jobs. The
+repository mapping event still updates only its own image data.
+
+Verified using seven temporary repositories, counting reads across page changes,
+searches and revisits. The release overview and mapping regressions and three
+localization tests passed. Installed macOS Desktop 1.10.0 passed signature,
+embedded UI and native smoke checks.
+
 ## Repository-scoped release updates
 
 Version 1.9.1 on `fix/release-mapping-refresh-scope`. Saving or removing an image

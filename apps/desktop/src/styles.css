@@ -1099,3 +1099,7 @@ main { display: flex; flex: 1; min-height: 0; }
 
 .release-list {min-width:0;overflow-x:auto}
 .release-head,.release-row {min-width:calc(172px + var(--env-count) * 112px)}
+
+.release-list > .repo-pagination {padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.release-list > .repo-pagination nav {justify-content:flex-start}
+.releases-page header input[type=search] {max-width:100%;min-width:0}

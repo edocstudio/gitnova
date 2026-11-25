@@ -3125,3 +3125,39 @@ test('Kustomize release images render the selected deploy commit and container',
   expect(await page.evaluate(()=>sessionStorage.getItem('image-reads'))).toBe('0');
   await expect(page.locator('.release-row').filter({hasText:'deploy-config'})).not.toContainText('From config');
 });
+
+test('Releases searches all pages and reuses visible repository reads',async({page})=>{
+  test.setTimeout(150000);
+  const {state,catalog}=pickerFixture('release-pages',[]);
+  const workspace=catalog.workspaces[0],members=workspace.memberships;
+  const first=Math.floor(members.findIndex(m=>m.id===workspace.selectedId)/5);
+  const visible=members.slice(first*5,first*5+5);
+  const hidden=members.find(m=>!visible.includes(m))!;
+  await connectRealCore(page,state);await page.goto('/');
+  await expect(page.locator('.repo-picker')).toContainText('project-6');
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const read=api.remoteBranches;
+    api.remoteBranches=(id:string)=>{
+      const ids=JSON.parse(sessionStorage.getItem('release-reads')??'[]');
+      ids.push(id);sessionStorage.setItem('release-reads',JSON.stringify(ids));
+      return read(id);
+    };
+  });
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const view=page.locator('.releases-page'),rows=view.locator('.release-row');
+  const ready=view.getByRole('button',{name:'Refresh',exact:true});
+  const reads=()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('release-reads')??'[]') as string[]);
+  await expect(rows).toHaveCount(visible.length);await expect(ready).toBeEnabled();
+  const initialReads=await reads();
+  expect(new Set(initialReads)).toEqual(new Set(visible.map(m=>m.id)));
+  const search=view.getByRole('searchbox');
+  await search.fill(hidden.name.toUpperCase());await expect(rows).toHaveCount(1);
+  await expect(view.locator('.release-detail h2')).toContainText(hidden.name);
+  await expect(ready).toBeEnabled();expect(await reads()).toContain(hidden.id);
+  await search.fill('[.*]');await expect(view.getByText('No matching repositories.')).toBeVisible();
+  await search.fill('');await expect(rows).toHaveCount(5);await expect(ready).toBeEnabled();
+  await view.getByLabel('Next repository page').click();await expect(rows).toHaveCount(2);await expect(ready).toBeEnabled();
+  await view.getByLabel('Previous repository page').click();await expect(rows).toHaveCount(5);await expect(ready).toBeEnabled();
+  expect((await reads()).slice(initialReads.length).sort()).toEqual(members.filter(m=>!visible.includes(m)).map(m=>m.id).sort());
+});

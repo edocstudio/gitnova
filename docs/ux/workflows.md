@@ -693,3 +693,5 @@ unavailable/partial/shallow evidence are reported. A retry is explicit.
 The Releases inspector owns image mapping for its selected repository. Header
 Settings defines the environment columns and their order across repositories on
 this device. Hiding an environment preserves its repository overlay.
+
+The Releases table searches workspace repository names locally and pages the results. Ordinary browsing reads visible repositories on demand. Needs action checks CI across the name matches to find pending actions on other pages.

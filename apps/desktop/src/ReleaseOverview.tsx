@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {api,errorMessage} from './api';
 import {readConfirmation,readRelease,releaseAction,type Confirmation,type ReleaseEvidence} from './release-evidence';
 import {mappingChanged,readImages,imageVersion,type ConfigEvidence} from './kustomize-images';
@@ -82,12 +82,34 @@ function ReleaseDetails({member,info,config,onConfirmed,environments,members}:{c
     })}{info&&<small>{t('Last checked')} · {stamp(info.checked)}</small>}{error&&<p role="alert">{t(error)}</p>}
   </aside>;
 }
+const PAGE_SIZE=5;
 export function ReleaseOverview({workspace}:{workspace:Workspace}){
-  const members=useMemo(()=>workspace.memberships.filter((m,i,all)=>all.findIndex(v=>v.repositoryId===m.repositoryId)===i),[workspace.memberships]);
+  const members=useMemo(()=>{
+    const seen=new Set<string>();
+    return workspace.memberships.filter(m=>{
+      if(seen.has(m.repositoryId))return false;
+      seen.add(m.repositoryId);return true;
+    });
+  },[workspace.memberships]);
   const [states,setStates]=useState<Record<string,ReleaseEvidence>>({});
   const [configs,setConfigs]=useState<Record<string,ConfigEvidence|undefined>>({});
   const [focus,setFocus]=useState(workspace.selectedId??''),[attention,setAttention]=useState(false),[revision,refresh]=useState(0),[loading,setLoading]=useState(true);
   const environments=useMemo(releaseEnvironments,[revision]);
+  const [query,setQuery]=useState('');
+  const [page,setPage]=useState(()=>Math.floor(Math.max(0,members.findIndex(m=>m.id===workspace.selectedId))/PAGE_SIZE));
+  const matches=useMemo(()=>{
+    const term=query.trim().normalize('NFC').toLowerCase();
+    return members.filter(m=>m.name.normalize('NFC').toLowerCase().includes(term));
+  },[members,query]);
+  const showUat=environments.some(n=>n.toLowerCase()==='uat');
+  const needsAction=attention&&showUat;
+  const filtered=needsAction?matches.filter(m=>releaseAction(states[m.id]?.run)):matches;
+  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+  const currentPage=Math.min(page,pages-1);
+  const rows=filtered.slice(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE);
+  // Action status comes from CI, so this filter must inspect every name match.
+  const requested=useMemo(()=>needsAction?matches:matches.slice(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE),[matches,currentPage,needsAction]);
+  const schedule=useRef<(next:Membership[],actions:boolean)=>void>(()=>{});
   const [,confirmed]=useState(0);
   useEffect(()=>{
     let live=true;setStates({});setConfigs({});setLoading(true);
@@ -103,28 +125,54 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
       const repo=(event as CustomEvent<string>).detail;
       if(members.some(m=>m.repositoryId===repo))void updateImages(repo);
     };
-    async function read(){
-      for(const m of members){
-        if(!live)break;
-        const configured=imageReads.get(m.repositoryId)??updateImages(m.repositoryId);
-        let info:ReleaseEvidence;
-        try{info=await readRelease(m,()=>live);}catch(e){info={checked:Date.now(),productionError:errorMessage(e),pipelineError:errorMessage(e)};}
-        await configured;
-        if(live)setStates(prior=>({...prior,[m.id]:info}));
-      }
-      if(live)setLoading(false);
+    const evidence=new Map<string,ReleaseEvidence>();
+    let pending:Membership[]=[];
+    let wanted=new Set<string>();
+    let scanningActions=false,running=false;
+    async function drain(){
+      running=true;
+      try{
+        while(live&&pending.length){
+          const member=pending.pop()!;
+          let info=evidence.get(member.id);
+          if(!info){
+            try{info=await readRelease(member,()=>live);}
+            catch(e){info={checked:Date.now(),productionError:errorMessage(e),pipelineError:errorMessage(e)};}
+            if(!live)break;
+            evidence.set(member.id,info);
+            const result=info;
+            setStates(prior=>({...prior,[member.id]:result}));
+          }
+          if(wanted.has(member.id)&&(!scanningActions||releaseAction(info.run))){
+            await (imageReads.get(member.repositoryId)??updateImages(member.repositoryId));
+          }
+        }
+      }finally{running=false;if(live)setLoading(false);}
     }
-    void read();
+    schedule.current=(next,actions)=>{
+      scanningActions=actions;
+      wanted=new Set(next.map(m=>m.id));
+      pending=next.filter(m=>{
+        const info=evidence.get(m.id);
+        if(!info)return true;
+        return (!actions||Boolean(releaseAction(info.run)))&&!imageReads.has(m.repositoryId);
+      }).reverse();
+      if(!running){
+        setLoading(pending.length>0);
+        queueMicrotask(()=>{if(live&&!running&&pending.length)void drain();});
+      }
+    };
     const changed=()=>refresh(v=>v+1);
     window.addEventListener(mappingChanged,onMapping);
     window.addEventListener('gitnova-ci-config',changed);
     return()=>{live=false;window.removeEventListener(mappingChanged,onMapping);window.removeEventListener('gitnova-ci-config',changed);};
   },[members,revision,workspace,environments]);
-  const showUat=environments.some(n=>n.toLowerCase()==='uat');
-  const rows=members.filter(m=>!attention||!showUat||releaseAction(states[m.id]?.run));
+  useEffect(()=>{schedule.current(requested,needsAction);},[requested,needsAction,workspace,revision]);
   const selected=rows.find(m=>m.id===focus)??rows[0];
   return <div className="releases-page"><header><div><h1>{t('Releases')}</h1><small>{workspace.name} · {t('Workspace')}</small></div>
-    <select aria-label={t('Release filter')} disabled={!showUat} value={attention&&showUat?'action':'all'} onChange={e=>setAttention(e.target.value==='action')}>
+    <input type="search" aria-label={t('Search repositories')} placeholder={t('Search repositories')} maxLength={512} value={query}
+      onChange={e=>{setQuery(e.target.value);setPage(0);}}/>
+    <select aria-label={t('Release filter')} disabled={!showUat} value={attention&&showUat?'action':'all'} onChange={e=>{setAttention(e.target.value==='action');setPage(0);}}>
       <option value="all">{t('All repositories')}</option><option value="action">{t('Needs action')}</option></select>
     <button disabled={loading} onClick={()=>refresh(v=>v+1)}><Icon name="refresh" size={15}/>{t(loading?'Checking…':'Refresh')}</button></header>
     <div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
@@ -140,7 +188,15 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
               {id==='production'&&!image&&!failed&&<small>{prod?'GitLab':manual?t('Manual confirmation'):''}</small>}
             </span>;
           })}</button>;})}
-      {!rows.length&&<p role="status">{t(loading?'Checking…':attention?'No manual actions found.':'No repositories in this workspace.')}</p>}
+      {!rows.length&&<p role="status">{t(!members.length?'No repositories in this workspace.':!matches.length?'No matching repositories.':loading?'Checking…':'No manual actions found.')}</p>}
+      {filtered.length>0&&<div className="repo-pagination">
+        <span role="status">{t('{0}–{1} of {2} repositories',[currentPage*PAGE_SIZE+1,currentPage*PAGE_SIZE+rows.length,filtered.length])}</span>
+        {pages>1&&<nav aria-label={t('Repository pages')}>
+          <button aria-label={t('Previous repository page')} disabled={!currentPage} onClick={()=>setPage(currentPage-1)}>←</button>
+          <span>{t('Page {0} of {1}',[currentPage+1,pages])}</span>
+          <button aria-label={t('Next repository page')} disabled={currentPage+1===pages} onClick={()=>setPage(currentPage+1)}>→</button>
+        </nav>}
+      </div>}
     </div>{selected&&<div><ReleaseDetails config={configs[selected.repositoryId]} members={members} environments={environments} onConfirmed={()=>confirmed(n=>n+1)} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>
   </div>;
 }

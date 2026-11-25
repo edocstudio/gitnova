@@ -67,6 +67,8 @@ User correction, 2026-10-28: Settings contains global host/account Connections; 
 
 # Code quality
 
+For future changes, consider security, performance at realistic workspace sizes, and established project practices in design and verification. Scope data access to the operation and reuse results where correctness permits.
+
 Use idiomatic, explicit imports and clear resource ownership. In Python prefer
 focused `from module import name` imports, with aliases for ambiguous names;
 avoid wildcard imports and use qualified imports when they clarify ownership.
