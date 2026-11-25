@@ -3073,14 +3073,22 @@ test('Kustomize release images render the selected deploy commit and container',
     await expect(page.locator('.repo-picker')).toContainText(repo===deploy?'deploy-config':'project-api');
   }
   await page.getByRole('button',{name:'Settings',exact:true}).click();
-  await page.getByLabel('Application repository').selectOption({label:'project-api'});
-  await page.getByLabel('Deploy repository').selectOption({label:'deploy-config'});
-  await page.getByLabel('Deploy branch').selectOption('refs/heads/main');
-  await page.getByLabel('Container name').fill('web');
-  await page.getByRole('button',{name:'Save image mapping'}).click();
+  await page.getByLabel('Visible environments').fill('SIT, Preview, Production, UAT');
+  await page.getByRole('button',{name:'Save environments'}).click();
   await page.getByRole('button',{name:'Close settings'}).click();
   await page.getByRole('button',{name:'Releases',exact:true}).click();
   const row=page.locator('.release-row').filter({hasText:'project-api'});
+  await row.click();
+  await page.getByRole('button',{name:'Configure release images'}).click();
+  await page.getByLabel('Deploy repository').selectOption({label:'deploy-config'});
+  await page.getByLabel('Deploy branch').selectOption('refs/heads/main');
+  await page.getByLabel('Container name').fill('web');
+  await page.getByLabel('Preview overlay').fill('overlays/uat');
+  await page.getByLabel('SIT overlay').fill('overlays/production');
+  await page.getByRole('button',{name:'Save image mapping'}).click();
+  await expect(page.locator('.release-head span')).toHaveText(['Repository','SIT','Preview','Production','UAT']);
+  await expect(row.locator(':scope > span').nth(0)).toContainText('sha256');
+  await expect(row.locator(':scope > span').nth(1)).toContainText('uat-7');
   await expect(row).toContainText('uat-7');
   await row.click();
   const detail=page.locator('.release-detail');

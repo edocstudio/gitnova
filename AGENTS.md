@@ -59,6 +59,8 @@ verification. Report the installed version with the branch, commit and checks.
 
 User direction, 2026-10-28: persistent application/workspace/repository settings belong in the header Settings dialog, with explicit scope. Do not add connection forms or preferences to commit details. Keep Git action inputs and reviewed write confirmations in their existing graph context.
 
+Release settings exception (2026-11-25): configure repository overlay mappings in its Releases inspector. Global Settings chooses the visible release environments.
+
 CI account scope: global host/company connections in Settings, independent of repository, branch and commit. GitLab/GitHub account identity is provider plus normalized HTTPS host/base path; Jenkins identity is controller plus username. Match repositories by validated fetch remote, never folder/project names or host substrings. Keep companies isolated, preserve Keychain credentials and explain global disconnect effects.
 
 User correction, 2026-10-28: Settings contains global host/account Connections; remove the repository-remotes section. Repository destination setup and hosted-repository creation belong to the existing Push context when a destination is missing. Keep reviewed repository creation, local remote configuration and code publication as distinct, honestly reported effects.

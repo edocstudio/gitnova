@@ -6,7 +6,7 @@ use gitnova_git::GitCli;
 use serde::{Deserialize, Serialize};
 use serde_yaml_ng::Value;
 use std::{
-    collections::{BTreeSet, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     ffi::OsStr,
     fs,
     io::{Read, Write},
@@ -20,8 +20,7 @@ use std::{
 #[serde(rename_all = "camelCase")]
 pub struct Mapping {
     reference: String,
-    production: String,
-    uat: String,
+    overlays: BTreeMap<String, String>,
     container: String,
 }
 #[derive(Serialize)]
@@ -32,8 +31,7 @@ pub struct Overlay {
 #[derive(Serialize)]
 pub struct Images {
     revision: String,
-    production: Overlay,
-    uat: Overlay,
+    overlays: BTreeMap<String, Overlay>,
 }
 fn error(msg: &str) -> AppError {
     AppError::new("kustomize", msg)
@@ -347,6 +345,9 @@ fn render(dir: &Path, container: &str) -> Result<String> {
 
 impl Application {
     pub fn kustomize_images(&self, membership: &str, mapping: &Mapping) -> Result<Images> {
+        if mapping.overlays.len() > 32 {
+            return Err(error("Too many release environments."));
+        }
         let repo = self.path(membership)?;
         let reference = &mapping.reference;
         if !(reference.starts_with("refs/heads/") || reference.starts_with("refs/remotes/"))
@@ -423,8 +424,11 @@ impl Application {
         };
         Ok(Images {
             revision,
-            production: overlay(&mapping.production),
-            uat: overlay(&mapping.uat),
+            overlays: mapping
+                .overlays
+                .iter()
+                .map(|(name, path)| (name.clone(), overlay(path)))
+                .collect(),
         })
     }
 }

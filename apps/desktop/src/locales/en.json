@@ -1,4 +1,12 @@
 {
+  "Enter 1\u201332 unique names using letters, numbers, spaces, dots, underscores or hyphens (40 characters each).": "Enter 1–32 unique names using letters, numbers, spaces, dots, underscores or hyphens (40 characters each).",
+  "No overlay configured": "No overlay configured",
+  "{0} overlay": "{0} overlay",
+  "Configure release images": "Configure release images",
+  "Saved": "Saved",
+  "Save environments": "Save environments",
+  "Separate names with commas, in the order you want across all repositories.": "Separate names with commas, in the order you want across all repositories.",
+  "Visible environments": "Visible environments",
   "A referenced file is missing or is not a regular Git file.": "A referenced file is missing or is not a regular Git file.",
   "The selected container resolves to multiple images in this overlay.": "The selected container resolves to multiple images in this overlay.",
   "The selected container was not found in the rendered workloads.": "The selected container was not found in the rendered workloads.",

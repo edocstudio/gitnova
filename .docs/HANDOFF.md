@@ -4,6 +4,21 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Configurable release environments
+
+Version 1.9.0 on `feat/configurable-release-environments` moves repository image
+mapping to Releases → select a repository → Configure release images. On this
+device Settings → General → Visible environments controls names and column order
+for all repositories. Defaults are SIT, UAT, Production. A 1.8 mapping keeps its
+deploy ref, container and overlay paths and gains overlays/sit. Re-enabling
+a hidden environment restores its saved path. Custom environments show configured
+images. Production deployment evidence and release-branch UAT CI keep their scopes.
+
+Two Playwright workflows covered the real Rust bridge, Kustomize rendering,
+repository selection, a custom column and workspace evidence. Four targeted unit
+tests passed including 1.8 migration and localization. Verified the installed
+Desktop 1.9.0 signature, native smoke, embedded assets and executable comparison.
+
 ## Kustomize release images
 
 Version 1.8.0 on `feat/kustomize-release-images` adds mapping under Settings → General.

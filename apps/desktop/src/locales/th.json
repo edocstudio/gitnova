@@ -1,4 +1,12 @@
 {
+  "Enter 1\u201332 unique names using letters, numbers, spaces, dots, underscores or hyphens (40 characters each).": "ใส่ชื่อที่ไม่ซ้ำกัน 1–32 ชื่อ ชื่อละไม่เกิน 40 ตัว ใช้ตัวอักษร ตัวเลข ช่องว่าง จุด ขีดล่าง หรือขีดกลาง",
+  "No overlay configured": "ยังไม่ได้กำหนด overlay",
+  "{0} overlay": "Overlay ของ {0}",
+  "Configure release images": "ตั้งค่าอิมเมจของโปรเจกต์",
+  "Saved": "บันทึกแล้ว",
+  "Save environments": "บันทึก environment",
+  "Separate names with commas, in the order you want across all repositories.": "คั่นชื่อด้วยจุลภาค เรียงตามลำดับที่ต้องการแสดงในทุก repository",
+  "Visible environments": "Environment ที่แสดง",
   "A referenced file is missing or is not a regular Git file.": "ไม่พบไฟล์ที่อ้างถึง หรือไฟล์นั้นไม่ใช่ไฟล์ปกติใน Git",
   "The selected container resolves to multiple images in this overlay.": "ชื่อ container ที่เลือกตรงกับหลายอิมเมจใน overlay นี้",
   "The selected container was not found in the rendered workloads.": "ไม่พบชื่อ container ที่เลือกใน workload หลัง render",

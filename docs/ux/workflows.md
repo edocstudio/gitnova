@@ -689,3 +689,7 @@ Native blame follows rename heuristics; copied/moved-line detection is not enabl
 The current bounded reader supports regular UTF-8 files up to 1 MiB, losslessly
 represented filenames, and lines up to 1,000,000. Ignore-revs configuration and
 unavailable/partial/shallow evidence are reported. A retry is explicit.
+
+The Releases inspector owns image mapping for its selected repository. Header
+Settings defines the environment columns and their order across repositories on
+this device. Hiding an environment preserves its repository overlay.

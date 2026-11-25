@@ -1080,7 +1080,7 @@ main { display: flex; flex: 1; min-height: 0; }
 .releases-page small {color:var(--muted);display:block}
 .release-layout {display:grid;grid-template-columns:minmax(0,1.8fr) minmax(260px,1fr);gap:18px;margin-top:22px;align-items:start}
 .release-list,.release-detail {border:1px solid var(--line);background:var(--panel);border-radius:8px;overflow:hidden}
-.release-head,.release-row {display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:12px;text-align:left;align-items:center;padding:14px 16px;width:100%;overflow-wrap:anywhere}
+.release-head,.release-row {display:grid;grid-template-columns:minmax(140px,1.3fr) repeat(var(--env-count),minmax(100px,1fr));gap:12px;text-align:left;align-items:center;padding:14px 16px;width:100%;overflow-wrap:anywhere}
 .release-head {color:var(--muted);background:var(--raised)}
 .release-row {border:0;border-top:1px solid var(--line);border-radius:0;min-height:62px}
 .release-row[aria-pressed=true] {background:var(--accent-bg);box-shadow:inset 3px 0 var(--accent)}
@@ -1096,3 +1096,6 @@ main { display: flex; flex: 1; min-height: 0; }
 .kube-settings button {margin:8px 8px 0 0}
 .config-image {padding:10px 12px;border-left:3px solid var(--accent);background:var(--raised);margin:8px 0 12px}
 .config-image strong {display:block;margin:5px 0;overflow-wrap:anywhere}
+
+.release-list {min-width:0;overflow-x:auto}
+.release-head,.release-row {min-width:calc(172px + var(--env-count) * 112px)}

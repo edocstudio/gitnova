@@ -1,24 +1,13 @@
 import {useEffect,useState} from 'react';
 import {api,errorMessage} from './api';
 import {t} from './i18n';
-import type {Membership,Workspace} from './contracts';
+import type {Membership} from './contracts';
 import {saveMapping,storedMapping,type Mapping} from './kustomize-images';
 
-export function KustomizeSettings({workspace,initial}:{workspace:Workspace;initial:string}){
-  const members=workspace.memberships.filter((m,i,all)=>all.findIndex(v=>v.repositoryId===m.repositoryId)===i);
-  const [id,setId]=useState(initial);
-  const member=members.find(m=>m.repositoryId===id)??members[0];
-  if(!member)return null;
-  return <section className="settings-general kube-settings"><h3>{t('Kustomize release images')}</h3>
-    <label>{t('Application repository')}<select value={member.repositoryId} onChange={e=>setId(e.target.value)}>
-      {members.map(m=><option key={m.repositoryId} value={m.repositoryId}>{m.name}</option>)}</select></label>
-    <MappingForm key={member.repositoryId} app={member} members={members}/>
-  </section>;
-}
-function MappingForm({app,members}:{app:Membership;members:Membership[]}){
-  const defaults:Mapping={deployId:app.repositoryId,reference:'',production:'overlays/production',uat:'overlays/uat',container:''};
+export function MappingForm({app,members,environments,onDone}:{app:Membership;members:Membership[];environments:string[];onDone:()=>void}){
+  const defaults:Mapping={deployId:app.repositoryId,reference:'',overlays:Object.fromEntries(environments.map(n=>[n.toLowerCase(),'overlays/'+n.toLowerCase()])),container:app.name};
   const [draft,setDraft]=useState(()=>storedMapping(app.repositoryId)??defaults);
-  const [refs,setRefs]=useState<string[]>([]),[error,setError]=useState(''),[notice,setNotice]=useState('');
+  const [refs,setRefs]=useState<string[]>([]),[error,setError]=useState('');
   const deploy=members.find(m=>m.repositoryId===draft.deployId);
   useEffect(()=>{
     let live=true;setRefs([]);setError('');
@@ -30,10 +19,10 @@ function MappingForm({app,members}:{app:Membership;members:Membership[]}){
     }).catch(e=>{if(live)setError(errorMessage(e));});
     return()=>{live=false;};
   },[deploy?.id]);
-  const edit=(v:Partial<Mapping>)=>{setDraft(old=>({...old,...v}));setNotice('');};
-  return <form onSubmit={e=>{e.preventDefault();try{
-    saveMapping(app.repositoryId,{...draft,production:draft.production.trim(),uat:draft.uat.trim(),container:draft.container.trim()});
-    setNotice('Mapping saved. Open Releases to see the images.');
+  const edit=(v:Partial<Mapping>)=>{setDraft(old=>({...old,...v}));};
+  return <form className="kube-settings" onSubmit={e=>{e.preventDefault();try{
+    saveMapping(app.repositoryId,{...draft,container:draft.container.trim()});
+    onDone();
   }catch(e){setError(errorMessage(e));}}}>
     <label>{t('Deploy repository')}<select value={draft.deployId} onChange={e=>edit({deployId:e.target.value,reference:''})}>
       {!deploy&&<option value={draft.deployId}>{t('Repository unavailable')}</option>}{members.map(m=><option key={m.id} value={m.repositoryId}>{m.name}</option>)}
@@ -43,11 +32,15 @@ function MappingForm({app,members}:{app:Membership;members:Membership[]}){
       {refs.map(r=><option key={r} value={r}>{r.replace(/^refs\/(heads|remotes)\//,'')}{r.startsWith('refs/heads/')?' · '+t('Local branch'):''}</option>)}
     </select></label>
     <p className="hint">{t('Paths are relative to the deploy repository. Fetch it to update remote branch data.')}</p>
-    <label>{t('Production overlay')}<input required value={draft.production} onChange={e=>edit({production:e.target.value})}/></label>
-    <label>{t('UAT overlay')}<input required value={draft.uat} onChange={e=>edit({uat:e.target.value})}/></label>
+    {environments.map(name=>{
+      const id=name.toLowerCase();
+      return <label key={id}>{t('{0} overlay',[name])}<input value={draft.overlays[id]??''} placeholder={'overlays/'+id}
+        onChange={e=>edit({overlays:{...draft.overlays,[id]:e.target.value.trim()}})}/></label>;
+    })}
     <label>{t('Container name')}<input required value={draft.container} placeholder="api" onChange={e=>edit({container:e.target.value})}/></label>
-    <button className="primary" disabled={!deploy||!refs.includes(draft.reference)||![draft.production,draft.uat,draft.container].every(x=>x.trim())}>{t('Save image mapping')}</button>
-    {storedMapping(app.repositoryId)&&<button type="button" onClick={()=>{try{saveMapping(app.repositoryId,null);setDraft({...defaults,reference:refs[0]??''});setNotice('Mapping removed.');}catch(e){setError(errorMessage(e));}}}>{t('Remove mapping')}</button>}
-    {notice&&<p role="status">{t(notice)}</p>}{error&&<p role="alert">{t(error)}</p>}
+    <button className="primary" disabled={!deploy||!refs.includes(draft.reference)||!draft.container.trim()||!environments.some(n=>draft.overlays[n.toLowerCase()])}>{t('Save image mapping')}</button>
+    {storedMapping(app.repositoryId)&&<button type="button" onClick={()=>{try{saveMapping(app.repositoryId,null);onDone();}catch(e){setError(errorMessage(e));}}}>{t('Remove mapping')}</button>}
+    <button type="button" onClick={onDone}>{t('Cancel')}</button>
+    {error&&<p role="alert">{t(error)}</p>}
   </form>;
 }
