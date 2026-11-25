@@ -1,4 +1,13 @@
 {
+  "Daily summary": "Daily summary",
+  "Activity": "Activity",
+  "Config updates": "Config updates",
+  "Deployment": "Deployment",
+  "Shows dated records observed by GitNova on this device.": "Shows dated records observed by GitNova on this device.",
+  "No matching records yet.": "No matching records yet.",
+  "{0} repositories": "{0} repositories",
+  "Fetching\u2026": "Fetching…",
+  "Fetch complete": "Fetch complete",
   "Fetch workspace": "Fetch workspace",
   "Processed {0} of {1} repositories": "Processed {0} of {1} repositories",
   "Fetched {0}": "Fetched {0}",

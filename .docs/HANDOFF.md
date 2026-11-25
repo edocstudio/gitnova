@@ -4,6 +4,12 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Releases progress, snapshots and daily activity
+
+Version 1.14.0 on `feat/releases-daily-summary`. Releases shows determinate fetch progress with reduced-motion support. Successful Kustomize image snapshots persist locally by workspace/repository and validate mapping, deploy membership and environment selection before reuse. Refresh rebuilds the view and workspace fetch updates changed mapped refs, including off-page rows. Daily summary groups observed config changes or production evidence by local day, with distinct repository counts, environment and version. It retains up to 200 observed events per workspace repository and does not backfill provider deployment history.
+
+TypeScript, three localization tests and four browser workflows passed, including zero additional renders on reopening the cached table, daily config grouping and fetch progress at completion. Desktop 1.14.0 passed native smoke, signature and embedded UI checks.
+
 ## Fetch workspace in Releases
 
 Version 1.13.0 on `feat/releases-fetch-workspace`. Fetch workspace processes all unique application rows serially, shares each deploy repository/remote fetch, and rechecks cached images for changed tracking refs. Unmapped rows and local branch mappings use origin or a sole remote. The report offers failed-row retry. Leaving Releases stops scheduling further fetches. Checked with twelve disposable repositories, shared remotes, filtered navigation, an unavailable remote, retry and untracked work. TypeScript, three browser scenarios and three localization tests passed. The Desktop bundle passed native smoke, embedded assets and signing checks.

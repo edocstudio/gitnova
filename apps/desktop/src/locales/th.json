@@ -1,4 +1,13 @@
 {
+  "Daily summary": "สรุปรายวัน",
+  "Activity": "กิจกรรม",
+  "Config updates": "การเปลี่ยนแปลงคอนฟิก",
+  "Deployment": "การ deploy",
+  "Shows dated records observed by GitNova on this device.": "แสดงรายการที่มีวันที่ซึ่ง GitNova เคยอ่านบนเครื่องนี้",
+  "No matching records yet.": "ยังไม่มีรายการที่ตรงกัน",
+  "{0} repositories": "{0} โปรเจกต์",
+  "Fetching\u2026": "กำลังดึงข้อมูล…",
+  "Fetch complete": "ดึงข้อมูลเสร็จแล้ว",
   "Fetch workspace": "ดึงข้อมูลทั้งเวิร์กสเปซ",
   "Processed {0} of {1} repositories": "ตรวจแล้ว {0} จาก {1} โปรเจกต์",
   "Fetched {0}": "ดึงข้อมูลแล้ว {0}",

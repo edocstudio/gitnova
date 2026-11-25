@@ -3137,6 +3137,18 @@ test('Kustomize release images render the selected deploy commit and container',
   await expect(page.getByRole('button',{name:'Configure release images'})).toHaveAttribute('aria-expanded','false');
   expect(await page.evaluate(()=>sessionStorage.getItem('image-reads'))).toBe('0');
   await expect(page.locator('.release-row').filter({hasText:'deploy-config'})).not.toContainText('From config');
+  await page.getByRole('button',{name:'History',exact:true}).click();
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  await expect(row).toContainText('uat-7');
+  await expect(page.locator('.releases-page header').getByRole('button',{name:'Refresh',exact:true})).toBeEnabled();
+  expect(await page.evaluate(()=>sessionStorage.getItem('image-reads'))).toBe('0');
+  await page.getByRole('button',{name:'Daily summary'}).click();
+  const daily=page.locator('.release-daily');
+  await expect(daily.locator('summary').first()).toBeVisible();
+  await daily.locator('summary').first().click();
+  await expect(daily).toContainText('uat-7');
+  await daily.getByLabel('Activity').selectOption('deploy');
+  await expect(daily).toContainText('No matching records yet.');
 });
 
 test('Releases searches all pages and reuses visible repository reads',async({page})=>{
@@ -3211,6 +3223,7 @@ test('Fetch workspace spans filtered pages, shares mapped remotes and retries fa
   const retry=view.getByRole('button',{name:'Retry failed'});
   await expect(retry).toBeEnabled();
   await expect(view).toContainText('Processed 12 of 12 repositories');
+  await expect(view.getByRole('progressbar')).toHaveAttribute('aria-valuenow','12');
   const calls=()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspace-fetch-calls')??'[]'));
   const initial=await calls();
   expect(initial.filter(([id]:string[])=>id===deploy.id)).toEqual([[deploy.id,'deploy']]);

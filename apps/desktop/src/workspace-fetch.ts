@@ -45,7 +45,7 @@ export async function fetchWorkspace(
         const after=await fetched;
         if(!active())break;
         if(!after)throw new Error('Repository could not be fetched now.');
-        if(tracked){
+        if(mapping){
           const oid=after.branches.find(b=>b.remote===remote&&'refs/remotes/'+remote+'/'+b.name===reference)?.oid??null;
           await updated(member.repositoryId,reference,oid);
         }

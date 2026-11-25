@@ -701,3 +701,5 @@ Each configured environment shows the Git committer time of the latest commit af
 Releases shows ten repositories per page. Select a row and choose **Open repository in History** to open the application repository for that row in GitNova.
 
 Fetch workspace in Releases fetches across all pages using the configured deploy source per row. Shared repository/remote pairs are fetched once. Rows without a tracking reference use origin or a sole remote. Local branch mappings continue to follow their local branch. The graph fetch controls operate on one checkout.
+
+The workspace Releases header includes Daily summary because a single repository graph cannot group cross-repository observations by day. Search applies across pages. Configuration changes use overlay history dates. Deployment evidence uses completed production deployments and separately labelled manual confirmations. Each day counts distinct repositories. The device retains the most recent 200 observed events per workspace repository. Successful image snapshots are reused on entry with matching membership, mapping and environment settings. Fetch updates affected snapshots and Refresh rereads local inputs.

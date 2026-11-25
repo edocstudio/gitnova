@@ -1105,3 +1105,11 @@ main { display: flex; flex: 1; min-height: 0; }
 .releases-page header input[type=search] {max-width:100%;min-width:0}
 
 .workspace-fetch-result {display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin:12px 0;color:var(--muted)}
+
+.fetch-meter {width:clamp(90px,17vw,240px);height:7px;align-self:center;overflow:hidden;border-radius:8px;background:var(--line)}
+.fetch-meter span {display:block;height:100%;border-radius:inherit;background:var(--accent,#5096ff);transition:width .2s ease-out}
+@media(prefers-reduced-motion:reduce){.fetch-meter span{transition:none}}
+.release-daily {margin:20px 0;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.release-daily h2 {margin:0 0 12px}.release-daily label {display:inline-flex;align-items:center;gap:6px;margin-right:16px}
+.release-daily details {border-top:1px solid var(--line);padding:10px 0}.release-daily summary {cursor:pointer}
+.release-daily li {display:flex;align-items:baseline;flex-wrap:wrap;gap:12px;padding:4px 0;overflow-wrap:anywhere}
