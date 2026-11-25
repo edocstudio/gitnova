@@ -1103,3 +1103,5 @@ main { display: flex; flex: 1; min-height: 0; }
 .release-list > .repo-pagination {padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 .release-list > .repo-pagination nav {justify-content:flex-start}
 .releases-page header input[type=search] {max-width:100%;min-width:0}
+
+.workspace-fetch-result {display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin:12px 0;color:var(--muted)}

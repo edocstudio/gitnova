@@ -699,3 +699,5 @@ The Releases table searches workspace repository names locally and pages the res
 Each configured environment shows the Git committer time of the latest commit affecting files read to render its overlay at the selected revision. Shared base and patch edits count. This date describes configuration history. Deployment evidence carries its own timestamp.
 
 Releases shows ten repositories per page. Select a row and choose **Open repository in History** to open the application repository for that row in GitNova.
+
+Fetch workspace in Releases fetches across all pages using the configured deploy source per row. Shared repository/remote pairs are fetched once. Rows without a tracking reference use origin or a sole remote. Local branch mappings continue to follow their local branch. The graph fetch controls operate on one checkout.

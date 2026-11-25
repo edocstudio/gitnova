@@ -2,6 +2,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {api,errorMessage} from './api';
 import {readConfirmation,readRelease,type Confirmation,type ReleaseEvidence} from './release-evidence';
 import {mappingChanged,readImages,imageVersion,type ConfigEvidence} from './kustomize-images';
+import {fetchWorkspace,type FetchReport} from './workspace-fetch';
 import {MappingForm} from './KustomizeSettings';
 import {releaseEnvironments} from './ReleaseEnvironments';
 import {Icon} from './Icons';
@@ -98,17 +99,43 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
   const currentPage=Math.min(page,pages-1);
   const rows=useMemo(()=>matches.slice(currentPage*PAGE_SIZE,(currentPage+1)*PAGE_SIZE),[matches,currentPage]);
   const schedule=useRef<(next:Membership[])=>void>(()=>{});
+  const [report,setReport]=useState<FetchReport|null>(null);
+  const [fetching,setFetching]=useState(false);
+  const fetchToken=useRef<symbol|null>(null);
+  const afterFetch=useRef<(repo:string,reference:string,oid:string|null)=>Promise<void>>(async()=>{});
+  useEffect(()=>()=>{fetchToken.current=null;},[]);
+  async function startFetch(retry=false){
+    if(fetchToken.current||navigationBusy)return;
+    const token=Symbol();
+    const active=()=>fetchToken.current===token;
+    fetchToken.current=token;
+    setFetching(true);
+    try{
+      await fetchWorkspace(members,retry?(report?.failures.map(f=>f.member)??[]):members,active,setReport,
+        (repo,reference,oid)=>afterFetch.current(repo,reference,oid));
+    }finally{
+      if(active()){fetchToken.current=null;setFetching(false);}
+    }
+  }
   const [,confirmed]=useState(0);
   useEffect(()=>{
     let live=true;setStates({});setConfigs({});setLoading(true);
-    const imageReads=new Map<string,Promise<void>>();
+    const imageReads=new Map<string,Promise<ConfigEvidence|undefined>>();
     function updateImages(repo:string){
       const task=readImages(repo,workspace,environments).then(config=>{
         if(live&&imageReads.get(repo)===task)setConfigs(prior=>({...prior,[repo]:config}));
+        return config;
       });
       imageReads.set(repo,task);
       return task;
     }
+    afterFetch.current=async(repo,reference,oid)=>{
+      const cached=imageReads.get(repo);
+      if(!cached)return;
+      const config=await cached;
+      if(live&&imageReads.get(repo)===cached&&config?.mapping.reference===reference&&(!oid||config.images?.revision!==oid))
+        await updateImages(repo);
+    };
     const onMapping=(event:Event)=>{
       const repo=(event as CustomEvent<string>).detail;
       if(members.some(m=>m.repositoryId===repo))void updateImages(repo);
@@ -156,7 +183,15 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
   return <div className="releases-page"><header><div><h1>{t('Releases')}</h1><small>{workspace.name} · {t('Workspace')}</small></div>
     <input type="search" aria-label={t('Search repositories')} placeholder={t('Search repositories')} maxLength={512} value={query}
       onChange={e=>{setQuery(e.target.value);setPage(0);}}/>
-    <button disabled={loading} onClick={()=>refresh(v=>v+1)}><Icon name="refresh" size={15}/>{t(loading?'Checking…':'Refresh')}</button></header>
+    <button disabled={fetching||navigationBusy||!members.length} onClick={()=>void startFetch()}><Icon name="pull" size={15}/>{t('Fetch workspace')}</button>
+    <button disabled={loading||fetching} onClick={()=>refresh(v=>v+1)}><Icon name="refresh" size={15}/>{t(loading?'Checking…':'Refresh')}</button></header>
+    {report&&<div className="workspace-fetch-result">
+      <span role="status">{t('Processed {0} of {1} repositories',[report.done,report.total])} · {t('Fetched {0}',[report.done-report.skipped-report.failures.length])}
+        {report.skipped>0&&<> · {t('Skipped {0} without remotes',[report.skipped])}</>}</span>
+      {report.failures.length>0&&<><details><summary>{t('Failed {0}',[report.failures.length])}</summary>
+        <ul>{report.failures.map(({member,reason})=><li key={member.id}>{member.name} · {t(reason)}</li>)}</ul></details>
+        <button disabled={fetching||navigationBusy} onClick={()=>void startFetch(true)}>{t('Retry failed')}</button></>}
+    </div>}
     <div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
       {rows.map(m=>{const config=configs[m.repositoryId],info=states[m.id],prod=info?.production,manual=readConfirmation(info?.scope);
         return <button key={m.id} className="release-row" aria-pressed={selected?.id===m.id} onClick={()=>setFocus(m.id)}>

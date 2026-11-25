@@ -4,6 +4,10 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Fetch workspace in Releases
+
+Version 1.13.0 on `feat/releases-fetch-workspace`. Fetch workspace processes all unique application rows serially, shares each deploy repository/remote fetch, and rechecks cached images for changed tracking refs. Unmapped rows and local branch mappings use origin or a sole remote. The report offers failed-row retry. Leaving Releases stops scheduling further fetches. Checked with twelve disposable repositories, shared remotes, filtered navigation, an unavailable remote, retry and untracked work. TypeScript, three browser scenarios and three localization tests passed. The Desktop bundle passed native smoke, embedded assets and signing checks.
+
 ## Environment CI scope
 
 Version 1.12.1 on `fix/releases-unmapped-ci`. Releases omits branch and Jenkins CI status for all environments and no longer scans pipelines for the former Needs action filter. Config images, configuration dates and explicit production deployment evidence remain available. TypeScript and three Releases browser scenarios passed. Desktop installation passed native smoke, signature and embedded UI checks.

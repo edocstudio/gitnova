@@ -900,8 +900,15 @@ async fn remote_branches(
     run(state, move |a| a.remote_branches(&membership_id)).await
 }
 #[tauri::command]
-async fn auto_fetch(state: State<'_>, membership_id: String) -> Result<Option<String>, AppError> {
-    run(state, move |a| a.auto_fetch(&membership_id)).await
+async fn auto_fetch(
+    state: State<'_>,
+    membership_id: String,
+    remote: Option<String>,
+) -> Result<Option<String>, AppError> {
+    run(state, move |a| {
+        a.background_fetch(&membership_id, remote.as_deref())
+    })
+    .await
 }
 #[tauri::command]
 async fn fetch_remote(

@@ -373,7 +373,7 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             args.get("remote").and_then(|value| value.as_str())
         )?),
         "remote_branches" => json!(app.remote_branches(&s("membershipId")?)?),
-        "auto_fetch" => json!(app.auto_fetch(&s("membershipId")?)?),
+        "auto_fetch" => json!(app.background_fetch(&s("membershipId")?, args["remote"].as_str())?),
         "fetch_remote" => {
             json!(app.fetch_remote(&s("membershipId")?, &s("remote")?, args["branch"].as_str())?)
         }

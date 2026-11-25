@@ -3098,7 +3098,7 @@ test('Kustomize release images render the selected deploy commit and container',
   await page.getByLabel('Container name').fill('web');
   await page.getByLabel('Preview overlay').fill('overlays/uat');
   await page.getByLabel('SIT overlay').fill('overlays/production');
-  await expect(page.locator('.releases-page header button')).toBeEnabled();
+  await expect(page.locator('.releases-page header').getByRole('button',{name:'Refresh',exact:true})).toBeEnabled();
   await page.evaluate(async()=>{
     const {api}=await import('/src/api.ts');
     const read=api.remoteBranches;
@@ -3178,4 +3178,50 @@ test('Releases searches all pages and reuses visible repository reads',async({pa
   await expect(page.locator('.repo-picker')).toContainText('project-2');
   await expect(view).toHaveCount(0);
   await expect(page.getByRole('button',{name:'History',exact:true})).toHaveAttribute('aria-pressed','true');
+});
+
+test('Fetch workspace spans filtered pages, shares mapped remotes and retries failures only',async({page})=>{
+  test.setTimeout(150000);
+  const {state,catalog,paths}=pickerFixture('fetch-workspace',[],12);
+  const byName=(name:string)=>catalog.workspaces[0].memberships.find(m=>m.name===name)!;
+  const deploy=byName('project-0');
+  const missing=join(folder,'workspace-fetch-later.git');
+  git(paths[0],['remote','add','deploy',paths[1]]);
+  git(paths[3],['remote','add','origin',missing]);
+  writeFileSync(join(paths[0],'untracked'),'keep');
+  const head=git(paths[0],['rev-parse','HEAD']);
+  await connectRealCore(page,state);
+  await page.goto('/');
+  await page.evaluate(async({deployId,apps})=>{
+    const {api}=await import('/src/api.ts');
+    for(const app of apps)localStorage.setItem('gitnova.release.kustomize.'+app,JSON.stringify({
+      deployId,reference:'refs/remotes/deploy/main',container:'api',overlays:{}
+    }));
+    const fetch=api.autoFetch;
+    api.autoFetch=(id:string,remote?:string)=>{
+      const calls=JSON.parse(sessionStorage.getItem('workspace-fetch-calls')??'[]');
+      calls.push([id,remote]);sessionStorage.setItem('workspace-fetch-calls',JSON.stringify(calls));
+      return fetch(id,remote);
+    };
+  },{deployId:deploy.repositoryId,apps:[byName('project-1').repositoryId,byName('project-2').repositoryId]});
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const view=page.locator('.releases-page'),search=view.getByRole('searchbox');
+  await search.fill('project-2');
+  await view.getByRole('button',{name:'Fetch workspace'}).click();
+  const retry=view.getByRole('button',{name:'Retry failed'});
+  await expect(retry).toBeEnabled();
+  await expect(view).toContainText('Processed 12 of 12 repositories');
+  const calls=()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspace-fetch-calls')??'[]'));
+  const initial=await calls();
+  expect(initial.filter(([id]:string[])=>id===deploy.id)).toEqual([[deploy.id,'deploy']]);
+  expect(git(paths[0],['rev-parse','refs/remotes/deploy/main'])).toBe(git(paths[1],['rev-parse','HEAD']));
+  expect(git(paths[0],['rev-parse','HEAD'])).toBe(head);
+  expect(readFileSync(join(paths[0],'untracked'),'utf8')).toBe('keep');
+  git(paths[3],['clone','--bare',paths[1],missing]);
+  await retry.click();
+  await expect(view).toContainText('Processed 1 of 1 repositories');
+  await expect(retry).toHaveCount(0);
+  expect((await calls()).slice(initial.length)).toEqual([[byName('project-3').id,'origin']]);
+  await expect(search).toHaveValue('project-2');
+  await expect(view.locator('.release-detail h2')).toContainText('project-2');
 });

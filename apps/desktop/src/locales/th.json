@@ -1,4 +1,12 @@
 {
+  "Fetch workspace": "ดึงข้อมูลทั้งเวิร์กสเปซ",
+  "Processed {0} of {1} repositories": "ตรวจแล้ว {0} จาก {1} โปรเจกต์",
+  "Fetched {0}": "ดึงข้อมูลแล้ว {0}",
+  "Skipped {0} without remotes": "ข้าม {0} โปรเจกต์ที่ไม่มี remote",
+  "Failed {0}": "ไม่สำเร็จ {0}",
+  "Retry failed": "ลองรายการที่ไม่สำเร็จอีกครั้ง",
+  "No matching fetch remote.": "ไม่พบ remote ที่ตรงกันสำหรับดึงข้อมูล",
+  "Repository could not be fetched now.": "ยังดึงข้อมูลของโปรเจกต์นี้ไม่ได้",
   "Config updated": "แก้ config ล่าสุด",
   "Config date unavailable": "ไม่พบวันที่แก้ config",
   "No matching repositories.": "ไม่พบ repository ที่ตรงกับคำค้น",

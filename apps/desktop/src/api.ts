@@ -156,7 +156,7 @@ export const api = {
   previewSubmoduleUpdate: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore' | 'remote') => call<SubmoduleUpdatePreview>('preview_submodule_update', { membershipId, path, mode }),
   updateSubmodule: (membershipId: string, path: NativePath, mode: 'initialize' | 'restore' | 'remote', token: string) => call<OperationReceipt>('update_submodule', { membershipId, path, mode, token }),
   remoteBranches: (membershipId: string) => call<RemoteBranches>('remote_branches', { membershipId }),
-  autoFetch: (membershipId:string)=>call<string|null>('auto_fetch',{membershipId}),
+  autoFetch: (membershipId:string,remote?:string)=>call<string|null>('auto_fetch',{membershipId,remote}),
   fetchRemote: (membershipId: string, remote: string, branch: string | null = null) => call<OperationReceipt>('fetch_remote', { membershipId, remote, branch }),
   pullUpstream: (membershipId: string) => call<BranchTracking>('pull_upstream', { membershipId }),
   previewPullCurrent: (membershipId: string) => call<RemoteSwitchPreview>('preview_pull_current', { membershipId }),

@@ -1,4 +1,12 @@
 {
+  "Fetch workspace": "Fetch workspace",
+  "Processed {0} of {1} repositories": "Processed {0} of {1} repositories",
+  "Fetched {0}": "Fetched {0}",
+  "Skipped {0} without remotes": "Skipped {0} without remotes",
+  "Failed {0}": "Failed {0}",
+  "Retry failed": "Retry failed",
+  "No matching fetch remote.": "No matching fetch remote.",
+  "Repository could not be fetched now.": "Repository could not be fetched now.",
   "Config updated": "Config updated",
   "Config date unavailable": "Config date unavailable",
   "No matching repositories.": "No matching repositories.",
