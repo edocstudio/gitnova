@@ -3063,7 +3063,18 @@ test('Kustomize release images render the selected deploy commit and container',
   const prod=join(deploy,'overlays/production/kustomization.yaml');
   writeFileSync(prod,'resources: [../../base]\nimages:\n- name: registry:5000/web\n  digest: '+digest+'\n');
   writeFileSync(join(deploy,'overlays/uat/kustomization.yaml'),'resources: [../../base]\npatches:\n- target: {kind: Pod, name: web}\n  patch: |\n    - op: replace\n      path: /spec/containers/0/image\n      value: registry:5000/web:uat-7\n');
-  git(deploy,['add','.']);git(deploy,['commit','-m','Release config']);
+  const commitAt=(date:string,message:string)=>{
+    git(deploy,['add','.']);
+    execFileSync('git',['-C',deploy,'-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','commit','-m',message],
+      {env:{...process.env,GIT_AUTHOR_DATE:date,GIT_COMMITTER_DATE:date}});
+  };
+  const baseDate='2025-02-03T04:05:06+00:00',uatDate='2025-03-04T05:06:07+00:00';
+  commitAt('2025-01-02T03:04:05+00:00','Release config');
+  const pod=join(deploy,'base/pod.yaml');
+  writeFileSync(pod,readFileSync(pod,'utf8')+'# shared update\n');commitAt(baseDate,'Shared configuration');
+  const patch=join(deploy,'overlays/uat/kustomization.yaml');
+  writeFileSync(patch,readFileSync(patch,'utf8')+'# UAT update\n');commitAt(uatDate,'UAT configuration');
+  writeFileSync(join(deploy,'README.md'),'unrelated');commitAt('2025-04-05T06:07:08+00:00','Documentation');
   writeFileSync(prod,'resources: []\n');
   await connectRealCore(page,join(folder,'kustomize-release.json'));await page.goto('/');
   for(const repo of [repository,deploy]){
@@ -3103,6 +3114,10 @@ test('Kustomize release images render the selected deploy commit and container',
   await expect(page.locator('.release-head span')).toHaveText(['Repository','SIT','Preview','Production','UAT']);
   await expect(row.locator(':scope > span').nth(0)).toContainText('sha256');
   await expect(row.locator(':scope > span').nth(1)).toContainText('uat-7');
+  await expect(row.locator('time')).toHaveCount(4);
+  expect(Date.parse((await row.locator('time').nth(0).getAttribute('datetime'))!)).toBe(Date.parse(baseDate));
+  expect(Date.parse((await row.locator('time').nth(1).getAttribute('datetime'))!)).toBe(Date.parse(uatDate));
+  await expect(page.locator('.release-detail time')).toHaveCount(4);
   await expect(row).toContainText('uat-7');
   await row.click();
   const detail=page.locator('.release-detail');

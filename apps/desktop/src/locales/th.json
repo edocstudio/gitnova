@@ -1,4 +1,6 @@
 {
+  "Config updated": "แก้ config ล่าสุด",
+  "Config date unavailable": "ไม่พบวันที่แก้ config",
   "No matching repositories.": "ไม่พบ repository ที่ตรงกับคำค้น",
   "Enter 1\u201332 unique names using letters, numbers, spaces, dots, underscores or hyphens (40 characters each).": "ใส่ชื่อที่ไม่ซ้ำกัน 1–32 ชื่อ ชื่อละไม่เกิน 40 ตัว ใช้ตัวอักษร ตัวเลข ช่องว่าง จุด ขีดล่าง หรือขีดกลาง",
   "No overlay configured": "ยังไม่ได้กำหนด overlay",

@@ -24,7 +24,9 @@ pub struct Mapping {
     container: String,
 }
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Overlay {
+    config_updated_at: Option<String>,
     image: Option<String>,
     error: Option<String>,
 }
@@ -396,7 +398,7 @@ impl Application {
                 Some((path.to_owned(), fields.next()?.to_owned()))
             })
             .collect();
-        let extract = |path: &str| -> Result<String> {
+        let extract = |path: &str| -> Result<Overlay> {
             let temp =
                 tempfile::tempdir().map_err(|_| error("Could not prepare overlay files."))?;
             let dir = relative("", path)?;
@@ -410,25 +412,43 @@ impl Application {
                 bytes: 0,
             };
             snapshot.directory(&dir, 0)?;
-            render(&temp.path().join(dir), &mapping.container)
-        };
-        let overlay = |path: &str| match extract(path) {
-            Ok(image) => Overlay {
+            let image = render(&temp.path().join(dir), &mapping.container)?;
+            // Include the exact inputs used from this revision, including shared bases and patches.
+            let mut history = vec![
+                "log",
+                "-1",
+                "--no-show-signature",
+                "--format=%cI",
+                revision.as_str(),
+                "--",
+            ];
+            history.extend(snapshot.written.iter().map(String::as_str));
+            let config_updated_at = self
+                .git
+                .text(&repo, &history)
+                .ok()
+                .map(|date| date.trim().to_owned())
+                .filter(|date| !date.is_empty());
+            Ok(Overlay {
                 image: Some(image),
+                config_updated_at,
                 error: None,
-            },
-            Err(e) => Overlay {
+            })
+        };
+        let overlay = |path: &str| {
+            extract(path).unwrap_or_else(|e| Overlay {
                 image: None,
+                config_updated_at: None,
                 error: Some(e.message),
-            },
+            })
         };
         Ok(Images {
-            revision,
             overlays: mapping
                 .overlays
                 .iter()
                 .map(|(name, path)| (name.clone(), overlay(path)))
                 .collect(),
+            revision,
         })
     }
 }

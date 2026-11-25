@@ -4,7 +4,7 @@ import type {Workspace} from './contracts';
 export interface Mapping {
   deployId:string; reference:string; overlays:Record<string,string>; container:string;
 }
-export interface ImageResult {image:string|null;error:string|null}
+export interface ImageResult {configUpdatedAt:string|null;image:string|null;error:string|null}
 export interface Images {revision:string;overlays:Record<string,ImageResult>}
 export interface ConfigEvidence {mapping:Mapping;deployName:string;images?:Images;error?:string}
 const key=(repo:string)=>'gitnova.release.kustomize.'+repo;

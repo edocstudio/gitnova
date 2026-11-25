@@ -4,6 +4,12 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Environment configuration dates
+
+Version 1.11.0 on `feat/release-environment-dates`. Releases shows Config updated in the environment cell and inspector. The timestamp is the committer date from the latest commit touching the overlay's actual render inputs, including its shared bases and patches, at the pinned revision. A history lookup failure leaves the image available. Production evidence can display its own recorded date when shown in the table.
+
+Verified with separate dated commits for a shared base, UAT overlay and unrelated documentation in a disposable repository. Three release workflows and three localization tests passed. Desktop 1.11.0 passed native smoke, embedded UI and signing checks.
+
 ## Search and pagination in Releases
 
 Version 1.10.0 on `feat/release-search-pagination`. Search matches literal

@@ -39,10 +39,15 @@ function ConfirmProduction({scope,onDone}:{scope:string;onDone:()=>void}){
     <button>{t('Save confirmation')}</button><button type="button" onClick={onDone}>{t('Cancel')}</button>
   </form>;
 }
+function ConfigDate({value}:{value?:string|null}){
+  if(!value||!Number.isFinite(Date.parse(value)))return <small>{t('Config date unavailable')}</small>;
+  return <small>{t('Config updated')} · <time dateTime={value}>{stamp(value)}</time></small>;
+}
 function ConfigImage({config,env}:{config:ConfigEvidence;env:string}){
   const result=config.images?.overlays[env];
   return <div className="config-image"><small>{t('Image from config')}</small>
     {result?.image?<strong><code>{result.image}</code></strong>:<p role="status">{t(config.error||result?.error||'Image unavailable')}</p>}
+    {result?.image&&<ConfigDate value={result.configUpdatedAt}/>}
     <small title={config.images?.revision}>{config.deployName} · {config.mapping.reference.replace(/^refs\/(heads|remotes)\//,'')} {config.images?.revision.slice(0,12)}</small>
     <small>{config.mapping.overlays[env]} · {config.mapping.container}</small></div>;
 }
@@ -183,9 +188,9 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
             const failed=config?.images?.overlays[id]?.error || (config?.mapping.overlays[id]&&config.error);
             const label=id==='production'?(prod?.tag||prod?.sha.slice(0,12)||manual?.version||t(info?'Unverified':'Checking…')):id==='uat'?t(status(info)):t(info?'No overlay configured':'Checking…');
             return <span key={id} className={id==='uat'&&releaseAction(info?.run)?'release-wait':''}>
-              {image?<><b>{imageVersion(image)}</b><small>{t('From config')}</small></>:failed?<small>{t('Image unavailable')}</small>:null}
+              {image?<><b>{imageVersion(image)}</b><ConfigDate value={config?.images?.overlays[id]?.configUpdatedAt}/></>:failed?<small>{t('Image unavailable')}</small>:null}
               {(!image&&!failed||id==='uat')&&label}
-              {id==='production'&&!image&&!failed&&<small>{prod?'GitLab':manual?t('Manual confirmation'):''}</small>}
+              {id==='production'&&!image&&!failed&&<small>{prod?'GitLab':manual?t('Manual confirmation'):''}{prod?.finished?' · '+stamp(prod.finished):!prod&&manual?' · '+stamp(manual.time):''}</small>}
             </span>;
           })}</button>;})}
       {!rows.length&&<p role="status">{t(!members.length?'No repositories in this workspace.':!matches.length?'No matching repositories.':loading?'Checking…':'No manual actions found.')}</p>}
