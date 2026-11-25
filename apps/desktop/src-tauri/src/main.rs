@@ -1338,6 +1338,17 @@ async fn ci_summary(
     .await
 }
 #[tauri::command]
+async fn kustomize_images(
+    state: State<'_>,
+    membership_id: String,
+    mapping: gitnova_core::kustomize::Mapping,
+) -> Result<gitnova_core::kustomize::Images, AppError> {
+    run_background(state, move |app| {
+        app.kustomize_images(&membership_id, &mapping)
+    })
+    .await
+}
+#[tauri::command]
 async fn release_evidence(
     state: State<'_>,
     membership_id: String,
@@ -1608,6 +1619,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         disconnect_jenkins_account,
         pipeline_context,
         connect_pipeline,
+        kustomize_images,
         release_evidence,
         pipelines,
         ci_summary,

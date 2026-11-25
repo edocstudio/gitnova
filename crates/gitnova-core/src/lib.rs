@@ -23,6 +23,7 @@ mod hosting;
 pub mod hotfix;
 mod init;
 mod jenkins;
+pub mod kustomize;
 pub mod local_analysis;
 mod membership_management;
 mod merge_cleanup;

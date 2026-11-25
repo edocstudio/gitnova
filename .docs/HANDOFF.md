@@ -4,6 +4,22 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Kustomize release images
+
+Version 1.8.0 on `feat/kustomize-release-images` adds mapping under Settings → General.
+Select the app, deploy repository in the workspace, local or fetched remote branch,
+two overlay paths and exact container name. Releases renders the selected Git
+revision with local kustomize or kubectl, shows the desired image independently
+per environment, and keeps GitLab/Jenkins/manual evidence separate. No cluster
+connection is used. Fetch the deploy repo to update a remote-tracking branch.
+
+The Playwright release overview regression and cross-repository mapping test
+passed with the real Rust bridge and kubectl. The latter verified a base Pod with
+two containers, a digest, an inline UAT patch and an uncommitted production-overlay
+edit. Three localization tests passed. Live cluster rollout was outside scope.
+
+Release build stopped because the Desktop GitNova process was active. Resume build:release and staged installation after the app quits.
+
 ## Workspace Releases
 
 Version 1.7.0 on `feat/workspace-release-overview` adds Releases beside History.

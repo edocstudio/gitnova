@@ -3050,3 +3050,42 @@ test('release overview isolates repositories and workspaces and opens the review
   await page.getByRole('button',{name:'Create',exact:true}).click();await page.keyboard.press('Escape');
   await expect(page.getByText('No repositories in this workspace.')).toBeVisible();await expect(page.locator('.release-row')).toHaveCount(0);
 });
+
+test('Kustomize release images render the selected deploy commit and container',async({page})=>{
+  test.skip(spawnSync('kubectl',['version','--client']).status!==0 && spawnSync('kustomize',['version']).status!==0,'Requires a Kustomize renderer');
+  const deploy=join(folder,'deploy-config');
+  mkdirSync(deploy);
+  git(deploy,['init','-b','main']);
+  const digest='sha256:'+'a'.repeat(64);
+  for(const env of ['base','overlays/uat','overlays/production'])mkdirSync(join(deploy,env),{recursive:true});
+  writeFileSync(join(deploy,'base/kustomization.yaml'),'resources: [pod.yaml]\n');
+  writeFileSync(join(deploy,'base/pod.yaml'),'apiVersion: v1\nkind: Pod\nmetadata: {name: web}\nspec:\n  containers:\n  - {name: web, image: "registry:5000/web:v1"}\n  - {name: logs, image: "logger:v9"}\n');
+  const prod=join(deploy,'overlays/production/kustomization.yaml');
+  writeFileSync(prod,'resources: [../../base]\nimages:\n- name: registry:5000/web\n  digest: '+digest+'\n');
+  writeFileSync(join(deploy,'overlays/uat/kustomization.yaml'),'resources: [../../base]\npatches:\n- target: {kind: Pod, name: web}\n  patch: |\n    - op: replace\n      path: /spec/containers/0/image\n      value: registry:5000/web:uat-7\n');
+  git(deploy,['add','.']);git(deploy,['commit','-m','Release config']);
+  writeFileSync(prod,'resources: []\n');
+  await connectRealCore(page,join(folder,'kustomize-release.json'));await page.goto('/');
+  for(const repo of [repository,deploy]){
+    if(repo===deploy)await page.locator('.repo-picker').click();
+    await page.getByLabel('Add an existing repository').fill(repo);
+    await page.getByRole('button',{name:'Open',exact:true}).click();
+    await expect(page.locator('.repo-picker')).toContainText(repo===deploy?'deploy-config':'project-api');
+  }
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await page.getByLabel('Application repository').selectOption({label:'project-api'});
+  await page.getByLabel('Deploy repository').selectOption({label:'deploy-config'});
+  await page.getByLabel('Deploy branch').selectOption('refs/heads/main');
+  await page.getByLabel('Container name').fill('web');
+  await page.getByRole('button',{name:'Save image mapping'}).click();
+  await page.getByRole('button',{name:'Close settings'}).click();
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const row=page.locator('.release-row').filter({hasText:'project-api'});
+  await expect(row).toContainText('uat-7');
+  await row.click();
+  const detail=page.locator('.release-detail');
+  await expect(detail).toContainText(digest);
+  await expect(detail).toContainText('No verified deployment');
+  await expect(detail).not.toContainText('logger');
+  await expect(page.locator('.release-row').filter({hasText:'deploy-config'})).not.toContainText('From config');
+});

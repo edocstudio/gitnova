@@ -5,8 +5,8 @@
   "features": [
     "gitnova-desktop/custom-protocol"
   ],
-  "cargoLockSha256": "b4162d8f093ed877950617702755922fd6b89d7a02459238f81e7e07c595f5c7",
-  "npmLockSha256": "7ab20c0f1f491ca6a5c162eca8b31e95864ff3a8a34cab45d32ce423b12d9a47",
+  "cargoLockSha256": "ff09d16e79c9c9a058994a18fc5f632a58e956b8fd7c23c4f372cb90301f4761",
+  "npmLockSha256": "094bed6958e5cd10e5c0ec1f886448628d36f1f7de5d0eb62e20d7039699e4f0",
   "auditComplete": false,
   "components": [
     {
@@ -4249,6 +4249,22 @@
       ]
     },
     {
+      "id": "cargo:serde_yaml_ng@0.10.0",
+      "ecosystem": "cargo",
+      "name": "serde_yaml_ng",
+      "version": "0.10.0",
+      "declaredLicense": "MIT",
+      "sourcePresent": true,
+      "classification": "resolved graph including runtime/build/development; actual binary contribution not classified",
+      "licenseFiles": [
+        {
+          "path": "LICENSE",
+          "bytes": 1142,
+          "sha256": "4cb6f99bc6158a9feba329a21ac24020c3b2cc6b6597645023adb8ae1371bd74"
+        }
+      ]
+    },
+    {
       "id": "cargo:serial2@0.2.39",
       "ecosystem": "cargo",
       "name": "serial2",
@@ -5634,6 +5650,22 @@
           "path": "LICENSE-UNICODE",
           "bytes": 1995,
           "sha256": "f7db81051789b729fea528a63ec4c938fdcb93d9d61d97dc8cc2e9df6d47f2a1"
+        }
+      ]
+    },
+    {
+      "id": "cargo:unsafe-libyaml@0.2.11",
+      "ecosystem": "cargo",
+      "name": "unsafe-libyaml",
+      "version": "0.2.11",
+      "declaredLicense": "MIT",
+      "sourcePresent": true,
+      "classification": "resolved graph including runtime/build/development; actual binary contribution not classified",
+      "licenseFiles": [
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1023,
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
         }
       ]
     },

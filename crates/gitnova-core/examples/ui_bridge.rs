@@ -31,6 +31,11 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.prepare_hotfix(&s("membershipId")?, &request, &expected)?)
             }
         }
+        "kustomize_images" => {
+            let mapping = serde_json::from_value(args["mapping"].clone())
+                .map_err(|e| AppError::new("kustomize", e.to_string()))?;
+            json!(app.kustomize_images(&s("membershipId")?, &mapping)?)
+        }
         "release_evidence" => {
             let selection = serde_json::from_value(args["selection"].clone())
                 .map_err(|e| AppError::new("hosting", e.to_string()))?;

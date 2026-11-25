@@ -1,6 +1,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import {api,errorMessage} from './api';
 import {readConfirmation,readRelease,releaseAction,type Confirmation,type ReleaseEvidence} from './release-evidence';
+import {readImages,imageVersion,type ConfigEvidence} from './kustomize-images';
 import {Icon} from './Icons';
 import {t,dateLocale} from './i18n';
 import type {Membership,Workspace} from './contracts';
@@ -36,12 +37,20 @@ function ConfirmProduction({scope,onDone}:{scope:string;onDone:()=>void}){
     <button>{t('Save confirmation')}</button><button type="button" onClick={onDone}>{t('Cancel')}</button>
   </form>;
 }
+function ConfigImage({config,env}:{config:ConfigEvidence;env:'production'|'uat'}){
+  const result=config.images?.[env];
+  return <div className="config-image"><small>{t('Image from config')}</small>
+    {result?.image?<strong><code>{result.image}</code></strong>:<p role="status">{t(config.error||result?.error||'Image unavailable')}</p>}
+    <small title={config.images?.revision}>{config.deployName} · {config.mapping.reference.replace(/^refs\/(heads|remotes)\//,'')} {config.images?.revision.slice(0,12)}</small>
+    <small>{config.mapping[env]} · {config.mapping.container}</small></div>;
+}
 function ReleaseDetails({member,info,onConfirmed}:{member:Membership;info?:ReleaseEvidence;onConfirmed:()=>void}){
   const [form,setForm]=useState(false),[error,setError]=useState('');
   const open=(url:string)=>{setError('');void api.openCiUrl(url).catch(e=>setError(errorMessage(e)));};
   const manual=readConfirmation(info?.scope),prod=info?.production,run=info?.run,action=releaseAction(run);
   return <aside className="release-detail"><h2><Icon name="folder" size={18}/>{member.name}</h2>
     <section><h3>{t('Production')}</h3>
+      {info?.config&&<><ConfigImage config={info.config} env="production"/><small>{t('Deployment evidence')}</small></>}
       {prod?<><strong>{prod.tag||prod.sha.slice(0,12)}</strong><p><code>{prod.sha}</code></p>
         {prod.finished&&<small>{stamp(prod.finished)}</small>}
         <button onClick={()=>open(prod.url)}>{t('GitLab deployment #{0}',[prod.id])} ↗</button></>
@@ -51,7 +60,7 @@ function ReleaseDetails({member,info,onConfirmed}:{member:Membership;info?:Relea
       {info?.productionError&&<p className="notice">{t('Deployment history unavailable')} · {t(info.productionError)}</p>}
       {info?.scope&&!prod&&(form?<ConfirmProduction scope={info.scope} onDone={()=>{setForm(false);onConfirmed();}}/>:<button onClick={()=>setForm(true)}>{t('Record production confirmation')}</button>)}
     </section>
-    <section><h3>{t('UAT')} · <code>release</code></h3><strong>{t(status(info))}</strong>
+    <section><h3>{t('UAT')} · <code>release</code></h3>{info?.config&&<ConfigImage config={info.config} env="uat"/>}<strong>{t(status(info))}</strong>
       {run&&<><p><code>{run.sha}</code></p><button onClick={()=>open(run.url)}>{t('Pipeline #{0}',[run.id])} ↗</button>
       {run.jobs.length>0&&<ul className="release-stages">{run.jobs.map(j=><li key={j.id}><span>{j.stage} / {j.name}</span><b>{t(j.status)}</b></li>)}</ul>}
       {run.jobsPartial&&<small>{t('More jobs are available in the pipeline.')}</small>}</>}
@@ -73,8 +82,10 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
     async function read(){
       for(const m of members){
         if(!live)break;
+        const configured=readImages(m.repositoryId,workspace);
         let info:ReleaseEvidence;
         try{info=await readRelease(m,()=>live);}catch(e){info={checked:Date.now(),productionError:errorMessage(e),pipelineError:errorMessage(e)};}
+        info.config=await configured;
         if(live)setStates(prior=>({...prior,[m.id]:info}));
       }
       if(live)setLoading(false);
@@ -83,7 +94,7 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
     const changed=()=>refresh(v=>v+1);
     window.addEventListener('gitnova-ci-config',changed);
     return()=>{live=false;window.removeEventListener('gitnova-ci-config',changed);};
-  },[members,revision]);
+  },[members,revision,workspace]);
   const rows=members.filter(m=>!attention||releaseAction(states[m.id]?.run));
   const selected=rows.find(m=>m.id===focus)??rows[0];
   return <div className="releases-page"><header><div><h1>{t('Releases')}</h1><small>{workspace.name} · {t('Workspace')}</small></div>
@@ -92,10 +103,11 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
     <button disabled={loading} onClick={()=>refresh(v=>v+1)}><Icon name="refresh" size={15}/>{t(loading?'Checking…':'Refresh')}</button></header>
     <div className="release-layout"><div className="release-list"><div className="release-head"><span>{t('Repository')}</span><span>{t('Production')}</span><span>{t('UAT')}</span></div>
       {rows.map(m=>{const info=states[m.id],prod=info?.production,manual=readConfirmation(info?.scope);
+        const p=info?.config?.images?.production.image,u=info?.config?.images?.uat.image;
         return <button key={m.id} className="release-row" aria-pressed={selected?.id===m.id} onClick={()=>setFocus(m.id)}>
-          <b>{m.name}</b><span>{prod?.tag||prod?.sha.slice(0,12)||manual?.version||t(info?'Unverified':'Checking…')}
-          <small>{prod?'GitLab':manual?t('Manual confirmation'):''}</small></span>
-          <span className={releaseAction(info?.run)?'release-wait':''}>{releaseAction(info?.run)?'Ⅱ · ':''}{t(status(info))}</span></button>;})}
+          <b>{m.name}</b><span>{p?imageVersion(p):prod?.tag||prod?.sha.slice(0,12)||manual?.version||t(info?'Unverified':'Checking…')}
+          <small>{p?t('From config'):prod?'GitLab':manual?t('Manual confirmation'):''}</small></span>
+          <span className={releaseAction(info?.run)?'release-wait':''}>{u&&<><b>{imageVersion(u)}</b><small>{t('From config')}</small></>}{releaseAction(info?.run)?'Ⅱ · ':''}{t(status(info))}</span></button>;})}
       {!rows.length&&<p role="status">{t(loading?'Checking…':attention?'No manual actions found.':'No repositories in this workspace.')}</p>}
     </div>{selected&&<div><ReleaseDetails onConfirmed={()=>confirmed(n=>n+1)} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>
   </div>;
