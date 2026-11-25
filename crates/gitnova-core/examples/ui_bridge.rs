@@ -31,10 +31,24 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.prepare_hotfix(&s("membershipId")?, &request, &expected)?)
             }
         }
-        "kustomize_images" => {
+        "kustomize_images" | "kustomize_history" => {
             let mapping = serde_json::from_value(args["mapping"].clone())
                 .map_err(|e| AppError::new("kustomize", e.to_string()))?;
-            json!(app.kustomize_images(&s("membershipId")?, &mapping)?)
+            if command == "kustomize_history" {
+                let timestamp = |key: &str| {
+                    args[key]
+                        .as_i64()
+                        .ok_or_else(|| AppError::new("history", "Invalid timestamp"))
+                };
+                json!(app.kustomize_history(
+                    &s("membershipId")?,
+                    &mapping,
+                    timestamp("start")?,
+                    timestamp("end")?
+                )?)
+            } else {
+                json!(app.kustomize_images(&s("membershipId")?, &mapping)?)
+            }
         }
         "release_evidence" => {
             let selection = serde_json::from_value(args["selection"].clone())

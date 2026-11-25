@@ -77,15 +77,16 @@ function ReleaseDetails({member,info,config,onConfirmed,environments,members,onO
 function localDay(date:Date){
   return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
 }
-function ReleaseCalendar({members,workspaceId,environments,configs,states}:{members:Membership[];workspaceId:string;environments:string[];configs:Record<string,ConfigEvidence|undefined>;states:Record<string,ReleaseEvidence>}){
+function ReleaseCalendar({members,workspace,environments,configs,states}:{members:Membership[];workspace:Workspace;environments:string[];configs:Record<string,ConfigEvidence|undefined>;states:Record<string,ReleaseEvidence>}){
+  const workspaceId=workspace.id;
   const locale=dateLocale();
   const [environment,setEnvironment]=useState('');
   const [source,setSource]=useState<ReleaseEvent['source']>('Config updated');
   const [picked,setPicked]=useState('');
   const [viewMonth,setViewMonth]=useState('');
   const env=environments.includes(environment)?environment:'';
-  const days=useMemo(()=>{
-    const groups=new Map<string,{repo:string;id:string;event:ReleaseEvent}[]>();
+  const observedDays=useMemo(()=>{
+    const groups=new Map<string,{repo:string;id:string;event:ReleaseEvent;commit?:string}[]>();
     const names=new Set((env?[env]:environments).map(n=>n.toLowerCase()));
     for(const member of members){
       const repo=member.repositoryId;
@@ -108,9 +109,82 @@ function ReleaseCalendar({members,workspaceId,environments,configs,states}:{memb
   },[members,workspaceId,environments,configs,states,source,env]);
 
   const today=localDay(new Date());
-  const newest=[...days.keys()].sort().at(-1);
+  const newest=[...observedDays.keys()].sort().at(-1);
   const month=viewMonth||(newest??today).slice(0,7);
   const [year,monthNumber]=month.split('-').map(Number);
+  const historyRequests=useMemo(()=>members.flatMap(member=>{
+    const config=configs[member.repositoryId];
+    const deploy=workspace.memberships.find(m=>m.repositoryId===config?.mapping.deployId);
+    if(source!=='Config updated'||!config?.images||!deploy)return [];
+    const overlays=Object.fromEntries(Object.entries(config.mapping.overlays).filter(([id,path])=>
+      path && (env?[env]:environments).some(name=>name.toLowerCase()===id)));
+    if(!Object.keys(overlays).length)return [];
+    const mapping={...config.mapping,overlays};
+    const key=JSON.stringify([workspaceId,deploy.id,mapping,config.images.revision,month]);
+    return [{key,member,deploy,mapping}];
+  }),[members,workspace,workspaceId,configs,source,env,environments,month]);
+  type HistoryResult=Awaited<ReturnType<typeof api.kustomizeHistory>>;
+  const cache=useRef(new Map<string,Promise<HistoryResult>>());
+  const [results,setResults]=useState(new Map<string,HistoryResult>());
+  useEffect(()=>{
+    let live=true;
+    const start=new Date(year,monthNumber-1,1).getTime()/1000;
+    const end=new Date(year,monthNumber,1).getTime()/1000;
+    const wanted=new Set(historyRequests.map(r=>r.key));
+    setResults(previous=>{
+      if([...previous.keys()].every(key=>wanted.has(key)))return previous;
+      return new Map([...previous].filter(([key])=>wanted.has(key)));
+    });
+    // Keep a bounded set of immutable month reads and share in-flight work.
+    async function load(){
+      for(const request of historyRequests){
+        if(!live)break;
+        let task=cache.current.get(request.key);
+        if(!task){
+          task=api.kustomizeHistory(request.deploy.id,request.mapping,start,end);
+          cache.current.set(request.key,task);
+          if(cache.current.size>256)cache.current.delete(cache.current.keys().next().value!);
+        }
+        let result:HistoryResult;
+        try{result=await task;}catch{
+          cache.current.delete(request.key);
+          result={partial:true,records:[]};
+        }
+        if(live)setResults(previous=>{
+          if(previous.get(request.key)===result)return previous;
+          const next=new Map(previous);
+          next.set(request.key,result);
+          return next;
+        });
+      }
+    }
+    void load();
+    return ()=>{live=false;};
+  },[historyRequests,year,monthNumber]);
+  const days=useMemo(()=>{
+    const merged=new Map([...observedDays].map(([day,rows])=>[day,[...rows]]));
+    for(const {key,member} of historyRequests){
+      const result=results.get(key);
+      if(!result)continue;
+      if(!result.partial){
+        for(const [day,rows] of merged)if(day.startsWith(month+'-'))
+          merged.set(day,rows.filter(row=>row.id!==member.repositoryId));
+      }
+      for(const record of result.records){
+        const day=localDay(new Date(record.at));
+        const rows=merged.get(day)??[];
+        const event:ReleaseEvent={source:'Config updated',environment:record.environment,version:imageVersion(record.image),at:record.at};
+        if(result.partial && rows.some(row=>row.id===member.repositoryId && JSON.stringify(row.event)===JSON.stringify(event)))continue;
+        rows.push({repo:member.name,id:member.repositoryId,event,commit:record.commit});
+        merged.set(day,rows);
+      }
+    }
+    for(const [day,rows] of merged){
+      if(!rows.length)merged.delete(day);
+      else rows.sort((a,b)=>Date.parse(b.event.at)-Date.parse(a.event.at));
+    }
+    return merged;
+  },[observedDays,results,historyRequests,month]);
   const selected=picked.startsWith(month+'-')?picked:[...days.keys()].filter(d=>d.startsWith(month+'-')).sort().at(-1)??(today.startsWith(month+'-')?today:month+'-01');
   const rows=days.get(selected)??[];
   const first=new Date(year,monthNumber-1,1,12);
@@ -146,10 +220,14 @@ function ReleaseCalendar({members,workspaceId,environments,configs,states}:{memb
       <div className="calendar-scale">{t('Records per day')}{['0','1','2–4','5–9','10+'].map((band,i)=><span key={band}><i data-heat={i}/>{band}</span>)}</div>
     </div><section className="calendar-detail"><h3>{fullDate(selected)}</h3>
       {rows.length>0?<><p>{t('{0} records',[rows.length])} · {t('{0} repositories',[new Set(rows.map(r=>r.id)).size])}</p>
-        <ul>{rows.map(({repo,id,event})=><li key={JSON.stringify([id,event])}><strong>{repo}</strong>
+        <ul>{rows.map(({repo,id,event,commit})=><li key={JSON.stringify([id,event,commit])}><strong>{repo}</strong>
           <time dateTime={event.at}>{new Date(event.at).toLocaleTimeString(locale)}</time>
           <span>{environments.find(n=>n.toLowerCase()===event.environment)}</span><code>{event.version}</code></li>)}</ul></>:<p>{t('No matching records yet.')}</p>}
-    </section></div><small>{t('Shows dated records observed by GitNova on this device.')}</small>
+    </section></div><small role="status">{source==='Config updated'?
+      historyRequests.some(r=>!results.has(r.key))?t('Reading Git configuration history…'):
+      historyRequests.some(r=>results.get(r.key)?.partial)?t('Some configuration history could not be read.'):
+      t('Configuration updates from local deploy branch history.'):
+      t('Shows dated records observed by GitNova on this device.')}</small>
   </section>;
 }
 function deploymentEvents(info?:ReleaseEvidence):ReleaseEvent[]{
@@ -300,7 +378,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
         <ul>{report.failures.map(({member,reason})=><li key={member.id}>{member.name} · {t(reason)}</li>)}</ul></details>
         <button disabled={fetching||navigationBusy} onClick={()=>void startFetch(true)}>{t('Retry failed')}</button></>}
     </div>}
-    {daily?<ReleaseCalendar members={matches} workspaceId={workspace.id} environments={environments} configs={configs} states={states}/>:<div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
+    {daily?<ReleaseCalendar members={matches} workspace={workspace} environments={environments} configs={configs} states={states}/>:<div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
       {rows.map(m=>{const config=configs[m.repositoryId],info=states[m.id],prod=info?.production,manual=readConfirmation(info?.scope);
         return <button key={m.id} className="release-row" aria-pressed={selected?.id===m.id} onClick={()=>setFocus(m.id)}>
           <b>{m.name}</b>{environments.map(name=>{

@@ -3060,7 +3060,7 @@ test('Kustomize release images render the selected deploy commit and container',
   writeFileSync(join(deploy,'base/pod.yaml'),'apiVersion: v1\nkind: Pod\nmetadata: {name: web}\nspec:\n  containers:\n  - {name: web, image: "registry:5000/web:v1"}\n  - {name: logs, image: "logger:v9"}\n');
   const prod=join(deploy,'overlays/production/kustomization.yaml');
   writeFileSync(prod,'resources: [../../base]\nimages:\n- name: registry:5000/web\n  digest: '+digest+'\n');
-  writeFileSync(join(deploy,'overlays/uat/kustomization.yaml'),'resources: [../../base]\npatches:\n- target: {kind: Pod, name: web}\n  patch: |\n    - op: replace\n      path: /spec/containers/0/image\n      value: registry:5000/web:uat-7\n');
+  writeFileSync(join(deploy,'overlays/uat/kustomization.yaml'),'resources: [../../base]\npatches:\n- target: {kind: Pod, name: web}\n  patch: |\n    - op: replace\n      path: /spec/containers/0/image\n      value: registry:5000/web:uat-5\n');
   const commitAt=(date:string,message:string)=>{
     git(deploy,['add','.']);
     execFileSync('git',['-C',deploy,'-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','commit','-m',message],
@@ -3068,10 +3068,12 @@ test('Kustomize release images render the selected deploy commit and container',
   };
   const baseDate='2025-02-03T04:05:06+00:00',uatDate='2025-03-04T05:06:07+00:00';
   commitAt('2025-01-02T03:04:05+00:00','Release config');
+  const patch=join(deploy,'overlays/uat/kustomization.yaml');
+  writeFileSync(patch,readFileSync(patch,'utf8').replace('uat-5','uat-6'));
+  commitAt('2025-01-15T12:00:00+00:00','Earlier rollout');
   const pod=join(deploy,'base/pod.yaml');
   writeFileSync(pod,readFileSync(pod,'utf8')+'# shared update\n');commitAt(baseDate,'Shared configuration');
-  const patch=join(deploy,'overlays/uat/kustomization.yaml');
-  writeFileSync(patch,readFileSync(patch,'utf8')+'# UAT update\n');commitAt(uatDate,'UAT configuration');
+  writeFileSync(patch,readFileSync(patch,'utf8').replace('uat-6','uat-7'));commitAt(uatDate,'UAT configuration');
   writeFileSync(join(deploy,'README.md'),'unrelated');commitAt('2025-04-05T06:07:08+00:00','Documentation');
   writeFileSync(prod,'resources: []\n');
   await connectRealCore(page,join(folder,'kustomize-release.json'));await page.goto('/');
@@ -3153,6 +3155,17 @@ test('Kustomize release images render the selected deploy commit and container',
   await expect(calendar.locator('.calendar-detail li')).toContainText('Preview');
   await calendar.getByRole('button',{name:'Previous month'}).click();
   await expect(calendar.locator('button[data-day]')).toHaveCount(28);
+  await activeDay.click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-6');
+  await expect(calendar.locator('.calendar-detail li')).toHaveCount(1);
+  await calendar.getByRole('button',{name:'Previous month'}).click();
+  const historicalDays=calendar.locator('button[data-day]:not([data-heat="0"])');
+  await expect(historicalDays).toHaveCount(2);
+  await historicalDays.first().click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-5');
+  await historicalDays.last().click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-6');
+  await calendar.getByRole('button',{name:'Next month'}).click();
   await calendar.getByRole('button',{name:'Next month'}).click();
   await activeDay.click();
   await expect(calendar.locator('.calendar-detail li')).toContainText('uat-7');

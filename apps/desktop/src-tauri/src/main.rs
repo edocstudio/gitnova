@@ -1356,6 +1356,19 @@ async fn kustomize_images(
     .await
 }
 #[tauri::command]
+async fn kustomize_history(
+    state: State<'_>,
+    membership_id: String,
+    mapping: gitnova_core::kustomize::Mapping,
+    start: i64,
+    end: i64,
+) -> Result<gitnova_core::kustomize::ImageHistory, AppError> {
+    run_background(state, move |app| {
+        app.kustomize_history(&membership_id, &mapping, start, end)
+    })
+    .await
+}
+#[tauri::command]
 async fn release_evidence(
     state: State<'_>,
     membership_id: String,
@@ -1627,6 +1640,7 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         pipeline_context,
         connect_pipeline,
         kustomize_images,
+        kustomize_history,
         release_evidence,
         pipelines,
         ci_summary,

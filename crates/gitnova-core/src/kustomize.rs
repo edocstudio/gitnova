@@ -346,7 +346,60 @@ fn render(dir: &Path, container: &str) -> Result<String> {
 }
 
 impl Application {
-    pub fn kustomize_images(&self, membership: &str, mapping: &Mapping) -> Result<Images> {
+    fn release_tree(&self, repo: &Path, revision: &str) -> Result<HashMap<String, String>> {
+        let list = self.git.read(
+            repo,
+            &[
+                OsStr::new("ls-tree"),
+                OsStr::new("-rz"),
+                OsStr::new(revision),
+            ],
+            16 * 1024 * 1024,
+        )?;
+        if list.truncated {
+            return Err(error(
+                "Deploy repository tree exceeds the local render limit.",
+            ));
+        }
+        Ok(list
+            .bytes
+            .split(|b| *b == 0)
+            .filter_map(|row| {
+                let (meta, path) = std::str::from_utf8(row).ok()?.split_once('\t')?;
+                let mut fields = meta.split_whitespace();
+                if !matches!(fields.next(), Some("100644" | "100755")) {
+                    return None;
+                }
+                fields.next()?;
+                Some((path.to_owned(), fields.next()?.to_owned()))
+            })
+            .collect())
+    }
+    fn prepare_release_overlay(
+        &self,
+        repo: &Path,
+        blobs: &HashMap<String, String>,
+        path: &str,
+        inputs: &mut HashSet<String>,
+    ) -> Result<(tempfile::TempDir, PathBuf)> {
+        let temp = tempfile::tempdir().map_err(|_| error("Could not prepare overlay files."))?;
+        let dir = relative("", path)?;
+        let mut snapshot = Snapshot {
+            git: &self.git,
+            repo,
+            dest: temp.path(),
+            blobs,
+            written: HashSet::new(),
+            directories: HashSet::new(),
+            bytes: 0,
+        };
+        let files = snapshot.directory(&dir, 0);
+        inputs.extend(snapshot.written);
+        files?;
+        let overlay = temp.path().join(dir);
+        Ok((temp, overlay))
+    }
+    fn release_revision(&self, membership: &str, mapping: &Mapping) -> Result<(PathBuf, String)> {
         if mapping.overlays.len() > 32 {
             return Err(error("Too many release environments."));
         }
@@ -371,58 +424,28 @@ impl Application {
             )?
             .trim()
             .to_owned();
-        let list = self.git.read(
-            &repo,
-            &[
-                OsStr::new("ls-tree"),
-                OsStr::new("-rz"),
-                OsStr::new(&revision),
-            ],
-            16 * 1024 * 1024,
-        )?;
-        if list.truncated {
-            return Err(error(
-                "Deploy repository tree exceeds the local render limit.",
-            ));
-        }
-        let blobs = list
-            .bytes
-            .split(|b| *b == 0)
-            .filter_map(|row| {
-                let (meta, path) = std::str::from_utf8(row).ok()?.split_once('\t')?;
-                let mut fields = meta.split_whitespace();
-                if !matches!(fields.next(), Some("100644" | "100755")) {
-                    return None;
-                }
-                fields.next()?;
-                Some((path.to_owned(), fields.next()?.to_owned()))
-            })
-            .collect();
+        Ok((repo, revision))
+    }
+    pub fn kustomize_images(&self, membership: &str, mapping: &Mapping) -> Result<Images> {
+        let (repo, revision) = self.release_revision(membership, mapping)?;
+        let blobs = self.release_tree(&repo, &revision)?;
         let extract = |path: &str| -> Result<Overlay> {
-            let temp =
-                tempfile::tempdir().map_err(|_| error("Could not prepare overlay files."))?;
-            let dir = relative("", path)?;
-            let mut snapshot = Snapshot {
-                git: &self.git,
-                repo: &repo,
-                dest: temp.path(),
-                blobs: &blobs,
-                written: HashSet::new(),
-                directories: HashSet::new(),
-                bytes: 0,
-            };
-            snapshot.directory(&dir, 0)?;
-            let image = render(&temp.path().join(dir), &mapping.container)?;
+            let mut inputs = HashSet::new();
+            let (_temp, overlay) =
+                self.prepare_release_overlay(&repo, &blobs, path, &mut inputs)?;
+            let image = render(&overlay, &mapping.container)?;
             // Include the exact inputs used from this revision, including shared bases and patches.
             let mut history = vec![
+                "--literal-pathspecs",
                 "log",
+                "--first-parent",
                 "-1",
                 "--no-show-signature",
                 "--format=%cI",
                 revision.as_str(),
                 "--",
             ];
-            history.extend(snapshot.written.iter().map(String::as_str));
+            history.extend(inputs.iter().map(String::as_str));
             let config_updated_at = self
                 .git
                 .text(&repo, &history)
@@ -450,5 +473,101 @@ impl Application {
                 .collect(),
             revision,
         })
+    }
+}
+
+#[derive(Serialize)]
+pub struct HistoryRecord {
+    environment: String,
+    image: String,
+    at: String,
+    commit: String,
+}
+#[derive(Serialize)]
+pub struct ImageHistory {
+    records: Vec<HistoryRecord>,
+    partial: bool,
+}
+
+impl Application {
+    pub fn kustomize_history(
+        &self,
+        membership: &str,
+        mapping: &Mapping,
+        start: i64,
+        end: i64,
+    ) -> Result<ImageHistory> {
+        if start < 0 || end <= start || end - start > 32 * 86400 {
+            return Err(error("Select a single calendar month."));
+        }
+        let (repo, tip) = self.release_revision(membership, mapping)?;
+        let before = format!("--before=@{}", end - 1);
+        let anchor = self
+            .git
+            .text(&repo, &["rev-list", "--first-parent", "-1", &before, &tip])?;
+        let mut result = ImageHistory {
+            records: Vec::new(),
+            partial: false,
+        };
+        for (environment, path) in &mapping.overlays {
+            let directory = relative("", path)?;
+            let mut revision = anchor.trim().to_owned();
+            // Re-discover dependencies at each historic snapshot. A change
+            // to any input can switch the overlay to a different shared base.
+            for step in 0..=128 {
+                if revision.is_empty() {
+                    break;
+                }
+                let blobs = self.release_tree(&repo, &revision)?;
+                let mut inputs = HashSet::new();
+                let overlay = self.prepare_release_overlay(&repo, &blobs, path, &mut inputs);
+                if overlay.is_err() {
+                    inputs.insert(directory.clone());
+                }
+                let mut args = vec![
+                    "--literal-pathspecs",
+                    "log",
+                    "--first-parent",
+                    "-1",
+                    "--no-show-signature",
+                    "--format=%H %ct %cI %P",
+                    &revision,
+                    "--",
+                ];
+                args.extend(inputs.iter().map(String::as_str));
+                let log = self.git.text(&repo, &args)?;
+                let mut fields = log.split_whitespace();
+                let Some(commit) = fields.next() else {
+                    break;
+                };
+                let time = fields
+                    .next()
+                    .and_then(|s| s.parse::<i64>().ok())
+                    .ok_or_else(|| error("Invalid Git commit timestamp."))?;
+                if time < start {
+                    break;
+                }
+                let at = fields
+                    .next()
+                    .ok_or_else(|| error("Invalid Git commit timestamp."))?;
+                if step == 128 {
+                    result.partial = true;
+                    break;
+                }
+                if time < end {
+                    match overlay.and_then(|(_temp, dir)| render(&dir, &mapping.container)) {
+                        Ok(image) => result.records.push(HistoryRecord {
+                            environment: environment.clone(),
+                            image,
+                            at: at.to_owned(),
+                            commit: commit.to_owned(),
+                        }),
+                        Err(_) => result.partial = true,
+                    }
+                }
+                revision = fields.next().unwrap_or_default().to_owned();
+            }
+        }
+        Ok(result)
     }
 }
