@@ -5,6 +5,7 @@
   "Enter 1\u201332 unique names using letters, numbers, spaces, dots, underscores or hyphens (40 characters each).": "Enter 1–32 unique names using letters, numbers, spaces, dots, underscores or hyphens (40 characters each).",
   "No overlay configured": "No overlay configured",
   "{0} overlay": "{0} overlay",
+  "Open repository in History": "Open repository in History",
   "Configure release images": "Configure release images",
   "Saved": "Saved",
   "Save environments": "Save environments",

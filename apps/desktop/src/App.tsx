@@ -223,6 +223,19 @@ export function App() {
     return () => { detailSequence.current++; controller.abort(); };
   }, [selectedId, selectedOid, detailRefresh]);
   const mutate = async (action: Promise<Catalog>, close = true) => { setBusy(true); setError(''); try { setCatalog(await action); if (close) { setMenu(false); setPath(''); } } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); } };
+  const openReleaseRepository = async (membershipId: string) => {
+    if (busy || writingRef.current) return;
+    setBusy(true);
+    setError('');
+    try {
+      if (membershipId !== selectedId) setCatalog(await api.select(membershipId));
+      setReleasePage(false);
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   const selectCommit = (oid: string | null) => { if (busy) return; if (!selectedId) return; graphInteraction.current++; if (oid !== WORKING) setStashLaunch(null); if (oid) setInspectorOpen(true); if (oid === WORKING || oid?.startsWith('stash:')) setDiffCollapsed(false); setSessions(old => old[selectedId] ? { ...old, [selectedId]: { ...old[selectedId], selected: oid } } : old); };
   const [investigationFile,setInvestigationFile]=useState<{membershipId:string;oid:string;path:string}|null>(null);
   const openSearchResult = async (location: SearchLocation, oid: string, path?: string) => {
@@ -336,7 +349,7 @@ export function App() {
       <button ref={settingsButton} className="icon-button settings-trigger" aria-label={t('Settings')} title={t('Settings')} aria-haspopup="dialog" aria-expanded={settingsOpen} disabled={writeBusy || busy} onClick={()=>{setMenu(false);setSearchOpen(false);setSettingsOpen(true);}}><Icon name="settings" size={20}/></button>
     </header>
     {problem && <div className="error-banner" role="alert"><span>{t(problem)}</span><button className="icon-button" aria-label={t("Dismiss error")} onClick={() => { setError(''); if (selectedId) setOperationFeedback(old => Object.fromEntries(Object.entries(old).filter(([id]) => id !== selectedId))); }}><Icon name="close" /></button></div>}
-    {releasePage && workspace && <main><ReleaseOverview key={workspace.id} workspace={workspace}/></main>}
+    {releasePage && workspace && <main><ReleaseOverview key={workspace.id} workspace={workspace} onOpenRepository={openReleaseRepository} navigationBusy={busy || writeBusy}/></main>}
     <main style={releasePage?{display:'none'}:undefined}>{!selected ? <div className="welcome"><div className="welcome-visual" aria-hidden="true"><svg width="168" height="126" viewBox="0 0 168 126"><path d="M45 8v110M45 87c0-46 75-10 75-60" stroke="#4b8eff" fill="none" strokeWidth="2"/><path d="M45 58c0 25 39 11 39 39" stroke="#566989" fill="none" strokeWidth="2"/>{[[45,22],[45,58],[45,103],[120,25],[84,99]].map(([x,y],i) => <circle key={i} cx={x} cy={y} r={i===1?7:5} fill="#20222c" stroke={i===4?'#7288b0':'#6ca4ff'} strokeWidth="2" />)}</svg></div><span className="eyebrow">{t("A LITTLE CLARITY FOR YOUR CODE.")}</span><h1>{t("Every change.")}<br /><span>{t("A clearer picture.")}</span></h1><p>{t("Your history, branches and next commit.")}<br />{t("Bring your repositories together. Keep your focus here.")}</p>{!menu && addForm}<span className="welcome-footnote"><Icon name="lock" size={13} />{t("Open local repositories. Publish when you choose.")}</span></div> : <div className="repository-view">
       <div className="contextbar"><div className="context-main"><span className="context-title"><Icon name="branch" size={16} />{t("Repository history")}</span><span className="context-separator">/</span><span className="context-subtitle" title={rootPath}>{selected.name}</span></div><div className="repo-actions">{selectedId && <BranchSwitcher tracking={session?.page.tracking} key={`branch-${recoveryRevision}-${selectedId}`} membershipId={selectedId} blocked={writeBusy || busy} contextActive={Boolean(graphIntent) || searchOpen} status={currentStatus} onBusyChange={onWriteBusy} onSwitched={async receipt => {
         reportOperation(receipt);

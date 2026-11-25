@@ -697,3 +697,5 @@ this device. Hiding an environment preserves its repository overlay.
 The Releases table searches workspace repository names locally and pages the results. Ordinary browsing reads visible repositories on demand. Needs action checks CI across the name matches to find pending actions on other pages.
 
 Each configured environment shows the Git committer time of the latest commit affecting files read to render its overlay at the selected revision. Shared base and patch edits count. This date describes configuration history. Deployment evidence carries its own timestamp.
+
+Releases shows ten repositories per page. Select a row and choose **Open repository in History** to open the application repository for that row in GitNova.

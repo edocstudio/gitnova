@@ -51,12 +51,13 @@ function ConfigImage({config,env}:{config:ConfigEvidence;env:string}){
     <small title={config.images?.revision}>{config.deployName} · {config.mapping.reference.replace(/^refs\/(heads|remotes)\//,'')} {config.images?.revision.slice(0,12)}</small>
     <small>{config.mapping.overlays[env]} · {config.mapping.container}</small></div>;
 }
-function ReleaseDetails({member,info,config,onConfirmed,environments,members}:{config?:ConfigEvidence;members:Membership[];environments:string[];member:Membership;info?:ReleaseEvidence;onConfirmed:()=>void}){
+function ReleaseDetails({member,info,config,onConfirmed,environments,members,onOpenRepository,navigationBusy}:RepositoryNavigation & {config?:ConfigEvidence;members:Membership[];environments:string[];member:Membership;info?:ReleaseEvidence;onConfirmed:()=>void}){
   const [form,setForm]=useState(false),[error,setError]=useState('');
   const [editing,setEditing]=useState(false);
   const open=(url:string)=>{setError('');void api.openCiUrl(url).catch(e=>setError(errorMessage(e)));};
   const manual=readConfirmation(info?.scope),prod=info?.production,run=info?.run,action=releaseAction(run);
   return <aside className="release-detail"><h2><Icon name="folder" size={18}/>{member.name}</h2>
+    <button disabled={navigationBusy} onClick={()=>onOpenRepository(member.id)}>{t('Open repository in History')}</button>
     <button aria-expanded={editing} onClick={()=>setEditing(v=>!v)}>{t('Configure release images')}</button>
     {editing&&<MappingForm app={member} members={members} environments={environments} onDone={()=>setEditing(false)}/>}
     {environments.map(name=>{
@@ -87,8 +88,12 @@ function ReleaseDetails({member,info,config,onConfirmed,environments,members}:{c
     })}{info&&<small>{t('Last checked')} · {stamp(info.checked)}</small>}{error&&<p role="alert">{t(error)}</p>}
   </aside>;
 }
-const PAGE_SIZE=5;
-export function ReleaseOverview({workspace}:{workspace:Workspace}){
+const PAGE_SIZE=10;
+type RepositoryNavigation = {
+  onOpenRepository: (membershipId: string) => void;
+  navigationBusy: boolean;
+};
+export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{workspace:Workspace} & RepositoryNavigation){
   const members=useMemo(()=>{
     const seen=new Set<string>();
     return workspace.memberships.filter(m=>{
@@ -202,6 +207,6 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
           <button aria-label={t('Next repository page')} disabled={currentPage+1===pages} onClick={()=>setPage(currentPage+1)}>→</button>
         </nav>}
       </div>}
-    </div>{selected&&<div><ReleaseDetails config={configs[selected.repositoryId]} members={members} environments={environments} onConfirmed={()=>confirmed(n=>n+1)} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>
+    </div>{selected&&<div><ReleaseDetails navigationBusy={navigationBusy} onOpenRepository={onOpenRepository} config={configs[selected.repositoryId]} members={members} environments={environments} onConfirmed={()=>confirmed(n=>n+1)} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>
   </div>;
 }

@@ -4,6 +4,10 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Release repository navigation
+
+Version 1.12.0 on `feat/release-code-navigation`. Releases displays ten repositories per page. The selected row's **Open repository in History** button navigates to that workspace membership through the catalog. Search covers the whole workspace. TypeScript checks, three localization tests and three Releases browser scenarios passed, including pagination with twelve repositories and navigation to a different member. Desktop 1.12.0 passed native smoke, signature and embedded UI verification.
+
 ## Environment configuration dates
 
 Version 1.11.0 on `feat/release-environment-dates`. Releases shows Config updated in the environment cell and inspector. The timestamp is the committer date from the latest commit touching the overlay's actual render inputs, including its shared bases and patches, at the pinned revision. A history lookup failure leaves the image available. Production evidence can display its own recorded date when shown in the table.

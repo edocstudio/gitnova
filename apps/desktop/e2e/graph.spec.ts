@@ -1204,11 +1204,11 @@ test('failed clone remains visible after restart without creating a repository m
   test.setTimeout(120000);const source=join(folder,'not-a-git-source'),destination=join(folder,'failed-clone');mkdirSync(source);writeFileSync(join(source,'keep.txt'),'source untouched');await connectRealCore(page,join(folder,'clone-recovery.json'));await page.goto('/');await page.locator('.clone-controls > summary').click();const controls=page.locator('.clone-controls');await controls.getByLabel('Repository URL or local source',{exact:true}).fill(source);await controls.getByLabel('New clone folder',{exact:true}).fill(destination);await controls.getByRole('button',{name:'Review clone',exact:true}).click();await controls.getByRole('button',{name:'Clone & open graph',exact:true}).click();await expect(controls.locator('.notice')).toContainText('Clone stopped',{timeout:45000});await page.reload();await page.locator('.clone-controls > summary').click();await controls.locator('.clone-attempts > summary').click();await expect(controls.locator('.clone-attempts')).toContainText('failed-clone');await expect(controls.locator('.clone-attempts')).toContainText('Clone stopped');await expect(page.locator('.repository-view')).toHaveCount(0);expect(readFileSync(join(source,'keep.txt'),'utf8')).toBe('source untouched');
 });
 
-function pickerFixture(name: string, pinned: number[]) {
+function pickerFixture(name: string, pinned: number[], count=7) {
   const parent=join(folder,name),state=join(folder,`${name}.json`);mkdirSync(parent);const paths:string[]=[];
   const invoke=(command:string,args:unknown):Catalog=>{const result=JSON.parse(execFileSync(bridge,[state],{input:JSON.stringify({command,args}),encoding:'utf8',maxBuffer:4*1024*1024}));if(result.error)throw new Error(result.error.message);return result.ok;};
   let catalog=invoke('catalog',{});
-  for(let index=0;index<7;index++){const path=join(parent,index===1?'team-a':'team-b',`project-${index}`);mkdirSync(path,{recursive:true});git(path,['init','-b','main']);git(path,['commit','--allow-empty','-m',`Picker project ${index}`]);paths.push(path);catalog=invoke('add_repository',{path});}
+  for(let index=0;index<count;index++){const path=join(parent,index===1?'team-a':'team-b',`project-${index}`);mkdirSync(path,{recursive:true});git(path,['init','-b','main']);git(path,['commit','--allow-empty','-m',`Picker project ${index}`]);paths.push(path);catalog=invoke('add_repository',{path});}
   for(const index of pinned){const membership=catalog.workspaces[0].memberships.find((entry:{name:string})=>entry.name===`project-${index}`);catalog=invoke('pin_repository',{membershipId:membership.id});}
   return {state,paths,catalog};
 }
@@ -3143,13 +3143,13 @@ test('Kustomize release images render the selected deploy commit and container',
 
 test('Releases searches all pages and reuses visible repository reads',async({page})=>{
   test.setTimeout(150000);
-  const {state,catalog}=pickerFixture('release-pages',[]);
+  const {state,catalog}=pickerFixture('release-pages',[],12);
   const workspace=catalog.workspaces[0],members=workspace.memberships;
-  const first=Math.floor(members.findIndex(m=>m.id===workspace.selectedId)/5);
-  const visible=members.slice(first*5,first*5+5);
-  const hidden=members.find(m=>!visible.includes(m))!;
+  const first=Math.floor(members.findIndex(m=>m.id===workspace.selectedId)/10);
+  const visible=members.slice(first*10,first*10+10);
+  const hidden=members.find(m=>!visible.includes(m) && !members.some(other=>other!==m && other.name.includes(m.name)))!;
   await connectRealCore(page,state);await page.goto('/');
-  await expect(page.locator('.repo-picker')).toContainText('project-6');
+  await expect(page.locator('.repo-picker')).toContainText('project-11');
   await page.evaluate(async()=>{
     const {api}=await import('/src/api.ts');
     const read=api.remoteBranches;
@@ -3171,8 +3171,13 @@ test('Releases searches all pages and reuses visible repository reads',async({pa
   await expect(view.locator('.release-detail h2')).toContainText(hidden.name);
   await expect(ready).toBeEnabled();expect(await reads()).toContain(hidden.id);
   await search.fill('[.*]');await expect(view.getByText('No matching repositories.')).toBeVisible();
-  await search.fill('');await expect(rows).toHaveCount(5);await expect(ready).toBeEnabled();
+  await search.fill('');await expect(rows).toHaveCount(10);await expect(ready).toBeEnabled();
   await view.getByLabel('Next repository page').click();await expect(rows).toHaveCount(2);await expect(ready).toBeEnabled();
-  await view.getByLabel('Previous repository page').click();await expect(rows).toHaveCount(5);await expect(ready).toBeEnabled();
+  await view.getByLabel('Previous repository page').click();await expect(rows).toHaveCount(10);await expect(ready).toBeEnabled();
   expect((await reads()).slice(initialReads.length).sort()).toEqual(members.filter(m=>!visible.includes(m)).map(m=>m.id).sort());
+  await search.fill('project-2');
+  await view.getByRole('button',{name:'Open repository in History'}).click();
+  await expect(page.locator('.repo-picker')).toContainText('project-2');
+  await expect(view).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'History',exact:true})).toHaveAttribute('aria-pressed','true');
 });
