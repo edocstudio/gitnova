@@ -1,12 +1,11 @@
 import {api,errorMessage} from './api';
 import {connections} from './connection-store';
-import {savedJenkinsConfig} from './JenkinsStatus';
-import type {Membership, PipelineRun} from './contracts';
+import type {Membership} from './contracts';
 
 export interface Deployment {sha:string; tag:string|null; finished:string|null; id:string; url:string}
 export interface ReleaseEvidence {
-  production?:Deployment|null; run?:PipelineRun|null; jenkins?:string|null; scope?:string; build?:PipelineRun; buildError?:string;
-  productionError?:string; pipelineError?:string; checked:number;
+  production?:Deployment|null; scope?:string;
+  productionError?:string; checked:number;
 }
 export async function readRelease(member:Membership, active:()=>boolean):Promise<ReleaseEvidence> {
   const info:ReleaseEvidence={checked:Date.now()};
@@ -19,30 +18,12 @@ export async function readRelease(member:Membership, active:()=>boolean):Promise
   const remote=selection?.remote??preferred;
   const urls=remote && listing.urls?.[remote];
   if(urls?.length) info.scope=JSON.stringify([member.repositoryId,remote,urls]);
-  const jenkins=savedJenkinsConfig(member.id);
-  if(jenkins && jenkins.remote===remote)info.jenkins=jenkins.jobUrl;
   if(selection?.provider==='gitlab' && active()){
-    const [prod,uat]=await Promise.allSettled([api.productionDeployment(member.id,selection),api.releasePipeline(member.id,selection)]);
-    if(prod.status==='fulfilled')info.production=prod.value;else info.productionError=errorMessage(prod.reason);
-    if(uat.status==='fulfilled')info.run=uat.value;else info.pipelineError=errorMessage(uat.reason);
-  }
-  const release=listing.branches.find(b=>b.remote===remote && b.name==='release');
-  if(jenkins && info.jenkins && release && active()){
-    try{const builds=await api.jenkinsBuilds(member.id,{...jenkins,oid:release.oid});
-      info.build=builds.pipeline.runs.find(run=>run.sha===release.oid);
-    }catch(e){info.buildError=errorMessage(e);}
+    try{info.production=await api.productionDeployment(member.id,selection);}
+    catch(e){info.productionError=errorMessage(e);}
   }
   info.checked=Date.now();
   return info;
-}
-export function releaseAction(run?:PipelineRun|null){
-  if(!run || run.reference!=='release' || ['failed','canceled','skipped','success'].includes(run.status))return null;
-  const job=run.jobs.find(j=>j.status==='manual' && j.allowFailure===false);
-  if(!job || !/^\d+$/.test(job.id))return run.status==='manual' || run.status==='blocked'?{label:'Open pipeline',url:run.url}:null;
-  const url=new URL(run.url);
-  if(url.protocol!=='https:' || !/\/-\/pipelines\/\d+\/?$/.test(url.pathname))return {label:'Open pipeline',url:run.url};
-  url.pathname=url.pathname.replace(/\/-\/pipelines\/\d+\/?$/,'/-/jobs/'+job.id);url.search='';url.hash='';
-  return {label:'Open manual job',url:url.href};
 }
 export interface Confirmation {sha:string; version:string; by:string; url:string; time:number}
 export function readConfirmation(scope?:string):Confirmation|null {

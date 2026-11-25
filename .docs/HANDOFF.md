@@ -4,6 +4,10 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Environment CI scope
+
+Version 1.12.1 on `fix/releases-unmapped-ci`. Releases omits branch and Jenkins CI status for all environments and no longer scans pipelines for the former Needs action filter. Config images, configuration dates and explicit production deployment evidence remain available. TypeScript and three Releases browser scenarios passed. Desktop installation passed native smoke, signature and embedded UI checks.
+
 ## Release repository navigation
 
 Version 1.12.0 on `feat/release-code-navigation`. Releases displays ten repositories per page. The selected row's **Open repository in History** button navigates to that workspace membership through the catalog. Search covers the whole workspace. TypeScript checks, three localization tests and three Releases browser scenarios passed, including pagination with twelve repositories and navigation to a different member. Desktop 1.12.0 passed native smoke, signature and embedded UI verification.

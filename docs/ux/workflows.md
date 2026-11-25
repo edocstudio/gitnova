@@ -10,7 +10,7 @@ The image identifies desired state and does not identify the application's Git c
 
 ## Workspace releases
 
-History describes one checkout. Comparing deployed versions and pending release jobs across repositories requires a workspace view. Releases keeps History mounted and reads provider evidence on entry or refresh. The production cell uses a successful deployment on the GitLab environment named `production`, or an explicitly attributed local confirmation. The UAT cell follows the latest pipeline on `release`. Manual jobs open at the provider for review. A Jenkins job link alone does not establish a deployed version.
+Releases compares environment image mappings across the workspace. Each column shows the configured image and its configuration date. Production can also show a successful GitLab production deployment or an explicit local confirmation. Branch pipeline and Jenkins job statuses have no environment mapping and are omitted.
 
 ## Promote selected files
 
@@ -694,7 +694,7 @@ The Releases inspector owns image mapping for its selected repository. Header
 Settings defines the environment columns and their order across repositories on
 this device. Hiding an environment preserves its repository overlay.
 
-The Releases table searches workspace repository names locally and pages the results. Ordinary browsing reads visible repositories on demand. Needs action checks CI across the name matches to find pending actions on other pages.
+The Releases table searches workspace repository names locally and pages the results. Ordinary browsing reads visible repositories on demand.
 
 Each configured environment shows the Git committer time of the latest commit affecting files read to render its overlay at the selected revision. Shared base and patch edits count. This date describes configuration history. Deployment evidence carries its own timestamp.
 

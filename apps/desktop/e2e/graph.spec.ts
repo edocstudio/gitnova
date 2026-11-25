@@ -3010,7 +3010,7 @@ test('workspace releases show recorded evidence, persist confirmation and filter
  await expect(page.getByText('Confirmed by Release operator',{exact:false})).toBeVisible();
 });
 
-test('release overview isolates repositories and workspaces and opens the reviewed manual job',async({page},testInfo)=>{
+test('release overview isolates repositories and workspaces without inferring environment CI from a branch',async({page},testInfo)=>{
   const state=join(folder,'release-overview-scope.json');
   await connectRealCore(page,state);await page.goto('/');
   for(const name of ['control-panel','jupyterhub']){
@@ -3034,18 +3034,16 @@ test('release overview isolates repositories and workspaces and opens the review
     const id=catalog.workspaces[0].memberships.find((m:{name:string})=>m.name.endsWith('control-panel')).id;
     const sha='a'.repeat(40),base='https://gitlab.example.invalid/team/control-panel/-/';
     api.productionDeployment=async(m:string)=>m===id?{sha,tag:'v2.8.3',id:'184',url:base+'environments/1',finished:'2026-11-22T08:00:00Z'}:null;
-    api.releasePipeline=async(m:string)=>m===id?{sha:'b'.repeat(40),id:'192',url:base+'pipelines/192',reference:'release',source:'push',status:'manual',jobsPartial:false,jobs:[{id:'6',name:'Unit tests',stage:'test',status:'success'},{id:'7',name:'Deploy UAT',stage:'deploy',status:'manual',allowFailure:false}]}:null;
-    api.openCiUrl=async(url:string)=>{sessionStorage.setItem('opened-release-job',url);};
+    api.releasePipeline=async()=>{sessionStorage.setItem('release-ci-read','yes');return null;};
   });
   await page.getByRole('button',{name:'Releases',exact:true}).click();
   const control=page.getByRole('button',{name:/overview-control-panel.*v2.8.3/});
   await control.click();await expect(page.getByRole('button',{name:'GitLab deployment #184'})).toBeVisible();
   await page.screenshot({path:testInfo.outputPath('workspace-releases.png')});
-  await page.getByRole('button',{name:'Open manual job'}).click();
-  expect(await page.evaluate(()=>sessionStorage.getItem('opened-release-job'))).toBe('https://gitlab.example.invalid/team/control-panel/-/jobs/7');
-  await page.getByRole('button',{name:/overview-jupyterhub.*Unverified/}).click();
-  await expect(page.getByRole('button',{name:'Open manual job'})).toHaveCount(0);
-  await page.getByLabel('Release filter').selectOption('action');await expect(page.locator('.release-row')).toHaveCount(1);
+  await expect(page.locator('.release-detail h3').filter({hasText:'UAT'})).toHaveText('UAT');
+  await page.locator('.release-list').getByRole('button',{name:/overview-jupyterhub/}).click();
+  await expect(page.locator('.release-detail')).not.toContainText('No release pipeline');
+  expect(await page.evaluate(()=>sessionStorage.getItem('release-ci-read'))).toBeNull();
   await page.keyboard.press('Control+o');await page.getByLabel('New workspace name').fill('Empty release workspace');
   await page.getByRole('button',{name:'Create',exact:true}).click();await page.keyboard.press('Escape');
   await expect(page.getByText('No repositories in this workspace.')).toBeVisible();await expect(page.locator('.release-row')).toHaveCount(0);
@@ -3122,7 +3120,7 @@ test('Kustomize release images render the selected deploy commit and container',
   await row.click();
   const detail=page.locator('.release-detail');
   await expect(detail).toContainText(digest);
-  await expect(detail).toContainText('No verified deployment');
+  await expect(detail).not.toContainText('No verified deployment');
   await expect(detail).not.toContainText('logger');
   expect(await page.evaluate(()=>sessionStorage.getItem('release-branch-reads'))).toBe('0');
   await page.getByRole('button',{name:'Configure release images'}).click();
