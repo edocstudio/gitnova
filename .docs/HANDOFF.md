@@ -18,7 +18,7 @@ passed with the real Rust bridge and kubectl. The latter verified a base Pod wit
 two containers, a digest, an inline UAT patch and an uncommitted production-overlay
 edit. Three localization tests passed. Live cluster rollout was outside scope.
 
-Release build stopped because the Desktop GitNova process was active. Resume build:release and staged installation after the app quits.
+Installed Desktop 1.8.0 passed native smoke, signature, executable comparison and embedded UI checks. The update retained the previous Desktop app as a backup.
 
 ## Workspace Releases
 
