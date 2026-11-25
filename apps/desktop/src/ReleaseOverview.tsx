@@ -74,41 +74,82 @@ function ReleaseDetails({member,info,config,onConfirmed,environments,members,onO
     })}{info&&<small>{t('Last checked')} · {stamp(info.checked)}</small>}{error&&<p role="alert">{t(error)}</p>}
   </aside>;
 }
-function DailySummary({members,workspaceId,environments,configs,states}:{members:Membership[];workspaceId:string;environments:string[];configs:Record<string,ConfigEvidence|undefined>;states:Record<string,ReleaseEvidence>}){
-  const [source,setSource]=useState<'config'|'deploy'>('config');
-  const [date,setDate]=useState('');
+function localDay(date:Date){
+  return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+}
+function ReleaseCalendar({members,workspaceId,environments,configs,states}:{members:Membership[];workspaceId:string;environments:string[];configs:Record<string,ConfigEvidence|undefined>;states:Record<string,ReleaseEvidence>}){
+  const locale=dateLocale();
+  const [environment,setEnvironment]=useState('');
+  const [source,setSource]=useState<ReleaseEvent['source']>('Config updated');
+  const [picked,setPicked]=useState('');
+  const [viewMonth,setViewMonth]=useState('');
+  const env=environments.includes(environment)?environment:'';
   const days=useMemo(()=>{
     const groups=new Map<string,{repo:string;id:string;event:ReleaseEvent}[]>();
-    const names=new Set(environments.map(n=>n.toLowerCase()));
+    const names=new Set((env?[env]:environments).map(n=>n.toLowerCase()));
     for(const member of members){
       const repo=member.repositoryId;
       const records=[...observedEvents(workspaceId,repo),...configEvents(configs[repo]),...deploymentEvents(states[member.id])];
       const seen=new Set<string>();
       for(const event of records){
-        if(!names.has(event.environment)||(source==='config')!==(event.source==='Config updated'))continue;
+        if(!names.has(event.environment)||event.source!==source)continue;
         const signature=JSON.stringify(event);
         if(seen.has(signature))continue;
         seen.add(signature);
         const when=new Date(event.at);
         if(!Number.isFinite(when.getTime()))continue;
-        const day=[when.getFullYear(),String(when.getMonth()+1).padStart(2,'0'),String(when.getDate()).padStart(2,'0')].join('-');
-        if(date&&day!==date)continue;
+        const day=localDay(when);
         const rows=groups.get(day)??[];
         rows.push({repo:member.name,id:repo,event});groups.set(day,rows);
       }
     }
-    return [...groups].sort(([a],[b])=>b.localeCompare(a));
-  },[members,workspaceId,environments,configs,states,source,date]);
-  return <section className="release-daily"><h2>{t('Daily summary')}</h2>
-    <label>{t('Activity')} <select value={source} onChange={e=>setSource(e.target.value==='deploy'?'deploy':'config')}>
-      <option value="config">{t('Config updates')}</option><option value="deploy">{t('Deployment evidence')}</option></select></label>
-    <label>{t('Date')} <input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>
-    <p>{t('Shows dated records observed by GitNova on this device.')}</p>
-    {!days.length&&<p>{t('No matching records yet.')}</p>}
-    {days.map(([day,rows])=><details key={day}><summary>{new Date(day+'T12:00:00').toLocaleDateString(dateLocale(),{dateStyle:'long'})} · {t('{0} repositories',[new Set(rows.map(row=>row.id)).size])}</summary>
-      <ul>{rows.sort((a,b)=>Date.parse(b.event.at)-Date.parse(a.event.at)).map(({repo,id,event})=><li key={JSON.stringify([id,event])}>
-        <strong>{repo}</strong><span>{environments.find(n=>n.toLowerCase()===event.environment)}</span><code>{event.version}</code>
-        <time dateTime={event.at}>{new Date(event.at).toLocaleTimeString(dateLocale())}</time><small>{t(event.source)}</small></li>)}</ul></details>)}
+    for(const rows of groups.values())rows.sort((a,b)=>Date.parse(b.event.at)-Date.parse(a.event.at));
+    return groups;
+  },[members,workspaceId,environments,configs,states,source,env]);
+
+  const today=localDay(new Date());
+  const newest=[...days.keys()].sort().at(-1);
+  const month=viewMonth||(newest??today).slice(0,7);
+  const [year,monthNumber]=month.split('-').map(Number);
+  const selected=picked.startsWith(month+'-')?picked:[...days.keys()].filter(d=>d.startsWith(month+'-')).sort().at(-1)??(today.startsWith(month+'-')?today:month+'-01');
+  const rows=days.get(selected)??[];
+  const first=new Date(year,monthNumber-1,1,12);
+  const count=new Date(year,monthNumber,0,12).getDate();
+  const moveMonth=(offset:number)=>setViewMonth(localDay(new Date(year,monthNumber-1+offset,1,12)).slice(0,7));
+  const fullDate=(day:string)=>new Date(day+'T12:00:00').toLocaleDateString(locale,{dateStyle:'long'});
+  return <section className="release-calendar">
+    <div className="calendar-controls">
+      <h2>{t('Release calendar')}</h2>
+      <label>{t('Activity')}<select aria-label={t('Activity')} value={source} onChange={e=>setSource(e.target.value as ReleaseEvent['source'])}>
+        <option value="Config updated">{t('Config updates')}</option><option value="Deployment">{t('Deployment')}</option><option value="Manual confirmation">{t('Manual confirmation')}</option>
+      </select></label>
+      <label>{t('Environment')}<select aria-label={t('Environment')} value={env} onChange={e=>setEnvironment(e.target.value)}>
+        <option value="">{t('All environments')}</option>{environments.map(name=><option key={name}>{name}</option>)}
+      </select></label>
+    </div>
+    <div className="calendar-layout"><div className="calendar-month">
+      <div className="calendar-month-heading"><h3 aria-live="polite">{first.toLocaleDateString(locale,{month:'long',year:'numeric'})}</h3>
+        <button aria-label={t('Previous month')} onClick={()=>moveMonth(-1)}>←</button>
+        <button onClick={()=>{setViewMonth(today.slice(0,7));setPicked(today);}}>{t('Today')}</button>
+        <button aria-label={t('Next month')} onClick={()=>moveMonth(1)}>→</button>
+      </div>
+      <div className="calendar-grid">
+        {Array.from({length:7},(_,i)=><span className="calendar-weekday" key={'w'+i}>{new Date(2024,0,1+i,12).toLocaleDateString(locale,{weekday:'short'})}</span>)}
+        {Array.from({length:count},(_,i)=>{
+          const day=month+'-'+String(i+1).padStart(2,'0'),n=days.get(day)?.length??0;
+          return <button key={day} data-day={day} data-heat={n>=10?4:n>=5?3:n>=2?2:n?1:0}
+            aria-label={fullDate(day)+' · '+t('{0} records',[n])} aria-pressed={day===selected} aria-current={day===today?'date':undefined}
+            style={i===0?{gridColumnStart:(first.getDay()+6)%7+1}:undefined}
+            onClick={()=>{setViewMonth(month);setPicked(day);}}><span>{i+1}</span>{n>0&&<b>{n}</b>}</button>;
+        })}
+      </div>
+      <div className="calendar-scale">{t('Records per day')}{['0','1','2–4','5–9','10+'].map((band,i)=><span key={band}><i data-heat={i}/>{band}</span>)}</div>
+    </div><section className="calendar-detail"><h3>{fullDate(selected)}</h3>
+      {rows.length>0?<><p>{t('{0} records',[rows.length])} · {t('{0} repositories',[new Set(rows.map(r=>r.id)).size])}</p>
+        <ul>{rows.map(({repo,id,event})=><li key={JSON.stringify([id,event])}><strong>{repo}</strong>
+          <time dateTime={event.at}>{new Date(event.at).toLocaleTimeString(locale)}</time>
+          <span>{environments.find(n=>n.toLowerCase()===event.environment)}</span><code>{event.version}</code></li>)}</ul></>:<p>{t('No matching records yet.')}</p>}
+    </section></div><small>{t('Shows dated records observed by GitNova on this device.')}</small>
   </section>;
 }
 function deploymentEvents(info?:ReleaseEvidence):ReleaseEvent[]{
@@ -245,7 +286,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
   useEffect(()=>{schedule.current(requested);},[requested,workspace,revision]);
   const selected=rows.find(m=>m.id===focus)??rows[0];
   return <div className="releases-page"><header><div><h1>{t('Releases')}</h1><small>{workspace.name} · {t('Workspace')}</small></div>
-    <button aria-pressed={daily} onClick={()=>setDaily(value=>!value)}>{t('Daily summary')}</button>
+    <button aria-pressed={daily} onClick={()=>setDaily(value=>!value)}>{t('Release calendar')}</button>
     <input type="search" aria-label={t('Search repositories')} placeholder={t('Search repositories')} maxLength={512} value={query}
       onChange={e=>{setQuery(e.target.value);setPage(0);}}/>
     <button disabled={fetching||navigationBusy||!members.length} onClick={()=>void startFetch()}><Icon name="pull" size={15}/>{t('Fetch workspace')}</button>
@@ -259,7 +300,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
         <ul>{report.failures.map(({member,reason})=><li key={member.id}>{member.name} · {t(reason)}</li>)}</ul></details>
         <button disabled={fetching||navigationBusy} onClick={()=>void startFetch(true)}>{t('Retry failed')}</button></>}
     </div>}
-    {daily?<DailySummary members={matches} workspaceId={workspace.id} environments={environments} configs={configs} states={states}/>:<div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
+    {daily?<ReleaseCalendar members={matches} workspaceId={workspace.id} environments={environments} configs={configs} states={states}/>:<div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
       {rows.map(m=>{const config=configs[m.repositoryId],info=states[m.id],prod=info?.production,manual=readConfirmation(info?.scope);
         return <button key={m.id} className="release-row" aria-pressed={selected?.id===m.id} onClick={()=>setFocus(m.id)}>
           <b>{m.name}</b>{environments.map(name=>{

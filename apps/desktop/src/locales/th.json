@@ -1,4 +1,12 @@
 {
+  "Release calendar": "ปฏิทินรีลีส",
+  "Environment": "สภาพแวดล้อม",
+  "All environments": "ทุกสภาพแวดล้อม",
+  "Previous month": "เดือนก่อนหน้า",
+  "Next month": "เดือนถัดไป",
+  "Today": "วันนี้",
+  "Records per day": "จำนวนรายการต่อวัน",
+  "{0} records": "{0} รายการ",
   "Daily summary": "สรุปรายวัน",
   "Activity": "กิจกรรม",
   "Config updates": "การเปลี่ยนแปลงคอนฟิก",

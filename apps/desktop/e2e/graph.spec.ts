@@ -3049,7 +3049,7 @@ test('release overview isolates repositories and workspaces without inferring en
   await expect(page.getByText('No repositories in this workspace.')).toBeVisible();await expect(page.locator('.release-row')).toHaveCount(0);
 });
 
-test('Kustomize release images render the selected deploy commit and container',async({page})=>{
+test('Kustomize release images render the selected deploy commit and container',async({page},testInfo)=>{
   test.skip(spawnSync('kubectl',['version','--client']).status!==0 && spawnSync('kustomize',['version']).status!==0,'Requires a Kustomize renderer');
   const deploy=join(folder,'deploy-config');
   mkdirSync(deploy);
@@ -3142,13 +3142,24 @@ test('Kustomize release images render the selected deploy commit and container',
   await expect(row).toContainText('uat-7');
   await expect(page.locator('.releases-page header').getByRole('button',{name:'Refresh',exact:true})).toBeEnabled();
   expect(await page.evaluate(()=>sessionStorage.getItem('image-reads'))).toBe('0');
-  await page.getByRole('button',{name:'Daily summary'}).click();
-  const daily=page.locator('.release-daily');
-  await expect(daily.locator('summary').first()).toBeVisible();
-  await daily.locator('summary').first().click();
-  await expect(daily).toContainText('uat-7');
-  await daily.getByLabel('Activity').selectOption('deploy');
-  await expect(daily).toContainText('No matching records yet.');
+  await page.getByRole('button',{name:'Release calendar'}).click();
+  const calendar=page.locator('.release-calendar');
+  const activeDay=calendar.locator('[data-heat]:is(button):not([data-heat="0"])').first();
+  await activeDay.click();
+  await expect(calendar.locator('.calendar-detail')).toContainText('uat-7');
+  await calendar.getByLabel('Environment',{exact:true}).selectOption('Preview');
+  await expect(activeDay).toHaveAttribute('data-heat','1');
+  await expect(calendar.locator('.calendar-detail li')).toHaveCount(1);
+  await expect(calendar.locator('.calendar-detail li')).toContainText('Preview');
+  await calendar.getByRole('button',{name:'Previous month'}).click();
+  await expect(calendar.locator('button[data-day]')).toHaveCount(28);
+  await calendar.getByRole('button',{name:'Next month'}).click();
+  await activeDay.click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-7');
+  await calendar.screenshot({path:testInfo.outputPath('release-calendar.png')});
+  await calendar.getByLabel('Activity').selectOption('Deployment');
+  await expect(calendar).toContainText('No matching records yet.');
+  await expect(calendar.locator('button[data-heat]:not([data-heat="0"])')).toHaveCount(0);
 });
 
 test('Releases searches all pages and reuses visible repository reads',async({page})=>{

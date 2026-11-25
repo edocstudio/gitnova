@@ -1,4 +1,12 @@
 {
+  "Release calendar": "Release calendar",
+  "Environment": "Environment",
+  "All environments": "All environments",
+  "Previous month": "Previous month",
+  "Next month": "Next month",
+  "Today": "Today",
+  "Records per day": "Records per day",
+  "{0} records": "{0} records",
   "Daily summary": "Daily summary",
   "Activity": "Activity",
   "Config updates": "Config updates",

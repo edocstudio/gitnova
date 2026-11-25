@@ -1109,7 +1109,28 @@ main { display: flex; flex: 1; min-height: 0; }
 .fetch-meter {width:clamp(90px,17vw,240px);height:7px;align-self:center;overflow:hidden;border-radius:8px;background:var(--line)}
 .fetch-meter span {display:block;height:100%;border-radius:inherit;background:var(--accent,#5096ff);transition:width .2s ease-out}
 @media(prefers-reduced-motion:reduce){.fetch-meter span{transition:none}}
-.release-daily {margin:20px 0;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
-.release-daily h2 {margin:0 0 12px}.release-daily label {display:inline-flex;align-items:center;gap:6px;margin-right:16px}
-.release-daily details {border-top:1px solid var(--line);padding:10px 0}.release-daily summary {cursor:pointer}
-.release-daily li {display:flex;align-items:baseline;flex-wrap:wrap;gap:12px;padding:4px 0;overflow-wrap:anywhere}
+.release-calendar {margin-top:20px;padding:clamp(14px,2vw,26px);border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.calendar-controls,.calendar-month-heading,.calendar-scale,.calendar-scale span {display:flex;align-items:center;gap:8px}
+.calendar-controls {gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.calendar-controls h2,.calendar-month-heading h3 {margin:0 auto 0 0}
+.calendar-controls label {display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.calendar-layout {display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,1fr);gap:24px}
+.calendar-month-heading {margin-bottom:12px}
+.calendar-grid {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.calendar-weekday {text-align:center;color:var(--muted);font-size:12px;padding:4px}
+.release-calendar [data-heat] {background:color-mix(in srgb,var(--accent,#5599ff) var(--heat,0%),var(--raised))}
+.release-calendar [data-heat="1"] {--heat:14%}.release-calendar [data-heat="2"] {--heat:28%}
+.release-calendar [data-heat="3"] {--heat:45%}.release-calendar [data-heat="4"] {--heat:65%}
+.calendar-grid button {min-width:0;min-height:48px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:5px 7px;gap:2px;font-variant-numeric:tabular-nums}
+.calendar-grid button b {align-self:flex-end;border-radius:4px;background:var(--panel);padding:0 4px;font-size:11px}
+.calendar-grid button[aria-pressed=true] {outline:2px solid var(--accent,#5599ff);outline-offset:-2px}
+.calendar-grid button:focus-visible {outline:2px solid currentColor;outline-offset:1px}
+.calendar-scale {flex-wrap:wrap;margin:12px 0;color:var(--muted);font-size:12px}
+.calendar-scale i {width:12px;height:12px;border-radius:3px;border:1px solid var(--line)}
+.calendar-detail {min-width:0;border-left:1px solid var(--line);padding-left:20px}
+.calendar-detail h3 {margin:0}.calendar-detail p {color:var(--muted)}
+.calendar-detail ul {list-style:none;margin:0;padding:0;max-height:430px;overflow:auto}
+.calendar-detail li {display:grid;grid-template-columns:1fr auto;gap:5px 12px;border-top:1px solid var(--line);padding:10px 0;overflow-wrap:anywhere}
+.calendar-detail time,.calendar-detail li span {font-size:12px;color:var(--muted)}
+.calendar-detail code {text-align:right}
+@media(max-width:860px){.calendar-layout{grid-template-columns:1fr}.calendar-detail{border-left:0;border-top:1px solid var(--line);padding:14px 0}}

@@ -4,6 +4,10 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Release activity calendar
+
+Version 1.15.0 on `feat/releases-activity-calendar`. The monthly calendar replaces the daily accordion. Its fixed heat scale counts individual filtered events per local day. The selected day lists repositories, environments, versions and times. Activity filters separate config updates, deployment records and manual confirmations. Environment options follow the workspace configuration. Verified with TypeScript, three localization checks, three Releases browser scenarios and an inspected UI screenshot. The installed Desktop bundle passed signature, embedded UI and native smoke checks.
+
 ## Releases progress, snapshots and daily activity
 
 Version 1.14.0 on `feat/releases-daily-summary`. Releases shows determinate fetch progress with reduced-motion support. Successful Kustomize image snapshots persist locally by workspace/repository and validate mapping, deploy membership and environment selection before reuse. Refresh rebuilds the view and workspace fetch updates changed mapped refs, including off-page rows. Daily summary groups observed config changes or production evidence by local day, with distinct repository counts, environment and version. It retains up to 200 observed events per workspace repository and does not backfill provider deployment history.
