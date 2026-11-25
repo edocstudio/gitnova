@@ -8,7 +8,7 @@ state. Communicate with this user in Thai.
 
 Version 1.16.0 on `feat/release-config-history` (base 0338fce). Config updates read the selected local deploy branch's first-parent history for each calendar month. The renderer resolves the mapped container at each historical change to its overlay, shared bases or patches. The calendar filters by environment, uses local day boundaries and limits reads to 128 matching commits per environment per month with a partial-history notice. Deployment and confirmation activities continue using observed evidence.
 
-TypeScript, three localization tests and three Releases browser scenarios passed. The real Git fixture starts the app after three versions have been committed, then selects historical days and verifies their original versions. License inventory regenerated. Desktop packaging and smoke installation pending closure of the running 1.15.0 app.
+TypeScript, three localization tests and three Releases browser scenarios passed. The real Git fixture starts the app after three versions have been committed, then selects historical days and verifies their original versions. License inventory regenerated. Desktop/GitNova.app was built from a672dbe and installed at version 1.16.0. Native WebView smoke, real Git graph, signature, embedded UI and installed binary comparison passed.
 
 ## Release activity calendar
 
