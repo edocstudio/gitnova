@@ -3079,12 +3079,26 @@ test('Kustomize release images render the selected deploy commit and container',
   await page.getByRole('button',{name:'Releases',exact:true}).click();
   const row=page.locator('.release-row').filter({hasText:'project-api'});
   await row.click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await expect(page.getByLabel('Visible environments')).toBeVisible();
+  await expect(page.getByRole('form',{name:'Repository commit identity'})).toHaveCount(0);
+  await page.getByRole('button',{name:'Close settings'}).click();
   await page.getByRole('button',{name:'Configure release images'}).click();
   await page.getByLabel('Deploy repository').selectOption({label:'deploy-config'});
   await page.getByLabel('Deploy branch').selectOption('refs/heads/main');
   await page.getByLabel('Container name').fill('web');
   await page.getByLabel('Preview overlay').fill('overlays/uat');
   await page.getByLabel('SIT overlay').fill('overlays/production');
+  await expect(page.locator('.releases-page header button')).toBeEnabled();
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const read=api.remoteBranches;
+    sessionStorage.setItem('release-branch-reads','0');
+    api.remoteBranches=(...args:Parameters<typeof read>)=>{
+      sessionStorage.setItem('release-branch-reads',String(Number(sessionStorage.getItem('release-branch-reads'))+1));
+      return read(...args);
+    };
+  });
   await page.getByRole('button',{name:'Save image mapping'}).click();
   await expect(page.locator('.release-head span')).toHaveText(['Repository','SIT','Preview','Production','UAT']);
   await expect(row.locator(':scope > span').nth(0)).toContainText('sha256');
@@ -3095,5 +3109,19 @@ test('Kustomize release images render the selected deploy commit and container',
   await expect(detail).toContainText(digest);
   await expect(detail).toContainText('No verified deployment');
   await expect(detail).not.toContainText('logger');
+  expect(await page.evaluate(()=>sessionStorage.getItem('release-branch-reads'))).toBe('0');
+  await page.getByRole('button',{name:'Configure release images'}).click();
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const read=api.kustomizeImages;
+    sessionStorage.setItem('image-reads','0');
+    api.kustomizeImages=(...args:Parameters<typeof read>)=>{
+      sessionStorage.setItem('image-reads','1');
+      return read(...args);
+    };
+  });
+  await page.getByRole('button',{name:'Save image mapping'}).click();
+  await expect(page.getByRole('button',{name:'Configure release images'})).toHaveAttribute('aria-expanded','false');
+  expect(await page.evaluate(()=>sessionStorage.getItem('image-reads'))).toBe('0');
   await expect(page.locator('.release-row').filter({hasText:'deploy-config'})).not.toContainText('From config');
 });

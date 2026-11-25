@@ -17,9 +17,16 @@ export function storedMapping(repo:string):Mapping|null {
     return {deployId:m.deployId,reference:m.reference,container:m.container,overlays:Object.assign(Object.create(null),overlays)};
   } catch {return null;}
 }
+export const mappingChanged='gitnova-release-mapping-changed';
 export function saveMapping(repo:string,m:Mapping|null){
+  const prior=storedMapping(repo);
+  if(!m&&!prior)return;
+  if(m&&prior&&m.deployId===prior.deployId&&m.reference===prior.reference&&m.container===prior.container){
+    const paths=Object.entries(m.overlays);
+    if(paths.length===Object.keys(prior.overlays).length&&paths.every(([id,path])=>prior.overlays[id]===path))return;
+  }
   if(m)localStorage.setItem(key(repo),JSON.stringify(m));else localStorage.removeItem(key(repo));
-  window.dispatchEvent(new Event('gitnova-ci-config'));
+  window.dispatchEvent(new CustomEvent(mappingChanged,{detail:repo}));
 }
 export async function readImages(repo:string,workspace:Workspace,environments:string[]):Promise<ConfigEvidence|undefined>{
   const mapping=storedMapping(repo);

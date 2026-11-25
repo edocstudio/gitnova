@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import {api,errorMessage} from './api';
 import {readConfirmation,readRelease,releaseAction,type Confirmation,type ReleaseEvidence} from './release-evidence';
-import {readImages,imageVersion,type ConfigEvidence} from './kustomize-images';
+import {mappingChanged,readImages,imageVersion,type ConfigEvidence} from './kustomize-images';
 import {MappingForm} from './KustomizeSettings';
 import {releaseEnvironments} from './ReleaseEnvironments';
 import {Icon} from './Icons';
@@ -46,7 +46,7 @@ function ConfigImage({config,env}:{config:ConfigEvidence;env:string}){
     <small title={config.images?.revision}>{config.deployName} · {config.mapping.reference.replace(/^refs\/(heads|remotes)\//,'')} {config.images?.revision.slice(0,12)}</small>
     <small>{config.mapping.overlays[env]} · {config.mapping.container}</small></div>;
 }
-function ReleaseDetails({member,info,onConfirmed,environments,members}:{members:Membership[];environments:string[];member:Membership;info?:ReleaseEvidence;onConfirmed:()=>void}){
+function ReleaseDetails({member,info,config,onConfirmed,environments,members}:{config?:ConfigEvidence;members:Membership[];environments:string[];member:Membership;info?:ReleaseEvidence;onConfirmed:()=>void}){
   const [form,setForm]=useState(false),[error,setError]=useState('');
   const [editing,setEditing]=useState(false);
   const open=(url:string)=>{setError('');void api.openCiUrl(url).catch(e=>setError(errorMessage(e)));};
@@ -56,7 +56,6 @@ function ReleaseDetails({member,info,onConfirmed,environments,members}:{members:
     {editing&&<MappingForm app={member} members={members} environments={environments} onDone={()=>setEditing(false)}/>}
     {environments.map(name=>{
       const id=name.toLowerCase();
-      const config=info?.config;
       const mapped=config&&Object.hasOwn(config.mapping.overlays,id)&&config.mapping.overlays[id];
       return <section key={id}><h3>{name}{id==='uat'&&<> · <code>release</code></>}</h3>
       {mapped&&config&&<ConfigImage config={config} env={id}/>}
@@ -86,26 +85,40 @@ function ReleaseDetails({member,info,onConfirmed,environments,members}:{members:
 export function ReleaseOverview({workspace}:{workspace:Workspace}){
   const members=useMemo(()=>workspace.memberships.filter((m,i,all)=>all.findIndex(v=>v.repositoryId===m.repositoryId)===i),[workspace.memberships]);
   const [states,setStates]=useState<Record<string,ReleaseEvidence>>({});
+  const [configs,setConfigs]=useState<Record<string,ConfigEvidence|undefined>>({});
   const [focus,setFocus]=useState(workspace.selectedId??''),[attention,setAttention]=useState(false),[revision,refresh]=useState(0),[loading,setLoading]=useState(true);
   const environments=useMemo(releaseEnvironments,[revision]);
   const [,confirmed]=useState(0);
   useEffect(()=>{
-    let live=true;setStates({});setLoading(true);
+    let live=true;setStates({});setConfigs({});setLoading(true);
+    const imageReads=new Map<string,Promise<void>>();
+    function updateImages(repo:string){
+      const task=readImages(repo,workspace,environments).then(config=>{
+        if(live&&imageReads.get(repo)===task)setConfigs(prior=>({...prior,[repo]:config}));
+      });
+      imageReads.set(repo,task);
+      return task;
+    }
+    const onMapping=(event:Event)=>{
+      const repo=(event as CustomEvent<string>).detail;
+      if(members.some(m=>m.repositoryId===repo))void updateImages(repo);
+    };
     async function read(){
       for(const m of members){
         if(!live)break;
-        const configured=readImages(m.repositoryId,workspace,environments);
+        const configured=imageReads.get(m.repositoryId)??updateImages(m.repositoryId);
         let info:ReleaseEvidence;
         try{info=await readRelease(m,()=>live);}catch(e){info={checked:Date.now(),productionError:errorMessage(e),pipelineError:errorMessage(e)};}
-        info.config=await configured;
+        await configured;
         if(live)setStates(prior=>({...prior,[m.id]:info}));
       }
       if(live)setLoading(false);
     }
     void read();
     const changed=()=>refresh(v=>v+1);
+    window.addEventListener(mappingChanged,onMapping);
     window.addEventListener('gitnova-ci-config',changed);
-    return()=>{live=false;window.removeEventListener('gitnova-ci-config',changed);};
+    return()=>{live=false;window.removeEventListener(mappingChanged,onMapping);window.removeEventListener('gitnova-ci-config',changed);};
   },[members,revision,workspace,environments]);
   const showUat=environments.some(n=>n.toLowerCase()==='uat');
   const rows=members.filter(m=>!attention||!showUat||releaseAction(states[m.id]?.run));
@@ -115,11 +128,11 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
       <option value="all">{t('All repositories')}</option><option value="action">{t('Needs action')}</option></select>
     <button disabled={loading} onClick={()=>refresh(v=>v+1)}><Icon name="refresh" size={15}/>{t(loading?'Checking…':'Refresh')}</button></header>
     <div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
-      {rows.map(m=>{const info=states[m.id],prod=info?.production,manual=readConfirmation(info?.scope);
+      {rows.map(m=>{const config=configs[m.repositoryId],info=states[m.id],prod=info?.production,manual=readConfirmation(info?.scope);
         return <button key={m.id} className="release-row" aria-pressed={selected?.id===m.id} onClick={()=>setFocus(m.id)}>
           <b>{m.name}</b>{environments.map(name=>{
-            const id=name.toLowerCase(),image=info?.config?.images?.overlays[id]?.image;
-            const failed=info?.config?.images?.overlays[id]?.error || (info?.config?.mapping.overlays[id]&&info.config.error);
+            const id=name.toLowerCase(),image=config?.images?.overlays[id]?.image;
+            const failed=config?.images?.overlays[id]?.error || (config?.mapping.overlays[id]&&config.error);
             const label=id==='production'?(prod?.tag||prod?.sha.slice(0,12)||manual?.version||t(info?'Unverified':'Checking…')):id==='uat'?t(status(info)):t(info?'No overlay configured':'Checking…');
             return <span key={id} className={id==='uat'&&releaseAction(info?.run)?'release-wait':''}>
               {image?<><b>{imageVersion(image)}</b><small>{t('From config')}</small></>:failed?<small>{t('Image unavailable')}</small>:null}
@@ -128,6 +141,6 @@ export function ReleaseOverview({workspace}:{workspace:Workspace}){
             </span>;
           })}</button>;})}
       {!rows.length&&<p role="status">{t(loading?'Checking…':attention?'No manual actions found.':'No repositories in this workspace.')}</p>}
-    </div>{selected&&<div><ReleaseDetails members={members} environments={environments} onConfirmed={()=>confirmed(n=>n+1)} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>
+    </div>{selected&&<div><ReleaseDetails config={configs[selected.repositoryId]} members={members} environments={environments} onConfirmed={()=>confirmed(n=>n+1)} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>
   </div>;
 }

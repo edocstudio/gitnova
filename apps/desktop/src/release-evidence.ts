@@ -5,7 +5,7 @@ import type {Membership, PipelineRun} from './contracts';
 
 export interface Deployment {sha:string; tag:string|null; finished:string|null; id:string; url:string}
 export interface ReleaseEvidence {
-  config?:import('./kustomize-images').ConfigEvidence; production?:Deployment|null; run?:PipelineRun|null; jenkins?:string|null; scope?:string; build?:PipelineRun; buildError?:string;
+  production?:Deployment|null; run?:PipelineRun|null; jenkins?:string|null; scope?:string; build?:PipelineRun; buildError?:string;
   productionError?:string; pipelineError?:string; checked:number;
 }
 export async function readRelease(member:Membership, active:()=>boolean):Promise<ReleaseEvidence> {

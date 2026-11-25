@@ -4,6 +4,19 @@ Updated: 2026-11-25 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Repository-scoped release updates
+
+Version 1.9.1 on `fix/release-mapping-refresh-scope`. Saving or removing an image
+mapping updates only the affected repository's images. An unchanged save skips
+the image read. Newer image reads supersede pending results, independently of
+the workspace CI scan. Settings opened on Releases contains workspace-relevant
+preferences and omits the History repository's commit identity editor. History
+still offers repository commit identity through Settings and its footer.
+
+Three Playwright regressions passed using temporary repositories and the real
+core bridge, covering scoped saves, repeat saves, Releases settings and History
+identity editing. Verified the installed Desktop 1.9.1 bundle and native smoke.
+
 ## Configurable release environments
 
 Version 1.9.0 on `feat/configurable-release-environments` moves repository image
