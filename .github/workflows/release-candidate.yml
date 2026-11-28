@@ -22,13 +22,13 @@ concurrency:
   cancel-in-progress: false
 jobs:
   native-checks:
-    if: ${{ inputs.validation_scope != 'windows-regressions' }}
+    if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'v') && inputs.validation_scope != 'windows-regressions' }}
     uses: ./.github/workflows/ci.yml
     with:
       release_profile: true
       windows_only: ${{ inputs.validation_scope == 'windows-installer' }}
   windows-regressions:
-    if: ${{ inputs.validation_scope == 'windows-regressions' }}
+    if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'v') && inputs.validation_scope == 'windows-regressions' }}
     name: Targeted Windows checks (not release approval)
     runs-on: windows-latest
     timeout-minutes: 45
