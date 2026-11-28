@@ -3,16 +3,16 @@ import {api,errorMessage} from './api';
 import {readConfirmation,readRelease,type Confirmation,type ReleaseEvidence} from './release-evidence';
 import {mappingChanged,readImages,imageVersion,type ConfigEvidence} from './kustomize-images';
 import {cachedConfig,cacheConfig,observedEvents,rememberEvents,configEvents,type ReleaseEvent} from './release-cache';
-import {storedMapping} from './kustomize-images';
+import {effectiveMapping} from './kustomize-images';
 import {fetchWorkspace,type FetchReport} from './workspace-fetch';
 import {MappingForm} from './KustomizeSettings';
-import {releaseEnvironments} from './ReleaseEnvironments';
+import {releaseProfile} from './release-profile';
 import {Icon} from './Icons';
 import {t,dateLocale} from './i18n';
 import type {Membership,Workspace} from './contracts';
 
 function stamp(when:number|string){return new Date(when).toLocaleString(dateLocale());}
-function ConfirmProduction({scope,onDone}:{scope:string;onDone:()=>void}){
+function ConfirmVersion({scope,environment,onDone,onCancel}:{scope:string;environment:string;onDone:()=>void;onCancel:()=>void}){
   const [error,setError]=useState('');
   return <form onSubmit={e=>{
     e.preventDefault();const data=new FormData(e.currentTarget);
@@ -25,13 +25,13 @@ function ConfirmProduction({scope,onDone}:{scope:string;onDone:()=>void}){
       localStorage.setItem('gitnova.release.confirmed.'+scope,JSON.stringify(evidence));onDone();
     }catch(err){setError(errorMessage(err));}
   }}>
-    <p>{t('Record the production version you verified on this device.')}</p>
+    <p>{t('Record the version you verified for {0}.',[environment])}</p>
     <label>{t('Deployed version')}<input name="version" required maxLength={128}/></label>
-    <label>{t('Deployed commit SHA')}<input name="sha" required pattern="([A-Fa-f0-9]{40}|[A-Fa-f0-9]{64})" maxLength={64}/></label>
+    <label>{t('Deployed commit SHA (optional)')}<input name="sha" pattern="([A-Fa-f0-9]{40}|[A-Fa-f0-9]{64})" maxLength={64}/></label>
     <label>{t('Build or deployment URL')}<input name="url" required type="url" maxLength={4096}/></label>
     <label>{t('Confirmed by')}<input name="by" required maxLength={100}/></label>
     {error&&<p role="alert">{t(error)}</p>}
-    <button>{t('Save confirmation')}</button><button type="button" onClick={onDone}>{t('Cancel')}</button>
+    <button>{t('Save confirmation')}</button><button type="button" onClick={onCancel}>{t('Cancel')}</button>
   </form>;
 }
 function ConfigDate({value}:{value?:string|null}){
@@ -46,30 +46,34 @@ function ConfigImage({config,env}:{config:ConfigEvidence;env:string}){
     <small title={config.images?.revision}>{config.deployName} · {config.mapping.reference.replace(/^refs\/(heads|remotes)\//,'')} {config.images?.revision.slice(0,12)}</small>
     <small>{config.mapping.overlays[env]} · {config.mapping.container}</small></div>;
 }
-function ReleaseDetails({member,info,config,onConfirmed,environments,members,onOpenRepository,navigationBusy}:RepositoryNavigation & {config?:ConfigEvidence;members:Membership[];environments:string[];member:Membership;info?:ReleaseEvidence;onConfirmed:()=>void}){
-  const [form,setForm]=useState(false),[error,setError]=useState('');
+function ReleaseDetails({member,info,config,onConfirmed,environments,workspace,labels,production,onOpenRepository,navigationBusy}:RepositoryNavigation & {config?:ConfigEvidence;workspace:Workspace;labels:Map<string,string>;production:string;environments:string[];member:Membership;info?:ReleaseEvidence;onConfirmed:()=>void}){
+  const [form,setForm]=useState(''),[error,setError]=useState('');
   const [editing,setEditing]=useState(false);
   const open=(url:string)=>{setError('');void api.openCiUrl(url).catch(e=>setError(errorMessage(e)));};
-  const manual=readConfirmation(info?.scope),prod=info?.production;
+
   return <aside className="release-detail"><h2><Icon name="folder" size={18}/>{member.name}</h2>
     <button disabled={navigationBusy} onClick={()=>onOpenRepository(member.id)}>{t('Open repository in History')}</button>
     <button aria-expanded={editing} onClick={()=>setEditing(v=>!v)}>{t('Configure release images')}</button>
-    {editing&&<MappingForm app={member} members={members} environments={environments} onDone={()=>setEditing(false)}/>}
+    {editing&&<MappingForm app={member} workspace={workspace} labels={labels} environments={environments} onDone={()=>setEditing(false)}/>}
     {environments.map(name=>{
       const id=name.toLowerCase();
+      const scope=confirmationScope(workspace.id,member.repositoryId,id);
+      const manual=environmentConfirmation(scope,id,info);
+      const prod=id===production?info?.production:null;
       const mapped=config&&Object.hasOwn(config.mapping.overlays,id)&&config.mapping.overlays[id];
-      return <section key={id}><h3>{name}</h3>
+      return <section key={id}><h3>{labels.get(id)}</h3>
       {mapped&&config&&<ConfigImage config={config} env={id}/>}
-      {id==='production'?<>{mapped&&(prod||manual)&&<small>{t('Deployment evidence')}</small>}
+      {mapped&&(prod||manual)&&<small>{t('Deployment evidence')}</small>}
       {prod?<><strong>{prod.tag||prod.sha.slice(0,12)}</strong><p><code>{prod.sha}</code></p>
         {prod.finished&&<small>{stamp(prod.finished)}</small>}
         <button onClick={()=>open(prod.url)}>{t('GitLab deployment #{0}',[prod.id])} ↗</button></>
-      :manual?<><strong>{manual.version}</strong><p><code>{manual.sha}</code></p>
+      :null}
+      {manual?<><strong>{manual.version}</strong>{manual.sha&&<p><code>{manual.sha}</code></p>}
         <small>{t('Confirmed by {0}',[manual.by])} · {stamp(manual.time)}</small>
-        <button onClick={()=>open(manual.url)}>{t('Open deployment evidence')} ↗</button></>:!mapped&&<small>{t(info?'No overlay configured':'Checking…')}</small>}
-      {info?.productionError&&<p className="notice">{t('Deployment history unavailable')} · {t(info.productionError)}</p>}
-      {info?.scope&&!prod&&(form?<ConfirmProduction scope={info.scope} onDone={()=>{setForm(false);onConfirmed();}}/>:<button onClick={()=>setForm(true)}>{t('Record production confirmation')}</button>)}
-      </>:!mapped&&<small>{t('No overlay configured')}</small>}
+        <button onClick={()=>open(manual.url)}>{t('Open deployment evidence')} ↗</button></>:!mapped&&!prod&&<small>{t(info?'No release evidence':'Checking…')}</small>}
+      {id===production&&info?.productionError&&<p className="notice">{t('Deployment history unavailable')} · {t(info.productionError)}</p>}
+      {form===id?<ConfirmVersion scope={scope} environment={labels.get(id)??id} onCancel={()=>setForm('')} onDone={()=>{setForm('');onConfirmed();}}/>:
+        <button onClick={()=>setForm(id)}>{t('Confirm {0} version',[labels.get(id)??id])}</button>}
       </section>;
     })}{info&&<small>{t('Last checked')} · {stamp(info.checked)}</small>}{error&&<p role="alert">{t(error)}</p>}
   </aside>;
@@ -77,7 +81,7 @@ function ReleaseDetails({member,info,config,onConfirmed,environments,members,onO
 function localDay(date:Date){
   return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
 }
-function ReleaseCalendar({members,workspace,environments,configs,states}:{members:Membership[];workspace:Workspace;environments:string[];configs:Record<string,ConfigEvidence|undefined>;states:Record<string,ReleaseEvidence>}){
+function ReleaseCalendar({members,workspace,environments,labels,production,configs,states}:{labels:Map<string,string>;production:string;members:Membership[];workspace:Workspace;environments:string[];configs:Record<string,ConfigEvidence|undefined>;states:Record<string,ReleaseEvidence>}){
   const workspaceId=workspace.id;
   const locale=dateLocale();
   const [environment,setEnvironment]=useState('');
@@ -90,7 +94,9 @@ function ReleaseCalendar({members,workspace,environments,configs,states}:{member
     const names=new Set((env?[env]:environments).map(n=>n.toLowerCase()));
     for(const member of members){
       const repo=member.repositoryId;
-      const records=[...observedEvents(workspaceId,repo),...configEvents(configs[repo]),...deploymentEvents(states[member.id])];
+      const liveEvents=source==='Config updated'?configEvents(configs[repo]):
+        deploymentEvents(workspaceId,repo,environments,production,states[member.id]);
+      const records=[...observedEvents(workspaceId,repo),...liveEvents];
       const seen=new Set<string>();
       for(const event of records){
         if(!names.has(event.environment)||event.source!==source)continue;
@@ -106,7 +112,7 @@ function ReleaseCalendar({members,workspace,environments,configs,states}:{member
     }
     for(const rows of groups.values())rows.sort((a,b)=>Date.parse(b.event.at)-Date.parse(a.event.at));
     return groups;
-  },[members,workspaceId,environments,configs,states,source,env]);
+  },[members,workspaceId,environments,configs,states,source,env,production]);
 
   const today=localDay(new Date());
   const newest=[...observedDays.keys()].sort().at(-1);
@@ -198,7 +204,7 @@ function ReleaseCalendar({members,workspace,environments,configs,states}:{member
         <option value="Config updated">{t('Config updates')}</option><option value="Deployment">{t('Deployment')}</option><option value="Manual confirmation">{t('Manual confirmation')}</option>
       </select></label>
       <label>{t('Environment')}<select aria-label={t('Environment')} value={env} onChange={e=>setEnvironment(e.target.value)}>
-        <option value="">{t('All environments')}</option>{environments.map(name=><option key={name}>{name}</option>)}
+        <option value="">{t('All environments')}</option>{environments.map(name=><option key={name} value={name}>{labels.get(name)}</option>)}
       </select></label>
     </div>
     <div className="calendar-layout"><div className="calendar-month">
@@ -222,7 +228,7 @@ function ReleaseCalendar({members,workspace,environments,configs,states}:{member
       {rows.length>0?<><p>{t('{0} records',[rows.length])} · {t('{0} repositories',[new Set(rows.map(r=>r.id)).size])}</p>
         <ul>{rows.map(({repo,id,event,commit})=><li key={JSON.stringify([id,event,commit])}><strong>{repo}</strong>
           <time dateTime={event.at}>{new Date(event.at).toLocaleTimeString(locale)}</time>
-          <span>{environments.find(n=>n.toLowerCase()===event.environment)}</span><code>{event.version}</code></li>)}</ul></>:<p>{t('No matching records yet.')}</p>}
+          <span>{labels.get(event.environment)}</span><code>{event.version}</code></li>)}</ul></>:<p>{t('No matching records yet.')}</p>}
     </section></div><small role="status">{source==='Config updated'?
       historyRequests.some(r=>!results.has(r.key))?t('Reading Git configuration history…'):
       historyRequests.some(r=>results.get(r.key)?.partial)?t('Some configuration history could not be read.'):
@@ -230,11 +236,20 @@ function ReleaseCalendar({members,workspace,environments,configs,states}:{member
       t('Shows dated records observed by GitNova on this device.')}</small>
   </section>;
 }
-function deploymentEvents(info?:ReleaseEvidence):ReleaseEvent[]{
-  const prod=info?.production,manual=readConfirmation(info?.scope);
+function confirmationScope(workspace:string,repo:string,environment:string){
+  return JSON.stringify(['workspace',workspace,repo,environment]);
+}
+function environmentConfirmation(scope:string,id:string,info?:ReleaseEvidence){
+  return readConfirmation(scope)??(id==='production'?readConfirmation(info?.scope):null);
+}
+function deploymentEvents(workspace:string,repo:string,environments:string[],production:string,info?:ReleaseEvidence):ReleaseEvent[]{
+  const prod=info?.production;
   const records:ReleaseEvent[]=[];
-  if(prod?.finished)records.push({source:'Deployment',environment:'production',at:prod.finished,version:prod.tag||prod.sha.slice(0,12)});
-  if(manual&&Number.isFinite(new Date(manual.time).getTime()))records.push({source:'Manual confirmation',environment:'production',at:new Date(manual.time).toISOString(),version:manual.version});
+  if(production&&prod?.finished)records.push({source:'Deployment',environment:production,at:prod.finished,version:prod.tag||prod.sha.slice(0,12)});
+  for(const id of environments){
+    const manual=environmentConfirmation(confirmationScope(workspace,repo,id),id,info);
+    if(manual)records.push({source:'Manual confirmation',environment:id,at:new Date(manual.time).toISOString(),version:manual.version});
+  }
   return records;
 }
 
@@ -254,7 +269,10 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
   const [states,setStates]=useState<Record<string,ReleaseEvidence>>({});
   const [configs,setConfigs]=useState<Record<string,ConfigEvidence|undefined>>({});
   const [focus,setFocus]=useState(workspace.selectedId??''),[revision,refresh]=useState(0),[loading,setLoading]=useState(true);
-  const environments=useMemo(releaseEnvironments,[revision]);
+  const profile=useMemo(()=>releaseProfile(workspace.id),[workspace.id,revision]);
+  const environments=useMemo(()=>profile.environments.map(e=>e.id),[profile]);
+  const labels=useMemo(()=>new Map(profile.environments.map(e=>[e.id,e.name])),[profile]);
+  const production=profile.production;
   const [daily,setDaily]=useState(false);
   const [query,setQuery]=useState('');
   const [page,setPage]=useState(()=>Math.floor(Math.max(0,members.findIndex(m=>m.id===workspace.selectedId))/PAGE_SIZE));
@@ -279,7 +297,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
     fetchToken.current=token;
     setFetching(true);
     try{
-      await fetchWorkspace(members,retry?(report?.failures.map(f=>f.member)??[]):members,active,setReport,
+      await fetchWorkspace(workspace,retry?(report?.failures.map(f=>f.member)??[]):members,active,setReport,
         (repo,reference,oid)=>afterFetch.current(repo,reference,oid));
     }finally{
       if(active()){fetchToken.current=null;setFetching(false);}
@@ -311,7 +329,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
     afterFetch.current=async(repo,reference,oid)=>{
       const cached=imageReads.get(repo);
       if(!cached){
-        if(storedMapping(repo)?.reference===reference)await updateImages(repo);
+        if(effectiveMapping(workspace,repo)?.reference===reference)await updateImages(repo);
         return;
       }
       const config=await cached;
@@ -325,7 +343,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
     const evidence=new Map<string,ReleaseEvidence>();
     let pending:Membership[]=[];
     let wanted=new Set<string>();
-    const showProduction=environments.some(name=>name.toLowerCase()==='production');
+    const showProduction=Boolean(production);
     let running=false;
     async function drain(){
       running=true;
@@ -339,7 +357,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
             try{info=showProduction?await readRelease(member,()=>live):{checked:Date.now()};}
             catch(e){info={checked:Date.now(),productionError:errorMessage(e)};}
             if(!live)break;
-            rememberEvents(workspace.id,member.repositoryId,deploymentEvents(info));
+            rememberEvents(workspace.id,member.repositoryId,deploymentEvents(workspace.id,member.repositoryId,environments,production,info));
             evidence.set(member.id,info);
             const result=info;
             setStates(prior=>({...prior,[member.id]:result}));
@@ -360,7 +378,7 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
     window.addEventListener(mappingChanged,onMapping);
     window.addEventListener('gitnova-ci-config',changed);
     return()=>{live=false;window.removeEventListener(mappingChanged,onMapping);window.removeEventListener('gitnova-ci-config',changed);};
-  },[members,revision,workspace,environments]);
+  },[members,revision,workspace,environments,production]);
   useEffect(()=>{schedule.current(requested);},[requested,workspace,revision]);
   const selected=rows.find(m=>m.id===focus)??rows[0];
   return <div className="releases-page"><header><div><h1>{t('Releases')}</h1><small>{workspace.name} · {t('Workspace')}</small></div>
@@ -378,17 +396,19 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
         <ul>{report.failures.map(({member,reason})=><li key={member.id}>{member.name} · {t(reason)}</li>)}</ul></details>
         <button disabled={fetching||navigationBusy} onClick={()=>void startFetch(true)}>{t('Retry failed')}</button></>}
     </div>}
-    {daily?<ReleaseCalendar members={matches} workspace={workspace} environments={environments} configs={configs} states={states}/>:<div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(name=><span key={name}>{name}</span>)}</div>
-      {rows.map(m=>{const config=configs[m.repositoryId],info=states[m.id],prod=info?.production,manual=readConfirmation(info?.scope);
+    {daily?<ReleaseCalendar labels={labels} production={production} members={matches} workspace={workspace} environments={environments} configs={configs} states={states}/>:<div className="release-layout"><div className="release-list" style={{'--env-count':environments.length} as React.CSSProperties}><div className="release-head"><span>{t('Repository')}</span>{environments.map(id=><span key={id}>{labels.get(id)}</span>)}</div>
+      {rows.map(m=>{const config=configs[m.repositoryId],info=states[m.id];
         return <button key={m.id} className="release-row" aria-pressed={selected?.id===m.id} onClick={()=>setFocus(m.id)}>
           <b>{m.name}</b>{environments.map(name=>{
             const id=name.toLowerCase(),image=config?.images?.overlays[id]?.image;
             const failed=config?.images?.overlays[id]?.error || (config?.mapping.overlays[id]&&config.error);
-            const label=id==='production'?(prod?.tag||prod?.sha.slice(0,12)||manual?.version||t(info?'No overlay configured':'Checking…')):t(info?'No overlay configured':'Checking…');
+            const prod=id===production?info?.production:null;
+            const manual=environmentConfirmation(confirmationScope(workspace.id,m.repositoryId,id),id,info);
             return <span key={id}>
               {image?<><b>{imageVersion(image)}</b><ConfigDate value={config?.images?.overlays[id]?.configUpdatedAt}/></>:failed?<small>{t('Image unavailable')}</small>:null}
-              {(!image&&!failed)&&label}
-              {id==='production'&&!image&&!failed&&<small>{prod?'GitLab':manual?t('Manual confirmation'):''}{prod?.finished?' · '+stamp(prod.finished):!prod&&manual?' · '+stamp(manual.time):''}</small>}
+              {prod&&<small>GitLab · {prod.tag||prod.sha.slice(0,12)}</small>}
+              {manual&&<small>{t('Manual confirmation')} · {manual.version}</small>}
+              {!prod&&!manual&&!image&&!failed&&t(info?'No release evidence':'Checking…')}
             </span>;
           })}</button>;})}
       {!rows.length&&<p role="status">{t(!members.length?'No repositories in this workspace.':'No matching repositories.')}</p>}
@@ -400,6 +420,6 @@ export function ReleaseOverview({workspace,onOpenRepository,navigationBusy}:{wor
           <button aria-label={t('Next repository page')} disabled={currentPage+1===pages} onClick={()=>setPage(currentPage+1)}>→</button>
         </nav>}
       </div>}
-    </div>{selected&&<div><ReleaseDetails navigationBusy={navigationBusy} onOpenRepository={onOpenRepository} config={configs[selected.repositoryId]} members={members} environments={environments} onConfirmed={()=>{rememberEvents(workspace.id,selected.repositoryId,deploymentEvents(states[selected.id]));confirmed(n=>n+1);}} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>}
+    </div>{selected&&<div><ReleaseDetails navigationBusy={navigationBusy} onOpenRepository={onOpenRepository} config={configs[selected.repositoryId]} workspace={workspace} labels={labels} production={production} environments={environments} onConfirmed={()=>{rememberEvents(workspace.id,selected.repositoryId,deploymentEvents(workspace.id,selected.repositoryId,environments,production,states[selected.id]));confirmed(n=>n+1);}} key={selected.id} member={selected} info={states[selected.id]}/></div>}</div>}
   </div>;
 }

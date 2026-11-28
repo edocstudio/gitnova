@@ -2991,7 +2991,7 @@ test('hotfix restoration stops on conflicting release work and retains its check
   expect(readFileSync(file,'utf8')).toBe('release edits\n');
 });
 
-test('workspace releases show recorded evidence, persist confirmation and filter pending jobs', async ({page})=>{
+test('workspace releases retain manual confirmation and calendar history after renaming an environment', async ({page})=>{
  const repo=join(folder,'release-view-fixture');mkdirSync(repo);git(repo,['init','-b','main']);
  writeFileSync(join(repo,'file'),'release');git(repo,['add','.']);git(repo,['commit','-m','Release overview']);
  git(repo,['remote','add','origin','https://example.invalid/team/release-view.git']);
@@ -2999,15 +2999,22 @@ test('workspace releases show recorded evidence, persist confirmation and filter
  await connectRealCore(page,join(folder,'releases-state.json'));await page.goto('/');
  await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
  await page.getByRole('button',{name:'Releases',exact:true}).click();
- await expect(page.getByText('No verified deployment')).toBeVisible();
- await page.getByRole('button',{name:'Record production confirmation'}).click();
- await page.getByLabel('Deployed version').fill('v1.2.3');await page.getByLabel('Deployed commit SHA').fill(sha);
+ await page.getByRole('button',{name:'Confirm UAT version'}).click();
+ await page.getByLabel('Deployed version').fill('v1.2.3');
  await page.getByLabel('Build or deployment URL').fill('https://ci.example.invalid/job/service/5/');
- await page.getByLabel('Confirmed by',{exact:true}).fill('Release operator');await page.getByRole('button',{name:'Save confirmation'}).click();
+ await page.getByLabel('Confirmed by',{exact:true}).fill('Release operator');
+ await page.getByRole('button',{name:'Save confirmation'}).click();
  await expect(page.locator('.release-row')).toContainText('v1.2.3');
- await page.getByLabel('Release filter').selectOption('action');await expect(page.getByText('No manual actions found.')).toBeVisible();
- await page.getByRole('button',{name:'History',exact:true}).click();await page.getByRole('button',{name:'Releases',exact:true}).click();
- await expect(page.getByText('Confirmed by Release operator',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:'Settings',exact:true}).click();
+ await page.getByLabel('Environment 2',{exact:true}).fill('Customer QA');
+ await page.getByRole('button',{name:'Save environments'}).click();
+ await page.getByRole('button',{name:'Close settings'}).click();
+ await expect(page.locator('.release-detail section').filter({has:page.getByRole('heading',{name:'Customer QA'})})).toContainText('v1.2.3');
+ await page.getByRole('button',{name:'Release calendar'}).click();
+ await page.getByLabel('Activity').selectOption('Manual confirmation');
+ await page.getByLabel('Environment',{exact:true}).selectOption({label:'Customer QA'});
+ await expect(page.locator('.calendar-detail li')).toHaveCount(1);
+ await expect(page.locator('.calendar-detail li')).toContainText('v1.2.3');
 });
 
 test('release overview isolates repositories and workspaces without inferring environment CI from a branch',async({page},testInfo)=>{
@@ -3084,14 +3091,18 @@ test('Kustomize release images render the selected deploy commit and container',
     await expect(page.locator('.repo-picker')).toContainText(repo===deploy?'deploy-config':'project-api');
   }
   await page.getByRole('button',{name:'Settings',exact:true}).click();
-  await page.getByLabel('Visible environments').fill('SIT, Preview, Production, UAT');
+  await page.getByRole('button',{name:'Add environment'}).click();
+  await page.getByLabel('Environment 4',{exact:true}).fill('Preview');
+  await page.getByRole('button',{name:'Move Preview up'}).click();
+  await page.getByRole('button',{name:'Move Preview up'}).click();
+  await page.getByRole('button',{name:'Move UAT down'}).click();
   await page.getByRole('button',{name:'Save environments'}).click();
   await page.getByRole('button',{name:'Close settings'}).click();
   await page.getByRole('button',{name:'Releases',exact:true}).click();
   const row=page.locator('.release-row').filter({hasText:'project-api'});
   await row.click();
   await page.getByRole('button',{name:'Settings',exact:true}).click();
-  await expect(page.getByLabel('Visible environments')).toBeVisible();
+  await expect(page.getByRole('group',{name:'Visible environments'})).toBeVisible();
   await expect(page.getByRole('form',{name:'Repository commit identity'})).toHaveCount(0);
   await page.getByRole('button',{name:'Close settings'}).click();
   await page.getByRole('button',{name:'Configure release images'}).click();

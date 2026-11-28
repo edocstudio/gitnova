@@ -1,4 +1,5 @@
 import {setTerminalIdle,useTerminalIdle} from './terminal-idle';
+import type {Workspace} from './contracts';
 import {ReleaseEnvironments} from './ReleaseEnvironments';
 import {RepositoryIdentityEditor} from './RepositoryIdentity';
 import {setAutoFetchInterval,useAutoFetchInterval} from './auto-fetch';
@@ -8,7 +9,7 @@ import {Faq} from './Faq';
 import {Connections} from './Connections';
 import {Icon} from './Icons';
 import {t,setLocale,useLocale} from './i18n';
-export function Settings({open,onClose,membershipId,repositoryName,identityRequested=false,blocked=false,onBusyChange}: {open:boolean;onClose:()=>void;membershipId?:string;repositoryName?:string;identityRequested?:boolean;blocked?:boolean;onBusyChange?:(busy:boolean)=>void}){
+export function Settings({workspace,releasePage=false,open,onClose,membershipId,repositoryName,identityRequested=false,blocked=false,onBusyChange}: {workspace?:Workspace|null;releasePage?:boolean;open:boolean;onClose:()=>void;membershipId?:string;repositoryName?:string;identityRequested?:boolean;blocked?:boolean;onBusyChange?:(busy:boolean)=>void}){
  const fetchInterval=useAutoFetchInterval();
  const terminalIdle=useTerminalIdle();
  const [identityBusy,setIdentityBusy]=useState(false);
@@ -21,7 +22,7 @@ export function Settings({open,onClose,membershipId,repositoryName,identityReque
  const labels={general:'General',connections:'Connections',faq:'FAQ'};
  const activate=(next:Tab)=>{setTab(next);setVisited(old=>old.includes(next)?old:[...old,next]);if(scroll.current)scroll.current.scrollTop=0;};
  const dialog=useRef<HTMLDialogElement>(null);const locale=useLocale();const theme=useTheme();
- useEffect(()=>{const node=dialog.current;if(!node)return;if(open&&!node.open){setTab('general');setVisited(['general']);node.showModal();if(identityRequested)requestAnimationFrame(()=>node.querySelector<HTMLInputElement>('#repository-commit-name')?.focus());}else if(!open&&node.open)node.close();},[open]);
+ useEffect(()=>{const node=dialog.current;if(!node)return;if(open&&!node.open){setTab('general');setVisited(['general']);node.showModal();if(identityRequested)requestAnimationFrame(()=>node.querySelector<HTMLInputElement>('#repository-commit-name')?.focus());else if(releasePage)requestAnimationFrame(()=>node.querySelector<HTMLElement>('#workspace-release-settings')?.focus());}else if(!open&&node.open)node.close();},[open]);
 
  return <dialog ref={dialog} className="settings-dialog" aria-labelledby="settings-title" onKeyDown={e=>{e.stopPropagation();if((e.metaKey||e.ctrlKey)&&[',','o','k'].includes(e.key.toLowerCase()))e.preventDefault();}} onCancel={e=>{e.preventDefault();close();}} onClick={e=>{if(e.target===dialog.current){const box=dialog.current.getBoundingClientRect();if(e.clientX<box.left||e.clientX>box.right||e.clientY<box.top||e.clientY>box.bottom)close();}}}>
   <div className="settings-header"><h2 id="settings-title"><Icon name="settings" size={20}/>{t('Settings')}</h2><button autoFocus className="icon-button" aria-label={t('Close settings')} disabled={identityBusy} onClick={close}><Icon name="close"/></button></div>
@@ -33,7 +34,7 @@ export function Settings({open,onClose,membershipId,repositoryName,identityReque
   </div><div className="settings-scroll" ref={scroll}>
    <div role="tabpanel" id="settings-panel-general" aria-labelledby="settings-tab-general" hidden={tab!=='general'} tabIndex={0}>
    <section className="settings-general" aria-labelledby="settings-general-title"><h3 id="settings-general-title">{t('General')}</h3><p className="hint">{t('Applies to GitNova on this device.')}</p><label className="field-label" htmlFor="settings-language">{t('Language')}</label><select id="settings-language" value={locale} onChange={e=>setLocale(e.target.value as 'en'|'th')}><option value="en">English</option><option value="th">ไทย</option></select><label className="field-label" htmlFor="settings-theme">{t('Theme')}</label><select id="settings-theme" value={theme} onChange={e=>setTheme(e.target.value as 'dark'|'light')}><option value="dark">{t('Dark')}</option><option value="light">{t('Light')}</option></select><p className="hint">{t('Dark is the default. Your theme applies to every workspace on this device.')}</p><label className="field-label" htmlFor="settings-terminal-idle">{t('Terminal idle timeout')}</label><select id="settings-terminal-idle" value={terminalIdle} onChange={e=>setTerminalIdle(Number(e.target.value))}><option value={0}>{t('Never close automatically')}</option><option value={30}>{t('After 30 minutes')}</option><option value={60}>{t('After 1 hour')}</option></select><p className="hint">{t('Closes only a verified idle shell with no background jobs. Running commands and unfinished input stay open. Shells without idle detection stay open.')}</p><p className="hint">{t('Idle detection is currently available for zsh.')}</p><label className="field-label" htmlFor="settings-auto-fetch">{t('Auto fetch')}</label><select id="settings-auto-fetch" value={fetchInterval} onChange={e=>setAutoFetchInterval(Number(e.target.value))}>{[0,30,60,120,300].map(seconds=><option key={seconds} value={seconds}>{t(seconds===0?'Off':seconds===30?'Every 30 seconds':seconds===60?'Every minute':seconds===120?'Every 2 minutes':'Every 5 minutes')}</option>)}</select><p className="hint">{t('Fetches the active repository’s upstream remote (otherwise origin or its only remote). Pauses while hidden or during Git operations. Local files and branches stay unchanged.')}</p><p className="hint">{t('Background HTTPS uses an already-authorized GitNova account; SSH uses your agent/config. If authorization is needed, fetch manually. Failures retry less often, without dialogs.')}</p></section>
-   <ReleaseEnvironments/>
+   {workspace&&<ReleaseEnvironments key={workspace.id} workspace={workspace}/>}
    {membershipId&&<RepositoryIdentityEditor key={membershipId} membershipId={membershipId} repositoryName={repositoryName??''} focusOnLoad={identityRequested} blocked={blocked} onBusyChange={value=>{setIdentityBusy(value);onBusyChange?.(value);}}/>}
    </div>
    <div role="tabpanel" id="settings-panel-connections" aria-labelledby="settings-tab-connections" hidden={tab!=='connections'} tabIndex={0}>{visited.includes('connections')&&<Connections/>}</div>

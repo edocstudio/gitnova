@@ -1134,3 +1134,6 @@ main { display: flex; flex: 1; min-height: 0; }
 .calendar-detail time,.calendar-detail li span {font-size:12px;color:var(--muted)}
 .calendar-detail code {text-align:right}
 @media(max-width:860px){.calendar-layout{grid-template-columns:1fr}.calendar-detail{border-left:0;border-top:1px solid var(--line);padding:14px 0}}
+
+.release-env-editor {display:flex;align-items:center;gap:.4rem;margin-bottom:.4rem}
+.release-env-editor input {min-width:0;flex:1}

@@ -1,8 +1,14 @@
 # GitNova session handoff
 
-Updated: 2026-11-26 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+Updated: 2026-11-28 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
+
+## Workspace release profiles
+
+Version 1.17.0 on `feat/workspace-release-profiles`. Settings on Releases configures the current workspace's environment order, labels, GitLab production evidence destination and optional Kustomize defaults. Renaming an environment preserves its identity for mappings, confirmations and history. Repository overrides can inherit unchanged template fields. Existing global environment names and repository mappings are read as migration fallbacks. Teams can record a deployment confirmation for a specific environment with a version, confirmer and evidence link. Kustomize config events and deployment confirmations remain distinct calendar activities.
+
+TypeScript, five targeted unit tests and five end-to-end Releases scenarios passed. The installed Desktop bundle passed signature and embedded UI checks, binary comparison and the native WebView smoke test with a real Git graph.
 
 ## Calendar Git history
 

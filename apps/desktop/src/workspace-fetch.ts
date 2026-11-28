@@ -1,6 +1,6 @@
 import {api,errorMessage} from './api';
-import type {Membership,RemoteBranches} from './contracts';
-import {storedMapping} from './kustomize-images';
+import type {Membership,RemoteBranches,Workspace} from './contracts';
+import {effectiveMapping} from './kustomize-images';
 
 export interface FetchReport {
   total:number; done:number; skipped:number;
@@ -8,11 +8,11 @@ export interface FetchReport {
 }
 
 export async function fetchWorkspace(
-  members:Membership[], requested:Membership[], active:()=>boolean,
+  workspace:Workspace, requested:Membership[], active:()=>boolean,
   progress:(report:FetchReport)=>void,
   updated:(repo:string,reference:string,oid:string|null)=>Promise<void>,
 ){
-  const repositories=new Map(members.map(m=>[m.repositoryId,m]));
+  const repositories=new Map(workspace.memberships.map(m=>[m.repositoryId,m]));
   const listings=new Map<string,Promise<RemoteBranches>>();
   const fetches=new Map<string,Promise<RemoteBranches|null>>();
   const report:FetchReport={total:requested.length,done:0,skipped:0,failures:[]};
@@ -21,7 +21,7 @@ export async function fetchWorkspace(
   for(const member of requested){
     if(!active())break;
     try{
-      const mapping=storedMapping(member.repositoryId);
+      const mapping=effectiveMapping(workspace,member.repositoryId);
       const target=mapping?repositories.get(mapping.deployId):member;
       if(!target)throw new Error('Add the configured deploy repository to this workspace.');
       let listing=listings.get(target.id);

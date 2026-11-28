@@ -11,7 +11,7 @@ export async function readRelease(member:Membership, active:()=>boolean):Promise
   const info:ReleaseEvidence={checked:Date.now()};
   const listing=await api.remoteBranches(member.id);
   const preferred=listing.remotes.includes('origin')?'origin':listing.remotes[0];
-  let oid=listing.branches.find(b=>b.remote===preferred && b.name==='release')?.oid ?? listing.branches[0]?.oid;
+  let oid=listing.branches.find(b=>b.remote===preferred)?.oid ?? listing.branches[0]?.oid;
   const profiles=connections().filter(c=>c.enabled).map(({provider,origin})=>({provider,origin}));
   if(!oid && preferred && profiles.length && active()) oid=(await api.branches(member.id))[0]?.oid;
   const selection=oid && profiles.length && active()?await api.ciConnection(member.id,oid,profiles):null;
@@ -29,6 +29,6 @@ export interface Confirmation {sha:string; version:string; by:string; url:string
 export function readConfirmation(scope?:string):Confirmation|null {
   if(!scope)return null;
   try{const data=JSON.parse(localStorage.getItem('gitnova.release.confirmed.'+scope)??'null');
-    return data && [40,64].includes(data.sha.length) && /^[a-f0-9]+$/.test(data.sha) && typeof data.by==='string' && typeof data.version==='string' && typeof data.url==='string' && Number.isFinite(data.time)?data:null;
+    return data && typeof data.sha==='string' && (!data.sha||/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(data.sha)) && typeof data.by==='string' && typeof data.version==='string' && typeof data.url==='string' && Number.isFinite(data.time)?data:null;
   }catch{return null;}
 }

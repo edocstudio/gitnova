@@ -1,4 +1,4 @@
-import {imageVersion,storedMapping,type ConfigEvidence,type Images} from './kustomize-images';
+import {imageVersion,effectiveMapping,type ConfigEvidence,type Images} from './kustomize-images';
 import type {Workspace} from './contracts';
 
 const key=(workspace:string,repo:string)=>'gitnova.release.snapshot.v1.'+JSON.stringify([workspace,repo]);
@@ -12,7 +12,7 @@ function write(key:string,value:unknown){
   }catch{/* Storage may be full. Live reads still supply the current view. */}
 }
 export function cachedConfig(workspace:Workspace,repo:string,envs:string[]):ConfigEvidence|undefined{
-  const mapping=storedMapping(repo);
+  const mapping=effectiveMapping(workspace,repo);
   if(!mapping)return;
   const record=read(key(workspace.id,repo));
   const deploy=workspace.memberships.find(m=>m.repositoryId===mapping.deployId);
