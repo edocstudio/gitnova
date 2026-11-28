@@ -1,7 +1,7 @@
 name: checks
 on:
   push:
-  pull_request:
+    tags: ['v*']
   workflow_call:
     inputs:
       release_profile:
