@@ -14,7 +14,7 @@ Windows ARM, older Windows, headless Linux, every Linux distribution, Flatpak/Sn
 
 ## Run from source
 
-All platforms need Git 2.38+ on PATH, stable Rust 1.99.1 including Cargo, and Node matching `apps/desktop/package.json` (`^26.13.0`). CI also selects Python 3.15.2 from `.python-version` for QA and license collection. An installed app does not need Rust, Cargo, Python or Node. Git and platform runtime components are still required.
+All platforms need Git 2.38+ on PATH, stable Rust 1.99.1 including Cargo, and Node matching `apps/desktop/package.json` (`^26.13.1`). CI also selects Python 3.15.2 from `.python-version` for QA and license collection. An installed app does not need Rust, Cargo, Python or Node. Git and platform runtime components are still required.
 
 ### Windows
 

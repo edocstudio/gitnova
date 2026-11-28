@@ -1,11 +1,11 @@
 {
   "name": "gitnova-desktop",
   "private": true,
-  "version": "1.17.0",
+  "version": "1.17.1",
   "type": "module",
   "license": "Apache-2.0",
   "engines": {
-    "node": "^26.13.0"
+    "node": "^26.13.1"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 1420 --strictPort",

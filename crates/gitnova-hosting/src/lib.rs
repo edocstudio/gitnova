@@ -40,7 +40,7 @@ fn decode(value: &str) -> Result<String> {
     let mut i = 0;
     while i < raw.len() {
         if raw[i] == b'%' {
-            if i + 2 >= raw.len() {
+            if i + 2 >= raw.len() || !raw[i + 1..i + 3].iter().all(u8::is_ascii_hexdigit) {
                 return Err(err("Invalid encoded project path."));
             }
             bytes.push(
@@ -126,6 +126,7 @@ pub fn resolve(selection: &HostingSelection, remote_url: &str) -> Result<Hosting
         let url =
             Url::parse(remote_url).map_err(|_| err("Choose a GitHub or GitLab remote URL."))?;
         if !matches!(url.scheme(), "https" | "ssh")
+            || (url.scheme() == "https" && !url.username().is_empty())
             || url.password().is_some()
             || url.query().is_some()
             || url.fragment().is_some()
@@ -1976,6 +1977,18 @@ mod tests {
             body: "Preserve user text ไทย".into(),
             draft: true,
         }
+    }
+    #[test]
+    fn hosting_paths_require_valid_escapes_and_credential_free_https() {
+        assert_eq!(decode("a%20b").unwrap(), "a b");
+        for path in ["%+1", "%x", "%ก"] {
+            assert!(decode(path).is_err());
+        }
+        assert!(resolve(
+            &selection("github"),
+            "https://user@github.com/team/project.git"
+        )
+        .is_err());
     }
     #[test]
     fn resolves_ssh_alias_subgroup_and_web_base_path_without_guessing_a_provider() {

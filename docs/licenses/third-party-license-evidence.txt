@@ -1996,7 +1996,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 
 Components / original relative paths:
-cargo:form_urlencoded@1.2.2 / LICENSE-MIT
+cargo:form_urlencoded@1.2.3 / LICENSE-MIT
 Text SHA-256: 20c7855c364d57ea4c97889a5e8d98470a9952dade37bd9248b9a54431670e5e
 ------------------------------------------------------------------------
 Copyright (c) 2013-2016 The rust-url developers
@@ -2176,7 +2176,7 @@ cargo:proc-macro2@1.0.107 / LICENSE-MIT
 cargo:quote@1.0.47 / LICENSE-MIT
 cargo:ref-cast-impl@1.0.27 / LICENSE-MIT
 cargo:ref-cast@1.0.27 / LICENSE-MIT
-cargo:rustix@1.1.5 / LICENSE-MIT
+cargo:rustix@1.1.6 / LICENSE-MIT
 cargo:semver@1.0.28 / LICENSE-MIT
 cargo:serde-untagged@0.1.9 / LICENSE-MIT
 cargo:serde@1.0.229 / LICENSE-MIT
@@ -2555,7 +2555,7 @@ Creator: Person: Daniel Thompson-Yvetot
 
 
 Components / original relative paths:
-cargo:rustix@1.1.5 / LICENSE-Apache-2.0_WITH_LLVM-exception
+cargo:rustix@1.1.6 / LICENSE-Apache-2.0_WITH_LLVM-exception
 Text SHA-256: 268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5
 ------------------------------------------------------------------------
 
@@ -3060,7 +3060,7 @@ limitations under the License.
 
 
 Components / original relative paths:
-cargo:cookie@0.18.2 / LICENSE-APACHE
+cargo:cookie@0.18.3 / LICENSE-APACHE
 Text SHA-256: 2773e20df8f4c52a026b5b578c7f2457341f5aa3fb6612fd87e1d2e1bd8f48ad
 ------------------------------------------------------------------------
                               Apache License
@@ -3812,7 +3812,7 @@ DEALINGS IN THE SOFTWARE.
 
 
 Components / original relative paths:
-cargo:rustix@1.1.5 / COPYRIGHT
+cargo:rustix@1.1.6 / COPYRIGHT
 Text SHA-256: 377c2e7c53250cc5905c0b0532d35973392af16ffb9596a41d99d202cf3617c9
 ------------------------------------------------------------------------
 Short version for non-lawyers:
@@ -14492,7 +14492,7 @@ cargo:fastrand@2.5.0 / LICENSE-APACHE
 cargo:find-msvc-tools@0.1.15 / LICENSE-APACHE
 cargo:flate2@1.1.10 / LICENSE-APACHE
 cargo:fnv@1.0.7 / LICENSE-APACHE
-cargo:form_urlencoded@1.2.2 / LICENSE-APACHE
+cargo:form_urlencoded@1.2.3 / LICENSE-APACHE
 cargo:glob@0.3.4 / LICENSE-APACHE
 cargo:hashbrown@0.12.3 / LICENSE-APACHE
 cargo:hashbrown@0.17.1 / LICENSE-APACHE
@@ -14519,7 +14519,7 @@ cargo:regex-automata@0.4.18 / LICENSE-APACHE
 cargo:regex-syntax@0.8.11 / LICENSE-APACHE
 cargo:regex@1.13.1 / LICENSE-APACHE
 cargo:rustc_version@0.4.1 / LICENSE-APACHE
-cargo:rustix@1.1.5 / LICENSE-APACHE
+cargo:rustix@1.1.6 / LICENSE-APACHE
 cargo:scopeguard@1.2.0 / LICENSE-APACHE
 cargo:security-framework-sys@2.17.0 / LICENSE-APACHE
 cargo:security-framework@3.7.0 / LICENSE-APACHE
@@ -14537,7 +14537,7 @@ cargo:system-configuration@0.7.0 / LICENSE-APACHE
 cargo:tempfile@3.27.0 / LICENSE-APACHE
 cargo:tendril@0.5.1 / LICENSE-APACHE
 cargo:tray-icon@0.25.1 / LICENSE-APACHE
-cargo:url@2.5.8 / LICENSE-APACHE
+cargo:url@2.5.9 / LICENSE-APACHE
 cargo:uuid@1.29.0 / LICENSE-APACHE
 cargo:version_check@0.9.5 / LICENSE-APACHE
 cargo:web_atoms@0.2.6 / LICENSE-APACHE
@@ -16299,7 +16299,7 @@ SOFTWARE.
 Components / original relative paths:
 cargo:idna@1.1.0 / LICENSE-MIT
 cargo:percent-encoding@2.3.2 / LICENSE-MIT
-cargo:url@2.5.8 / LICENSE-MIT
+cargo:url@2.5.9 / LICENSE-MIT
 Text SHA-256: b38f11f6096706e6de553dabe2a7ed142d59b6fa8c97e290c67496154745cdd5
 ------------------------------------------------------------------------
 Copyright (c) 2013-2025 The rust-url developers
@@ -19209,7 +19209,7 @@ THE SOFTWARE.
 
 
 Components / original relative paths:
-cargo:cookie@0.18.2 / LICENSE-MIT
+cargo:cookie@0.18.3 / LICENSE-MIT
 Text SHA-256: f28420c1906af38be726cd7842798f0194b27c41d6051c0d1e9ee348b8a4a0ea
 ------------------------------------------------------------------------
 Copyright (c) 2017 Sergio Benitez

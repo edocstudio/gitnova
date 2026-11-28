@@ -1,10 +1,11 @@
 [workspace]
+exclude = ["vendor/glib-0.18.5"]
 members = ["crates/*", "apps/desktop/src-tauri"]
 default-members = ["crates/gitnova-core", "crates/gitnova-search", "crates/gitnova-graph", "crates/gitnova-git", "crates/gitnova-storage", "crates/gitnova-workspace", "crates/gitnova-submodule", "crates/gitnova-worktree", "crates/gitnova-ipc"]
 resolver = "2"
 
 [workspace.package]
-version = "1.17.0"
+version = "1.17.1"
 edition = "2021"
 license = "Apache-2.0"
 rust-version = "1.99.1"
@@ -27,3 +28,7 @@ opt-level = 2
 opt-level = 2
 [profile.dev.package.gitnova-domain]
 opt-level = 2
+
+# GTK3 requires GLib 0.18. Carry the upstream VariantStrIter fix until GTK can migrate.
+[patch.crates-io]
+glib = { path = "vendor/glib-0.18.5" }
