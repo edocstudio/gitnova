@@ -4,6 +4,12 @@ Updated: 2026-11-28 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Branch picker loading on macOS CI
+
+Version 1.17.2 on `fix/branch-picker-loading-race`, based on 2e73523. In GitHub Actions run 46137578265 the macOS desktop E2E timed out waiting for the origin fetch action. The trace shows the scope controls became disabled during the click and Local stayed selected. Opening the picker now sets loading immediately. The regression test checks the selected scope before fetching and exercises real Git fetch, tracking branch creation and pull.
+
+The failing E2E passed four consecutive times against the local bridge. All 112 frontend unit tests and the TypeScript/Vite production build passed. Desktop release packaging and installation are pending until the running Desktop app is closed. Hosted Actions evaluated the previous commit.
+
 ## CI and dependency security review
 
 Version 1.17.1 on `fix/ci-and-security-updates`. GitHub run 46135953494 for tag `v1.7.0` built 6bc7964, whose application manifest says 1.17.0. The Linux failure logs show the Git fixture rejected an overlapping remote name at setup, and the graph assertion included the publication badge in the expected tag text. Both regression paths pass locally after the fixes.

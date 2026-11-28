@@ -333,7 +333,10 @@ test('remote selection fetches latest, creates tracking local and pulls an exist
   // Created after cloning: no cached ref can expose it until the explicit Fetch action.
   git(writer, ['switch', '-c', 'feature/remote-api']); writeFileSync(join(writer, 'api.ts'), 'export const revision = 1;\n'); git(writer, ['add', '.']); git(writer, ['commit', '-m', 'Add remote API']);
   await connectRealCore(page, join(folder, 'remote-ui-state.json')); await page.goto('/'); await page.getByLabel('Add an existing repository').fill(repo); await page.getByRole('button', { name: 'Open', exact: true }).click();
-  const switcher = page.getByRole('button', { name: 'Switch branch', exact: true }); await switcher.click(); await page.getByRole('button', { name: /^Remotes / }).click();
+  const switcher = page.getByRole('button', { name: 'Switch branch', exact: true }); await switcher.click();
+  const remotesTab = page.getByRole('button', { name: /^Remotes / });
+  await remotesTab.click();
+  await expect(remotesTab).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', { name: 'Open remote origin/feature/remote-api', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Fetch branches from origin', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Open remote origin/feature/remote-api', exact: true })).toBeVisible();
