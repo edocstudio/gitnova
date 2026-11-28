@@ -1319,6 +1319,8 @@
   "Choose source branch": "เลือกสาขาต้นทาง",
   "Default branch (resolved on review)": "สาขาหลักของโฮสต์ (ระบุชื่อเมื่อทบทวน)",
   "Source branch (changes from)": "สาขาต้นทาง (นำการเปลี่ยนแปลงจาก)",
+  "Enter branch name…": "ระบุชื่อสาขาเอง…",
+  "Target branch name": "ชื่อสาขาปลายทาง",
   "Target branch (merge into)": "สาขาปลายทาง (รวมการเปลี่ยนแปลงเข้า)",
   "e.g. release": "เช่น release",
   "Leave empty to use the provider default. Review will show its actual branch name.": "เว้นว่างเพื่อใช้สาขาหลักของโฮสต์ ขั้นตอนทบทวนจะแสดงชื่อสาขาจริง",
