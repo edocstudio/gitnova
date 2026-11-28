@@ -1319,6 +1319,8 @@
   "Choose source branch": "Choose source branch",
   "Default branch (resolved on review)": "Default branch (resolved on review)",
   "Source branch (changes from)": "Source branch (changes from)",
+  "Enter branch name…": "Enter branch name…",
+  "Target branch name": "Target branch name",
   "Target branch (merge into)": "Target branch (merge into)",
   "e.g. release": "e.g. release",
   "Leave empty to use the provider default. Review will show its actual branch name.": "Leave empty to use the provider default. Review will show its actual branch name.",

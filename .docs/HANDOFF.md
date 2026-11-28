@@ -4,6 +4,10 @@ Updated: 2026-11-28 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## Hosted request target branch dropdown
+
+Version 1.18.0 on `feat/hosting-target-branch-dropdown` (base 84b05ad). The PR/MR form lists fetched branches for the selected remote. Provider default and manual target entry remain available, including cross-project requests. Changing the target project clears a list selection. Both GitHub and GitLab browser fixtures passed, including custom entry and review. Built and installed Desktop 1.18.0, including the preceding branch-picker fix. Verified bundle version, signature, embedded assets, binary equality and the native WebView smoke with real Git.
+
 ## Branch picker loading on macOS CI
 
 Version 1.17.2 on `fix/branch-picker-loading-race`, based on 2e73523. In GitHub Actions run 46137578265 the macOS desktop E2E timed out waiting for the origin fetch action. The trace shows the scope controls became disabled during the click and Local stayed selected. Opening the picker now sets loading immediately. The regression test checks the selected scope before fetching and exercises real Git fetch, tracking branch creation and pull.
