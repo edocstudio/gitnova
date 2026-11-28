@@ -1,5 +1,17 @@
 # Workflow clarity across GitNova
 
+## Kustomize image versions
+
+Use the existing repository Settings and workspace Releases views. Configure a deploy
+repository in the same workspace, a local or fetched remote branch, two overlay
+directories, and the application container. Each refresh resolves one commit for
+both environments. Display rendered configuration beside deployment evidence.
+The image identifies desired state and does not identify the application's Git commit.
+
+## Workspace releases
+
+Releases compares environment image mappings across the workspace. Each column shows the configured image and its configuration date. Production can also show a successful GitLab production deployment or an explicit local confirmation. Branch pipeline and Jenkins job statuses have no environment mapping and are omitted.
+
 ## Promote selected files
 
 The Changes dock supplies the files and opens a review from the existing graph
@@ -677,3 +689,17 @@ Native blame follows rename heuristics; copied/moved-line detection is not enabl
 The current bounded reader supports regular UTF-8 files up to 1 MiB, losslessly
 represented filenames, and lines up to 1,000,000. Ignore-revs configuration and
 unavailable/partial/shallow evidence are reported. A retry is explicit.
+
+The Releases inspector owns image mapping for its selected repository. Header
+Settings defines the environment columns and their order across repositories on
+this device. Hiding an environment preserves its repository overlay.
+
+The Releases table searches workspace repository names locally and pages the results. Ordinary browsing reads visible repositories on demand.
+
+Each configured environment shows the Git committer time of the latest commit affecting files read to render its overlay at the selected revision. Shared base and patch edits count. This date describes configuration history. Deployment evidence carries its own timestamp.
+
+Releases shows ten repositories per page. Select a row and choose **Open repository in History** to open the application repository for that row in GitNova.
+
+Fetch workspace in Releases fetches across all pages using the configured deploy source per row. Shared repository/remote pairs are fetched once. Rows without a tracking reference use origin or a sole remote. Local branch mappings continue to follow their local branch. The graph fetch controls operate on one checkout.
+
+The workspace Releases header includes a monthly release calendar because a single repository graph cannot group cross-repository observations by day. Search applies across pages. Configuration changes use overlay history dates. Deployment evidence uses completed production deployments and separately labelled manual confirmations. Each cell shows a filtered event count on a fixed heat scale. Selecting a day lists its versions and distinct repository count. Activity and environment filters apply across the workspace. The device retains the most recent 200 observed events per workspace repository. Successful image snapshots are reused on entry with matching membership, mapping and environment settings. Fetch updates affected snapshots and Refresh rereads local inputs.

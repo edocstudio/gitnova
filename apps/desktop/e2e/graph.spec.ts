@@ -1204,11 +1204,11 @@ test('failed clone remains visible after restart without creating a repository m
   test.setTimeout(120000);const source=join(folder,'not-a-git-source'),destination=join(folder,'failed-clone');mkdirSync(source);writeFileSync(join(source,'keep.txt'),'source untouched');await connectRealCore(page,join(folder,'clone-recovery.json'));await page.goto('/');await page.locator('.clone-controls > summary').click();const controls=page.locator('.clone-controls');await controls.getByLabel('Repository URL or local source',{exact:true}).fill(source);await controls.getByLabel('New clone folder',{exact:true}).fill(destination);await controls.getByRole('button',{name:'Review clone',exact:true}).click();await controls.getByRole('button',{name:'Clone & open graph',exact:true}).click();await expect(controls.locator('.notice')).toContainText('Clone stopped',{timeout:45000});await page.reload();await page.locator('.clone-controls > summary').click();await controls.locator('.clone-attempts > summary').click();await expect(controls.locator('.clone-attempts')).toContainText('failed-clone');await expect(controls.locator('.clone-attempts')).toContainText('Clone stopped');await expect(page.locator('.repository-view')).toHaveCount(0);expect(readFileSync(join(source,'keep.txt'),'utf8')).toBe('source untouched');
 });
 
-function pickerFixture(name: string, pinned: number[]) {
+function pickerFixture(name: string, pinned: number[], count=7) {
   const parent=join(folder,name),state=join(folder,`${name}.json`);mkdirSync(parent);const paths:string[]=[];
   const invoke=(command:string,args:unknown):Catalog=>{const result=JSON.parse(execFileSync(bridge,[state],{input:JSON.stringify({command,args}),encoding:'utf8',maxBuffer:4*1024*1024}));if(result.error)throw new Error(result.error.message);return result.ok;};
   let catalog=invoke('catalog',{});
-  for(let index=0;index<7;index++){const path=join(parent,index===1?'team-a':'team-b',`project-${index}`);mkdirSync(path,{recursive:true});git(path,['init','-b','main']);git(path,['commit','--allow-empty','-m',`Picker project ${index}`]);paths.push(path);catalog=invoke('add_repository',{path});}
+  for(let index=0;index<count;index++){const path=join(parent,index===1?'team-a':'team-b',`project-${index}`);mkdirSync(path,{recursive:true});git(path,['init','-b','main']);git(path,['commit','--allow-empty','-m',`Picker project ${index}`]);paths.push(path);catalog=invoke('add_repository',{path});}
   for(const index of pinned){const membership=catalog.workspaces[0].memberships.find((entry:{name:string})=>entry.name===`project-${index}`);catalog=invoke('pin_repository',{membershipId:membership.id});}
   return {state,paths,catalog};
 }
@@ -2989,4 +2989,287 @@ test('hotfix restoration stops on conflicting release work and retains its check
   expect(git(repo,['rev-parse','refs/gitnova/hotfix/origin/v2/uat^1'])).toBe(saved);
   expect(git(repo,['branch','--list','resume-release/*'])).toBe('');
   expect(readFileSync(file,'utf8')).toBe('release edits\n');
+});
+
+test('workspace releases retain manual confirmation and calendar history after renaming an environment', async ({page})=>{
+ const repo=join(folder,'release-view-fixture');mkdirSync(repo);git(repo,['init','-b','main']);
+ writeFileSync(join(repo,'file'),'release');git(repo,['add','.']);git(repo,['commit','-m','Release overview']);
+ git(repo,['remote','add','origin','https://example.invalid/team/release-view.git']);
+ const sha=git(repo,['rev-parse','HEAD']);git(repo,['update-ref','refs/remotes/origin/release',sha]);
+ await connectRealCore(page,join(folder,'releases-state.json'));await page.goto('/');
+ await page.getByLabel('Add an existing repository').fill(repo);await page.getByRole('button',{name:'Open',exact:true}).click();
+ await page.getByRole('button',{name:'Releases',exact:true}).click();
+ await page.getByRole('button',{name:'Confirm UAT version'}).click();
+ await page.getByLabel('Deployed version').fill('v1.2.3');
+ await page.getByLabel('Build or deployment URL').fill('https://ci.example.invalid/job/service/5/');
+ await page.getByLabel('Confirmed by',{exact:true}).fill('Release operator');
+ await page.getByRole('button',{name:'Save confirmation'}).click();
+ await expect(page.locator('.release-row')).toContainText('v1.2.3');
+ await page.getByRole('button',{name:'Settings',exact:true}).click();
+ await page.getByLabel('Environment 2',{exact:true}).fill('Customer QA');
+ await page.getByRole('button',{name:'Save environments'}).click();
+ await page.getByRole('button',{name:'Close settings'}).click();
+ await expect(page.locator('.release-detail section').filter({has:page.getByRole('heading',{name:'Customer QA'})})).toContainText('v1.2.3');
+ await page.getByRole('button',{name:'Release calendar'}).click();
+ await page.getByLabel('Activity').selectOption('Manual confirmation');
+ await page.getByLabel('Environment',{exact:true}).selectOption({label:'Customer QA'});
+ await expect(page.locator('.calendar-detail li')).toHaveCount(1);
+ await expect(page.locator('.calendar-detail li')).toContainText('v1.2.3');
+});
+
+test('release overview isolates repositories and workspaces without inferring environment CI from a branch',async({page},testInfo)=>{
+  const state=join(folder,'release-overview-scope.json');
+  await connectRealCore(page,state);await page.goto('/');
+  for(const name of ['control-panel','jupyterhub']){
+    const repo=join(folder,'overview-'+name);
+    mkdirSync(repo);git(repo,['init','-b','main']);
+    writeFileSync(join(repo,'file'),name);git(repo,['add','.']);git(repo,['commit','-m',name]);
+    git(repo,['remote','add','origin','https://gitlab.example.invalid/team/'+name+'.git']);
+    git(repo,['update-ref','refs/remotes/origin/release','HEAD']);
+    if(name==='jupyterhub')await page.locator('.repo-picker').click();
+    await page.getByLabel('Add an existing repository').fill(repo);
+    await page.getByRole('button',{name:'Open',exact:true}).click();
+    await expect(page.locator('.repo-picker')).toContainText(name);
+  }
+  // Supply transport fixtures for the two external services. Memberships, refs,
+  // remote matching and workspace switches still use the native fixture core.
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const {CONNECTIONS_KEY}=await import('/src/connection-store.ts');
+    localStorage.setItem(CONNECTIONS_KEY,JSON.stringify([{id:'fixture',label:'Test GitLab',provider:'gitlab',origin:'https://gitlab.example.invalid',enabled:true}]));
+    const catalog=await api.catalog();
+    const id=catalog.workspaces[0].memberships.find((m:{name:string})=>m.name.endsWith('control-panel')).id;
+    const sha='a'.repeat(40),base='https://gitlab.example.invalid/team/control-panel/-/';
+    api.productionDeployment=async(m:string)=>m===id?{sha,tag:'v2.8.3',id:'184',url:base+'environments/1',finished:'2026-11-22T08:00:00Z'}:null;
+    api.releasePipeline=async()=>{sessionStorage.setItem('release-ci-read','yes');return null;};
+  });
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const control=page.getByRole('button',{name:/overview-control-panel.*v2.8.3/});
+  await control.click();await expect(page.getByRole('button',{name:'GitLab deployment #184'})).toBeVisible();
+  await page.screenshot({path:testInfo.outputPath('workspace-releases.png')});
+  await expect(page.locator('.release-detail h3').filter({hasText:'UAT'})).toHaveText('UAT');
+  await page.locator('.release-list').getByRole('button',{name:/overview-jupyterhub/}).click();
+  await expect(page.locator('.release-detail')).not.toContainText('No release pipeline');
+  expect(await page.evaluate(()=>sessionStorage.getItem('release-ci-read'))).toBeNull();
+  await page.keyboard.press('Control+o');await page.getByLabel('New workspace name').fill('Empty release workspace');
+  await page.getByRole('button',{name:'Create',exact:true}).click();await page.keyboard.press('Escape');
+  await expect(page.getByText('No repositories in this workspace.')).toBeVisible();await expect(page.locator('.release-row')).toHaveCount(0);
+});
+
+test('Kustomize release images render the selected deploy commit and container',async({page},testInfo)=>{
+  test.skip(spawnSync('kubectl',['version','--client']).status!==0 && spawnSync('kustomize',['version']).status!==0,'Requires a Kustomize renderer');
+  const deploy=join(folder,'deploy-config');
+  mkdirSync(deploy);
+  git(deploy,['init','-b','main']);
+  const digest='sha256:'+'a'.repeat(64);
+  for(const env of ['base','overlays/uat','overlays/production'])mkdirSync(join(deploy,env),{recursive:true});
+  writeFileSync(join(deploy,'base/kustomization.yaml'),'resources: [pod.yaml]\n');
+  writeFileSync(join(deploy,'base/pod.yaml'),'apiVersion: v1\nkind: Pod\nmetadata: {name: web}\nspec:\n  containers:\n  - {name: web, image: "registry:5000/web:v1"}\n  - {name: logs, image: "logger:v9"}\n');
+  const prod=join(deploy,'overlays/production/kustomization.yaml');
+  writeFileSync(prod,'resources: [../../base]\nimages:\n- name: registry:5000/web\n  digest: '+digest+'\n');
+  writeFileSync(join(deploy,'overlays/uat/kustomization.yaml'),'resources: [../../base]\npatches:\n- target: {kind: Pod, name: web}\n  patch: |\n    - op: replace\n      path: /spec/containers/0/image\n      value: registry:5000/web:uat-5\n');
+  const commitAt=(date:string,message:string)=>{
+    git(deploy,['add','.']);
+    execFileSync('git',['-C',deploy,'-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','commit','-m',message],
+      {env:{...process.env,GIT_AUTHOR_DATE:date,GIT_COMMITTER_DATE:date}});
+  };
+  const baseDate='2025-02-03T04:05:06+00:00',uatDate='2025-03-04T05:06:07+00:00';
+  commitAt('2025-01-02T03:04:05+00:00','Release config');
+  const patch=join(deploy,'overlays/uat/kustomization.yaml');
+  writeFileSync(patch,readFileSync(patch,'utf8').replace('uat-5','uat-6'));
+  commitAt('2025-01-15T12:00:00+00:00','Earlier rollout');
+  const pod=join(deploy,'base/pod.yaml');
+  writeFileSync(pod,readFileSync(pod,'utf8')+'# shared update\n');commitAt(baseDate,'Shared configuration');
+  writeFileSync(patch,readFileSync(patch,'utf8').replace('uat-6','uat-7'));commitAt(uatDate,'UAT configuration');
+  writeFileSync(join(deploy,'README.md'),'unrelated');commitAt('2025-04-05T06:07:08+00:00','Documentation');
+  writeFileSync(prod,'resources: []\n');
+  await connectRealCore(page,join(folder,'kustomize-release.json'));await page.goto('/');
+  for(const repo of [repository,deploy]){
+    if(repo===deploy)await page.locator('.repo-picker').click();
+    await page.getByLabel('Add an existing repository').fill(repo);
+    await page.getByRole('button',{name:'Open',exact:true}).click();
+    await expect(page.locator('.repo-picker')).toContainText(repo===deploy?'deploy-config':'project-api');
+  }
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await page.getByRole('button',{name:'Add environment'}).click();
+  await page.getByLabel('Environment 4',{exact:true}).fill('Preview');
+  await page.getByRole('button',{name:'Move Preview up'}).click();
+  await page.getByRole('button',{name:'Move Preview up'}).click();
+  await page.getByRole('button',{name:'Move UAT down'}).click();
+  await page.getByRole('button',{name:'Save environments'}).click();
+  await page.getByRole('button',{name:'Close settings'}).click();
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const row=page.locator('.release-row').filter({hasText:'project-api'});
+  await row.click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await expect(page.getByRole('group',{name:'Visible environments'})).toBeVisible();
+  await expect(page.getByRole('form',{name:'Repository commit identity'})).toHaveCount(0);
+  await page.getByRole('button',{name:'Close settings'}).click();
+  await page.getByRole('button',{name:'Configure release images'}).click();
+  await page.getByLabel('Deploy repository').selectOption({label:'deploy-config'});
+  await page.getByLabel('Deploy branch').selectOption('refs/heads/main');
+  await page.getByLabel('Container name').fill('web');
+  await page.getByLabel('Preview overlay').fill('overlays/uat');
+  await page.getByLabel('SIT overlay').fill('overlays/production');
+  await expect(page.locator('.releases-page header').getByRole('button',{name:'Refresh',exact:true})).toBeEnabled();
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const read=api.remoteBranches;
+    sessionStorage.setItem('release-branch-reads','0');
+    api.remoteBranches=(...args:Parameters<typeof read>)=>{
+      sessionStorage.setItem('release-branch-reads',String(Number(sessionStorage.getItem('release-branch-reads'))+1));
+      return read(...args);
+    };
+  });
+  await page.getByRole('button',{name:'Save image mapping'}).click();
+  await expect(page.locator('.release-head span')).toHaveText(['Repository','SIT','Preview','Production','UAT']);
+  await expect(row.locator(':scope > span').nth(0)).toContainText('sha256');
+  await expect(row.locator(':scope > span').nth(1)).toContainText('uat-7');
+  await expect(row.locator('time')).toHaveCount(4);
+  expect(Date.parse((await row.locator('time').nth(0).getAttribute('datetime'))!)).toBe(Date.parse(baseDate));
+  expect(Date.parse((await row.locator('time').nth(1).getAttribute('datetime'))!)).toBe(Date.parse(uatDate));
+  await expect(page.locator('.release-detail time')).toHaveCount(4);
+  await expect(row).toContainText('uat-7');
+  await row.click();
+  const detail=page.locator('.release-detail');
+  await expect(detail).toContainText(digest);
+  await expect(detail).not.toContainText('No verified deployment');
+  await expect(detail).not.toContainText('logger');
+  expect(await page.evaluate(()=>sessionStorage.getItem('release-branch-reads'))).toBe('0');
+  await page.getByRole('button',{name:'Configure release images'}).click();
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const read=api.kustomizeImages;
+    sessionStorage.setItem('image-reads','0');
+    api.kustomizeImages=(...args:Parameters<typeof read>)=>{
+      sessionStorage.setItem('image-reads','1');
+      return read(...args);
+    };
+  });
+  await page.getByRole('button',{name:'Save image mapping'}).click();
+  await expect(page.getByRole('button',{name:'Configure release images'})).toHaveAttribute('aria-expanded','false');
+  expect(await page.evaluate(()=>sessionStorage.getItem('image-reads'))).toBe('0');
+  await expect(page.locator('.release-row').filter({hasText:'deploy-config'})).not.toContainText('From config');
+  await page.getByRole('button',{name:'History',exact:true}).click();
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  await expect(row).toContainText('uat-7');
+  await expect(page.locator('.releases-page header').getByRole('button',{name:'Refresh',exact:true})).toBeEnabled();
+  expect(await page.evaluate(()=>sessionStorage.getItem('image-reads'))).toBe('0');
+  await page.getByRole('button',{name:'Release calendar'}).click();
+  const calendar=page.locator('.release-calendar');
+  const activeDay=calendar.locator('[data-heat]:is(button):not([data-heat="0"])').first();
+  await activeDay.click();
+  await expect(calendar.locator('.calendar-detail')).toContainText('uat-7');
+  await calendar.getByLabel('Environment',{exact:true}).selectOption('Preview');
+  await expect(activeDay).toHaveAttribute('data-heat','1');
+  await expect(calendar.locator('.calendar-detail li')).toHaveCount(1);
+  await expect(calendar.locator('.calendar-detail li')).toContainText('Preview');
+  await calendar.getByRole('button',{name:'Previous month'}).click();
+  await expect(calendar.locator('button[data-day]')).toHaveCount(28);
+  await activeDay.click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-6');
+  await expect(calendar.locator('.calendar-detail li')).toHaveCount(1);
+  await calendar.getByRole('button',{name:'Previous month'}).click();
+  const historicalDays=calendar.locator('button[data-day]:not([data-heat="0"])');
+  await expect(historicalDays).toHaveCount(2);
+  await historicalDays.first().click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-5');
+  await historicalDays.last().click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-6');
+  await calendar.getByRole('button',{name:'Next month'}).click();
+  await calendar.getByRole('button',{name:'Next month'}).click();
+  await activeDay.click();
+  await expect(calendar.locator('.calendar-detail li')).toContainText('uat-7');
+  await calendar.screenshot({path:testInfo.outputPath('release-calendar.png')});
+  await calendar.getByLabel('Activity').selectOption('Deployment');
+  await expect(calendar).toContainText('No matching records yet.');
+  await expect(calendar.locator('button[data-heat]:not([data-heat="0"])')).toHaveCount(0);
+});
+
+test('Releases searches all pages and reuses visible repository reads',async({page})=>{
+  test.setTimeout(150000);
+  const {state,catalog}=pickerFixture('release-pages',[],12);
+  const workspace=catalog.workspaces[0],members=workspace.memberships;
+  const first=Math.floor(members.findIndex(m=>m.id===workspace.selectedId)/10);
+  const visible=members.slice(first*10,first*10+10);
+  const hidden=members.find(m=>!visible.includes(m) && !members.some(other=>other!==m && other.name.includes(m.name)))!;
+  await connectRealCore(page,state);await page.goto('/');
+  await expect(page.locator('.repo-picker')).toContainText('project-11');
+  await page.evaluate(async()=>{
+    const {api}=await import('/src/api.ts');
+    const read=api.remoteBranches;
+    api.remoteBranches=(id:string)=>{
+      const ids=JSON.parse(sessionStorage.getItem('release-reads')??'[]');
+      ids.push(id);sessionStorage.setItem('release-reads',JSON.stringify(ids));
+      return read(id);
+    };
+  });
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const view=page.locator('.releases-page'),rows=view.locator('.release-row');
+  const ready=view.getByRole('button',{name:'Refresh',exact:true});
+  const reads=()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('release-reads')??'[]') as string[]);
+  await expect(rows).toHaveCount(visible.length);await expect(ready).toBeEnabled();
+  const initialReads=await reads();
+  expect(new Set(initialReads)).toEqual(new Set(visible.map(m=>m.id)));
+  const search=view.getByRole('searchbox');
+  await search.fill(hidden.name.toUpperCase());await expect(rows).toHaveCount(1);
+  await expect(view.locator('.release-detail h2')).toContainText(hidden.name);
+  await expect(ready).toBeEnabled();expect(await reads()).toContain(hidden.id);
+  await search.fill('[.*]');await expect(view.getByText('No matching repositories.')).toBeVisible();
+  await search.fill('');await expect(rows).toHaveCount(10);await expect(ready).toBeEnabled();
+  await view.getByLabel('Next repository page').click();await expect(rows).toHaveCount(2);await expect(ready).toBeEnabled();
+  await view.getByLabel('Previous repository page').click();await expect(rows).toHaveCount(10);await expect(ready).toBeEnabled();
+  expect((await reads()).slice(initialReads.length).sort()).toEqual(members.filter(m=>!visible.includes(m)).map(m=>m.id).sort());
+  await search.fill('project-2');
+  await view.getByRole('button',{name:'Open repository in History'}).click();
+  await expect(page.locator('.repo-picker')).toContainText('project-2');
+  await expect(view).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'History',exact:true})).toHaveAttribute('aria-pressed','true');
+});
+
+test('Fetch workspace spans filtered pages, shares mapped remotes and retries failures only',async({page})=>{
+  test.setTimeout(150000);
+  const {state,catalog,paths}=pickerFixture('fetch-workspace',[],12);
+  const byName=(name:string)=>catalog.workspaces[0].memberships.find(m=>m.name===name)!;
+  const deploy=byName('project-0');
+  const missing=join(folder,'workspace-fetch-later.git');
+  git(paths[0],['remote','add','deploy',paths[1]]);
+  git(paths[3],['remote','add','origin',missing]);
+  writeFileSync(join(paths[0],'untracked'),'keep');
+  const head=git(paths[0],['rev-parse','HEAD']);
+  await connectRealCore(page,state);
+  await page.goto('/');
+  await page.evaluate(async({deployId,apps})=>{
+    const {api}=await import('/src/api.ts');
+    for(const app of apps)localStorage.setItem('gitnova.release.kustomize.'+app,JSON.stringify({
+      deployId,reference:'refs/remotes/deploy/main',container:'api',overlays:{}
+    }));
+    const fetch=api.autoFetch;
+    api.autoFetch=(id:string,remote?:string)=>{
+      const calls=JSON.parse(sessionStorage.getItem('workspace-fetch-calls')??'[]');
+      calls.push([id,remote]);sessionStorage.setItem('workspace-fetch-calls',JSON.stringify(calls));
+      return fetch(id,remote);
+    };
+  },{deployId:deploy.repositoryId,apps:[byName('project-1').repositoryId,byName('project-2').repositoryId]});
+  await page.getByRole('button',{name:'Releases',exact:true}).click();
+  const view=page.locator('.releases-page'),search=view.getByRole('searchbox');
+  await search.fill('project-2');
+  await view.getByRole('button',{name:'Fetch workspace'}).click();
+  const retry=view.getByRole('button',{name:'Retry failed'});
+  await expect(retry).toBeEnabled();
+  await expect(view).toContainText('Processed 12 of 12 repositories');
+  await expect(view.getByRole('progressbar')).toHaveAttribute('aria-valuenow','12');
+  const calls=()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspace-fetch-calls')??'[]'));
+  const initial=await calls();
+  expect(initial.filter(([id]:string[])=>id===deploy.id)).toEqual([[deploy.id,'deploy']]);
+  expect(git(paths[0],['rev-parse','refs/remotes/deploy/main'])).toBe(git(paths[1],['rev-parse','HEAD']));
+  expect(git(paths[0],['rev-parse','HEAD'])).toBe(head);
+  expect(readFileSync(join(paths[0],'untracked'),'utf8')).toBe('keep');
+  git(paths[3],['clone','--bare',paths[1],missing]);
+  await retry.click();
+  await expect(view).toContainText('Processed 1 of 1 repositories');
+  await expect(retry).toHaveCount(0);
+  expect((await calls()).slice(initial.length)).toEqual([[byName('project-3').id,'origin']]);
+  await expect(search).toHaveValue('project-2');
+  await expect(view.locator('.release-detail h2')).toContainText('project-2');
 });

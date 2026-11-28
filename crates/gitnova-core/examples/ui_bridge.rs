@@ -31,6 +31,36 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
                 json!(app.prepare_hotfix(&s("membershipId")?, &request, &expected)?)
             }
         }
+        "kustomize_images" | "kustomize_history" => {
+            let mapping = serde_json::from_value(args["mapping"].clone())
+                .map_err(|e| AppError::new("kustomize", e.to_string()))?;
+            if command == "kustomize_history" {
+                let timestamp = |key: &str| {
+                    args[key]
+                        .as_i64()
+                        .ok_or_else(|| AppError::new("history", "Invalid timestamp"))
+                };
+                json!(app.kustomize_history(
+                    &s("membershipId")?,
+                    &mapping,
+                    timestamp("start")?,
+                    timestamp("end")?
+                )?)
+            } else {
+                json!(app.kustomize_images(&s("membershipId")?, &mapping)?)
+            }
+        }
+        "release_evidence" => {
+            let selection = serde_json::from_value(args["selection"].clone())
+                .map_err(|e| AppError::new("hosting", e.to_string()))?;
+            app.release_evidence(
+                &s("membershipId")?,
+                &selection,
+                args["production"]
+                    .as_bool()
+                    .ok_or_else(|| AppError::new("hosting", "Missing environment"))?,
+            )?
+        }
         "promote_selected_files" => {
             let action = serde_json::from_value(args["action"].clone())
                 .map_err(|e| AppError::new("promotion", e.to_string()))?;
@@ -357,7 +387,7 @@ fn dispatch(app: &Application, request: &Value) -> Result<Value> {
             args.get("remote").and_then(|value| value.as_str())
         )?),
         "remote_branches" => json!(app.remote_branches(&s("membershipId")?)?),
-        "auto_fetch" => json!(app.auto_fetch(&s("membershipId")?)?),
+        "auto_fetch" => json!(app.background_fetch(&s("membershipId")?, args["remote"].as_str())?),
         "fetch_remote" => {
             json!(app.fetch_remote(&s("membershipId")?, &s("remote")?, args["branch"].as_str())?)
         }

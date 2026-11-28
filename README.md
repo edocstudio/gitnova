@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.6.0-4c9aff?style=flat-square" alt="Version: 1.6.0" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.17.0-4c9aff?style=flat-square" alt="Version: 1.17.0" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -31,6 +31,8 @@
   <sub>GitNova running against a real temporary Git repository. The screenshot uses a test fixture, not a company repository.</sub>
 </p>
 
+In Releases, select a repository and choose Configure release images. Map its container and overlays to a deployment branch. Settings → General controls which environment columns appear across repositories and their order. Rendering requires local kustomize or kubectl.
+
 ## Why GitNova?
 
 - **See the story in the graph.** Trace branches and merges, inspect commits, and reach contextual actions with a right click or a double click.
@@ -41,7 +43,7 @@
 
 ## Features
 
-The following workflows are implemented in version 1.6.0. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.17.0. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -56,6 +58,7 @@ The following workflows are implemented in version 1.6.0. Availability does not 
 | **Search** | Find commits by message, author, email or SHA; investigate literal file/code history and compare branch tips across the current repository, selected repositories or workspace. Investigation coverage is bounded and labelled. |
 | **Production hotfix** | Right-click the deployed tag to open an isolated hotfix worktree. Prepare a whole-tree UAT request for `release`, verify its tagged commit and restore parked release work with the patch. |
 | **Tags & collaboration** | Create/publish version tags, copy remote commit links, and create/open GitHub pull requests or GitLab merge requests. |
+| **Workspace releases** | Compare confirmed production deployments and UAT release jobs across repositories. Filter pending manual actions and open the provider job from its evidence. |
 | **CI visibility** | Display exact-commit GitLab pipelines and GitHub Actions workflow runs alongside checks/status in the graph, including available run numbers and links. The header bell lists current-HEAD GitLab manual/blocked actions with required, optional or unknown evidence and links to the pipeline. Global host/company connections and optional Jenkins integration live in Settings. |
 | **Languages** | Switch between English and Thai from Settings → General without losing drafts or selection. |
 
@@ -164,7 +167,7 @@ For macOS development diagnostics, `npm run build:local` still produces `target/
 
 ## Project status
 
-**GitNova 1.6.0** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.17.0** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |

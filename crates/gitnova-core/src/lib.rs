@@ -23,6 +23,7 @@ mod hosting;
 pub mod hotfix;
 mod init;
 mod jenkins;
+pub mod kustomize;
 pub mod local_analysis;
 mod membership_management;
 mod merge_cleanup;
@@ -1830,6 +1831,13 @@ impl Application {
     /// remote-tracking refs, tags and object data may change; the normal app write lock
     /// and repository identity validation still apply.
     pub fn auto_fetch(&self, membership_id: &str) -> Result<Option<String>> {
+        self.background_fetch(membership_id, None)
+    }
+    pub fn background_fetch(
+        &self,
+        membership_id: &str,
+        requested_remote: Option<&str>,
+    ) -> Result<Option<String>> {
         let path = self.path(membership_id)?;
         let catalog = self.catalog()?;
         let membership = catalog
@@ -1874,6 +1882,13 @@ impl Application {
             return Ok(None);
         }
         let remotes = self.git.remote_branches(&path)?;
+        if let Some(remote) = requested_remote {
+            if !remotes.remotes.iter().any(|name| name == remote) {
+                return Err(AppError::new("remote", "Configured remote is unavailable."));
+            }
+            self.git.fetch_remote_background(&path, remote)?;
+            return Ok(Some(remote.to_owned()));
+        }
         let upstream_remote = status
             .branch
             .as_ref()

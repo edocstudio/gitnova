@@ -140,6 +140,21 @@ impl Application {
         context.account = Some(gitnova_hosting::connect(&context, prompt)?);
         Ok(context)
     }
+    pub fn release_evidence(
+        &self,
+        membership_id: &str,
+        selection: &HostingSelection,
+        production: bool,
+    ) -> Result<serde_json::Value> {
+        let context = self.pipeline_scope(membership_id, selection, true)?;
+        let credential = gitnova_hosting::credential(&context)?;
+        let client = gitnova_hosting::HostingClient::new(&context, &credential)?;
+        if production {
+            Ok(serde_json::json!(client.production_deployment()?))
+        } else {
+            Ok(serde_json::json!(client.release_pipeline()?))
+        }
+    }
     pub fn pipelines(
         &self,
         membership_id: &str,

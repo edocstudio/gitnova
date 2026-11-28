@@ -1,8 +1,122 @@
 # GitNova session handoff
 
-Updated: 2026-11-24 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
+Updated: 2026-11-28 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
+
+## Workspace release profiles
+
+Version 1.17.0 on `feat/workspace-release-profiles`. Settings on Releases configures the current workspace's environment order, labels, GitLab production evidence destination and optional Kustomize defaults. Renaming an environment preserves its identity for mappings, confirmations and history. Repository overrides can inherit unchanged template fields. Existing global environment names and repository mappings are read as migration fallbacks. Teams can record a deployment confirmation for a specific environment with a version, confirmer and evidence link. Kustomize config events and deployment confirmations remain distinct calendar activities.
+
+TypeScript, five targeted unit tests and five end-to-end Releases scenarios passed. The installed Desktop bundle passed signature and embedded UI checks, binary comparison and the native WebView smoke test with a real Git graph.
+
+## Calendar Git history
+
+Version 1.16.0 on `feat/release-config-history` (base 0338fce). Config updates read the selected local deploy branch's first-parent history for each calendar month. The renderer resolves the mapped container at each historical change to its overlay, shared bases or patches. The calendar filters by environment, uses local day boundaries and limits reads to 128 matching commits per environment per month with a partial-history notice. Deployment and confirmation activities continue using observed evidence.
+
+TypeScript, three localization tests and three Releases browser scenarios passed. The real Git fixture starts the app after three versions have been committed, then selects historical days and verifies their original versions. License inventory regenerated. Desktop/GitNova.app was built from a672dbe and installed at version 1.16.0. Native WebView smoke, real Git graph, signature, embedded UI and installed binary comparison passed.
+
+## Release activity calendar
+
+Version 1.15.0 on `feat/releases-activity-calendar`. The monthly calendar replaces the daily accordion. Its fixed heat scale counts individual filtered events per local day. The selected day lists repositories, environments, versions and times. Activity filters separate config updates, deployment records and manual confirmations. Environment options follow the workspace configuration. Verified with TypeScript, three localization checks, three Releases browser scenarios and an inspected UI screenshot. The installed Desktop bundle passed signature, embedded UI and native smoke checks.
+
+## Releases progress, snapshots and daily activity
+
+Version 1.14.0 on `feat/releases-daily-summary`. Releases shows determinate fetch progress with reduced-motion support. Successful Kustomize image snapshots persist locally by workspace/repository and validate mapping, deploy membership and environment selection before reuse. Refresh rebuilds the view and workspace fetch updates changed mapped refs, including off-page rows. Daily summary groups observed config changes or production evidence by local day, with distinct repository counts, environment and version. It retains up to 200 observed events per workspace repository and does not backfill provider deployment history.
+
+TypeScript, three localization tests and four browser workflows passed, including zero additional renders on reopening the cached table, daily config grouping and fetch progress at completion. Desktop 1.14.0 passed native smoke, signature and embedded UI checks.
+
+## Fetch workspace in Releases
+
+Version 1.13.0 on `feat/releases-fetch-workspace`. Fetch workspace processes all unique application rows serially, shares each deploy repository/remote fetch, and rechecks cached images for changed tracking refs. Unmapped rows and local branch mappings use origin or a sole remote. The report offers failed-row retry. Leaving Releases stops scheduling further fetches. Checked with twelve disposable repositories, shared remotes, filtered navigation, an unavailable remote, retry and untracked work. TypeScript, three browser scenarios and three localization tests passed. The Desktop bundle passed native smoke, embedded assets and signing checks.
+
+## Environment CI scope
+
+Version 1.12.1 on `fix/releases-unmapped-ci`. Releases omits branch and Jenkins CI status for all environments and no longer scans pipelines for the former Needs action filter. Config images, configuration dates and explicit production deployment evidence remain available. TypeScript and three Releases browser scenarios passed. Desktop installation passed native smoke, signature and embedded UI checks.
+
+## Release repository navigation
+
+Version 1.12.0 on `feat/release-code-navigation`. Releases displays ten repositories per page. The selected row's **Open repository in History** button navigates to that workspace membership through the catalog. Search covers the whole workspace. TypeScript checks, three localization tests and three Releases browser scenarios passed, including pagination with twelve repositories and navigation to a different member. Desktop 1.12.0 passed native smoke, signature and embedded UI verification.
+
+## Environment configuration dates
+
+Version 1.11.0 on `feat/release-environment-dates`. Releases shows Config updated in the environment cell and inspector. The timestamp is the committer date from the latest commit touching the overlay's actual render inputs, including its shared bases and patches, at the pinned revision. A history lookup failure leaves the image available. Production evidence can display its own recorded date when shown in the table.
+
+Verified with separate dated commits for a shared base, UAT overlay and unrelated documentation in a disposable repository. Three release workflows and three localization tests passed. Desktop 1.11.0 passed native smoke, embedded UI and signing checks.
+
+## Search and pagination in Releases
+
+Version 1.10.0 on `feat/release-search-pagination`. Search matches literal
+repository names across the workspace, ignoring case. Each page shows up to
+five repositories. A serial queue follows the current view. Cached evidence and
+images are reused when revisiting pages until refresh or configuration changes.
+Needs action checks CI across the matching names to find pending jobs. The
+repository mapping event still updates only its own image data.
+
+Verified using seven temporary repositories, counting reads across page changes,
+searches and revisits. The release overview and mapping regressions and three
+localization tests passed. Installed macOS Desktop 1.10.0 passed signature,
+embedded UI and native smoke checks.
+
+## Repository-scoped release updates
+
+Version 1.9.1 on `fix/release-mapping-refresh-scope`. Saving or removing an image
+mapping updates only the affected repository's images. An unchanged save skips
+the image read. Newer image reads supersede pending results, independently of
+the workspace CI scan. Settings opened on Releases contains workspace-relevant
+preferences and omits the History repository's commit identity editor. History
+still offers repository commit identity through Settings and its footer.
+
+Three Playwright regressions passed using temporary repositories and the real
+core bridge, covering scoped saves, repeat saves, Releases settings and History
+identity editing. Verified the installed Desktop 1.9.1 bundle and native smoke.
+
+## Configurable release environments
+
+Version 1.9.0 on `feat/configurable-release-environments` moves repository image
+mapping to Releases → select a repository → Configure release images. On this
+device Settings → General → Visible environments controls names and column order
+for all repositories. Defaults are SIT, UAT, Production. A 1.8 mapping keeps its
+deploy ref, container and overlay paths and gains overlays/sit. Re-enabling
+a hidden environment restores its saved path. Custom environments show configured
+images. Production deployment evidence and release-branch UAT CI keep their scopes.
+
+Two Playwright workflows covered the real Rust bridge, Kustomize rendering,
+repository selection, a custom column and workspace evidence. Four targeted unit
+tests passed including 1.8 migration and localization. Verified the installed
+Desktop 1.9.0 signature, native smoke, embedded assets and executable comparison.
+
+## Kustomize release images
+
+Version 1.8.0 on `feat/kustomize-release-images` adds mapping under Settings → General.
+Select the app, deploy repository in the workspace, local or fetched remote branch,
+two overlay paths and exact container name. Releases renders the selected Git
+revision with local kustomize or kubectl, shows the desired image independently
+per environment, and keeps GitLab/Jenkins/manual evidence separate. No cluster
+connection is used. Fetch the deploy repo to update a remote-tracking branch.
+
+The Playwright release overview regression and cross-repository mapping test
+passed with the real Rust bridge and kubectl. The latter verified a base Pod with
+two containers, a digest, an inline UAT patch and an uncommitted production-overlay
+edit. Three localization tests passed. Live cluster rollout was outside scope.
+
+Installed Desktop 1.8.0 passed native smoke, signature, executable comparison and embedded UI checks. The update retained the previous Desktop app as a backup.
+
+## Workspace Releases
+
+Version 1.7.0 on `feat/workspace-release-overview` adds Releases beside History.
+Select a repository to inspect its production evidence and UAT jobs. Needs action
+filters the release pipeline. GitLab production evidence uses the latest
+successful deployment to the environment named `production`. UAT follows the
+latest pipeline on the branch named `release`. Repository-scoped Jenkins jobs
+can be opened and builds are matched to the fetched release SHA. Manual production
+confirmation records a SHA, version, source link, name and timestamp on this device.
+
+Validated with the GitLab HTTP fixture, three localization tests and two
+Playwright workflows covering manual evidence, filtering, direct job links,
+repository selection and workspace isolation. External responses were simulated.
+Installed Desktop 1.7.0 passed native smoke, signature and embedded UI checks.
+The previous app is in `Desktop/.gitnova-update.w3xfbZOa/GitNova-1.6.0.app`.
 
 ## Production hotfix for release-only UAT
 

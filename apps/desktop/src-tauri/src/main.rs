@@ -900,8 +900,15 @@ async fn remote_branches(
     run(state, move |a| a.remote_branches(&membership_id)).await
 }
 #[tauri::command]
-async fn auto_fetch(state: State<'_>, membership_id: String) -> Result<Option<String>, AppError> {
-    run(state, move |a| a.auto_fetch(&membership_id)).await
+async fn auto_fetch(
+    state: State<'_>,
+    membership_id: String,
+    remote: Option<String>,
+) -> Result<Option<String>, AppError> {
+    run(state, move |a| {
+        a.background_fetch(&membership_id, remote.as_deref())
+    })
+    .await
 }
 #[tauri::command]
 async fn fetch_remote(
@@ -1338,6 +1345,42 @@ async fn ci_summary(
     .await
 }
 #[tauri::command]
+async fn kustomize_images(
+    state: State<'_>,
+    membership_id: String,
+    mapping: gitnova_core::kustomize::Mapping,
+) -> Result<gitnova_core::kustomize::Images, AppError> {
+    run_background(state, move |app| {
+        app.kustomize_images(&membership_id, &mapping)
+    })
+    .await
+}
+#[tauri::command]
+async fn kustomize_history(
+    state: State<'_>,
+    membership_id: String,
+    mapping: gitnova_core::kustomize::Mapping,
+    start: i64,
+    end: i64,
+) -> Result<gitnova_core::kustomize::ImageHistory, AppError> {
+    run_background(state, move |app| {
+        app.kustomize_history(&membership_id, &mapping, start, end)
+    })
+    .await
+}
+#[tauri::command]
+async fn release_evidence(
+    state: State<'_>,
+    membership_id: String,
+    selection: HostingSelection,
+    production: bool,
+) -> Result<serde_json::Value, AppError> {
+    run_background(state, move |app| {
+        app.release_evidence(&membership_id, &selection, production)
+    })
+    .await
+}
+#[tauri::command]
 async fn pipelines(
     state: State<'_>,
     membership_id: String,
@@ -1596,6 +1639,9 @@ fn commands<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + Sen
         disconnect_jenkins_account,
         pipeline_context,
         connect_pipeline,
+        kustomize_images,
+        kustomize_history,
+        release_evidence,
         pipelines,
         ci_summary,
         hosting_context,
