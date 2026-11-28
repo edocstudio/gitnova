@@ -4,6 +4,14 @@ Updated: 2026-11-28 (Asia/Bangkok). Read the root [AGENTS.md](../AGENTS.md)
 first. This checkpoint supplements the latest user request and live Git/process
 state. Communicate with this user in Thai.
 
+## CI and dependency security review
+
+Version 1.17.1 on `fix/ci-and-security-updates`. GitHub run 46135953494 for tag `v1.7.0` built 6bc7964, whose application manifest says 1.17.0. The Linux failure logs show the Git fixture rejected an overlapping remote name at setup, and the graph assertion included the publication badge in the expected tag text. Both regression paths pass locally after the fixes.
+
+Node 26.13.1 is the security-patched build runtime. The locked npm audit reports zero findings. OSV checks of all public Rust registry entries identified fixes in url, cookie and rustix. The GTK3 GLib dependency now uses the verified upstream VariantStrIter backport documented in [vendor/README.md](../vendor/README.md). A post-update scan of 550 registry entries reported maintenance advisories for chrono, proc-macro-error, unsafe-libyaml, zbus_names, zvariant and zvariant_derive. The separate vendored GLib source was compared byte-for-byte with the upstream archive plus the official patch. No Next.js dependency is present. GitHub Dependabot alerts were disabled at review time.
+
+The hosting resolver rejects userinfo in HTTPS remote URLs and requires two ASCII hex digits in escaped project paths. Local targeted verification passed for the 16 remote tests, the graph E2E, nine Node prerequisite tests and 43 hosting unit tests (one ignored). The full frontend unit suite and optimized GLib string iterator smoke passed on macOS. The installed Desktop 1.17.1 bundle passed signature, embedded asset, real Git native WebView and binary equality checks. Hosted CI has not run this patch commit.
+
 ## GitHub Actions build triggers
 
 Automatic checks run on pushed version tags matching `v*`. Manual release-candidate builds also require selecting a version tag as the workflow ref. Branch pushes and pull requests do not start builds. This change affects workflow scheduling only. The previous v1.6.0 remote fixture and graph tag assertion failures still require separate fixes.

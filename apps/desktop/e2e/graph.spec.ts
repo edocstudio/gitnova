@@ -300,7 +300,7 @@ test('parallel branch graph keeps reference labels, compact rows and merge topol
   await page.getByLabel('Add an existing repository').fill(repo); await page.getByRole('button', { name: 'Open', exact: true }).click();
   const row = page.locator(`#commit-${merge}`);
   await expect(row).toBeVisible(); await expect(page.locator('.history-heading')).toContainText('Branch / Tag');
-  await expect(row.locator('.graph-ref.local')).toHaveCount(1); await expect(row.locator('.graph-ref.tag')).toHaveText('v0.2.0');
+  await expect(row.locator('.graph-ref.local')).toHaveCount(1); await expect(row.locator('.graph-ref.tag').getByText('v0.2.0', { exact: true })).toBeVisible();
   await expect(row.locator('.merge-node')).toHaveCount(1); await expect(row.locator('.head-ring')).toHaveCount(1);
   expect(await row.evaluate(node => node.getBoundingClientRect().height)).toBe(36);
   const lanes = await page.locator('.graph-mark').evaluateAll(nodes => nodes.map(node => Number(node.getAttribute('data-lane'))));

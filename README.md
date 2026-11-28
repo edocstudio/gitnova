@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-4b91ff?style=flat-square" alt="License: Apache 2.0" /></a>
-  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.17.0-4c9aff?style=flat-square" alt="Version: 1.17.0" /></a>
+  <a href="#project-status"><img src="https://img.shields.io/badge/Version-1.17.1-4c9aff?style=flat-square" alt="Version: 1.17.1" /></a>
   <a href="Cargo.toml"><img src="https://img.shields.io/badge/Rust-1.99.1-4b91ff?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Rust 1.99.1" /></a>
   <a href="docs/implementation.md"><img src="https://img.shields.io/badge/UI-English_%2F_Thai-56c7d2?style=flat-square" alt="UI languages: English and Thai" /></a>
 </p>
@@ -43,7 +43,7 @@ In Releases, select a repository and choose Configure release images. Map its co
 
 ## Features
 
-The following workflows are implemented in version 1.17.0. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
+The following workflows are implemented in version 1.17.1. Availability does not imply production or cross-platform certification; see [project status](#project-status) and the [detailed limits](docs/implementation.md#current-limits-and-next-work).
 
 | Area | What you can do today |
 | --- | --- |
@@ -80,7 +80,7 @@ Captured from a temporary Git fixture using the real Rust core through the brows
 ### Requirements
 
 - **Rust stable 1.99.1**, Cargo, and an installed **Git 2.38+** executable.
-- **Node.js 26.13.0 LTS (26.x)** and npm. The repository pins 26.13.0 in [`.nvmrc`](.nvmrc); the accepted range is declared in [package.json](apps/desktop/package.json).
+- **Node.js 26.13.1 LTS (26.x)** and npm. The repository pins 26.13.1 in [`.nvmrc`](.nvmrc); the accepted range is declared in [package.json](apps/desktop/package.json).
 - The [Tauri system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS. The local macOS bundle targets macOS 13.0 or newer; see the platform validation limits below.
 
 Rust is pinned in [`rust-toolchain.toml`](rust-toolchain.toml), Node in [`.nvmrc`](.nvmrc), and Python QA/license tooling in [`.python-version`](.python-version) (3.15.2). Use the pinned toolchains for reproducible local and CI checks. TypeScript 7 is installed locally through `npm ci`; do not install it globally. Python is needed for QA/license scripts, not by the installed app. See the [toolchain verification report](docs/audits/2026-11-07-toolchain-upgrade.md) for completed checks and unresolved security/attribution findings.
@@ -167,7 +167,7 @@ For macOS development diagnostics, `npm run build:local` still produces `target/
 
 ## Project status
 
-**GitNova 1.17.0** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
+**GitNova 1.17.1** is the owner-selected version for distribution and user testing. Everyday workflows are implemented; the broader multi-repository roadmap remains in progress. The version number does not certify signing, completed license review or manual acceptance on every platform.
 
 | Platform | Current validation |
 | --- | --- |

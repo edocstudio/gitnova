@@ -2,3 +2,6 @@
 /docs/licenses/upstream/* -text
 # Collected upstream notices include original CRLF and trailing spaces; retain bytes.
 /docs/licenses/third-party-license-evidence.txt -text whitespace=-blank-at-eol,cr-at-eol
+
+# Retain the upstream GLib license verbatim.
+/vendor/glib-0.18.5/LICENSE -text whitespace=-blank-at-eof

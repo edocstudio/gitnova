@@ -139,9 +139,22 @@ fn full_fetch_clears_deleted_remote_branches_without_touching_other_refs_or_work
         git(&f.writer, &["merge", "--no-ff", "promote/release-to-main"]);
         fetch(&f, None);
         git(&f.repo, &["branch", "promote/release-to-main", &promoted]);
+        // Preserve coverage for existing repositories with overlapping remote namespaces.
         git(
             &f.repo,
-            &["remote", "add", "origin/nested", f.writer.to_str().unwrap()],
+            &[
+                "config",
+                "remote.origin/nested.url",
+                f.writer.to_str().unwrap(),
+            ],
+        );
+        git(
+            &f.repo,
+            &[
+                "config",
+                "remote.origin/nested.fetch",
+                "+refs/heads/*:refs/remotes/origin/nested/*",
+            ],
         );
         git(
             &f.repo,
